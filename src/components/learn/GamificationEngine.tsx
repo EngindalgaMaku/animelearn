@@ -142,7 +142,7 @@ class GamificationEngine {
   private achievements: Achievement[] = [];
   private progressionMilestones: ProgressionMilestone[] = [];
   private seasonalEvents: SeasonalEvent[] = [];
-  private eventListeners: Map<string, Function[]> = new Map();
+  private eventListeners: Map<string, ((data: any) => void)[]> = new Map();
 
   constructor(userId: string) {
     this.character = this.initializeCharacter(userId);
@@ -577,7 +577,7 @@ class GamificationEngine {
   }
 
   // Event system
-  on(event: string, callback: Function) {
+  on(event: string, callback: (data: any) => void) {
     if (!this.eventListeners.has(event)) {
       this.eventListeners.set(event, []);
     }

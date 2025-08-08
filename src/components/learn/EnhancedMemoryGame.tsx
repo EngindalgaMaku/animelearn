@@ -364,7 +364,7 @@ const EnhancedMemoryGame: React.FC<MemoryGameProps> = ({
   }, []);
 
   // Power-up functions
-  const usePowerUp = useCallback((powerUpId: string) => {
+  const activatePowerUp = useCallback((powerUpId: string) => {
     const powerUp = powerUps.find(p => p.id === powerUpId);
     if (!powerUp || powerUp.active || score < powerUp.cost) return;
 
@@ -852,7 +852,7 @@ const EnhancedMemoryGame: React.FC<MemoryGameProps> = ({
         // Voice/gesture power-up activation
         const availablePowerUps = powerUps.filter(p => !p.active && score >= p.cost);
         if (availablePowerUps.length > 0) {
-          usePowerUp(availablePowerUps[0].id);
+          activatePowerUp(availablePowerUps[0].id);
         }
         break;
         
@@ -882,7 +882,7 @@ const EnhancedMemoryGame: React.FC<MemoryGameProps> = ({
       default:
         console.log(`Unknown feature command: ${action}`);
     }
-  }, [gameStarted, gameCompleted, flippedCards, isProcessing, cards, powerUps, score, showHint, hintsUsed]);
+  }, [gameStarted, gameCompleted, flippedCards, isProcessing, cards, powerUps, score, showHint, hintsUsed, activatePowerUp]);
 
   const handleARCardPlaced = useCallback((cardId: string, position: any) => {
     // Handle AR card placement
@@ -1101,7 +1101,7 @@ const EnhancedMemoryGame: React.FC<MemoryGameProps> = ({
           {powerUps.map((powerUp) => (
             <motion.button
               key={powerUp.id}
-              onClick={() => usePowerUp(powerUp.id)}
+              onClick={() => activatePowerUp(powerUp.id)}
               disabled={powerUp.active || score < powerUp.cost || !gameStarted}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

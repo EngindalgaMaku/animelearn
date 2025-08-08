@@ -78,7 +78,7 @@ class InnovativeFeatures {
   private gestureConfig: GestureConfiguration;
   private hapticConfig: HapticConfiguration;
   private capabilities: FeatureCapabilities;
-  private eventListeners: Map<string, Function[]> = new Map();
+  private eventListeners: Map<string, ((data: any) => void)[]> = new Map();
 
   // AR/WebXR components
   private arSession: any = null;
@@ -202,7 +202,7 @@ class InnovativeFeatures {
   }
 
   // Event system
-  on(event: string, callback: Function) {
+  on(event: string, callback: (data: any) => void) {
     if (!this.eventListeners.has(event)) {
       this.eventListeners.set(event, []);
     }

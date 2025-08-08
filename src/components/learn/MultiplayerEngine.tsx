@@ -95,7 +95,7 @@ class MultiplayerEngine {
   private ws: WebSocket | null = null;
   private reconnectInterval: NodeJS.Timeout | null = null;
   private isConnecting = false;
-  private eventListeners: Map<string, Function[]> = new Map();
+  private eventListeners: Map<string, ((data: any) => void)[]> = new Map();
   private currentRoom: GameRoom | null = null;
   private currentPlayer: Player | null = null;
   private heartbeatInterval: NodeJS.Timeout | null = null;
@@ -153,14 +153,14 @@ class MultiplayerEngine {
   }
 
   // Event system
-  on(event: string, callback: Function) {
+  on(event: string, callback: (data: any) => void) {
     if (!this.eventListeners.has(event)) {
       this.eventListeners.set(event, []);
     }
     this.eventListeners.get(event)!.push(callback);
   }
 
-  off(event: string, callback: Function) {
+  off(event: string, callback: (data: any) => void) {
     const listeners = this.eventListeners.get(event);
     if (listeners) {
       const index = listeners.indexOf(callback);
