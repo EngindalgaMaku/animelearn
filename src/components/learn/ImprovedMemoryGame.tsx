@@ -71,6 +71,8 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
   const [isFirstCompletion, setIsFirstCompletion] = useState(!isCompleted);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
+  const [hoveredCard, setHoveredCard] = useState<GameCard | null>(null);
+  const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Initialize cards with proper separation
   useEffect(() => {
@@ -338,8 +340,62 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
     return "text-red-600";
   };
 
+  const handleCardHover = (card: GameCard) => {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+    }
+    
+    const timeout = setTimeout(() => {
+      setHoveredCard(card);
+    }, 500); // 500ms delay before showing modal
+    
+    setHoverTimeout(timeout);
+  };
+
+  const handleCardLeave = () => {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+      setHoverTimeout(null);
+    }
+    setHoveredCard(null);
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto p-6">
+      {/* Hover Modal */}
+      {hoveredCard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full p-6 relative">
+            <button
+              onClick={() => setHoveredCard(null)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-gray-800">Kart Detayı</h3>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center space-x-2 mb-2">
+                  {hoveredCard.type === 'question' ? (
+                    <HelpCircle className="h-5 w-5 text-blue-600" />
+                  ) : (
+                    <MessageSquare className="h-5 w-5 text-green-600" />
+                  )}
+                  <span className={`font-semibold ${
+                    hoveredCard.type === 'question' ? 'text-blue-800' : 'text-green-800'
+                  }`}>
+                    {hoveredCard.type === 'question' ? 'Soru' : 'Cevap'}
+                  </span>
+                </div>
+                <p className="text-lg leading-relaxed text-gray-700">
+                  {hoveredCard.text}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-6 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 p-6 text-white">
         <div className="flex items-center justify-between">
@@ -473,7 +529,7 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
             questions.length <= 6 ? 'grid-cols-2 sm:grid-cols-3' :
             'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'
           }`}>
-            {questions.map((question) => (
+            {questions.filter(q => !q.isMatched).map((question) => (
               <motion.div
                 key={question.id}
                 layout
@@ -485,6 +541,8 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
                     : 'cursor-pointer'
                 } transition-all duration-200`}
                 onClick={() => handleQuestionClick(question.id)}
+                onMouseEnter={() => handleCardHover(question)}
+                onMouseLeave={handleCardLeave}
               >
                 <div className={`
                   absolute inset-0 rounded-lg border-2 transition-all duration-300 p-3
@@ -551,7 +609,7 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
             answers.length <= 6 ? 'grid-cols-2 sm:grid-cols-3' :
             'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'
           }`}>
-            {answers.map((answer) => (
+            {answers.filter(a => !a.isMatched).map((answer) => (
               <motion.div
                 key={answer.id}
                 layout
@@ -563,6 +621,8 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
                     : 'cursor-pointer'
                 } transition-all duration-200`}
                 onClick={() => handleAnswerClick(answer.id)}
+                onMouseEnter={() => handleCardHover(answer)}
+                onMouseLeave={handleCardLeave}
               >
                 <div className={`
                   absolute inset-0 rounded-lg border-2 transition-all duration-300 p-3
