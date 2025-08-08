@@ -113,6 +113,12 @@ const GamificationHub: React.FC<GamificationHubProps> = ({
       description: "Daily knowledge test",
     },
     {
+      id: "quiz-arena",
+      label: "Quiz Arena",
+      icon: <GamepadIcon className="h-5 w-5" />,
+      description: "Quiz streak achievements",
+    },
+    {
       id: "cards",
       label: "Card Packs",
       icon: <Gift className="h-5 w-5" />,
@@ -306,6 +312,127 @@ const GamificationHub: React.FC<GamificationHubProps> = ({
         return <DailyLoginDashboard />;
       case "quiz":
         return <DailyMiniQuiz />;
+      case "quiz-arena":
+        return (
+          <div className="space-y-6">
+            <div className="text-center p-8 bg-gradient-to-br from-orange-50 to-red-50 rounded-xl">
+              <GamepadIcon className="h-16 w-16 mx-auto mb-4 text-orange-500" />
+              <h3 className="text-xl font-semibold mb-2">Quiz Arena</h3>
+              <p className="text-gray-600 mb-4">
+                Test your knowledge and build impressive streaks!
+                Earn exclusive badges for your achievements.
+              </p>
+              <div className="flex justify-center space-x-4">
+                <button
+                  onClick={() => window.location.href = '/quiz-arena'}
+                  className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition-colors"
+                >
+                  Start Quiz Arena
+                </button>
+                <button
+                  onClick={() => window.location.href = '/badges'}
+                  className="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  View Badges
+                </button>
+              </div>
+            </div>
+            
+            {/* Quiz Arena Achievements */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border">
+                <div className="flex items-center space-x-3 mb-3">
+                  <span className="text-2xl">🔥</span>
+                  <div>
+                    <h4 className="font-semibold text-green-800">Quiz Streaks</h4>
+                    <p className="text-sm text-green-600">Build consecutive correct answers</p>
+                  </div>
+                </div>
+                <div className="text-xs text-green-500">
+                  • 5 streak: Quiz Streak Starter (50💎)<br/>
+                  • 10 streak: Quiz Streak Warrior (100💎)<br/>
+                  • 15 streak: Quiz Streak Master (200💎)<br/>
+                  • 50 streak: Quiz Streak Immortal (1500💎)
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border">
+                <div className="flex items-center space-x-3 mb-3">
+                  <span className="text-2xl">✨</span>
+                  <div>
+                    <h4 className="font-semibold text-purple-800">Perfect Scores</h4>
+                    <p className="text-sm text-purple-600">Complete quizzes without errors</p>
+                  </div>
+                </div>
+                <div className="text-xs text-purple-500">
+                  • 5 perfect quizzes: Quiz Perfectionist (300💎)<br/>
+                  • Maintain accuracy and earn bonus rewards<br/>
+                  • Challenge yourself for flawless performance
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border">
+                <div className="flex items-center space-x-3 mb-3">
+                  <span className="text-2xl">⚡</span>
+                  <div>
+                    <h4 className="font-semibold text-blue-800">Speed Challenges</h4>
+                    <p className="text-sm text-blue-600">Answer quickly and accurately</p>
+                  </div>
+                </div>
+                <div className="text-xs text-blue-500">
+                  • 10 fast answers: Quiz Speed Demon (500💎)<br/>
+                  • Answer in under 5 seconds<br/>
+                  • Test your quick thinking skills
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-xl border">
+                <div className="flex items-center space-x-3 mb-3">
+                  <span className="text-2xl">🏃‍♂️</span>
+                  <div>
+                    <h4 className="font-semibold text-yellow-800">Marathon Sessions</h4>
+                    <p className="text-sm text-yellow-600">Daily quiz dedication</p>
+                  </div>
+                </div>
+                <div className="text-xs text-yellow-500">
+                  • 10 sessions in one day: Marathon Runner (400💎)<br/>
+                  • Consistent learning pays off<br/>
+                  • Build strong study habits
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-xl border">
+                <div className="flex items-center space-x-3 mb-3">
+                  <span className="text-2xl">🔄</span>
+                  <div>
+                    <h4 className="font-semibold text-red-800">Comeback Stories</h4>
+                    <p className="text-sm text-red-600">Recover from mistakes</p>
+                  </div>
+                </div>
+                <div className="text-xs text-red-500">
+                  • 10+ streak after error: Comeback King (250💎)<br/>
+                  • Learn from mistakes and improve<br/>
+                  • Resilience and persistence matter
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-xl border">
+                <div className="flex items-center space-x-3 mb-3">
+                  <span className="text-2xl">👑</span>
+                  <div>
+                    <h4 className="font-semibold text-indigo-800">Ultimate Goals</h4>
+                    <p className="text-sm text-indigo-600">Legendary achievements</p>
+                  </div>
+                </div>
+                <div className="text-xs text-indigo-500">
+                  • 25 streak: Quiz Streak God (600💎)<br/>
+                  • 50 streak: Quiz Streak Immortal (1500💎)<br/>
+                  • Elite status and massive rewards
+                </div>
+              </div>
+            </div>
+          </div>
+        );
       case "cards":
         return (
           <div className="text-center p-8">

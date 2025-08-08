@@ -34,7 +34,7 @@ import {
   DiamondCounter,
   LevelIndicator,
 } from "@/components/gamification";
-import MemoryGame from "@/components/learn/MemoryGame";
+import ImprovedMemoryGame from "@/components/learn/ImprovedMemoryGame";
 
 interface Lesson {
   id: string;
@@ -869,12 +869,13 @@ export default function LearnPage() {
               
               <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
                 {selectedActivity.activityType === 'memory_game' && (
-                  <MemoryGame
+                  <ImprovedMemoryGame
                     activityId={selectedActivity.id}
                     content={selectedActivity.content}
                     diamondReward={selectedActivity.diamondReward}
                     experienceReward={selectedActivity.experienceReward}
                     onComplete={handleActivityComplete}
+                    isCompleted={selectedActivity.userProgress?.completed || false}
                   />
                 )}
                 {/* Add other activity types here as they're implemented */}

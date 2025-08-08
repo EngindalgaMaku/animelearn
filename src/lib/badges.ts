@@ -26,6 +26,94 @@ async function checkBadgeCondition(
       case "quizzes_completed":
         return user.quizzesCompleted >= conditionObj.target;
 
+      case "quiz_streak":
+        // Quiz streak kontrolü - kullanıcının en yüksek quiz streak'i
+        const quizAttempts = user.quizAttempts.filter((qa: any) => qa.isCompleted);
+        if (quizAttempts.length === 0) return false;
+        
+        // En yüksek streak'i bul
+        let maxStreak = 0;
+        let currentStreak = 0;
+        
+        // Quiz attempts'leri tarihe göre sırala
+        const sortedAttempts = quizAttempts.sort((a: any, b: any) =>
+          new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime()
+        );
+        
+        for (const attempt of sortedAttempts) {
+          // Quiz Arena streak'i - her doğru cevap streak'i artırır, yanlış streak'i sıfırlar
+          const answers = JSON.parse(attempt.answers || '[]');
+          for (const answer of answers) {
+            if (answer.isCorrect) {
+              currentStreak++;
+              maxStreak = Math.max(maxStreak, currentStreak);
+            } else {
+              currentStreak = 0;
+              break; // Bu quiz'de yanlış cevap verildi, streak bitti
+            }
+          }
+        }
+        
+        return maxStreak >= conditionObj.target;
+
+      case "perfect_quizzes":
+        // Perfect quiz sayısı kontrolü (hiç yanlış cevap vermeden tamamlanan quiz'ler)
+        const perfectQuizzes = user.quizAttempts.filter((qa: any) => {
+          if (!qa.isCompleted) return false;
+          const answers = JSON.parse(qa.answers || '[]');
+          return answers.length > 0 && answers.every((answer: any) => answer.isCorrect);
+        });
+        return perfectQuizzes.length >= conditionObj.target;
+
+      case "fast_answers":
+        // Hızlı cevap kontrolü (5 saniyeden az sürede verilen doğru cevaplar)
+        let fastAnswerCount = 0;
+        for (const attempt of user.quizAttempts) {
+          if (!attempt.isCompleted) continue;
+          const answers = JSON.parse(attempt.answers || '[]');
+          for (const answer of answers) {
+            if (answer.isCorrect && answer.timeSpent && answer.timeSpent < 5000) {
+              fastAnswerCount++;
+            }
+          }
+        }
+        return fastAnswerCount >= conditionObj.target;
+
+      case "daily_quiz_sessions":
+        // Günlük quiz oturumu kontrolü (aynı gün içinde tamamlanan quiz sayısı)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const todayQuizzes = user.quizAttempts.filter((qa: any) => {
+          if (!qa.isCompleted) return false;
+          const completedAt = new Date(qa.completedAt);
+          return completedAt >= today && completedAt < tomorrow;
+        });
+        return todayQuizzes.length >= conditionObj.target;
+
+      case "comeback_streak":
+        // Geri dönüş streak'i kontrolü (hata yaptıktan sonra art arda doğru cevaplar)
+        let maxComebackStreak = 0;
+        for (const attempt of user.quizAttempts) {
+          if (!attempt.isCompleted) continue;
+          const answers = JSON.parse(attempt.answers || '[]');
+          let hadMistake = false;
+          let currentComebackStreak = 0;
+          
+          for (const answer of answers) {
+            if (!answer.isCorrect) {
+              hadMistake = true;
+              currentComebackStreak = 0;
+            } else if (hadMistake) {
+              currentComebackStreak++;
+              maxComebackStreak = Math.max(maxComebackStreak, currentComebackStreak);
+            }
+          }
+        }
+        return maxComebackStreak >= conditionObj.target;
+
       case "cards_owned":
         return user.userCards.length >= conditionObj.target;
 

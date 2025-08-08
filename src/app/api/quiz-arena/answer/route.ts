@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
+import { checkAndAwardBadges } from '@/lib/badges';
 
 const prisma = new PrismaClient();
 
@@ -197,6 +198,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Check for new badges after quiz completion
+    let newBadges: any[] = [];
+    if (gameOver) {
+      try {
+        newBadges = await checkAndAwardBadges(user.id);
+        if (newBadges.length > 0) {
+          console.log(`🏆 User ${user.id} earned ${newBadges.length} new badges from quiz completion!`);
+        }
+      } catch (badgeError) {
+        console.error('Badge check error:', badgeError);
+        // Don't fail the request, just log the error
+      }
+    }
+
     // Prepare response
     const response: any = {
       isCorrect,
@@ -210,6 +225,11 @@ export async function POST(request: NextRequest) {
 
     if (gameOver) {
       response.rewards = rewards;
+      // Add new badges to response if any were earned
+      if (newBadges.length > 0) {
+        response.newBadges = newBadges;
+        response.badgeMessage = `🎉 Tebrikler! ${newBadges.length} yeni rozet kazandınız!`;
+      }
     }
 
     return NextResponse.json(response);

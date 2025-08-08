@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import EnhancedMemoryGame from "@/components/learn/EnhancedMemoryGame";
+import ImprovedMemoryGame from "@/components/learn/ImprovedMemoryGame";
 import MultiplayerArena from "@/components/learn/MultiplayerArena";
 import { GameRoom } from "@/components/learn/MultiplayerEngine";
 import Head from "next/head";
@@ -1074,15 +1074,13 @@ export default function CodeArenaPage() {
               
               <div className="overflow-y-auto max-h-[calc(95vh-140px)] p-8">
                 {selectedActivity.activityType === 'memory_game' && (
-                  <EnhancedMemoryGame
+                  <ImprovedMemoryGame
                     activityId={selectedActivity.id}
                     content={selectedActivity.content}
                     diamondReward={selectedActivity.diamondReward}
                     experienceReward={selectedActivity.experienceReward}
                     onComplete={handleActivityComplete}
                     isCompleted={selectedActivity.userProgress?.completed || false}
-                    userId={multiplayerRoom ? `multiplayer_${user?.id || 'guest'}` : (user?.id || 'single_player')}
-                    topic={multiplayerRoom ? `multiplayer_${multiplayerRoom.type}` : selectedActivity.category}
                   />
                 )}
               </div>
