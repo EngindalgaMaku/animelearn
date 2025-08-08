@@ -18,8 +18,8 @@ const getBaseUrl = () => {
   }
   
   if (process.env.NODE_ENV === 'production') {
-    // Add your production domain here
-    return 'https://your-production-domain.com'
+    // Production domain - zumenzu.com
+    return 'https://zumenzu.com'
   }
   
   return 'http://localhost:3000'
@@ -149,25 +149,37 @@ export const authOptions: NextAuthOptions = {
         try {
           // Check if user already exists with this email
           const existingUser = await prisma.user.findUnique({
-            where: { email: user.email! }
+            where: { email: user.email! },
+            include: { accounts: true }
           })
 
           if (existingUser) {
-            // User exists, link the Google account
+            // Check if this Google account is already linked
+            const googleAccount = existingUser.accounts.find(
+              acc => acc.provider === "google" && acc.providerAccountId === account.providerAccountId
+            )
+            
+            if (!googleAccount) {
+              // Link the Google account to existing user
+              await prisma.account.create({
+                data: {
+                  userId: existingUser.id,
+                  type: account.type,
+                  provider: account.provider,
+                  providerAccountId: account.providerAccountId,
+                  refresh_token: account.refresh_token,
+                  access_token: account.access_token,
+                  expires_at: account.expires_at,
+                  token_type: account.token_type,
+                  scope: account.scope,
+                  id_token: account.id_token,
+                  session_state: account.session_state,
+                }
+              })
+            }
             return true
           } else {
-            // Create new user from Google profile
-            const username = profile?.email?.split('@')[0] || `user_${Date.now()}`
-            
-            // Ensure username is unique
-            let finalUsername = username
-            let counter = 1
-            while (await prisma.user.findUnique({ where: { username: finalUsername } })) {
-              finalUsername = `${username}_${counter}`
-              counter++
-            }
-
-            // Create user (NextAuth adapter will handle this)
+            // New user - let NextAuth adapter handle creation
             return true
           }
         } catch (error) {
