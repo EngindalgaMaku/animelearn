@@ -321,9 +321,9 @@ export default function QuestsPage() {
               📊 Category Progress
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(stats.categories || []).map((category) => (
+              {(stats.categories || []).map((category, index) => (
                 <div
-                  key={category.category}
+                  key={category.category || `category-${index}`}
                   className="bg-white rounded-xl p-4 border border-gray-200"
                 >
                   <div className="flex justify-between items-center mb-3">
@@ -391,9 +391,9 @@ export default function QuestsPage() {
                 ⏳ Pending ({safeQuests.filter((q) => !q.isCompleted).length})
               </button>
 
-              {categories.map((category) => (
+              {categories.map((category, index) => (
                 <button
-                  key={category}
+                  key={category || `category-btn-${index}`}
                   onClick={() => setSelectedCategory(category)}
                   className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                     selectedCategory === category

@@ -12,6 +12,7 @@ const moreBadges = [
     color: "#10B981",
     rewardDiamonds: 25,
     rewardXp: 50,
+    conditionType: "lessons_completed",
     condition: JSON.stringify({
       type: "lessons_completed",
       target: 1,
@@ -27,6 +28,7 @@ const moreBadges = [
     color: "#3B82F6",
     rewardDiamonds: 50,
     rewardXp: 100,
+    conditionType: "lessons_completed",
     condition: JSON.stringify({
       type: "lessons_completed",
       target: 3,
@@ -42,6 +44,7 @@ const moreBadges = [
     color: "#8B5CF6",
     rewardDiamonds: 100,
     rewardXp: 200,
+    conditionType: "lessons_completed",
     condition: JSON.stringify({
       type: "lessons_completed",
       target: 5,
@@ -57,6 +60,7 @@ const moreBadges = [
     color: "#F59E0B",
     rewardDiamonds: 250,
     rewardXp: 500,
+    conditionType: "lessons_completed",
     condition: JSON.stringify({
       type: "lessons_completed",
       target: 10,
@@ -72,6 +76,7 @@ const moreBadges = [
     color: "#DC2626",
     rewardDiamonds: 500,
     rewardXp: 1000,
+    conditionType: "lessons_completed",
     condition: JSON.stringify({
       type: "lessons_completed",
       target: 20,
@@ -89,6 +94,7 @@ const moreBadges = [
     color: "#EF4444",
     rewardDiamonds: 30,
     rewardXp: 75,
+    conditionType: "quizzes_completed",
     condition: JSON.stringify({
       type: "quizzes_completed",
       target: 1,
@@ -104,6 +110,7 @@ const moreBadges = [
     color: "#7C3AED",
     rewardDiamonds: 80,
     rewardXp: 150,
+    conditionType: "quizzes_completed",
     condition: JSON.stringify({
       type: "quizzes_completed",
       target: 5,
@@ -119,6 +126,7 @@ const moreBadges = [
     color: "#EC4899",
     rewardDiamonds: 300,
     rewardXp: 600,
+    conditionType: "quizzes_completed",
     condition: JSON.stringify({
       type: "quizzes_completed",
       target: 15,
@@ -134,6 +142,7 @@ const moreBadges = [
     color: "#F59E0B",
     rewardDiamonds: 75,
     rewardXp: 125,
+    conditionType: "perfect_score",
     condition: JSON.stringify({
       type: "perfect_score",
       target: 1,
@@ -149,6 +158,7 @@ const moreBadges = [
     color: "#EC4899",
     rewardDiamonds: 200,
     rewardXp: 400,
+    conditionType: "perfect_score",
     condition: JSON.stringify({
       type: "perfect_score",
       target: 3,
@@ -166,6 +176,7 @@ const moreBadges = [
     color: "#F97316",
     rewardDiamonds: 60,
     rewardXp: 100,
+    conditionType: "login_streak",
     condition: JSON.stringify({
       type: "login_streak",
       target: 3,
@@ -181,6 +192,7 @@ const moreBadges = [
     color: "#DC2626",
     rewardDiamonds: 150,
     rewardXp: 250,
+    conditionType: "login_streak",
     condition: JSON.stringify({
       type: "login_streak",
       target: 7,
@@ -196,6 +208,7 @@ const moreBadges = [
     color: "#B91C1C",
     rewardDiamonds: 400,
     rewardXp: 800,
+    conditionType: "login_streak",
     condition: JSON.stringify({
       type: "login_streak",
       target: 15,
@@ -211,6 +224,7 @@ const moreBadges = [
     color: "#7F1D1D",
     rewardDiamonds: 1000,
     rewardXp: 2000,
+    conditionType: "login_streak",
     condition: JSON.stringify({
       type: "login_streak",
       target: 30,
@@ -228,6 +242,7 @@ const moreBadges = [
     color: "#8B5CF6",
     rewardDiamonds: 100,
     rewardXp: 200,
+    conditionType: "level_reached",
     condition: JSON.stringify({
       type: "level_reached",
       target: 5,
@@ -243,6 +258,7 @@ const moreBadges = [
     color: "#F59E0B",
     rewardDiamonds: 300,
     rewardXp: 500,
+    conditionType: "level_reached",
     condition: JSON.stringify({
       type: "level_reached",
       target: 10,
@@ -258,6 +274,7 @@ const moreBadges = [
     color: "#DC2626",
     rewardDiamonds: 600,
     rewardXp: 1000,
+    conditionType: "level_reached",
     condition: JSON.stringify({
       type: "level_reached",
       target: 20,
@@ -273,6 +290,7 @@ const moreBadges = [
     color: "#7C2D12",
     rewardDiamonds: 1000,
     rewardXp: 1500,
+    conditionType: "level_reached",
     condition: JSON.stringify({
       type: "level_reached",
       target: 25,
@@ -290,6 +308,7 @@ const moreBadges = [
     color: "#059669",
     rewardDiamonds: 75,
     rewardXp: 150,
+    conditionType: "code_submissions",
     condition: JSON.stringify({
       type: "code_submissions",
       target: 10,
@@ -305,6 +324,7 @@ const moreBadges = [
     color: "#047857",
     rewardDiamonds: 200,
     rewardXp: 350,
+    conditionType: "code_submissions",
     condition: JSON.stringify({
       type: "code_submissions",
       target: 25,
@@ -320,6 +340,7 @@ const moreBadges = [
     color: "#7C3AED",
     rewardDiamonds: 400,
     rewardXp: 750,
+    conditionType: "code_submissions",
     condition: JSON.stringify({
       type: "code_submissions",
       target: 50,
@@ -337,6 +358,7 @@ const moreBadges = [
     color: "#0EA5E9",
     rewardDiamonds: 150,
     rewardXp: 200,
+    conditionType: "first_lesson",
     condition: JSON.stringify({
       type: "first_lesson",
       target: 1,
@@ -352,6 +374,7 @@ const moreBadges = [
     color: "#6366F1",
     rewardDiamonds: 100,
     rewardXp: 150,
+    conditionType: "lessons_completed",
     condition: JSON.stringify({
       type: "lessons_completed",
       target: 1,
@@ -367,6 +390,7 @@ const moreBadges = [
     color: "#EF4444",
     rewardDiamonds: 125,
     rewardXp: 175,
+    conditionType: "lessons_completed",
     condition: JSON.stringify({
       type: "lessons_completed",
       target: 1,
@@ -382,6 +406,7 @@ const moreBadges = [
     color: "#7C3AED",
     rewardDiamonds: 300,
     rewardXp: 400,
+    conditionType: "lessons_completed",
     condition: JSON.stringify({
       type: "lessons_completed",
       target: 3,
@@ -399,6 +424,7 @@ const moreBadges = [
     color: "#EC4899",
     rewardDiamonds: 100,
     rewardXp: 200,
+    conditionType: "lessons_completed",
     condition: JSON.stringify({
       type: "lessons_completed",
       target: 5,
@@ -414,6 +440,7 @@ const moreBadges = [
     color: "#10B981",
     rewardDiamonds: 500,
     rewardXp: 750,
+    conditionType: "lessons_completed",
     condition: JSON.stringify({
       type: "lessons_completed",
       target: 15,
@@ -431,6 +458,7 @@ const moreBadges = [
     color: "#FBBF24",
     rewardDiamonds: 200,
     rewardXp: 300,
+    conditionType: "diamonds_earned",
     condition: JSON.stringify({
       type: "diamonds_earned",
       target: 1000,
@@ -446,6 +474,7 @@ const moreBadges = [
     color: "#F59E0B",
     rewardDiamonds: 1000,
     rewardXp: 1500,
+    conditionType: "diamonds_earned",
     condition: JSON.stringify({
       type: "diamonds_earned",
       target: 5000,
@@ -461,6 +490,7 @@ const moreBadges = [
     color: "#7C3AED",
     rewardDiamonds: 2000,
     rewardXp: 3000,
+    conditionType: "level_reached",
     condition: JSON.stringify({
       type: "level_reached",
       target: 15,

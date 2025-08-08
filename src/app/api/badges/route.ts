@@ -153,6 +153,7 @@ export async function POST(request: NextRequest) {
         rarity,
         color,
         condition,
+        conditionType,
         isActive,
       } = body;
 
@@ -184,6 +185,7 @@ export async function POST(request: NextRequest) {
           category: category || "general",
           rarity: rarity || "common",
           color: color || "#3B82F6",
+          conditionType: conditionType || "general",
           condition:
             typeof condition === "string"
               ? condition

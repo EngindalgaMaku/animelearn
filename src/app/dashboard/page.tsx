@@ -392,181 +392,327 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Quick Actions Grid */}
-          <div className="mb-8 lg:mb-12 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
-            
-            {/* Battle Arena Section */}
-            <div className="group rounded-2xl border border-white/60 bg-white/90 p-6 lg:p-8 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl">
-              <div className="mb-6 flex items-center">
-                <div className="rounded-xl bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 p-3">
-                  <Flame className="h-6 w-6 text-white" />
-                </div>
-                <h2 className="ml-4 text-xl font-bold text-gray-900">⚔️ Battle Arena</h2>
-              </div>
+          {/* Main Features - Always Prominent */}
+          <div className="mb-8 lg:mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">🚀 Core Features</h2>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
               
-              <div className="space-y-3">
-                <Link
-                  href="/battle"
-                  className="group flex items-center rounded-xl border-2 border-red-200 bg-red-50/50 p-4 transition-all duration-200 hover:border-red-400 hover:bg-red-100 hover:shadow-md"
-                >
-                  <div className="rounded-lg bg-red-500 p-2">
-                    <Flame className="h-5 w-5 text-white" />
+              {/* Code Arena - Primary Feature */}
+              {settings.arenaEnabled === 'true' && (
+                <div className="group rounded-2xl border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 lg:p-8 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:border-blue-400">
+                  <div className="mb-6 flex items-center">
+                    <div className="rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 p-3 shadow-lg">
+                      <GamepadIcon className="h-7 w-7 text-white" />
+                    </div>
+                    <h2 className="ml-4 text-xl font-bold text-gray-900">💻 Code Arena</h2>
+                    <div className="ml-auto bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                      Primary
+                    </div>
                   </div>
-                  <div className="ml-4 flex-1">
-                    <p className="font-semibold text-gray-900">Elements of Legends</p>
-                    <p className="text-sm text-gray-600">Epic card battles with 7 elements</p>
-                  </div>
-                  <ArrowRight className="h-5 w-5 text-red-600 transition-transform group-hover:translate-x-1" />
-                </Link>
+                  
+                  <div className="space-y-3">
+                    <Link
+                      href="/code-arena"
+                      className="group flex items-center rounded-xl border-2 border-blue-200 bg-blue-50/70 p-4 transition-all duration-200 hover:border-blue-400 hover:bg-blue-100 hover:shadow-md"
+                    >
+                      <div className="rounded-lg bg-blue-500 p-2 shadow-md">
+                        <Book className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="ml-4 flex-1">
+                        <p className="font-semibold text-gray-900">Python Challenges</p>
+                        <p className="text-sm text-gray-600">Learn through interactive coding</p>
+                      </div>
+                      <ArrowRight className="h-5 w-5 text-blue-600 transition-transform group-hover:translate-x-1" />
+                    </Link>
 
-                <Link
-                  href="/multiplayer"
-                  className="group flex items-center rounded-xl border-2 border-green-200 bg-green-50/50 p-4 transition-all duration-200 hover:border-green-400 hover:bg-green-100 hover:shadow-md"
-                >
-                  <div className="rounded-lg bg-green-500 p-2">
-                    <Users className="h-5 w-5 text-white" />
+                    <Link
+                      href="/leaderboard"
+                      className="group flex items-center rounded-xl border-2 border-purple-200 bg-purple-50/70 p-4 transition-all duration-200 hover:border-purple-400 hover:bg-purple-100 hover:shadow-md"
+                    >
+                      <div className="rounded-lg bg-purple-500 p-2 shadow-md">
+                        <Trophy className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="ml-4 flex-1">
+                        <p className="font-semibold text-gray-900">Leaderboard</p>
+                        <p className="text-sm text-gray-600">See top performers</p>
+                      </div>
+                      <ArrowRight className="h-5 w-5 text-purple-600 transition-transform group-hover:translate-x-1" />
+                    </Link>
                   </div>
-                  <div className="ml-4 flex-1">
-                    <p className="font-semibold text-gray-900">Multiplayer Battles</p>
-                    <p className="text-sm text-gray-600">Real-time PvP combat</p>
-                  </div>
-                  <ArrowRight className="h-5 w-5 text-green-600 transition-transform group-hover:translate-x-1" />
-                </Link>
-
-                <Link
-                  href="/tournaments"
-                  className="group flex items-center rounded-xl border-2 border-orange-200 bg-orange-50/50 p-4 transition-all duration-200 hover:border-orange-400 hover:bg-orange-100 hover:shadow-md"
-                >
-                  <div className="rounded-lg bg-orange-500 p-2">
-                    <Trophy className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="ml-4 flex-1">
-                    <p className="font-semibold text-gray-900">Tournaments</p>
-                    <p className="text-sm text-gray-600">Compete with other players</p>
-                  </div>
-                  <ArrowRight className="h-5 w-5 text-orange-600 transition-transform group-hover:translate-x-1" />
-                </Link>
-              </div>
-            </div>
-
-            {/* Code Arena Section */}
-            {settings.arenaEnabled === 'true' && (
-              <div className="group rounded-2xl border border-white/60 bg-white/90 p-6 lg:p-8 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl">
-                <div className="mb-6 flex items-center">
-                  <div className="rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 p-3">
-                    <GamepadIcon className="h-6 w-6 text-white" />
-                  </div>
-                  <h2 className="ml-4 text-xl font-bold text-gray-900">💻 Code Arena</h2>
                 </div>
-                
+              )}
+
+              {/* Shop & Collection - Important Feature */}
+              <div className="group rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-teal-50 p-6 lg:p-8 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:border-emerald-400">
+                <div className="mb-6 flex items-center">
+                  <div className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 p-3 shadow-lg">
+                    <ShoppingBag className="h-7 w-7 text-white" />
+                  </div>
+                  <h2 className="ml-4 text-xl font-bold text-gray-900">🛍️ Shop & Store</h2>
+                  <div className="ml-auto bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs font-medium">
+                    Popular
+                  </div>
+                </div>
+
                 <div className="space-y-3">
                   <Link
-                    href="/code-arena"
-                    className="group flex items-center rounded-xl border-2 border-blue-200 bg-blue-50/50 p-4 transition-all duration-200 hover:border-blue-400 hover:bg-blue-100 hover:shadow-md"
+                    href="/card-packs"
+                    className="group flex items-center rounded-xl border-2 border-purple-200 bg-purple-50/70 p-4 transition-all duration-200 hover:border-purple-400 hover:bg-purple-100 hover:shadow-md"
                   >
-                    <div className="rounded-lg bg-blue-500 p-2">
-                      <Book className="h-5 w-5 text-white" />
+                    <div className="rounded-lg bg-purple-500 p-2 shadow-md">
+                      <Gift className="h-5 w-5 text-white" />
                     </div>
                     <div className="ml-4 flex-1">
-                      <p className="font-semibold text-gray-900">Python Challenges</p>
-                      <p className="text-sm text-gray-600">Learn through interactive coding</p>
-                    </div>
-                    <ArrowRight className="h-5 w-5 text-blue-600 transition-transform group-hover:translate-x-1" />
-                  </Link>
-
-                  <Link
-                    href="/leaderboard"
-                    className="group flex items-center rounded-xl border-2 border-purple-200 bg-purple-50/50 p-4 transition-all duration-200 hover:border-purple-400 hover:bg-purple-100 hover:shadow-md"
-                  >
-                    <div className="rounded-lg bg-purple-500 p-2">
-                      <Trophy className="h-5 w-5 text-white" />
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <p className="font-semibold text-gray-900">Leaderboard</p>
-                      <p className="text-sm text-gray-600">See top performers</p>
+                      <p className="font-semibold text-gray-900">Card Packs</p>
+                      <p className="text-sm text-gray-600">Open packs with advanced rarity system</p>
                     </div>
                     <ArrowRight className="h-5 w-5 text-purple-600 transition-transform group-hover:translate-x-1" />
                   </Link>
+
+                  <Link
+                    href="/shop"
+                    className="group flex items-center rounded-xl border-2 border-emerald-200 bg-emerald-50/70 p-4 transition-all duration-200 hover:border-emerald-400 hover:bg-emerald-100 hover:shadow-md"
+                  >
+                    <div className="rounded-lg bg-emerald-500 p-2 shadow-md">
+                      <Sparkles className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <p className="font-semibold text-gray-900">Card Shop</p>
+                      <p className="text-sm text-gray-600">Buy exclusive anime cards</p>
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-emerald-600 transition-transform group-hover:translate-x-1" />
+                  </Link>
+
+                  <Link
+                    href="/store"
+                    className="group flex items-center rounded-xl border-2 border-yellow-200 bg-yellow-50/70 p-4 transition-all duration-200 hover:border-yellow-400 hover:bg-yellow-100 hover:shadow-md"
+                  >
+                    <div className="rounded-lg bg-yellow-500 p-2 shadow-md">
+                      <Diamond className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <p className="font-semibold text-gray-900">Diamond Store</p>
+                      <p className="text-sm text-gray-600">Purchase premium currency</p>
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-yellow-600 transition-transform group-hover:translate-x-1" />
+                  </Link>
                 </div>
               </div>
-            )}
 
-            {/* Collection & Shop */}
-            <div className="group rounded-2xl border border-white/60 bg-white/90 p-6 lg:p-8 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl">
-              <div className="mb-6 flex items-center">
-                <div className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 p-3">
-                  <ShoppingBag className="h-6 w-6 text-white" />
+              {/* My Cards Collection */}
+              <div className="group rounded-2xl border-2 border-indigo-300 bg-gradient-to-br from-indigo-50 to-purple-50 p-6 lg:p-8 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:border-indigo-400">
+                <div className="mb-6 flex items-center">
+                  <div className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 p-3 shadow-lg">
+                    <Star className="h-7 w-7 text-white" />
+                  </div>
+                  <h2 className="ml-4 text-xl font-bold text-gray-900">🎴 My Collection</h2>
+                  <div className="ml-auto bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-xs font-medium">
+                    127 Cards
+                  </div>
                 </div>
-                <h2 className="ml-4 text-xl font-bold text-gray-900">🛍️ Collection</h2>
-              </div>
 
-              <div className="space-y-3">
+                <div className="space-y-3">
+                  <Link
+                    href="/my-cards"
+                    className="group flex items-center rounded-xl border-2 border-indigo-200 bg-indigo-50/70 p-4 transition-all duration-200 hover:border-indigo-400 hover:bg-indigo-100 hover:shadow-md"
+                  >
+                    <div className="rounded-lg bg-indigo-500 p-2 shadow-md">
+                      <Star className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <p className="font-semibold text-gray-900">View Collection</p>
+                      <p className="text-sm text-gray-600">Manage your cards</p>
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-indigo-600 transition-transform group-hover:translate-x-1" />
+                  </Link>
+
+                  <Link
+                    href="/profile"
+                    className="group flex items-center rounded-xl border-2 border-gray-200 bg-gray-50/70 p-4 transition-all duration-200 hover:border-gray-400 hover:bg-gray-100 hover:shadow-md"
+                  >
+                    <div className="rounded-lg bg-gray-500 p-2 shadow-md">
+                      <Users className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <p className="font-semibold text-gray-900">Profile Settings</p>
+                      <p className="text-sm text-gray-600">Edit your information</p>
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-gray-600 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Gamification Features - Secondary Section */}
+          <div className="mb-8 lg:mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">🎮 Rewards & Challenges</h2>
+              <div className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+                New Features
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+              
+              {/* Daily Login Rewards */}
+              <div className="group rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50 to-pink-50 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 p-2">
+                      <Gift className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="ml-3 text-lg font-bold text-gray-900">Daily Rewards</h3>
+                  </div>
+                  <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                    Available
+                  </div>
+                </div>
+                
+                <div className="text-center mb-3">
+                  <div className="text-2xl font-bold text-orange-600">{currentUser.loginStreak} Day Streak</div>
+                  <div className="text-sm text-gray-600">Keep logging in for better rewards!</div>
+                </div>
+                
                 <Link
-                  href="/shop"
-                  className="group flex items-center rounded-xl border-2 border-emerald-200 bg-emerald-50/50 p-4 transition-all duration-200 hover:border-emerald-400 hover:bg-emerald-100 hover:shadow-md"
+                  href="/daily-rewards"
+                  className="w-full py-2 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg font-medium hover:from-orange-600 hover:to-pink-600 transition-all shadow-md text-center block"
                 >
-                  <div className="rounded-lg bg-emerald-500 p-2">
-                    <Diamond className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="ml-4 flex-1">
-                    <p className="font-semibold text-gray-900">Card Shop</p>
-                    <p className="text-sm text-gray-600">Buy exclusive anime cards</p>
-                  </div>
-                  <ArrowRight className="h-5 w-5 text-emerald-600 transition-transform group-hover:translate-x-1" />
+                  Claim Daily Reward
                 </Link>
+              </div>
 
+              {/* Python Quiz Arena */}
+              <div className="group rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
+                <div className="mb-4 flex items-center">
+                  <div className="rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 p-2">
+                    <Brain className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="ml-3 text-lg font-bold text-gray-900">Quiz Arena</h3>
+                </div>
+                
+                <div className="text-center mb-3">
+                  <div className="text-2xl font-bold text-blue-600">12 Questions</div>
+                  <div className="text-sm text-gray-600">Best Strike Record</div>
+                </div>
+                
                 <Link
-                  href="/my-cards"
-                  className="group flex items-center rounded-xl border-2 border-teal-200 bg-teal-50/50 p-4 transition-all duration-200 hover:border-teal-400 hover:bg-teal-100 hover:shadow-md"
+                  href="/quiz-arena"
+                  className="w-full py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all shadow-md text-center block"
                 >
-                  <div className="rounded-lg bg-teal-500 p-2">
-                    <Star className="h-5 w-5 text-white" />
+                  Start Quiz Challenge
+                </Link>
+              </div>
+
+              {/* Weekly Challenges */}
+              <div className="group rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
+                <div className="mb-4 flex items-center">
+                  <div className="rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 p-2">
+                    <Target className="h-5 w-5 text-white" />
                   </div>
-                  <div className="ml-4 flex-1">
-                    <p className="font-semibold text-gray-900">My Cards</p>
-                    <p className="text-sm text-gray-600">View your collection</p>
+                  <h3 className="ml-3 text-lg font-bold text-gray-900">Weekly Goals</h3>
+                </div>
+                
+                <div className="space-y-2 mb-3">
+                  <div className="flex justify-between text-sm">
+                    <span>Code Arenas</span>
+                    <span className="font-medium text-emerald-600">2/5</span>
                   </div>
-                  <ArrowRight className="h-5 w-5 text-teal-600 transition-transform group-hover:translate-x-1" />
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full" style={{ width: '40%' }}></div>
+                  </div>
+                </div>
+                
+                <Link
+                  href="/weekly-challenges"
+                  className="w-full py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg font-medium hover:from-emerald-600 hover:to-teal-600 transition-all shadow-md text-center block"
+                >
+                  View All Challenges
                 </Link>
               </div>
             </div>
+          </div>
 
-            {/* Profile & Settings */}
-            <div className="group rounded-2xl border border-white/60 bg-white/90 p-6 lg:p-8 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl lg:col-span-2 xl:col-span-1">
-              <div className="mb-6 flex items-center">
-                <div className="rounded-xl bg-gradient-to-r from-gray-500 to-slate-600 p-3">
-                  <Settings className="h-6 w-6 text-white" />
-                </div>
-                <h2 className="ml-4 text-xl font-bold text-gray-900">⚙️ Account</h2>
-              </div>
-
-              <div className="space-y-3">
-                <Link
-                  href="/profile"
-                  className="group flex items-center rounded-xl border-2 border-gray-200 bg-gray-50/50 p-4 transition-all duration-200 hover:border-gray-400 hover:bg-gray-100 hover:shadow-md"
-                >
-                  <div className="rounded-lg bg-gray-500 p-2">
-                    <Users className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="ml-4 flex-1">
-                    <p className="font-semibold text-gray-900">Profile</p>
-                    <p className="text-sm text-gray-600">Edit your information</p>
-                  </div>
-                  <ArrowRight className="h-5 w-5 text-gray-600 transition-transform group-hover:translate-x-1" />
-                </Link>
-
-                <Link
-                  href="/code-editor"
-                  className="group flex items-center rounded-xl border-2 border-indigo-200 bg-indigo-50/50 p-4 transition-all duration-200 hover:border-indigo-400 hover:bg-indigo-100 hover:shadow-md"
-                >
-                  <div className="rounded-lg bg-indigo-500 p-2">
+          {/* Additional Tools */}
+          <div className="mb-8 lg:mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">🛠️ Tools & Analytics</h2>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+              
+              {/* Code Editor */}
+              <div className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
+                <div className="mb-4 flex items-center">
+                  <div className="rounded-lg bg-gradient-to-r from-gray-600 to-slate-700 p-2">
                     <Code className="h-5 w-5 text-white" />
                   </div>
-                  <div className="ml-4 flex-1">
-                    <p className="font-semibold text-gray-900">Code Editor</p>
-                    <p className="text-sm text-gray-600">Practice Python coding</p>
+                  <h3 className="ml-3 text-lg font-bold text-gray-900">Code Editor</h3>
+                </div>
+                
+                <p className="text-sm text-gray-600 mb-4">Practice Python coding with our interactive editor</p>
+                
+                <Link
+                  href="/code-editor"
+                  className="w-full py-2 bg-gradient-to-r from-gray-600 to-slate-700 text-white rounded-lg font-medium hover:from-gray-700 hover:to-slate-800 transition-all shadow-md text-center block"
+                >
+                  Open Editor
+                </Link>
+              </div>
+
+              {/* Achievements */}
+              <div className="group rounded-2xl border border-yellow-200 bg-gradient-to-br from-yellow-50 to-orange-50 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
+                <div className="mb-4 flex items-center">
+                  <div className="rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 p-2">
+                    <Trophy className="h-5 w-5 text-white" />
                   </div>
-                  <ArrowRight className="h-5 w-5 text-indigo-600 transition-transform group-hover:translate-x-1" />
+                  <h3 className="ml-3 text-lg font-bold text-gray-900">Achievements</h3>
+                </div>
+                
+                <div className="grid grid-cols-4 gap-2 mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-lg flex items-center justify-center">
+                    <Crown className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-lg flex items-center justify-center">
+                    <Zap className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="w-8 h-8 bg-gray-300 rounded-lg flex items-center justify-center opacity-50">
+                    <Star className="h-4 w-4 text-gray-600" />
+                  </div>
+                  <div className="w-8 h-8 bg-gray-300 rounded-lg flex items-center justify-center opacity-50">
+                    <Brain className="h-4 w-4 text-gray-600" />
+                  </div>
+                </div>
+                
+                <Link
+                  href="/achievements"
+                  className="w-full py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg font-medium hover:from-yellow-600 hover:to-orange-600 transition-all shadow-md text-center block"
+                >
+                  View All
+                </Link>
+              </div>
+
+              {/* Analytics */}
+              <div className="group rounded-2xl border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
+                <div className="mb-4 flex items-center">
+                  <div className="rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 p-2">
+                    <BarChart3 className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="ml-3 text-lg font-bold text-gray-900">Progress Analytics</h3>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-green-600">2.5h</div>
+                    <div className="text-xs text-gray-600">This Week</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-green-600">85%</div>
+                    <div className="text-xs text-gray-600">Accuracy</div>
+                  </div>
+                </div>
+                
+                <Link
+                  href="/analytics"
+                  className="w-full py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-medium hover:from-green-600 hover:to-emerald-600 transition-all shadow-md text-center block"
+                >
+                  Detailed View
                 </Link>
               </div>
             </div>

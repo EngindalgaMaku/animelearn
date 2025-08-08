@@ -9,6 +9,7 @@ const initialBadges = [
     category: "Python",
     rarity: "common",
     color: "#10B981",
+    conditionType: "lessons_completed",
     condition: JSON.stringify({
       type: "lessons_completed",
       target: 1,
@@ -22,6 +23,7 @@ const initialBadges = [
     category: "Python",
     rarity: "uncommon",
     color: "#3B82F6",
+    conditionType: "lessons_completed",
     condition: JSON.stringify({
       type: "lessons_completed",
       target: 3,
@@ -35,6 +37,7 @@ const initialBadges = [
     category: "Python",
     rarity: "rare",
     color: "#8B5CF6",
+    conditionType: "lessons_completed",
     condition: JSON.stringify({
       type: "lessons_completed",
       target: 5,
@@ -48,6 +51,7 @@ const initialBadges = [
     category: "Python",
     rarity: "epic",
     color: "#F59E0B",
+    conditionType: "lessons_completed",
     condition: JSON.stringify({
       type: "lessons_completed",
       target: 10,
@@ -61,6 +65,7 @@ const initialBadges = [
     category: "Python",
     rarity: "common",
     color: "#EF4444",
+    conditionType: "quizzes_completed",
     condition: JSON.stringify({
       type: "quizzes_completed",
       target: 1,
@@ -74,6 +79,7 @@ const initialBadges = [
     category: "Python",
     rarity: "rare",
     color: "#F59E0B",
+    conditionType: "perfect_score",
     condition: JSON.stringify({
       type: "perfect_score",
       target: 1,
@@ -87,6 +93,7 @@ const initialBadges = [
     category: "Daily",
     rarity: "uncommon",
     color: "#F97316",
+    conditionType: "login_streak",
     condition: JSON.stringify({
       type: "login_streak",
       target: 3,
@@ -100,6 +107,7 @@ const initialBadges = [
     category: "Achievement",
     rarity: "rare",
     color: "#8B5CF6",
+    conditionType: "level_reached",
     condition: JSON.stringify({
       type: "level_reached",
       target: 5,

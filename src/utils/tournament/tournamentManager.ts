@@ -1,530 +1,691 @@
-import { 
-  Tournament, 
-  TournamentType, 
-  TournamentMatch, 
-  TournamentParticipant, 
-  TournamentBracket,
-  TournamentRound,
-  RankTier,
-  TournamentStatus
-} from '../../types/tournament/core';
+"use client";
 
-export class TournamentManager {
-  
-  // Bracket Generation
-  static generateBracket(participants: TournamentParticipant[], type: TournamentType): TournamentBracket {
+import { BattleCard, GameResult, CompetitiveTier } from '../../types/battle/core';
+
+export interface TournamentPlayer {
+  id: string;
+  name: string;
+  avatar?: string;
+  rating: number;
+  tier: CompetitiveTier;
+  deck: BattleCard[];
+  stats: PlayerStats;
+  registrationTime: number;
+}
+
+export interface PlayerStats {
+  gamesPlayed: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  averageGameDuration: number;
+  favoriteElement: string;
+  totalDamageDealt: number;
+  perfectGames: number; // Games won without taking damage
+  fastestWin: number; // Fastest win time in seconds
+  longestGame: number; // Longest game duration
+  comboCount: number;
+  cardPlayRate: number;
+}
+
+export interface Tournament {
+  id: string;
+  name: string;
+  description: string;
+  type: TournamentType;
+  format: TournamentFormat;
+  maxPlayers: number;
+  entryFee: number;
+  prizePool: TournamentPrize[];
+  status: TournamentStatus;
+  startTime: number;
+  endTime?: number;
+  registrationDeadline: number;
+  players: TournamentPlayer[];
+  brackets: TournamentBracket[];
+  currentRound: number;
+  maxRounds: number;
+  rules: TournamentRules;
+  host: string;
+  spectators: string[];
+}
+
+export enum TournamentType {
+  SINGLE_ELIMINATION = 'single_elimination',
+  DOUBLE_ELIMINATION = 'double_elimination',
+  ROUND_ROBIN = 'round_robin',
+  SWISS = 'swiss',
+  LADDER = 'ladder',
+  SEASONAL = 'seasonal'
+}
+
+export enum TournamentFormat {
+  STANDARD = 'standard',
+  DRAFT = 'draft',
+  SEALED = 'sealed',
+  CONSTRUCTED = 'constructed',
+  ARENA = 'arena'
+}
+
+export enum TournamentStatus {
+  REGISTRATION = 'registration',
+  STARTING = 'starting',
+  IN_PROGRESS = 'in_progress',
+  FINISHED = 'finished',
+  CANCELLED = 'cancelled'
+}
+
+export interface TournamentRules {
+  deckSize: { min: number; max: number };
+  allowedElements: string[];
+  bannedCards: string[];
+  timeLimit: number; // seconds per turn
+  maxGameDuration: number; // seconds per game
+  bestOf: number; // best of X games
+}
+
+export interface TournamentBracket {
+  roundNumber: number;
+  matches: TournamentMatch[];
+}
+
+export interface TournamentMatch {
+  id: string;
+  player1: TournamentPlayer;
+  player2: TournamentPlayer;
+  winner?: string;
+  gameResults: GameResult[];
+  status: 'pending' | 'in_progress' | 'completed' | 'forfeit';
+  startTime?: number;
+  endTime?: number;
+  spectators: string[];
+}
+
+export interface TournamentPrize {
+  position: number;
+  type: 'currency' | 'cards' | 'title' | 'cosmetic';
+  amount: number;
+  description: string;
+  rarity?: string;
+}
+
+export interface SeasonData {
+  id: string;
+  name: string;
+  startDate: number;
+  endDate: number;
+  status: 'upcoming' | 'active' | 'ended';
+  leaderboard: PlayerRanking[];
+  rewards: SeasonReward[];
+  specialEvents: string[];
+}
+
+export interface PlayerRanking {
+  playerId: string;
+  playerName: string;
+  rating: number;
+  tier: CompetitiveTier;
+  position: number;
+  gamesPlayed: number;
+  winRate: number;
+  streak: number; // Current win/loss streak
+  peakRating: number;
+  lastActive: number;
+}
+
+export interface SeasonReward {
+  tier: CompetitiveTier;
+  minRating: number;
+  rewards: {
+    currency: number;
+    cards: string[];
+    titles: string[];
+    cosmetics: string[];
+  };
+}
+
+class TournamentManager {
+  private tournaments: Map<string, Tournament> = new Map();
+  private playerRankings: Map<string, PlayerRanking> = new Map();
+  private currentSeason: SeasonData | null = null;
+  private ratingSystem: RatingSystem;
+
+  constructor() {
+    this.ratingSystem = new RatingSystem();
+    this.loadFromStorage();
+  }
+
+  private loadFromStorage() {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tournamentData');
+      if (saved) {
+        const data = JSON.parse(saved);
+        this.currentSeason = data.currentSeason;
+        if (data.rankings) {
+          this.playerRankings = new Map(data.rankings);
+        }
+      }
+    }
+  }
+
+  private saveToStorage() {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('tournamentData', JSON.stringify({
+        currentSeason: this.currentSeason,
+        rankings: Array.from(this.playerRankings.entries())
+      }));
+    }
+  }
+
+  // Tournament Creation and Management
+  createTournament(config: {
+    name: string;
+    description: string;
+    type: TournamentType;
+    format: TournamentFormat;
+    maxPlayers: number;
+    entryFee: number;
+    prizePool: TournamentPrize[];
+    rules: TournamentRules;
+    host: string;
+    registrationDeadline: number;
+  }): Tournament {
+    const tournament: Tournament = {
+      id: `tournament_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      ...config,
+      status: TournamentStatus.REGISTRATION,
+      startTime: Date.now() + (config.registrationDeadline - Date.now()),
+      players: [],
+      brackets: [],
+      currentRound: 0,
+      maxRounds: this.calculateMaxRounds(config.type, config.maxPlayers),
+      spectators: []
+    };
+
+    this.tournaments.set(tournament.id, tournament);
+    return tournament;
+  }
+
+  private calculateMaxRounds(type: TournamentType, maxPlayers: number): number {
     switch (type) {
       case TournamentType.SINGLE_ELIMINATION:
-        return this.generateSingleEliminationBracket(participants);
+        return Math.ceil(Math.log2(maxPlayers));
       case TournamentType.DOUBLE_ELIMINATION:
-        return this.generateDoubleEliminationBracket(participants);
+        return Math.ceil(Math.log2(maxPlayers)) * 2 - 1;
       case TournamentType.ROUND_ROBIN:
-        return this.generateRoundRobinBracket(participants);
+        return maxPlayers - 1;
       case TournamentType.SWISS:
-        return this.generateSwissBracket(participants);
+        return Math.ceil(Math.log2(maxPlayers));
       default:
-        throw new Error(`Unsupported tournament type: ${type}`);
+        return 1;
     }
   }
 
-  private static generateSingleEliminationBracket(participants: TournamentParticipant[]): TournamentBracket {
-    const seededParticipants = this.seedParticipants(participants);
-    const rounds: TournamentRound[] = [];
+  registerPlayer(tournamentId: string, player: TournamentPlayer): boolean {
+    const tournament = this.tournaments.get(tournamentId);
     
-    // Calculate number of rounds needed
-    const roundCount = Math.ceil(Math.log2(seededParticipants.length));
-    let currentParticipants = [...seededParticipants];
-    
-    // Pad to next power of 2 with byes
-    const targetSize = Math.pow(2, roundCount);
-    while (currentParticipants.length < targetSize) {
-      currentParticipants.push(this.createByeParticipant());
-    }
-    
-    for (let round = 1; round <= roundCount; round++) {
-      const matches: TournamentMatch[] = [];
-      const roundName = this.getRoundName(round, roundCount);
-      
-      // Create matches for this round
-      for (let i = 0; i < currentParticipants.length; i += 2) {
-        const participant1 = currentParticipants[i];
-        const participant2 = currentParticipants[i + 1];
-        
-        if (!participant2 || participant2.id === 'bye') {
-          // Bye - participant1 advances automatically
-          continue;
-        }
-        
-        matches.push({
-          id: `match_${round}_${Math.floor(i / 2) + 1}`,
-          tournamentId: '',
-          round,
-          participant1,
-          participant2,
-          status: 'waiting',
-          spectatorCount: 0
-        });
-      }
-      
-      rounds.push({
-        roundNumber: round,
-        name: roundName,
-        matches,
-        isComplete: false
-      });
-      
-      // Prepare for next round (winners only)
-      currentParticipants = currentParticipants.filter((_, index) => index % 2 === 0);
-    }
-    
-    return {
-      type: TournamentType.SINGLE_ELIMINATION,
-      rounds,
-      currentRound: 1,
-      winnersAdvance: 1
-    };
-  }
-
-  private static generateDoubleEliminationBracket(participants: TournamentParticipant[]): TournamentBracket {
-    // Double elimination has winners bracket and losers bracket
-    const seededParticipants = this.seedParticipants(participants);
-    const rounds: TournamentRound[] = [];
-    
-    // Winners bracket rounds
-    const winnersRounds = Math.ceil(Math.log2(seededParticipants.length));
-    
-    // Losers bracket has (winnersRounds * 2 - 1) rounds
-    const losersRounds = winnersRounds * 2 - 1;
-    
-    // Generate winners bracket
-    let currentWinners = [...seededParticipants];
-    for (let round = 1; round <= winnersRounds; round++) {
-      const matches: TournamentMatch[] = [];
-      
-      for (let i = 0; i < currentWinners.length; i += 2) {
-        if (i + 1 < currentWinners.length) {
-          matches.push({
-            id: `wb_r${round}_m${Math.floor(i / 2) + 1}`,
-            tournamentId: '',
-            round,
-            participant1: currentWinners[i],
-            participant2: currentWinners[i + 1],
-            status: 'waiting',
-            spectatorCount: 0
-          });
-        }
-      }
-      
-      rounds.push({
-        roundNumber: round,
-        name: `Winners Round ${round}`,
-        matches,
-        isComplete: false
-      });
-      
-      currentWinners = currentWinners.filter((_, index) => index % 2 === 0);
-    }
-    
-    // Generate losers bracket (simplified)
-    for (let round = 1; round <= losersRounds; round++) {
-      rounds.push({
-        roundNumber: winnersRounds + round,
-        name: `Losers Round ${round}`,
-        matches: [],
-        isComplete: false
-      });
-    }
-    
-    // Grand Finals
-    rounds.push({
-      roundNumber: winnersRounds + losersRounds + 1,
-      name: 'Grand Finals',
-      matches: [],
-      isComplete: false
-    });
-    
-    return {
-      type: TournamentType.DOUBLE_ELIMINATION,
-      rounds,
-      currentRound: 1,
-      winnersAdvance: 1,
-      losersAdvance: 0
-    };
-  }
-
-  private static generateRoundRobinBracket(participants: TournamentParticipant[]): TournamentBracket {
-    const rounds: TournamentRound[] = [];
-    const numParticipants = participants.length;
-    
-    // In round robin, each participant plays every other participant once
-    const totalRounds = numParticipants % 2 === 0 ? numParticipants - 1 : numParticipants;
-    
-    for (let round = 1; round <= totalRounds; round++) {
-      const matches: TournamentMatch[] = [];
-      const roundParticipants = [...participants];
-      
-      // Algorithm to pair participants for round robin
-      if (roundParticipants.length % 2 === 1) {
-        roundParticipants.push(this.createByeParticipant());
-      }
-      
-      const half = roundParticipants.length / 2;
-      const firstHalf = roundParticipants.slice(0, half);
-      const secondHalf = roundParticipants.slice(half).reverse();
-      
-      for (let i = 0; i < half; i++) {
-        const participant1 = firstHalf[i];
-        const participant2 = secondHalf[i];
-        
-        if (participant1.id !== 'bye' && participant2.id !== 'bye') {
-          matches.push({
-            id: `rr_r${round}_m${i + 1}`,
-            tournamentId: '',
-            round,
-            participant1,
-            participant2,
-            status: 'waiting',
-            spectatorCount: 0
-          });
-        }
-      }
-      
-      rounds.push({
-        roundNumber: round,
-        name: `Round ${round}`,
-        matches,
-        isComplete: false
-      });
-      
-      // Rotate participants for next round (except first one)
-      if (roundParticipants.length > 2) {
-        const temp = roundParticipants[1];
-        for (let i = 1; i < roundParticipants.length - 1; i++) {
-          roundParticipants[i] = roundParticipants[i + 1];
-        }
-        roundParticipants[roundParticipants.length - 1] = temp;
-      }
-    }
-    
-    return {
-      type: TournamentType.ROUND_ROBIN,
-      rounds,
-      currentRound: 1,
-      winnersAdvance: numParticipants // All advance, ranking by wins
-    };
-  }
-
-  private static generateSwissBracket(participants: TournamentParticipant[]): TournamentBracket {
-    const rounds: TournamentRound[] = [];
-    const numRounds = Math.ceil(Math.log2(participants.length)) + 1;
-    
-    // Swiss system pairs players with similar records
-    for (let round = 1; round <= numRounds; round++) {
-      rounds.push({
-        roundNumber: round,
-        name: `Round ${round}`,
-        matches: [],
-        isComplete: false
-      });
-    }
-    
-    return {
-      type: TournamentType.SWISS,
-      rounds,
-      currentRound: 1,
-      winnersAdvance: Math.ceil(participants.length / 4) // Top 25% advance
-    };
-  }
-
-  // Participant seeding based on rating/rank
-  private static seedParticipants(participants: TournamentParticipant[]): TournamentParticipant[] {
-    return [...participants].sort((a, b) => {
-      // Primary sort by rating
-      if (a.rating !== b.rating) {
-        return b.rating - a.rating;
-      }
-      // Secondary sort by rank tier
-      const rankOrder = {
-        [RankTier.LEGEND]: 8,
-        [RankTier.GRANDMASTER]: 7,
-        [RankTier.MASTER]: 6,
-        [RankTier.DIAMOND]: 5,
-        [RankTier.PLATINUM]: 4,
-        [RankTier.GOLD]: 3,
-        [RankTier.SILVER]: 2,
-        [RankTier.BRONZE]: 1
-      };
-      return rankOrder[b.rank] - rankOrder[a.rank];
-    });
-  }
-
-  private static createByeParticipant(): TournamentParticipant {
-    return {
-      id: 'bye',
-      userId: 'bye',
-      username: 'BYE',
-      rank: RankTier.BRONZE,
-      rating: 0,
-      deck: {
-        id: 'bye',
-        name: 'BYE',
-        format: 'standard' as any,
-        cardCount: 0
-      },
-      registrationTime: Date.now(),
-      checkedIn: true,
-      eliminated: false,
-      currentPosition: 999,
-      wins: 0,
-      losses: 0,
-      draws: 0
-    };
-  }
-
-  private static getRoundName(round: number, totalRounds: number): string {
-    const roundsFromEnd = totalRounds - round + 1;
-    
-    if (roundsFromEnd === 1) return 'Finals';
-    if (roundsFromEnd === 2) return 'Semi-Finals';
-    if (roundsFromEnd === 3) return 'Quarter-Finals';
-    if (roundsFromEnd === 4) return 'Round of 16';
-    if (roundsFromEnd === 5) return 'Round of 32';
-    
-    return `Round ${round}`;
-  }
-
-  // Match Management
-  static advanceWinner(match: TournamentMatch, winner: TournamentParticipant): void {
-    match.winner = winner;
-    match.status = 'finished';
-    match.endTime = Date.now();
-    
-    // Update participant records
-    if (winner.id === match.participant1.id) {
-      match.participant1.wins++;
-      match.participant2.losses++;
-    } else {
-      match.participant2.wins++;
-      match.participant1.losses++;
-    }
-  }
-
-  static canStartMatch(match: TournamentMatch): boolean {
-    return match.status === 'waiting' && 
-           match.participant1.checkedIn && 
-           match.participant2.checkedIn &&
-           match.participant1.id !== 'bye' &&
-           match.participant2.id !== 'bye';
-  }
-
-  // Tournament state management
-  static canStartTournament(tournament: Tournament): boolean {
-    return tournament.status === TournamentStatus.READY &&
-           tournament.currentParticipants >= tournament.minParticipants &&
-           Date.now() >= tournament.tournamentStart;
-  }
-
-  static calculateTournamentProgress(tournament: Tournament): number {
-    const totalMatches = tournament.bracket.rounds.reduce(
-      (sum, round) => sum + round.matches.length, 0
-    );
-    const completedMatches = tournament.bracket.rounds.reduce(
-      (sum, round) => sum + round.matches.filter(match => match.status === 'finished').length, 0
-    );
-    
-    return totalMatches > 0 ? (completedMatches / totalMatches) * 100 : 0;
-  }
-
-  static getNextMatches(tournament: Tournament): TournamentMatch[] {
-    const currentRound = tournament.bracket.rounds[tournament.bracket.currentRound - 1];
-    if (!currentRound) return [];
-    
-    return currentRound.matches.filter(match => 
-      match.status === 'waiting' && this.canStartMatch(match)
-    );
-  }
-
-  static isRoundComplete(round: TournamentRound): boolean {
-    return round.matches.every(match => match.status === 'finished');
-  }
-
-  static advanceToNextRound(tournament: Tournament): boolean {
-    const currentRound = tournament.bracket.rounds[tournament.bracket.currentRound - 1];
-    
-    if (!currentRound || !this.isRoundComplete(currentRound)) {
+    if (!tournament || tournament.status !== TournamentStatus.REGISTRATION) {
       return false;
     }
-    
-    currentRound.isComplete = true;
-    currentRound.endTime = Date.now();
-    
-    // Check if tournament is complete
-    if (tournament.bracket.currentRound >= tournament.bracket.rounds.length) {
-      tournament.status = TournamentStatus.FINISHED;
-      tournament.actualEnd = Date.now();
-      return true;
+
+    if (tournament.players.length >= tournament.maxPlayers) {
+      return false;
     }
-    
-    // Advance to next round
-    tournament.bracket.currentRound++;
-    
-    // Populate next round matches with winners
-    const nextRound = tournament.bracket.rounds[tournament.bracket.currentRound - 1];
-    if (nextRound && tournament.type === TournamentType.SINGLE_ELIMINATION) {
-      this.populateNextRoundMatches(currentRound, nextRound);
+
+    if (Date.now() > tournament.registrationDeadline) {
+      return false;
     }
-    
+
+    // Check if player already registered
+    if (tournament.players.some(p => p.id === player.id)) {
+      return false;
+    }
+
+    tournament.players.push({
+      ...player,
+      registrationTime: Date.now()
+    });
+
+    // Auto-start if tournament is full
+    if (tournament.players.length === tournament.maxPlayers) {
+      this.startTournament(tournamentId);
+    }
+
     return true;
   }
 
-  private static populateNextRoundMatches(currentRound: TournamentRound, nextRound: TournamentRound): void {
-    const winners = currentRound.matches.map(match => match.winner).filter(Boolean) as TournamentParticipant[];
+  startTournament(tournamentId: string): boolean {
+    const tournament = this.tournaments.get(tournamentId);
     
-    // Create matches for next round
-    for (let i = 0; i < winners.length; i += 2) {
-      if (i + 1 < winners.length) {
-        const matchIndex = Math.floor(i / 2);
-        if (nextRound.matches[matchIndex]) {
-          nextRound.matches[matchIndex].participant1 = winners[i];
-          nextRound.matches[matchIndex].participant2 = winners[i + 1];
-        }
-      }
+    if (!tournament || tournament.status !== TournamentStatus.REGISTRATION) {
+      return false;
+    }
+
+    if (tournament.players.length < 2) {
+      return false;
+    }
+
+    tournament.status = TournamentStatus.STARTING;
+    tournament.startTime = Date.now();
+
+    // Generate initial brackets
+    this.generateBrackets(tournament);
+    
+    tournament.status = TournamentStatus.IN_PROGRESS;
+    tournament.currentRound = 1;
+
+    return true;
+  }
+
+  private generateBrackets(tournament: Tournament) {
+    switch (tournament.type) {
+      case TournamentType.SINGLE_ELIMINATION:
+        this.generateSingleEliminationBrackets(tournament);
+        break;
+      case TournamentType.ROUND_ROBIN:
+        this.generateRoundRobinBrackets(tournament);
+        break;
+      case TournamentType.SWISS:
+        this.generateSwissBrackets(tournament);
+        break;
+      default:
+        this.generateSingleEliminationBrackets(tournament);
     }
   }
 
-  // Prize distribution
-  static calculatePrizes(tournament: Tournament): Array<{ participant: TournamentParticipant, prize: any }> {
-    const standings = this.getFinalStandings(tournament);
-    const prizes: Array<{ participant: TournamentParticipant, prize: any }> = [];
+  private generateSingleEliminationBrackets(tournament: Tournament) {
+    const players = [...tournament.players];
+    this.shuffleArray(players);
+
+    // Create first round matches
+    const matches: TournamentMatch[] = [];
     
-    tournament.prizePool.distribution.forEach(prizeEntry => {
-      const participant = standings[prizeEntry.position - 1];
-      if (participant) {
-        prizes.push({
-          participant,
-          prize: {
-            type: tournament.prizePool.currency,
-            amount: prizeEntry.amount,
-            items: prizeEntry.reward
-          }
+    for (let i = 0; i < players.length; i += 2) {
+      if (i + 1 < players.length) {
+        matches.push({
+          id: `match_${tournament.id}_r1_${i/2}`,
+          player1: players[i],
+          player2: players[i + 1],
+          gameResults: [],
+          status: 'pending',
+          spectators: []
         });
       }
-    });
-    
-    return prizes;
-  }
-
-  static getFinalStandings(tournament: Tournament): TournamentParticipant[] {
-    // Sort participants by performance
-    return tournament.participants
-      .filter(p => !p.eliminated)
-      .sort((a, b) => {
-        // Primary sort by wins
-        if (a.wins !== b.wins) {
-          return b.wins - a.wins;
-        }
-        // Secondary sort by losses (fewer is better)
-        if (a.losses !== b.losses) {
-          return a.losses - b.losses;
-        }
-        // Tertiary sort by rating
-        return b.rating - a.rating;
-      });
-  }
-}
-
-// Rating calculation utilities
-export class RatingCalculator {
-  private static readonly K_FACTOR_BASE = 32;
-  
-  static calculateNewRating(
-    playerRating: number,
-    opponentRating: number,
-    result: 'win' | 'loss' | 'draw',
-    playerRank: RankTier
-  ): { newRating: number; change: number } {
-    const kFactor = this.getKFactor(playerRating, playerRank);
-    const expectedScore = this.getExpectedScore(playerRating, opponentRating);
-    
-    let actualScore: number;
-    switch (result) {
-      case 'win':
-        actualScore = 1;
-        break;
-      case 'loss':
-        actualScore = 0;
-        break;
-      case 'draw':
-        actualScore = 0.5;
-        break;
     }
+
+    tournament.brackets.push({
+      roundNumber: 1,
+      matches
+    });
+  }
+
+  private generateRoundRobinBrackets(tournament: Tournament) {
+    const players = tournament.players;
+    const rounds = players.length - 1;
     
-    const change = Math.round(kFactor * (actualScore - expectedScore));
-    const newRating = Math.max(0, playerRating + change);
+    for (let round = 1; round <= rounds; round++) {
+      const matches: TournamentMatch[] = [];
+      
+      for (let i = 0; i < players.length / 2; i++) {
+        const player1Index = i;
+        const player2Index = players.length - 1 - i;
+        
+        if (player1Index !== player2Index) {
+          matches.push({
+            id: `match_${tournament.id}_r${round}_${i}`,
+            player1: players[player1Index],
+            player2: players[player2Index],
+            gameResults: [],
+            status: 'pending',
+            spectators: []
+          });
+        }
+      }
+
+      tournament.brackets.push({
+        roundNumber: round,
+        matches
+      });
+
+      // Rotate players for next round (except first player)
+      if (round < rounds) {
+        const lastPlayer = players.pop()!;
+        players.splice(1, 0, lastPlayer);
+      }
+    }
+  }
+
+  private generateSwissBrackets(tournament: Tournament) {
+    // Swiss pairing for first round (random)
+    const players = [...tournament.players];
+    this.shuffleArray(players);
+
+    const matches: TournamentMatch[] = [];
+    for (let i = 0; i < players.length; i += 2) {
+      if (i + 1 < players.length) {
+        matches.push({
+          id: `match_${tournament.id}_r1_${i/2}`,
+          player1: players[i],
+          player2: players[i + 1],
+          gameResults: [],
+          status: 'pending',
+          spectators: []
+        });
+      }
+    }
+
+    tournament.brackets.push({
+      roundNumber: 1,
+      matches
+    });
+  }
+
+  private shuffleArray<T>(array: T[]): void {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  // Match Management
+  reportMatchResult(tournamentId: string, matchId: string, result: GameResult): boolean {
+    const tournament = this.tournaments.get(tournamentId);
+    if (!tournament) return false;
+
+    const currentBracket = tournament.brackets[tournament.currentRound - 1];
+    const match = currentBracket.matches.find(m => m.id === matchId);
     
-    return { newRating, change };
+    if (!match || match.status === 'completed') return false;
+
+    match.gameResults.push(result);
+    match.status = 'completed';
+    match.winner = result.winner === 'player' ? match.player1.id : match.player2.id;
+    match.endTime = Date.now();
+
+    // Update player ratings
+    this.updatePlayerRatings(match, result);
+
+    // Check if round is complete
+    if (this.isRoundComplete(currentBracket)) {
+      this.advanceToNextRound(tournament);
+    }
+
+    return true;
   }
-  
-  private static getKFactor(rating: number, rank: RankTier): number {
-    // Higher K-factor for lower-rated players for faster progression
-    if (rating < 1200) return 40;
-    if (rating < 1600) return 32;
-    if (rating < 2000) return 24;
-    if (rank === RankTier.GRANDMASTER || rank === RankTier.LEGEND) return 16;
-    return 20;
+
+  private updatePlayerRatings(match: TournamentMatch, result: GameResult) {
+    const player1Rating = this.playerRankings.get(match.player1.id);
+    const player2Rating = this.playerRankings.get(match.player2.id);
+
+    if (player1Rating && player2Rating) {
+      const newRatings = this.ratingSystem.calculateNewRatings(
+        player1Rating.rating,
+        player2Rating.rating,
+        result.winner === 'player' ? 1 : 0
+      );
+
+      player1Rating.rating = newRatings.player1Rating;
+      player2Rating.rating = newRatings.player2Rating;
+      player1Rating.gamesPlayed++;
+      player2Rating.gamesPlayed++;
+
+      if (result.winner === 'player') {
+        player1Rating.streak = Math.max(0, player1Rating.streak + 1);
+        player2Rating.streak = Math.min(0, player2Rating.streak - 1);
+      } else {
+        player1Rating.streak = Math.min(0, player1Rating.streak - 1);
+        player2Rating.streak = Math.max(0, player2Rating.streak + 1);
+      }
+
+      // Update tiers
+      player1Rating.tier = this.ratingSystem.getRankFromRating(player1Rating.rating);
+      player2Rating.tier = this.ratingSystem.getRankFromRating(player2Rating.rating);
+
+      this.saveToStorage();
+    }
   }
-  
-  private static getExpectedScore(playerRating: number, opponentRating: number): number {
-    const ratingDiff = opponentRating - playerRating;
-    return 1 / (1 + Math.pow(10, ratingDiff / 400));
+
+  private isRoundComplete(bracket: TournamentBracket): boolean {
+    return bracket.matches.every(match => match.status === 'completed');
   }
-  
-  static getRankFromRating(rating: number): RankTier {
-    if (rating >= 2400) return RankTier.LEGEND;
-    if (rating >= 2200) return RankTier.GRANDMASTER;
-    if (rating >= 2000) return RankTier.MASTER;
-    if (rating >= 1800) return RankTier.DIAMOND;
-    if (rating >= 1500) return RankTier.PLATINUM;
-    if (rating >= 1200) return RankTier.GOLD;
-    if (rating >= 900) return RankTier.SILVER;
-    return RankTier.BRONZE;
-  }
-  
-  static getDivisionFromRating(rating: number, rank: RankTier): number {
-    const baseRating = this.getBaseRatingForRank(rank);
-    const nextRankRating = this.getBaseRatingForRank(this.getNextRank(rank));
-    const ratingRange = nextRankRating - baseRating;
-    const divisionSize = ratingRange / 3;
+
+  private advanceToNextRound(tournament: Tournament) {
+    if (tournament.currentRound >= tournament.maxRounds) {
+      this.finishTournament(tournament);
+      return;
+    }
+
+    tournament.currentRound++;
     
-    const ratingInRank = rating - baseRating;
-    return Math.min(3, Math.max(1, Math.ceil(ratingInRank / divisionSize)));
+    // Generate next round based on tournament type
+    if (tournament.type === TournamentType.SINGLE_ELIMINATION) {
+      this.generateNextEliminationRound(tournament);
+    } else if (tournament.type === TournamentType.SWISS) {
+      this.generateNextSwissRound(tournament);
+    }
   }
-  
-  private static getBaseRatingForRank(rank: RankTier): number {
-    const baseRatings = {
-      [RankTier.BRONZE]: 0,
-      [RankTier.SILVER]: 900,
-      [RankTier.GOLD]: 1200,
-      [RankTier.PLATINUM]: 1500,
-      [RankTier.DIAMOND]: 1800,
-      [RankTier.MASTER]: 2000,
-      [RankTier.GRANDMASTER]: 2200,
-      [RankTier.LEGEND]: 2400
-    };
-    return baseRatings[rank];
+
+  private generateNextEliminationRound(tournament: Tournament) {
+    const previousBracket = tournament.brackets[tournament.currentRound - 2];
+    const winners: TournamentPlayer[] = [];
+
+    previousBracket.matches.forEach(match => {
+      if (match.winner === match.player1.id) {
+        winners.push(match.player1);
+      } else {
+        winners.push(match.player2);
+      }
+    });
+
+    const matches: TournamentMatch[] = [];
+    for (let i = 0; i < winners.length; i += 2) {
+      if (i + 1 < winners.length) {
+        matches.push({
+          id: `match_${tournament.id}_r${tournament.currentRound}_${i/2}`,
+          player1: winners[i],
+          player2: winners[i + 1],
+          gameResults: [],
+          status: 'pending',
+          spectators: []
+        });
+      }
+    }
+
+    tournament.brackets.push({
+      roundNumber: tournament.currentRound,
+      matches
+    });
   }
-  
-  private static getNextRank(rank: RankTier): RankTier {
-    const progression = {
-      [RankTier.BRONZE]: RankTier.SILVER,
-      [RankTier.SILVER]: RankTier.GOLD,
-      [RankTier.GOLD]: RankTier.PLATINUM,
-      [RankTier.PLATINUM]: RankTier.DIAMOND,
-      [RankTier.DIAMOND]: RankTier.MASTER,
-      [RankTier.MASTER]: RankTier.GRANDMASTER,
-      [RankTier.GRANDMASTER]: RankTier.LEGEND,
-      [RankTier.LEGEND]: RankTier.LEGEND
-    };
-    return progression[rank];
+
+  private generateNextSwissRound(tournament: Tournament) {
+    // Swiss pairing based on current standings
+    const players = [...tournament.players];
+    
+    // Sort by current tournament score
+    players.sort((a, b) => this.getTournamentScore(tournament, b.id) - this.getTournamentScore(tournament, a.id));
+
+    const matches: TournamentMatch[] = [];
+    const paired: Set<string> = new Set();
+
+    for (let i = 0; i < players.length; i++) {
+      if (paired.has(players[i].id)) continue;
+
+      // Find best opponent with similar score
+      for (let j = i + 1; j < players.length; j++) {
+        if (paired.has(players[j].id)) continue;
+        
+        // Check if they haven't played before
+        if (!this.havePlayedBefore(tournament, players[i].id, players[j].id)) {
+          matches.push({
+            id: `match_${tournament.id}_r${tournament.currentRound}_${matches.length}`,
+            player1: players[i],
+            player2: players[j],
+            gameResults: [],
+            status: 'pending',
+            spectators: []
+          });
+          
+          paired.add(players[i].id);
+          paired.add(players[j].id);
+          break;
+        }
+      }
+    }
+
+    tournament.brackets.push({
+      roundNumber: tournament.currentRound,
+      matches
+    });
+  }
+
+  private getTournamentScore(tournament: Tournament, playerId: string): number {
+    let score = 0;
+    tournament.brackets.forEach(bracket => {
+      bracket.matches.forEach(match => {
+        if (match.winner === playerId) {
+          score += 3; // 3 points for win
+        } else if ((match.player1.id === playerId || match.player2.id === playerId) && match.status === 'completed') {
+          score += 1; // 1 point for participation
+        }
+      });
+    });
+    return score;
+  }
+
+  private havePlayedBefore(tournament: Tournament, player1Id: string, player2Id: string): boolean {
+    return tournament.brackets.some(bracket =>
+      bracket.matches.some(match =>
+        (match.player1.id === player1Id && match.player2.id === player2Id) ||
+        (match.player1.id === player2Id && match.player2.id === player1Id)
+      )
+    );
+  }
+
+  private finishTournament(tournament: Tournament) {
+    tournament.status = TournamentStatus.FINISHED;
+    tournament.endTime = Date.now();
+
+    // Calculate final standings and distribute prizes
+    const standings = this.calculateFinalStandings(tournament);
+    this.distributePrizes(tournament, standings);
+  }
+
+  private calculateFinalStandings(tournament: Tournament): TournamentPlayer[] {
+    const standings = [...tournament.players];
+    
+    standings.sort((a, b) => {
+      const scoreA = this.getTournamentScore(tournament, a.id);
+      const scoreB = this.getTournamentScore(tournament, b.id);
+      return scoreB - scoreA;
+    });
+
+    return standings;
+  }
+
+  private distributePrizes(tournament: Tournament, standings: TournamentPlayer[]) {
+    tournament.prizePool.forEach(prize => {
+      if (prize.position <= standings.length) {
+        const winner = standings[prize.position - 1];
+        console.log(`Prize distributed: ${winner.name} received ${prize.description}`);
+        // Here you would integrate with the actual currency/item system
+      }
+    });
+  }
+
+  // Public API
+  getTournament(id: string): Tournament | undefined {
+    return this.tournaments.get(id);
+  }
+
+  getActiveTournaments(): Tournament[] {
+    return Array.from(this.tournaments.values()).filter(t => 
+      t.status === TournamentStatus.REGISTRATION || t.status === TournamentStatus.IN_PROGRESS
+    );
+  }
+
+  getPlayerRanking(playerId: string): PlayerRanking | undefined {
+    return this.playerRankings.get(playerId);
+  }
+
+  getLeaderboard(limit = 100): PlayerRanking[] {
+    return Array.from(this.playerRankings.values())
+      .sort((a, b) => b.rating - a.rating)
+      .slice(0, limit);
+  }
+
+  getCurrentSeason(): SeasonData | null {
+    return this.currentSeason;
   }
 }
+
+// ELO-based Rating System
+class RatingSystem {
+  private kFactor = 32;
+
+  calculateNewRatings(rating1: number, rating2: number, score1: number): {
+    player1Rating: number;
+    player2Rating: number;
+  } {
+    const expectedScore1 = this.getExpectedScore(rating1, rating2);
+    const expectedScore2 = this.getExpectedScore(rating2, rating1);
+
+    const newRating1 = Math.round(rating1 + this.kFactor * (score1 - expectedScore1));
+    const newRating2 = Math.round(rating2 + this.kFactor * ((1 - score1) - expectedScore2));
+
+    return {
+      player1Rating: Math.max(100, newRating1), // Minimum rating of 100
+      player2Rating: Math.max(100, newRating2)
+    };
+  }
+
+  private getExpectedScore(rating1: number, rating2: number): number {
+    return 1 / (1 + Math.pow(10, (rating2 - rating1) / 400));
+  }
+
+  getRankFromRating(rating: number): CompetitiveTier {
+    if (rating >= 2500) return CompetitiveTier.GRANDMASTER;
+    if (rating >= 2200) return CompetitiveTier.MASTER;
+    if (rating >= 1900) return CompetitiveTier.DIAMOND;
+    if (rating >= 1600) return CompetitiveTier.PLATINUM;
+    if (rating >= 1300) return CompetitiveTier.GOLD;
+    if (rating >= 1000) return CompetitiveTier.SILVER;
+    return CompetitiveTier.BRONZE;
+  }
+}
+
+// Global tournament manager instance
+export const tournamentManager = new TournamentManager();
+
+// React hook for tournament functionality
+export function useTournament() {
+  const createTournament = (config: any) => {
+    return tournamentManager.createTournament(config);
+  };
+
+  const registerForTournament = (tournamentId: string, player: TournamentPlayer) => {
+    return tournamentManager.registerPlayer(tournamentId, player);
+  };
+
+  const getActiveTournaments = () => {
+    return tournamentManager.getActiveTournaments();
+  };
+
+  const getLeaderboard = (limit?: number) => {
+    return tournamentManager.getLeaderboard(limit);
+  };
+
+  const getPlayerRanking = (playerId: string) => {
+    return tournamentManager.getPlayerRanking(playerId);
+  };
+
+  return {
+    createTournament,
+    registerForTournament,
+    getActiveTournaments,
+    getLeaderboard,
+    getPlayerRanking,
+    currentSeason: tournamentManager.getCurrentSeason()
+  };
+}
+
+export default tournamentManager;

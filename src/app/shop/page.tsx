@@ -823,10 +823,10 @@ function ShopPageContent() {
                         }
                       }}
                     />
-                    {/* Expand Icon */}
+                    {/* Expand Icon - Always visible on mobile/tablet, hover on desktop */}
                     <button
                       onClick={() => setExpandedImage(true)}
-                      className="absolute right-3 top-3 rounded-full bg-black/60 p-2 text-white opacity-0 transition-all hover:bg-black/80 group-hover:opacity-100"
+                      className="absolute right-3 top-3 rounded-full bg-black/60 p-2 text-white opacity-100 transition-all hover:bg-black/80 md:opacity-0 md:group-hover:opacity-100"
                       title="View Full Image"
                     >
                       <Eye className="h-4 w-4" />

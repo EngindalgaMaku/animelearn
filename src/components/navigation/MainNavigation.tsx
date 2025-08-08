@@ -76,8 +76,10 @@ const navigation = [
 export default function MainNavigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
   const { isAuthenticated, user, logout, loading } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const moreDropdownRef = useRef<HTMLDivElement>(null);
 
   // Admin kontrolü - role ve email üzerinden
   const isAdmin = user && (
@@ -88,7 +90,7 @@ export default function MainNavigation() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Close dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -96,6 +98,12 @@ export default function MainNavigation() {
         !dropdownRef.current.contains(event.target as Node)
       ) {
         setUserDropdownOpen(false);
+      }
+      if (
+        moreDropdownRef.current &&
+        !moreDropdownRef.current.contains(event.target as Node)
+      ) {
+        setMoreDropdownOpen(false);
       }
     };
 
@@ -136,34 +144,127 @@ export default function MainNavigation() {
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop & Tablet Navigation */}
           <div className="hidden items-center space-x-1 md:flex">
-            {navigation.map((item) => {
-              if (item.requireAuth && !isAuthenticated) return null;
-              if (item.hideForAuth && isAuthenticated) return null;
+            {/* Primary Navigation - Always visible on tablet+ */}
+            <div className="flex items-center space-x-1">
+              {navigation.filter(item => {
+                if (item.requireAuth && !isAuthenticated) return false;
+                if (item.hideForAuth && isAuthenticated) return false;
+                // Show primary items on tablet: Dashboard, Code Arena, Shop
+                return ['Dashboard', 'Code Arena', 'Shop'].includes(item.name);
+              }).map((item) => {
+                const isActive = pathname === item.href;
+                const IconComponent = item.icon;
 
-              const isActive = pathname === item.href;
-              const IconComponent = item.icon;
-
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`relative flex items-center space-x-2 rounded-lg px-3 py-2 font-medium transition-all duration-200 ${
-                    isActive
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                  }`}
-                >
-                  <IconComponent
-                    className={`h-4 w-4 ${
-                      isActive ? "text-white" : item.color || "text-current"
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`relative flex items-center space-x-2 rounded-lg px-3 py-2 font-medium transition-all duration-200 ${
+                      isActive
+                        ? "bg-blue-600 text-white shadow-md"
+                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                     }`}
-                  />
-                  <span className="text-sm">{item.name}</span>
-                </Link>
-              );
-            })}
+                  >
+                    <IconComponent
+                      className={`h-4 w-4 ${
+                        isActive ? "text-white" : item.color || "text-current"
+                      }`}
+                    />
+                    <span className="text-sm lg:block hidden">{item.name}</span>
+                    <span className="text-xs lg:hidden block">{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Secondary Navigation - Dropdown for smaller screens */}
+            <div className="relative">
+              <div className="lg:flex lg:items-center lg:space-x-1 hidden">
+                {/* Show remaining items normally on large screens */}
+                {navigation.filter(item => {
+                  if (item.requireAuth && !isAuthenticated) return false;
+                  if (item.hideForAuth && isAuthenticated) return false;
+                  return !['Dashboard', 'Code Arena', 'Shop'].includes(item.name);
+                }).map((item) => {
+                  const isActive = pathname === item.href;
+                  const IconComponent = item.icon;
+
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={`relative flex items-center space-x-2 rounded-lg px-3 py-2 font-medium transition-all duration-200 ${
+                        isActive
+                          ? "bg-blue-600 text-white shadow-md"
+                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      }`}
+                    >
+                      <IconComponent
+                        className={`h-4 w-4 ${
+                          isActive ? "text-white" : item.color || "text-current"
+                        }`}
+                      />
+                      <span className="text-sm">{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+
+              {/* More dropdown for tablet screens */}
+              {(() => {
+                const secondaryItems = navigation.filter(item => {
+                  if (item.requireAuth && !isAuthenticated) return false;
+                  if (item.hideForAuth && isAuthenticated) return false;
+                  return !['Dashboard', 'Code Arena', 'Shop'].includes(item.name);
+                });
+
+                if (secondaryItems.length === 0) return null;
+
+                return (
+                  <div className="lg:hidden relative" ref={moreDropdownRef}>
+                    <button
+                      onClick={() => setMoreDropdownOpen(!moreDropdownOpen)}
+                      className="flex items-center space-x-1 rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    >
+                      <Menu className="h-4 w-4" />
+                      <span className="text-sm">More</span>
+                      <ChevronDown className="h-3 w-3" />
+                    </button>
+
+                    {moreDropdownOpen && (
+                      <div className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                        {secondaryItems.map((item) => {
+                          const isActive = pathname === item.href;
+                          const IconComponent = item.icon;
+
+                          return (
+                            <Link
+                              key={item.name}
+                              href={item.href}
+                              onClick={() => setMoreDropdownOpen(false)}
+                              className={`flex items-center space-x-3 px-4 py-2 text-sm transition-colors ${
+                                isActive
+                                  ? "bg-blue-50 text-blue-600"
+                                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                              }`}
+                            >
+                              <IconComponent
+                                className={`h-4 w-4 ${
+                                  isActive ? "text-blue-600" : item.color || "text-current"
+                                }`}
+                              />
+                              <span>{item.name}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
           </div>
 
           {/* User Info & Actions */}

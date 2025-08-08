@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import MultiplayerBattleInterface from "@/components/battle/MultiplayerBattleInterface";
+import MultiplayerArena from "@/components/learn/MultiplayerArena";
 import { 
   Users, 
   Crown, 
@@ -255,7 +255,7 @@ export default function MultiplayerPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900">
-      <MultiplayerBattleInterface />
+      <MultiplayerArena />
     </div>
   );
 }

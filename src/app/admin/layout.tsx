@@ -45,10 +45,16 @@ const adminNavigation = [
     color: "text-purple-600",
     submenu: [
       {
-        name: "Cards",
+        name: "Shop Cards",
         href: "/admin/cards",
         icon: CreditCard,
-        description: "Manage individual cards",
+        description: "Manage shop cards for purchase",
+      },
+      {
+        name: "Collection Cards",
+        href: "/admin/collection-cards",
+        icon: Package,
+        description: "Manage user collection cards",
       },
       {
         name: "Categories",

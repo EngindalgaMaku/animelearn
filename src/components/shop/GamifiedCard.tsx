@@ -349,9 +349,9 @@ export default function GamifiedCard({
               </div>
             )}
 
-            {/* Quick View Button */}
-            <motion.div 
-              className="absolute bottom-2 right-2 bg-black/60 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            {/* Quick View Button - Always visible on mobile/tablet, hover on desktop */}
+            <motion.div
+              className="absolute bottom-2 right-2 bg-black/60 text-white rounded-full p-2 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >

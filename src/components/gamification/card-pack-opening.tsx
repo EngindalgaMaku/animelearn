@@ -1,595 +1,788 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import {
-  Package,
-  Diamond,
-  Star,
   Sparkles,
-  Gift,
-  Lock,
-  ShoppingCart,
-  Trophy,
-  Zap,
+  Star,
   Crown,
+  Zap,
+  Diamond,
+  Volume2,
+  VolumeX,
+  RotateCcw,
+  X,
+  Gift,
+  Trophy,
+  Flame,
+  Gem,
+  Hexagon,
+  Shield
 } from "lucide-react";
 
 interface Card {
   id: string;
   name: string;
   rarity: string;
-  character: string;
   imageUrl?: string;
-  isNew: boolean;
-  alreadyOwned: boolean;
+  rarityLevel: number;
+  element?: string;
+  series?: string;
+  character?: string;
 }
 
 interface CardPack {
   id: string;
   name: string;
-  description: string;
   packType: string;
-  cardCount: number;
-  guaranteedRarity: string | null;
-  diamondPrice: number | null;
-  requiredLevel: number;
-  imageUrl: string | null;
+  imageUrl?: string;
   rarity: string;
-  canAfford: boolean;
-  canOpen: boolean;
-}
-
-interface UserInfo {
-  level: number;
-  diamonds: number;
 }
 
 interface CardPackOpeningProps {
-  className?: string;
+  isOpen: boolean;
+  onClose: () => void;
+  cardPack: CardPack;
+  cards: Card[];
+  onOpenComplete?: (cards: Card[]) => void;
+  celebrationType?: 'normal' | 'big' | 'pack' | 'weekly' | 'special';
 }
 
-const CardPackOpening: React.FC<CardPackOpeningProps> = ({
-  className = "",
-}) => {
-  const [cardPacks, setCardPacks] = useState<CardPack[]>([]);
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Opening state
-  const [selectedPack, setSelectedPack] = useState<CardPack | null>(null);
-  const [isOpening, setIsOpening] = useState(false);
-  const [openingStage, setOpeningStage] = useState<
-    "selecting" | "opening" | "revealing" | "summary"
-  >("selecting");
-  const [revealedCards, setRevealedCards] = useState<Card[]>([]);
+export default function CardPackOpening({
+  isOpen,
+  onClose,
+  cardPack,
+  cards,
+  onOpenComplete,
+  celebrationType = 'normal'
+}: CardPackOpeningProps) {
+  const [stage, setStage] = useState<'intro' | 'opening' | 'revealing' | 'celebration' | 'complete'>('intro');
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
-  const [showSummary, setShowSummary] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [revealedCards, setRevealedCards] = useState<Card[]>([]);
+  const [showRarityBurst, setShowRarityBurst] = useState(false);
+  const [burstRarity, setBurstRarity] = useState(1);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  
+  // Enhanced motion values for 3D effects
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const rotateX = useTransform(mouseY, [-300, 300], [30, -30]);
+  const rotateY = useTransform(mouseX, [-300, 300], [-30, 30]);
 
+  // Reset state when pack opens
   useEffect(() => {
-    fetchCardPacks();
-  }, []);
+    if (isOpen) {
+      setStage('intro');
+      setCurrentCardIndex(0);
+      setRevealedCards([]);
+    }
+  }, [isOpen]);
 
-  const fetchCardPacks = async () => {
+  const playSound = (type: 'pack_open' | 'card_reveal' | 'rare_card' | 'celebration') => {
+    if (!soundEnabled) return;
+    
+    // In a real implementation, you would load actual sound files
     try {
-      setLoading(true);
-      const response = await fetch("/api/card-packs");
-      const data = await response.json();
-
-      if (data.success) {
-        setCardPacks(data.cardPacks);
-        setUserInfo(data.userInfo);
-      } else {
-        setError(data.error || "Kart paketleri yüklenirken hata oluştu");
-      }
-    } catch (err) {
-      setError("Bağlantı hatası");
-    } finally {
-      setLoading(false);
+      const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = context.createOscillator();
+      const gainNode = context.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(context.destination);
+      
+      // Different frequencies for different sounds
+      const frequencies = {
+        pack_open: 440,
+        card_reveal: 523,
+        rare_card: 659,
+        celebration: 880
+      };
+      
+      oscillator.frequency.setValueAtTime(frequencies[type], context.currentTime);
+      gainNode.gain.setValueAtTime(0.1, context.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.5);
+      
+      oscillator.start(context.currentTime);
+      oscillator.stop(context.currentTime + 0.5);
+    } catch (error) {
+      // Fallback for browsers that don't support AudioContext
+      console.log('Sound effect:', type);
     }
   };
 
-  const handleOpenPack = async (pack: CardPack) => {
-    if (!pack.canAfford || !pack.canOpen) return;
+  const startOpening = () => {
+    setStage('opening');
+    playSound('pack_open');
+    
+    setTimeout(() => {
+      setStage('revealing');
+      revealNextCard();
+    }, 2000);
+  };
 
-    try {
-      setSelectedPack(pack);
-      setIsOpening(true);
-      setOpeningStage("opening");
-
-      const response = await fetch("/api/card-packs/open", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          packId: pack.id,
-          sourceType: "purchase",
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setRevealedCards(data.cards);
-        setUserInfo(data.userInfo);
-
-        // Animasyon için kısa bir bekleme
+  const revealNextCard = () => {
+    if (currentCardIndex < cards.length) {
+      const card = cards[currentCardIndex];
+      setRevealedCards(prev => [...prev, card]);
+      
+      // Enhanced rarity burst effect
+      if (card.rarityLevel >= 4) {
+        setShowRarityBurst(true);
+        setBurstRarity(card.rarityLevel);
+        playSound('rare_card');
+        setTimeout(() => setShowRarityBurst(false), 2000);
+      } else {
+        playSound('card_reveal');
+      }
+      
+      setCurrentCardIndex(prev => prev + 1);
+      
+      if (currentCardIndex + 1 >= cards.length) {
         setTimeout(() => {
-          setOpeningStage("revealing");
-          startCardRevealAnimation();
-        }, 1500);
-      } else {
-        setError(data.error || "Kart paketi açılırken hata oluştu");
-        setIsOpening(false);
-        setSelectedPack(null);
-      }
-    } catch (err) {
-      setError("Bağlantı hatası");
-      setIsOpening(false);
-      setSelectedPack(null);
-    }
-  };
-
-  const startCardRevealAnimation = () => {
-    setCurrentCardIndex(0);
-    const interval = setInterval(() => {
-      setCurrentCardIndex((prev) => {
-        if (prev >= revealedCards.length - 1) {
-          clearInterval(interval);
+          setStage('celebration');
+          playSound('celebration');
+          
           setTimeout(() => {
-            setOpeningStage("summary");
-            setShowSummary(true);
-          }, 1000);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 1200);
-  };
-
-  const resetOpening = () => {
-    setSelectedPack(null);
-    setIsOpening(false);
-    setOpeningStage("selecting");
-    setRevealedCards([]);
-    setCurrentCardIndex(0);
-    setShowSummary(false);
-    fetchCardPacks(); // Refresh pack list
-  };
-
-  const getRarityColor = (rarity: string) => {
-    const rarityColors: { [key: string]: string } = {
-      common: "from-gray-400 to-gray-600",
-      uncommon: "from-green-400 to-green-600",
-      rare: "from-blue-400 to-blue-600",
-      epic: "from-purple-400 to-purple-600",
-      legendary: "from-yellow-400 to-yellow-600",
-    };
-    return rarityColors[rarity.toLowerCase()] || rarityColors.common;
-  };
-
-  const getRarityIcon = (rarity: string) => {
-    const rarityIcons: { [key: string]: React.ReactNode } = {
-      common: <Star className="h-4 w-4" />,
-      uncommon: <Sparkles className="h-4 w-4" />,
-      rare: <Zap className="h-4 w-4" />,
-      epic: <Trophy className="h-4 w-4" />,
-      legendary: <Crown className="h-4 w-4" />,
-    };
-    return rarityIcons[rarity.toLowerCase()] || rarityIcons.common;
-  };
-
-  const getPackTypeIcon = (packType: string) => {
-    switch (packType) {
-      case "lesson_reward":
-        return <Trophy className="h-5 w-5" />;
-      case "daily_login":
-        return <Gift className="h-5 w-5" />;
-      case "achievement":
-        return <Star className="h-5 w-5" />;
-      case "purchase":
-        return <ShoppingCart className="h-5 w-5" />;
-      default:
-        return <Package className="h-5 w-5" />;
+            setStage('complete');
+            onOpenComplete?.(cards);
+          }, 3000);
+        }, 1500);
+      }
     }
   };
 
-  if (loading) {
-    return (
-      <div className={`rounded-xl bg-white p-6 shadow-lg ${className}`}>
-        <div className="animate-pulse">
-          <div className="mb-6 h-6 w-1/3 rounded bg-gray-200"></div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-48 rounded-lg bg-gray-200"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const getRarityColor = (rarity: string, level: number) => {
+    const colors = {
+      1: 'from-gray-400 to-gray-600',
+      2: 'from-green-400 to-green-600', 
+      3: 'from-blue-400 to-blue-600',
+      4: 'from-purple-400 to-purple-600',
+      5: 'from-yellow-400 to-orange-500',
+      6: 'from-pink-400 to-red-500'
+    };
+    return colors[level as keyof typeof colors] || colors[1];
+  };
 
-  if (error) {
-    return (
-      <div className={`rounded-xl bg-white p-6 shadow-lg ${className}`}>
-        <div className="text-center">
-          <Package className="mx-auto mb-4 h-12 w-12 text-red-500" />
-          <h3 className="mb-2 text-lg font-semibold text-gray-900">Hata</h3>
-          <p className="mb-4 text-gray-600">{error}</p>
+  const getRarityGlow = (level: number) => {
+    const glows = {
+      1: 'shadow-lg',
+      2: 'shadow-green-500/50 shadow-2xl',
+      3: 'shadow-blue-500/50 shadow-2xl',
+      4: 'shadow-purple-500/50 shadow-2xl animate-pulse',
+      5: 'shadow-yellow-500/50 shadow-2xl animate-pulse',
+      6: 'shadow-pink-500/50 shadow-2xl animate-pulse'
+    };
+    return glows[level as keyof typeof glows] || glows[1];
+  };
+
+  const getRarityParticleColor = (level: number) => {
+    const colors = {
+      1: '#9CA3AF',
+      2: '#10B981',
+      3: '#3B82F6',
+      4: '#8B5CF6',
+      5: '#F59E0B',
+      6: '#EF4444'
+    };
+    return colors[level as keyof typeof colors] || colors[1];
+  };
+
+  const getRarityIcon = (level: number) => {
+    const icons = {
+      1: <Star className="h-6 w-6" />,
+      2: <Sparkles className="h-6 w-6" />,
+      3: <Diamond className="h-6 w-6" />,
+      4: <Crown className="h-6 w-6" />,
+      5: <Flame className="h-6 w-6" />,
+      6: <Gem className="h-6 w-6" />
+    };
+    return icons[level as keyof typeof icons] || icons[1];
+  };
+
+  const getCelebrationIcon = () => {
+    switch (celebrationType) {
+      case 'special': return <Crown className="h-16 w-16 text-yellow-400" />;
+      case 'weekly': return <Trophy className="h-16 w-16 text-purple-400" />;
+      case 'pack': return <Gift className="h-16 w-16 text-blue-400" />;
+      case 'big': return <Diamond className="h-16 w-16 text-emerald-400" />;
+      default: return <Star className="h-16 w-16 text-yellow-400" />;
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4"
+      >
+        {/* Enhanced Background Effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          {/* Animated particles */}
+          {[...Array(100)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full opacity-40"
+              style={{
+                width: Math.random() * 6 + 2,
+                height: Math.random() * 6 + 2,
+                backgroundColor: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'][i % 6]
+              }}
+              initial={{
+                x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1920),
+                y: typeof window !== 'undefined' ? window.innerHeight + 50 : 1080,
+                scale: 0
+              }}
+              animate={{
+                y: -100,
+                x: `+=${Math.random() * 200 - 100}`,
+                scale: [0, 1, 0],
+                opacity: [0, 0.8, 0],
+                rotate: [0, 360]
+              }}
+              transition={{
+                duration: Math.random() * 4 + 3,
+                repeat: Infinity,
+                delay: Math.random() * 3,
+                ease: "easeOut"
+              }}
+            />
+          ))}
+
+          {/* Floating orbs */}
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={`orb-${i}`}
+              className="absolute w-8 h-8 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 opacity-20"
+              initial={{
+                x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1920),
+                y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1080)
+              }}
+              animate={{
+                y: [0, -30, 0],
+                x: [0, Math.random() * 60 - 30, 0],
+                scale: [1, 1.2, 1],
+                opacity: [0.2, 0.4, 0.2]
+              }}
+              transition={{
+                duration: Math.random() * 6 + 4,
+                repeat: Infinity,
+                delay: Math.random() * 2
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Rarity Burst Effect */}
+        <AnimatePresence>
+          {showRarityBurst && (
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {/* Radial burst */}
+              <motion.div
+                className="absolute inset-0 flex items-center justify-center"
+                initial={{ scale: 0 }}
+                animate={{ scale: 2 }}
+                exit={{ scale: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              >
+                <div
+                  className="w-96 h-96 rounded-full opacity-30"
+                  style={{
+                    background: `radial-gradient(circle, ${getRarityParticleColor(burstRarity)}40 0%, transparent 70%)`
+                  }}
+                />
+              </motion.div>
+
+              {/* Burst particles */}
+              {[...Array(30)].map((_, i) => {
+                const angle = (i / 30) * 360;
+                const distance = 200 + Math.random() * 100;
+                return (
+                  <motion.div
+                    key={i}
+                    className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full"
+                    style={{ backgroundColor: getRarityParticleColor(burstRarity) }}
+                    initial={{
+                      x: 0,
+                      y: 0,
+                      scale: 0,
+                      rotate: angle
+                    }}
+                    animate={{
+                      x: Math.cos((angle * Math.PI) / 180) * distance,
+                      y: Math.sin((angle * Math.PI) / 180) * distance,
+                      scale: [0, 1, 0],
+                      opacity: [1, 1, 0]
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      ease: "easeOut"
+                    }}
+                  />
+                );
+              })}
+
+              {/* Shockwave effect */}
+              <motion.div
+                className="absolute inset-0 flex items-center justify-center"
+                initial={{ scale: 0, opacity: 0.8 }}
+                animate={{ scale: 3, opacity: 0 }}
+                transition={{ duration: 1, ease: "easeOut" }}
+              >
+                <div
+                  className="w-32 h-32 rounded-full border-4 opacity-60"
+                  style={{ borderColor: getRarityParticleColor(burstRarity) }}
+                />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Controls */}
+        <div className="absolute top-4 right-4 flex space-x-2 z-10">
           <button
-            onClick={fetchCardPacks}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className="p-2 bg-white/20 rounded-full text-white hover:bg-white/30 transition-colors"
           >
-            Tekrar Dene
+            {soundEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+          </button>
+          <button
+            onClick={onClose}
+            className="p-2 bg-white/20 rounded-full text-white hover:bg-white/30 transition-colors"
+          >
+            <X className="h-5 w-5" />
           </button>
         </div>
-      </div>
-    );
-  }
 
-  // Pack opening animation
-  if (isOpening && openingStage === "opening") {
-    return (
-      <div
-        className={`flex min-h-96 items-center justify-center rounded-xl bg-gradient-to-br from-purple-900 to-blue-900 p-6 shadow-lg ${className}`}
-      >
-        <div className="text-center">
-          <motion.div
-            animate={{
-              scale: [1, 1.2, 1],
-              rotate: [0, 180, 360],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            className="mx-auto mb-6 h-24 w-24"
-          >
-            <div
-              className={`h-full w-full bg-gradient-to-br ${getRarityColor(selectedPack?.rarity || "common")} flex items-center justify-center rounded-lg`}
+        {/* Main Content */}
+        <div className="relative w-full max-w-6xl h-full flex items-center justify-center">
+          
+          {/* Intro Stage */}
+          {stage === 'intro' && (
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              className="text-center"
             >
-              <Package className="h-12 w-12 text-white" />
-            </div>
-          </motion.div>
-
-          <motion.h2
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="mb-2 text-2xl font-bold text-white"
-          >
-            {selectedPack?.name} Açılıyor...
-          </motion.h2>
-
-          <div className="flex justify-center space-x-1">
-            {[0, 1, 2].map((i) => (
               <motion.div
-                key={i}
-                animate={{ opacity: [0.3, 1, 0.3] }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  delay: i * 0.5,
+                className="relative mb-8"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                style={{
+                  perspective: "1000px"
                 }}
-                className="h-2 w-2 rounded-full bg-white"
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Card revealing animation
-  if (isOpening && openingStage === "revealing") {
-    return (
-      <div
-        className={`min-h-96 rounded-xl bg-gradient-to-br from-purple-900 to-blue-900 p-6 shadow-lg ${className}`}
-      >
-        <div className="mb-6 text-center">
-          <h2 className="mb-2 text-2xl font-bold text-white">
-            Kartların Açılıyor!
-          </h2>
-          <p className="text-purple-200">
-            {currentCardIndex + 1} / {revealedCards.length}
-          </p>
-        </div>
-
-        <div className="mx-auto grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-          {revealedCards.map((card, index) => (
-            <motion.div
-              key={index}
-              initial={{
-                scale: 0,
-                rotateY: 180,
-                opacity: 0,
-              }}
-              animate={
-                index <= currentCardIndex
-                  ? {
-                      scale: 1,
-                      rotateY: 0,
-                      opacity: 1,
-                    }
-                  : {}
-              }
-              transition={{
-                duration: 0.8,
-                ease: "easeInOut",
-              }}
-              className="relative"
-            >
-              <div
-                className={`bg-gradient-to-br ${getRarityColor(card.rarity)} rounded-lg p-1`}
+                onMouseMove={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const centerX = rect.left + rect.width / 2;
+                  const centerY = rect.top + rect.height / 2;
+                  mouseX.set(e.clientX - centerX);
+                  mouseY.set(e.clientY - centerY);
+                }}
+                onMouseLeave={() => {
+                  mouseX.set(0);
+                  mouseY.set(0);
+                }}
               >
-                <div className="relative overflow-hidden rounded-lg bg-white p-4">
-                  {/* New badge */}
-                  {card.isNew && (
+                <motion.div
+                  className={`w-64 h-80 bg-gradient-to-br ${getRarityColor(cardPack.rarity, 3)} rounded-2xl ${getRarityGlow(3)} flex items-center justify-center relative overflow-hidden`}
+                  style={{
+                    rotateX: rotateX,
+                    rotateY: rotateY,
+                    transformStyle: "preserve-3d"
+                  }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                >
+                  {/* 3D layered background */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-white/10" style={{ transform: "translateZ(10px)" }}></div>
+                  <div className="absolute inset-0 bg-gradient-radial from-transparent via-white/5 to-transparent" style={{ transform: "translateZ(20px)" }}></div>
+                  
+                  <div className="text-center z-10" style={{ transform: "translateZ(50px)" }}>
                     <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.5 }}
-                      className="absolute right-2 top-2 rounded-full bg-green-500 px-2 py-1 text-xs font-bold text-white"
+                      animate={{
+                        rotateY: [0, 360],
+                        scale: [1, 1.1, 1]
+                      }}
+                      transition={{
+                        duration: 4,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
                     >
-                      YENİ!
+                      <Gift className="h-20 w-20 text-white mb-4 mx-auto drop-shadow-2xl" />
                     </motion.div>
-                  )}
-
-                  {/* Card image placeholder */}
-                  <div className="mb-3 flex h-32 w-full items-center justify-center rounded-lg bg-gray-100">
-                    {card.imageUrl ? (
-                      <img
-                        src={card.imageUrl}
-                        alt={card.name}
-                        className="h-full w-full rounded-lg object-cover"
-                      />
-                    ) : (
-                      <div
-                        className={`h-16 w-16 bg-gradient-to-br ${getRarityColor(card.rarity)} flex items-center justify-center rounded-full text-white`}
-                      >
-                        {getRarityIcon(card.rarity)}
-                      </div>
-                    )}
+                    <h3 className="text-2xl font-bold text-white drop-shadow-lg">{cardPack.name}</h3>
+                    <p className="text-white/80 capitalize drop-shadow-md">{cardPack.packType} Pack</p>
                   </div>
+                  
+                  {/* Enhanced Sparkles with 3D effect */}
+                  {[...Array(12)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="absolute"
+                      style={{
+                        left: `${10 + Math.random() * 80}%`,
+                        top: `${10 + Math.random() * 80}%`,
+                        transform: `translateZ(${Math.random() * 40 + 10}px)`
+                      }}
+                      animate={{
+                        scale: [0, 1.5, 0],
+                        rotate: [0, 180, 360],
+                        opacity: [0, 1, 0],
+                        z: [0, 50, 0]
+                      }}
+                      transition={{
+                        duration: 2 + Math.random(),
+                        repeat: Infinity,
+                        delay: i * 0.15
+                      }}
+                    >
+                      <Sparkles className="h-4 w-4 text-yellow-400 drop-shadow-lg" />
+                    </motion.div>
+                  ))}
 
-                  {/* Card info */}
-                  <div className="text-center">
-                    <h3 className="mb-1 text-sm font-bold text-gray-900">
-                      {card.name}
-                    </h3>
-                    <p className="mb-2 text-xs text-gray-600">
-                      {card.character}
-                    </p>
-                    <div className="flex items-center justify-center space-x-1">
-                      {getRarityIcon(card.rarity)}
-                      <span className="text-xs font-medium capitalize">
-                        {card.rarity}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Rarity glow effect */}
-                  <motion.div
-                    animate={
-                      index === currentCardIndex
-                        ? {
-                            opacity: [0, 0.7, 0],
-                            scale: [1, 1.1, 1],
-                          }
-                        : {}
-                    }
-                    transition={{ duration: 1, repeat: 2 }}
-                    className={`absolute inset-0 bg-gradient-to-br ${getRarityColor(card.rarity)} rounded-lg opacity-0`}
-                  />
-                </div>
-              </div>
+                  {/* Floating gems */}
+                  {[...Array(6)].map((_, i) => (
+                    <motion.div
+                      key={`gem-${i}`}
+                      className="absolute"
+                      style={{
+                        left: `${15 + Math.random() * 70}%`,
+                        top: `${15 + Math.random() * 70}%`
+                      }}
+                      animate={{
+                        y: [0, -20, 0],
+                        rotate: [0, 180, 360],
+                        opacity: [0.3, 0.8, 0.3]
+                      }}
+                      transition={{
+                        duration: 3 + Math.random(),
+                        repeat: Infinity,
+                        delay: i * 0.5
+                      }}
+                    >
+                      <Diamond className="h-3 w-3 text-blue-300" />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </motion.div>
+              
+              <motion.button
+                onClick={startOpening}
+                className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xl font-bold rounded-xl hover:from-yellow-600 hover:to-orange-600 transition-all shadow-2xl"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                🎁 Open Pack
+              </motion.button>
             </motion.div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+          )}
 
-  // Summary screen
-  if (isOpening && openingStage === "summary" && showSummary) {
-    const newCards = revealedCards.filter((card) => card.isNew);
-    const duplicateCards = revealedCards.filter((card) => !card.isNew);
-
-    return (
-      <div className={`rounded-xl bg-white p-6 shadow-lg ${className}`}>
-        <div className="mb-6 text-center">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100"
-          >
-            <Trophy className="h-8 w-8 text-green-600" />
-          </motion.div>
-          <h2 className="mb-2 text-2xl font-bold text-gray-900">
-            Paket Açıldı!
-          </h2>
-          <p className="text-gray-600">{selectedPack?.name}</p>
-        </div>
-
-        <div className="mb-6 grid grid-cols-2 gap-4">
-          <div className="rounded-lg bg-green-50 p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">
-              {newCards.length}
-            </div>
-            <div className="text-sm text-green-700">Yeni Kart</div>
-          </div>
-          <div className="rounded-lg bg-blue-50 p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">
-              {duplicateCards.length}
-            </div>
-            <div className="text-sm text-blue-700">Duplicate</div>
-          </div>
-        </div>
-
-        <div className="mb-6 space-y-4">
-          {revealedCards.map((card, index) => (
+          {/* Enhanced Opening Animation */}
+          {stage === 'opening' && (
             <motion.div
-              key={index}
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: index * 0.1 }}
-              className={`flex items-center space-x-3 rounded-lg border-l-4 p-3 ${
-                card.isNew
-                  ? "border-green-500 bg-green-50"
-                  : "border-blue-500 bg-blue-50"
-              }`}
+              className="text-center"
+              initial={{ scale: 1 }}
+              animate={{ scale: [1, 1.2, 0.8, 1.5] }}
+              transition={{ duration: 2 }}
             >
-              <div
-                className={`h-8 w-8 bg-gradient-to-br ${getRarityColor(card.rarity)} flex items-center justify-center rounded-full text-white`}
+              <motion.div
+                className="w-64 h-80 bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 rounded-2xl shadow-2xl shadow-yellow-500/50 flex items-center justify-center relative overflow-hidden"
+                animate={{
+                  rotateY: [0, 180, 360, 540],
+                  scale: [1, 1.1, 0.9, 1.2, 1.3],
+                  boxShadow: [
+                    "0 25px 50px -12px rgba(234, 179, 8, 0.25)",
+                    "0 25px 50px -12px rgba(234, 179, 8, 0.5)",
+                    "0 25px 50px -12px rgba(239, 68, 68, 0.5)",
+                    "0 25px 50px -12px rgba(234, 179, 8, 0.25)"
+                  ]
+                }}
+                transition={{ duration: 2, ease: "easeInOut" }}
+                style={{ transformStyle: "preserve-3d" }}
               >
-                {getRarityIcon(card.rarity)}
-              </div>
-              <div className="flex-1">
-                <div className="font-medium text-gray-900">{card.name}</div>
-                <div className="text-sm capitalize text-gray-600">
-                  {card.rarity} • {card.character}
-                </div>
-              </div>
-              {card.isNew && (
-                <span className="rounded-full bg-green-500 px-2 py-1 text-xs font-bold text-white">
-                  YENİ
-                </span>
-              )}
-            </motion.div>
-          ))}
-        </div>
-
-        <button
-          onClick={resetOpening}
-          className="w-full rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
-        >
-          Yeni Paket Aç
-        </button>
-      </div>
-    );
-  }
-
-  // Main pack selection screen
-  return (
-    <div className={`rounded-xl bg-white p-6 shadow-lg ${className}`}>
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Kart Paketleri</h2>
-        {userInfo && (
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-1">
-              <Diamond className="h-5 w-5 text-amber-600" />
-              <span className="font-semibold text-gray-900">
-                {userInfo.diamonds}
-              </span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Star className="h-5 w-5 text-blue-600" />
-              <span className="font-semibold text-gray-900">
-                Seviye {userInfo.level}
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
-        {cardPacks.map((pack) => (
-          <motion.div
-            key={pack.id}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className={`bg-gradient-to-br ${getRarityColor(pack.rarity)} rounded-lg p-1`}
-          >
-            <div className="flex h-full flex-col rounded-lg bg-white p-4">
-              {/* Pack image placeholder */}
-              <div className="mb-4 flex h-32 w-full items-center justify-center rounded-lg bg-gray-100">
-                {pack.imageUrl ? (
-                  <img
-                    src={pack.imageUrl}
-                    alt={pack.name}
-                    className="h-full w-full rounded-lg object-cover"
+                {/* Energy waves */}
+                {[...Array(4)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute inset-0 border-4 border-white/30 rounded-2xl"
+                    animate={{
+                      scale: [1, 1.5, 2],
+                      opacity: [0.6, 0.3, 0]
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      delay: i * 0.3
+                    }}
                   />
-                ) : (
-                  <div className="text-gray-400">
-                    {getPackTypeIcon(pack.packType)}
-                  </div>
-                )}
-              </div>
+                ))}
 
-              {/* Pack info */}
-              <div className="flex-1">
-                <h3 className="mb-2 font-bold text-gray-900">{pack.name}</h3>
-                <p className="mb-3 text-sm text-gray-600">{pack.description}</p>
-
-                <div className="mb-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Kart Sayısı:</span>
-                    <span className="font-medium">{pack.cardCount}</span>
-                  </div>
-                  {pack.guaranteedRarity && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Garanti:</span>
-                      <span className="font-medium capitalize">
-                        {pack.guaranteedRarity}+
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Gerekli Seviye:</span>
-                    <span className="font-medium">{pack.requiredLevel}</span>
-                  </div>
+                <div className="text-center z-10">
+                  <motion.div
+                    animate={{
+                      rotate: 360,
+                      scale: [1, 1.3, 1]
+                    }}
+                    transition={{
+                      rotate: { duration: 1, repeat: Infinity },
+                      scale: { duration: 2, repeat: Infinity }
+                    }}
+                  >
+                    <Sparkles className="h-16 w-16 text-white drop-shadow-2xl" />
+                  </motion.div>
+                  <motion.p
+                    className="text-white text-xl font-bold mt-4 drop-shadow-lg"
+                    animate={{
+                      opacity: [1, 0.5, 1]
+                    }}
+                    transition={{
+                      duration: 1,
+                      repeat: Infinity
+                    }}
+                  >
+                    Opening...
+                  </motion.p>
                 </div>
+
+                {/* Swirling particles */}
+                {[...Array(8)].map((_, i) => {
+                  const angle = (i / 8) * 360;
+                  return (
+                    <motion.div
+                      key={`swirl-${i}`}
+                      className="absolute w-3 h-3 bg-white rounded-full"
+                      style={{
+                        left: '50%',
+                        top: '50%'
+                      }}
+                      animate={{
+                        x: [0, Math.cos((angle * Math.PI) / 180) * 100],
+                        y: [0, Math.sin((angle * Math.PI) / 180) * 100],
+                        rotate: [0, 360],
+                        opacity: [0, 1, 0]
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        delay: i * 0.1
+                      }}
+                    />
+                  );
+                })}
+              </motion.div>
+            </motion.div>
+          )}
+
+          {/* Card Revealing */}
+          {stage === 'revealing' && (
+            <div className="w-full">
+              <div className="flex justify-center items-center space-x-4 flex-wrap gap-4">
+                {revealedCards.map((card, index) => (
+                  <motion.div
+                    key={card.id}
+                    initial={{ 
+                      scale: 0, 
+                      rotateY: 180,
+                      y: -200 
+                    }}
+                    animate={{ 
+                      scale: 1, 
+                      rotateY: 0,
+                      y: 0 
+                    }}
+                    transition={{ 
+                      duration: 0.8,
+                      type: "spring",
+                      stiffness: 100
+                    }}
+                    className="relative"
+                  >
+                    <div className={`w-48 h-64 bg-gradient-to-br ${getRarityColor(card.rarity, card.rarityLevel)} rounded-xl ${getRarityGlow(card.rarityLevel)} overflow-hidden relative`}>
+                      {/* Card Image */}
+                      {card.imageUrl ? (
+                        <img 
+                          src={card.imageUrl} 
+                          alt={card.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-600 to-slate-800">
+                          <Star className="h-16 w-16 text-white/50" />
+                        </div>
+                      )}
+                      
+                      {/* Card Info Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent">
+                        <div className="absolute bottom-0 left-0 right-0 p-4">
+                          <h4 className="text-white font-bold text-lg">{card.name}</h4>
+                          <p className="text-white/80 text-sm">{card.series}</p>
+                          <p className="text-white/60 text-xs capitalize">{card.rarity}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Rarity Border Effect */}
+                      {card.rarityLevel >= 4 && (
+                        <div className="absolute inset-0 rounded-xl border-2 border-yellow-400 animate-pulse"></div>
+                      )}
+                      
+                      {/* New Card Badge */}
+                      <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                        NEW!
+                      </div>
+                    </div>
+                    
+                    {/* Sparkle Effects */}
+                    {card.rarityLevel >= 4 && (
+                      <>
+                        {[...Array(6)].map((_, i) => (
+                          <motion.div
+                            key={i}
+                            className="absolute"
+                            style={{
+                              left: `${Math.random() * 100}%`,
+                              top: `${Math.random() * 100}%`
+                            }}
+                            animate={{
+                              scale: [0, 1, 0],
+                              opacity: [0, 1, 0],
+                              rotate: [0, 360]
+                            }}
+                            transition={{
+                              duration: 1.5,
+                              repeat: Infinity,
+                              delay: i * 0.2
+                            }}
+                          >
+                            <Sparkles className="h-3 w-3 text-yellow-400" />
+                          </motion.div>
+                        ))}
+                      </>
+                    )}
+                  </motion.div>
+                ))}
               </div>
-
-              {/* Action button */}
-              <button
-                onClick={() => handleOpenPack(pack)}
-                disabled={!pack.canAfford || !pack.canOpen}
-                className={`w-full rounded-lg px-4 py-2 font-medium transition-colors ${
-                  !pack.canAfford || !pack.canOpen
-                    ? "cursor-not-allowed bg-gray-100 text-gray-400"
-                    : pack.diamondPrice
-                      ? "bg-amber-600 text-white hover:bg-amber-700"
-                      : "bg-green-600 text-white hover:bg-green-700"
-                }`}
-              >
-                {!pack.canOpen ? (
-                  <span className="flex items-center justify-center">
-                    <Lock className="mr-1 h-4 w-4" />
-                    Seviye {pack.requiredLevel} Gerekli
-                  </span>
-                ) : !pack.canAfford && pack.diamondPrice ? (
-                  <span className="flex items-center justify-center">
-                    <Diamond className="mr-1 h-4 w-4" />
-                    {pack.diamondPrice} Diamond
-                  </span>
-                ) : pack.diamondPrice ? (
-                  <span className="flex items-center justify-center">
-                    <Diamond className="mr-1 h-4 w-4" />
-                    {pack.diamondPrice} Diamond - Aç
-                  </span>
-                ) : (
-                  "Ücretsiz Aç"
-                )}
-              </button>
+              
+              {/* Continue Button */}
+              {currentCardIndex < cards.length && (
+                <motion.div
+                  className="text-center mt-8"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1 }}
+                >
+                  <button
+                    onClick={revealNextCard}
+                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all"
+                  >
+                    Reveal Next Card ({currentCardIndex + 1}/{cards.length})
+                  </button>
+                </motion.div>
+              )}
             </div>
-          </motion.div>
-        ))}
-      </div>
+          )}
 
-      {cardPacks.length === 0 && (
-        <div className="py-12 text-center">
-          <Package className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-          <h3 className="mb-2 text-lg font-semibold text-gray-900">
-            Kart Paketi Bulunamadı
-          </h3>
-          <p className="text-gray-600">
-            Şu anda mevcut kart paketi bulunmuyor.
-          </p>
+          {/* Celebration */}
+          {stage === 'celebration' && (
+            <motion.div
+              className="text-center"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 200 }}
+            >
+              <motion.div
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  rotate: [0, 10, -10, 0] 
+                }}
+                transition={{ duration: 0.5, repeat: 3 }}
+              >
+                {getCelebrationIcon()}
+              </motion.div>
+              
+              <motion.h2
+                className="text-4xl font-bold text-white mt-4 mb-2"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 0.8, repeat: 2 }}
+              >
+                Congratulations!
+              </motion.h2>
+              
+              <motion.p
+                className="text-xl text-white/80"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                You received {cards.length} new cards!
+              </motion.p>
+              
+              {/* Confetti Effect */}
+              {[...Array(30)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-3 h-3 rounded-full"
+                  style={{
+                    backgroundColor: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'][i % 6],
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`
+                  }}
+                  animate={{
+                    y: [0, -200, 200],
+                    rotate: [0, 360],
+                    opacity: [1, 1, 0]
+                  }}
+                  transition={{
+                    duration: 3,
+                    delay: i * 0.1
+                  }}
+                />
+              ))}
+            </motion.div>
+          )}
+
+          {/* Complete Stage */}
+          {stage === 'complete' && (
+            <motion.div
+              className="text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <h3 className="text-2xl font-bold text-white mb-4">Pack Opening Complete!</h3>
+              <p className="text-white/80 mb-6">Check your collection to see your new cards.</p>
+              
+              <div className="flex justify-center space-x-4">
+                <button
+                  onClick={onClose}
+                  className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all"
+                >
+                  Continue
+                </button>
+                
+                <button
+                  onClick={() => {
+                    setStage('intro');
+                    setCurrentCardIndex(0);
+                    setRevealedCards([]);
+                  }}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all flex items-center space-x-2"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  <span>Replay</span>
+                </button>
+              </div>
+            </motion.div>
+          )}
         </div>
-      )}
-    </div>
+      </motion.div>
+    </AnimatePresence>
   );
-};
-
-export default CardPackOpening;
+}

@@ -188,6 +188,11 @@ model User {
   xpEventParticipations XPEventParticipation[]
   diamondPurchases      DiamondPurchase[]
   activityAttempts      ActivityAttempt[]
+  challengeProgress     UserChallengeProgress[]
+  distributionLogs      CardDistributionLog[]
+  rarityStats           UserRarityStats?
+  loginHistory          LoginHistory[]
+  loginStreakData       LoginStreak?
   accounts              Account[]
   sessions              Session[]
 
@@ -359,34 +364,72 @@ model QuizAttempt {
 }
 
 model Badge {
-  id             String      @id @default(cuid())
-  name           String      @unique
-  title          String
-  description    String
-  icon           String
-  category       String
-  rarity         String      @default("common")
-  color          String      @default("#3B82F6")
-  condition      String
-  rewardDiamonds Int         @default(25)
-  rewardXp       Int         @default(50)
-  isActive       Boolean     @default(true)
-  totalEarned    Int         @default(0)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  users          UserBadge[]
+  id              String      @id @default(cuid())
+  name            String      @unique
+  title           String
+  description     String
+  icon            String
+  category        String
+  rarity          String      @default("common") // "common", "rare", "epic", "legendary"
+  color           String      @default("#3B82F6")
+  
+  // Achievement conditions
+  condition       String      // JSON object with achievement conditions
+  conditionType   String      // "count", "streak", "milestone", "combo", "time_based"
+  targetValue     Int         @default(1)
+  
+  // Rewards
+  rewardDiamonds  Int         @default(25)
+  rewardXp        Int         @default(50)
+  rewardCardPack  String?     // JSON object for card pack rewards
+  specialReward   String?     // JSON object for special rewards
+  
+  // Metadata
+  isActive        Boolean     @default(true)
+  isHidden        Boolean     @default(false) // Hidden achievements
+  sortOrder       Int         @default(0)
+  prerequisiteBadgeId String? // Required badge to unlock this one
+  
+  // Stats
+  totalEarned     Int         @default(0)
+  totalProgress   Int         @default(0)
+  averageProgress Float       @default(0)
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Relations
+  users           UserBadge[]
+  prerequisite    Badge?      @relation("BadgePrerequisites", fields: [prerequisiteBadgeId], references: [id])
+  dependentBadges Badge[]     @relation("BadgePrerequisites")
 
   @@map("badges")
 }
 
 model UserBadge {
-  id       String   @id @default(cuid())
-  userId   String
-  badgeId  String
-  progress Int      @default(0)
-  earnedAt DateTime @default(now())
-  badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  userId      String
+  badgeId     String
+  
+  // Progress tracking
+  progress    Int       @default(0)
+  isUnlocked  Boolean   @default(false)
+  isCompleted Boolean   @default(false)
+  
+  // Metadata
+  progressData String?  // JSON object for detailed progress data
+  unlockedAt   DateTime?
+  earnedAt     DateTime?
+  
+  // Notification tracking
+  notificationSent Boolean @default(false)
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  badge       Badge     @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, badgeId])
   @@map("user_badges")
@@ -814,4 +857,286 @@ model ActivityAttempt {
 
   @@unique([userId, activityId])
   @@map("activity_attempts")
+}
+
+// Quiz Question System for Admin Panel
+model QuizQuestion {
+  id            String   @id @default(cuid())
+  question      String
+  options       String[] // Array of 4 options
+  correctAnswer Int      // Index of correct answer (0-3)
+  explanation   String?
+  difficulty    String   // "beginner", "intermediate", "advanced", "expert"
+  category      String
+  isActive      Boolean  @default(true)
+  createdBy     String?  // User ID who created the question
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("quiz_questions")
+}
+
+model QuizCategory {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  description   String?
+  color         String   @default("#3B82F6")
+  icon          String?
+  questionCount Int      @default(0)
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("quiz_categories")
+}
+
+// Weekly Challenge System
+model WeeklyChallenge {
+  id               String   @id @default(cuid())
+  title            String
+  description      String
+  challengeType    String   // "code_arena", "quiz", "daily_login", "card_collection", "hybrid"
+  difficulty       String   @default("intermediate") // "beginner", "intermediate", "advanced", "expert"
+  startDate        DateTime
+  endDate          DateTime
+  isActive         Boolean  @default(true)
+  
+  // Requirements
+  requirements     String   // JSON object with challenge requirements
+  targetValue      Int      // Target number to achieve
+  
+  // Rewards
+  diamondReward    Int      @default(100)
+  experienceReward Int      @default(200)
+  cardPackReward   String?  // JSON object for card pack rewards
+  badgeReward      String?  // Badge ID if applicable
+  specialReward    String?  // JSON object for special rewards
+  
+  // Metadata
+  category         String   @default("general")
+  tags             String?  // JSON array of tags
+  imageUrl         String?
+  icon             String   @default("🏆")
+  priority         Int      @default(0)
+  
+  // Stats
+  participantCount Int      @default(0)
+  completionCount  Int      @default(0)
+  averageProgress  Float    @default(0)
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // Relations
+  userProgress     UserChallengeProgress[]
+
+  @@map("weekly_challenges")
+}
+
+model UserChallengeProgress {
+  id            String   @id @default(cuid())
+  userId        String
+  challengeId   String
+  
+  // Progress tracking
+  currentValue  Int      @default(0)
+  isCompleted   Boolean  @default(false)
+  completedAt   DateTime?
+  
+  // Reward tracking
+  rewardsClaimed Boolean  @default(false)
+  claimedAt      DateTime?
+  
+  // Metadata
+  startedAt     DateTime @default(now())
+  lastProgressAt DateTime @default(now())
+  progressData  String?  // JSON object for detailed progress data
+  
+  // Relations
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge     WeeklyChallenge  @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeId])
+  @@map("user_challenge_progress")
+}
+
+// Card Rarity and Distribution System
+model CardRarity {
+  id              String   @id @default(cuid())
+  name            String   @unique // "common", "rare", "epic", "legendary", "mythic"
+  displayName     String
+  description     String?
+  level           Int      @unique // 1-6 (1=common, 6=mythic)
+  color           String   @default("#3B82F6")
+  glowColor       String?
+  borderColor     String?
+  bgGradient      String?
+  
+  // Drop rates (percentage)
+  baseDropRate    Float    @default(100.0) // Base drop rate percentage
+  packDropRate    Float    @default(50.0)  // Drop rate in card packs
+  rewardDropRate  Float    @default(25.0)  // Drop rate as rewards
+  
+  // Value modifiers
+  minDiamondValue Int      @default(50)
+  maxDiamondValue Int      @default(200)
+  xpMultiplier    Float    @default(1.0)
+  
+  // Visual effects
+  hasGlow         Boolean  @default(false)
+  hasAnimation    Boolean  @default(false)
+  hasParticles    Boolean  @default(false)
+  animationType   String?  // "pulse", "rotate", "float", "sparkle"
+  
+  // Meta
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("card_rarities")
+}
+
+model CardDistributionRule {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  description     String?
+  ruleType        String   // "pack_opening", "quest_reward", "achievement_reward", "daily_reward", "challenge_reward"
+  
+  // Conditions
+  conditions      String   // JSON object with conditions (user level, streak, etc.)
+  
+  // Distribution weights by rarity
+  commonWeight    Float    @default(70.0)
+  rareWeight      Float    @default(20.0)
+  epicWeight      Float    @default(8.0)
+  legendaryWeight Float    @default(2.0)
+  mythicWeight    Float    @default(0.1)
+  
+  // Guarantees
+  guaranteedRarity String? // Guaranteed rarity after X attempts
+  guaranteeCount   Int     @default(10) // Number of attempts before guarantee
+  
+  // Modifiers
+  luckBonus       Float    @default(0.0) // Additional luck percentage
+  premiumBonus    Float    @default(0.0) // Premium user bonus
+  eventMultiplier Float    @default(1.0) // Event multiplier
+  
+  // Meta
+  isActive        Boolean  @default(true)
+  priority        Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  distributionLogs CardDistributionLog[]
+
+  @@map("card_distribution_rules")
+}
+
+model CardDistributionLog {
+  id               String   @id @default(cuid())
+  userId           String
+  ruleId           String
+  
+  // Context
+  sourceType       String   // "pack_opening", "quest_reward", etc.
+  sourceId         String?  // ID of the source (pack ID, quest ID, etc.)
+  
+  // Result
+  cardId           String?
+  rarityReceived   String
+  wasGuaranteed    Boolean  @default(false)
+  attemptNumber    Int      @default(1)
+  
+  // Calculations
+  rollValue        Float    // The random roll value (0-100)
+  appliedWeights   String   // JSON of weights used
+  modifiersApplied String?  // JSON of modifiers applied
+  
+  // Meta
+  createdAt        DateTime @default(now())
+  
+  // Relations
+  user             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rule             CardDistributionRule  @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@map("card_distribution_logs")
+}
+
+model UserRarityStats {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  
+  // Card counts by rarity
+  commonCards       Int      @default(0)
+  rareCards         Int      @default(0)
+  epicCards         Int      @default(0)
+  legendaryCards    Int      @default(0)
+  mythicCards       Int      @default(0)
+  
+  // Pack opening stats
+  packsOpened       Int      @default(0)
+  totalCardsDrawn   Int      @default(0)
+  
+  // Luck statistics
+  luckScore         Float    @default(50.0) // 0-100 luck score
+  averageRarity     Float    @default(1.0)  // Average rarity level of cards drawn
+  
+  // Guarantees and streaks
+  guaranteePity     Int      @default(0)    // Number of attempts since last rare+
+  bestStreak        Int      @default(0)    // Best streak of rare+ cards
+  currentStreak     Int      @default(0)    // Current streak of rare+ cards
+  
+  // Special achievements
+  firstLegendary    DateTime?
+  firstMythic       DateTime?
+  totalValueDrawn   Int      @default(0)    // Total diamond value of cards drawn
+  
+  // Meta
+  lastCardDrawn     DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_rarity_stats")
+}
+
+model LoginHistory {
+  id              String   @id @default(cuid())
+  userId          String
+  loginDate       DateTime @db.Date
+  loginTimestamp  DateTime @default(now())
+  streakCount     Int      @default(1)
+  isConsecutive   Boolean  @default(true)
+  ipAddress       String?
+  userAgent       String?
+  platform        String?
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, loginDate])
+  @@index([userId, loginDate])
+  @@index([loginDate])
+  @@map("login_history")
+}
+
+model LoginStreak {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  currentStreak   Int      @default(1)
+  longestStreak   Int      @default(1)
+  lastLoginDate   DateTime @db.Date
+  streakStartDate DateTime @db.Date
+  totalLogins     Int      @default(1)
+  streakRewards   Json     @default("[]") // Array of claimed streak rewards
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([lastLoginDate])
+  @@map("login_streaks")
 }

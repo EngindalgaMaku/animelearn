@@ -36,6 +36,7 @@ import {
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import Head from "next/head";
+import CodeHighlight from "@/components/quiz/code-highlight";
 
 interface Stats {
   totalUsers: number;
@@ -55,6 +56,7 @@ export default function HomePage() {
   });
   const [animeCards, setAnimeCards] = useState<any[]>([]);
   const [starCards, setStarCards] = useState<any[]>([]);
+  const [sampleQuiz, setSampleQuiz] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { isAuthenticated, user } = useAuth();
 
@@ -105,10 +107,34 @@ export default function HomePage() {
   useEffect(() => {
     fetchStats();
     fetchSampleCards();
+    fetchSampleQuiz();
   }, []);
 
   const fetchStats = async () => {
     try {
+      const response = await fetch('/api/homepage/stats');
+      if (response.ok) {
+        const data = await response.json();
+        setStats({
+          totalUsers: data.totalUsers || 1250,
+          totalLessons: data.totalLessons || 45,
+          animeCards: data.animeCards || 250,
+          carCards: data.carCards || 200,
+          totalDiamonds: data.totalDiamonds || 50000,
+        });
+      } else {
+        // Fallback values
+        setStats({
+          totalUsers: 1250,
+          totalLessons: 45,
+          animeCards: 250,
+          carCards: 200,
+          totalDiamonds: 50000,
+        });
+      }
+    } catch (error) {
+      console.error("Stats fetch failed:", error);
+      // Fallback values
       setStats({
         totalUsers: 1250,
         totalLessons: 45,
@@ -116,10 +142,21 @@ export default function HomePage() {
         carCards: 200,
         totalDiamonds: 50000,
       });
-    } catch (error) {
-      console.error("Stats fetch failed:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSampleQuiz = async () => {
+    try {
+      const response = await fetch('/api/homepage/sample-quiz');
+      if (response.ok) {
+        const quizData = await response.json();
+        setSampleQuiz(quizData);
+      }
+    } catch (error) {
+      console.error("Sample quiz fetch failed:", error);
+      // Fallback quiz will be used in component
     }
   };
 
@@ -141,6 +178,46 @@ export default function HomePage() {
     } catch (error) {
       console.error("Failed to fetch sample cards:", error);
     }
+  };
+
+  // Helper function to detect and render code with highlighting
+  const renderTextWithCode = (text: string) => {
+    const codePattern = /```([\s\S]*?)```|`([^`]+)`/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = codePattern.exec(text)) !== null) {
+      // Add text before code
+      if (match.index > lastIndex) {
+        parts.push(text.slice(lastIndex, match.index));
+      }
+      
+      // Add highlighted code
+      const code = match[1] || match[2]; // Block code or inline code
+      const isBlock = !!match[1];
+      parts.push(
+        <CodeHighlight
+          key={match.index}
+          code={code}
+          inline={!isBlock}
+        />
+      );
+      
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Add remaining text
+    if (lastIndex < text.length) {
+      parts.push(text.slice(lastIndex));
+    }
+    
+    return parts.length > 1 ? parts : text;
+  };
+
+  // Helper function to render quiz options with code highlighting
+  const renderOption = (option: string) => {
+    return renderTextWithCode(option);
   };
 
   return (
@@ -180,14 +257,14 @@ export default function HomePage() {
               <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
                 <span className="block">Master Python</span>
                 <span className="block bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
-                  Through Epic Battles
+                  Through Gamified Learning
                 </span>
               </h1>
 
               <p className="mx-auto mb-8 max-w-3xl text-lg text-blue-100 sm:text-xl lg:text-2xl">
-                Learn Python programming in the <strong className="text-yellow-300">Code Arena</strong> • 
-                Earn <strong className="text-yellow-300">💎 diamonds</strong> • 
-                Collect <strong className="text-pink-300">🎌 anime cards</strong> • 
+                Learn Python programming in the <strong className="text-yellow-300">Code Arena</strong> •
+                Earn <strong className="text-yellow-300">💎 diamonds</strong> •
+                Collect <strong className="text-pink-300">🎌 anime cards</strong> •
                 Unlock <strong className="text-green-300">🏆 achievements</strong>
               </p>
 
@@ -196,19 +273,27 @@ export default function HomePage() {
                 {isAuthenticated ? (
                   <>
                     <Link
-                      href="/multiplayer"
+                      href="/dashboard"
                       className="group flex transform items-center space-x-3 rounded-2xl bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 px-8 py-4 text-lg font-bold text-white shadow-2xl transition-all hover:-translate-y-1 hover:from-green-600 hover:via-blue-600 hover:to-purple-600"
                     >
-                      <Users className="h-6 w-6" />
-                      <span>🌐 Multiplayer</span>
+                      <Gamepad2 className="h-6 w-6" />
+                      <span>🎮 Dashboard</span>
                       <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                     </Link>
                     <Link
-                      href="/battle"
+                      href="/code-arena"
                       className="group flex transform items-center space-x-3 rounded-2xl bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 px-8 py-4 text-lg font-bold text-white shadow-2xl transition-all hover:-translate-y-1 hover:from-red-600 hover:via-orange-600 hover:to-yellow-600"
                     >
-                      <Flame className="h-6 w-6" />
-                      <span>⚔️ Battle Arena</span>
+                      <Code className="h-6 w-6" />
+                      <span>⚔️ Code Arena</span>
+                      <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                    <Link
+                      href="/quiz-arena"
+                      className="group flex transform items-center space-x-3 rounded-2xl bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 px-8 py-4 text-lg font-bold text-white shadow-2xl transition-all hover:-translate-y-1 hover:from-purple-600 hover:via-indigo-600 hover:to-blue-600"
+                    >
+                      <Brain className="h-6 w-6" />
+                      <span>🧠 Quiz Arena</span>
                       <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                     </Link>
                     <Link
@@ -234,7 +319,14 @@ export default function HomePage() {
                       className="flex items-center space-x-3 rounded-2xl border-2 border-white/30 bg-white/10 px-8 py-4 text-lg font-semibold backdrop-blur-sm transition-all hover:bg-white/20"
                     >
                       <Monitor className="h-6 w-6" />
-                      <span>Preview Arena</span>
+                      <span>Preview Code Arena</span>
+                    </Link>
+                    <Link
+                      href="/quiz-arena"
+                      className="flex items-center space-x-3 rounded-2xl border-2 border-white/30 bg-white/10 px-8 py-4 text-lg font-semibold backdrop-blur-sm transition-all hover:bg-white/20"
+                    >
+                      <Brain className="h-6 w-6" />
+                      <span>Preview Quiz Arena</span>
                     </Link>
                   </>
                 )}
@@ -263,6 +355,258 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Login Benefits & Challenge Showcase */}
+        <section className="relative bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50 py-20 lg:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-16 text-center">
+              <div className="mb-6 inline-flex items-center rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20 px-6 py-3 text-sm font-semibold text-orange-700">
+                <Trophy className="mr-2 h-4 w-4" />
+                🎯 Unlock Premium Rewards with Login
+              </div>
+              <h2 className="mb-4 text-4xl font-bold text-slate-900 lg:text-5xl">
+                🧠 Test Your Knowledge
+                <br />
+                <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                  Earn Massive Rewards
+                </span>
+              </h2>
+              <p className="mx-auto max-w-3xl text-xl text-slate-600">
+                Join weekly challenges, solve Python quizzes, and unlock exclusive rewards only available to registered members
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 items-center">
+              {/* Mini Quiz Widget */}
+              <div className="relative">
+                <div className="rounded-3xl bg-white p-8 shadow-2xl border border-purple-200">
+                  <div className="mb-6 flex items-center space-x-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white">
+                      <Brain className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-slate-900">Python Quiz Challenge</h3>
+                      <p className="text-slate-600">Test your knowledge and earn diamonds</p>
+                    </div>
+                  </div>
+
+                  {/* Sample Quiz Question */}
+                  <div className="mb-6 rounded-xl bg-slate-50 p-6">
+                    <div className="mb-4 flex items-center justify-between">
+                      <span className="text-sm font-semibold text-purple-600">Question 1/5</span>
+                      <div className="flex items-center space-x-1 text-yellow-500">
+                        <Diamond className="h-4 w-4" />
+                        <span className="text-sm font-bold">+{sampleQuiz?.diamondReward || 50} 💎</span>
+                      </div>
+                    </div>
+                    
+                    <h4 className="mb-4 text-lg font-semibold text-slate-900">
+                      {renderTextWithCode(sampleQuiz?.question || "What is the correct way to define a function in Python?")}
+                    </h4>
+                    
+                    <div className="space-y-3">
+                      {(sampleQuiz?.options || [
+                        'function myFunc(): pass',
+                        'def myFunc(): pass',
+                        'func myFunc(): pass',
+                        'define myFunc(): pass'
+                      ]).map((option: string, index: number) => (
+                        <button
+                          key={index}
+                          className={`w-full rounded-lg border-2 p-3 text-left transition-all hover:border-purple-300 hover:bg-purple-50 ${
+                            (sampleQuiz?.correctAnswer || 1) === index
+                              ? 'border-purple-300 bg-purple-50'
+                              : 'border-slate-200 bg-white'
+                          }`}
+                        >
+                          <span className={`font-semibold ${
+                            (sampleQuiz?.correctAnswer || 1) === index
+                              ? 'text-purple-700'
+                              : 'text-slate-700'
+                          }`}>
+                            {String.fromCharCode(65 + index)})
+                          </span> {renderOption(option)} {(sampleQuiz?.correctAnswer || 1) === index && ' ✓'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Reward Preview for Non-Logged Users */}
+                  {!isAuthenticated ? (
+                    <div className="rounded-xl bg-gradient-to-r from-yellow-50 to-orange-50 p-6 border-2 border-dashed border-yellow-300">
+                      <div className="text-center">
+                        <div className="mb-4 flex justify-center">
+                          <div className="rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 p-3">
+                            <Crown className="h-8 w-8 text-white" />
+                          </div>
+                        </div>
+                        <h4 className="mb-2 text-lg font-bold text-slate-900">🔒 Login to Unlock Rewards!</h4>
+                        <p className="mb-4 text-sm text-slate-600">
+                          Complete this quiz and earn <strong className="text-yellow-600">250 💎 diamonds</strong> + <strong className="text-purple-600">XP bonus</strong>
+                        </p>
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-slate-600">Base Reward:</span>
+                            <span className="font-bold text-yellow-600">+50 💎 per question</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-slate-600">Login Bonus:</span>
+                            <span className="font-bold text-green-600">+100% multiplier</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-slate-600">Weekly Streak:</span>
+                            <span className="font-bold text-purple-600">+50 XP bonus</span>
+                          </div>
+                        </div>
+                        <Link
+                          href="/login"
+                          className="mt-4 inline-flex w-full items-center justify-center space-x-2 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 px-4 py-3 text-sm font-bold text-white transition-all hover:from-yellow-600 hover:to-orange-600"
+                        >
+                          <Crown className="h-4 w-4" />
+                          <span>Login & Claim Rewards</span>
+                        </Link>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <Link
+                        href="/quiz-arena"
+                        className="inline-flex items-center space-x-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 px-6 py-3 font-semibold text-white transition-all hover:from-purple-600 hover:to-indigo-600"
+                      >
+                        <Brain className="h-5 w-5" />
+                        <span>Start Quiz Challenge</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+                {/* Floating Elements */}
+                <div className="absolute -right-4 -top-4 rounded-lg bg-yellow-500 p-2 shadow-lg animate-bounce">
+                  <Diamond className="h-6 w-6 text-white" />
+                </div>
+                <div className="absolute -bottom-4 -left-4 rounded-lg bg-purple-500 p-2 shadow-lg animate-pulse">
+                  <Brain className="h-6 w-6 text-white" />
+                </div>
+              </div>
+
+              {/* Login Benefits Showcase */}
+              <div className="space-y-6">
+                <div className="rounded-2xl bg-white p-6 shadow-lg border border-indigo-200">
+                  <div className="mb-4 flex items-center space-x-3">
+                    <div className="rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 p-2">
+                      <Calendar className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold text-slate-900">Daily Login Streaks</h4>
+                      <p className="text-sm text-slate-600">Consecutive login rewards</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="rounded-lg bg-green-50 p-3 text-center border border-green-200">
+                      <div className="text-lg font-bold text-green-600">Day 1</div>
+                      <div className="text-xs text-green-600">+50 💎</div>
+                    </div>
+                    <div className="rounded-lg bg-blue-50 p-3 text-center border border-blue-200">
+                      <div className="text-lg font-bold text-blue-600">Day 7</div>
+                      <div className="text-xs text-blue-600">+500 💎</div>
+                    </div>
+                    <div className="rounded-lg bg-purple-50 p-3 text-center border border-purple-200">
+                      <div className="text-lg font-bold text-purple-600">Day 30</div>
+                      <div className="text-xs text-purple-600">Rare Card</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl bg-white p-6 shadow-lg border border-indigo-200">
+                  <div className="mb-4 flex items-center space-x-3">
+                    <div className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 p-2">
+                      <Target className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold text-slate-900">Weekly Challenges</h4>
+                      <p className="text-sm text-slate-600">Exclusive member rewards</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-600">Complete 5 Quizzes</span>
+                      <span className="font-bold text-purple-600">+300 💎</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-600">Code Arena Victory</span>
+                      <span className="font-bold text-blue-600">+500 💎</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-600">Perfect Week</span>
+                      <span className="font-bold text-yellow-600">Epic Card Pack</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl bg-white p-6 shadow-lg border border-indigo-200">
+                  <div className="mb-4 flex items-center space-x-3">
+                    <div className="rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 p-2">
+                      <Gift className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold text-slate-900">Card Pack Opening</h4>
+                      <p className="text-sm text-slate-600">Premium animated experience</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 p-3 text-center border border-blue-200">
+                      <div className="text-sm font-bold text-blue-600">3D Animations</div>
+                      <div className="text-xs text-blue-600">Premium Effects</div>
+                    </div>
+                    <div className="rounded-lg bg-gradient-to-r from-pink-50 to-red-50 p-3 text-center border border-pink-200">
+                      <div className="text-sm font-bold text-pink-600">Rarity Bursts</div>
+                      <div className="text-xs text-pink-600">Legendary Cards</div>
+                    </div>
+                  </div>
+                </div>
+
+                {!isAuthenticated && (
+                  <div className="text-center">
+                    <Link
+                      href="/login"
+                      className="inline-flex items-center space-x-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-8 py-4 text-lg font-bold text-white transition-all hover:from-indigo-600 hover:to-purple-600 transform hover:scale-105"
+                    >
+                      <Rocket className="h-6 w-6" />
+                      <span>Unlock All Benefits</span>
+                      <ArrowRight className="h-5 w-5" />
+                    </Link>
+                    <p className="mt-2 text-sm text-slate-500">
+                      Free forever • No credit card • Instant access
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Statistics Bar */}
+            <div className="mt-16 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-900 to-purple-900 p-8 text-white">
+              <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+                <div className="text-center">
+                  <div className="mb-2 text-3xl font-bold text-yellow-400">{(stats.totalUsers || 2500).toLocaleString()}+</div>
+                  <div className="text-sm text-slate-300">Active Quiz Participants</div>
+                </div>
+                <div className="text-center">
+                  <div className="mb-2 text-3xl font-bold text-green-400">{stats.totalLessons || 50}+</div>
+                  <div className="text-sm text-slate-300">Python Challenges</div>
+                </div>
+                <div className="text-center">
+                  <div className="mb-2 text-3xl font-bold text-purple-400">{Math.floor((stats.totalDiamonds || 10000000) / 1000000)}M+</div>
+                  <div className="text-sm text-slate-300">Diamonds Earned</div>
+                </div>
+                <div className="text-center">
+                  <div className="mb-2 text-3xl font-bold text-pink-400">98%</div>
+                  <div className="text-sm text-slate-300">Member Satisfaction</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Code Arena Spotlight */}
         <section className="relative py-20 lg:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -278,13 +622,13 @@ export default function HomePage() {
                     ⚔️ Code Arena
                     <br />
                     <span className="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
-                      Battle & Learn
+                      Learn & Conquer
                     </span>
                   </h2>
                   
                   <p className="mb-8 text-lg text-slate-300">
-                    Master Python programming through interactive coding battles. Each challenge teaches real concepts 
-                    while keeping you engaged with rewards, progression, and competitive elements.
+                    Master Python programming through interactive coding challenges. Each lesson teaches real concepts
+                    while keeping you engaged with rewards, progression, and gamified elements.
                   </p>
 
                   <div className="mb-8 grid grid-cols-2 gap-4">

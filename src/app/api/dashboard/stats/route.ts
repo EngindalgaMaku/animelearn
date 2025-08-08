@@ -1,27 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("auth-token");
+    // Use NextAuth session instead of JWT
+    const session = await getServerSession(authOptions);
 
-    let userId = "cmdx1xoke0000wc485ntjnhxq"; // Default test user ID
-
-    if (token) {
-      try {
-        const decoded = jwt.verify(token.value, process.env.JWT_SECRET!) as { userId: string };
-        userId = decoded.userId;
-      } catch (error) {
-        console.log("JWT verification failed, using test user");
-        // Continue with test user ID
-      }
-    } else {
-      console.log("No auth token found, using test user");
-      // Continue with test user ID
+    if (!session || !session.user?.id) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
     }
+
+    const userId = session.user.id;
 
     // Get user's cards count and total value
     const userCards = await db.userCard.findMany({

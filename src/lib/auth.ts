@@ -190,10 +190,6 @@ export const authOptions: NextAuthOptions = {
       return true
     },
     async session({ session, token }) {
-      console.log("🔧 Session callback called")
-      console.log("📧 Session email:", session.user?.email)
-      console.log("🎫 Token:", token)
-      
       if (session.user?.email) {
         try {
           const dbUser = await prisma.user.findUnique({
@@ -214,8 +210,6 @@ export const authOptions: NextAuthOptions = {
             }
           })
 
-          console.log("👤 DB User found:", dbUser)
-
           if (dbUser) {
             session.user = {
               ...session.user,
@@ -230,15 +224,12 @@ export const authOptions: NextAuthOptions = {
               maxLoginStreak: dbUser.maxLoginStreak,
               isPremium: dbUser.isPremium,
             }
-            
-            console.log("✅ Updated session user:", session.user)
           }
         } catch (error) {
-          console.error("❌ Error in session callback:", error)
+          console.error("Error in session callback:", error)
         }
       }
       
-      console.log("🚀 Final session:", session)
       return session
     },
     async jwt({ token, user, account }) {

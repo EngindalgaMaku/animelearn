@@ -70,24 +70,7 @@ async function checkBadgeCondition(
 }
 
 // Kullanıcının yeni rozetlerini kontrol et ve ver
-export async function checkAndAwardBadges(userId: string): Promise<
-  Array<{
-    id: string;
-    userId: string;
-    badgeId: string;
-    earnedAt: Date;
-    badge: {
-      id: string;
-      name: string;
-      description: string;
-      icon: string;
-      condition: string;
-      isActive: boolean;
-      totalEarned: number;
-      createdAt: Date;
-    };
-  }>
-> {
+export async function checkAndAwardBadges(userId: string): Promise<any[]> {
   const newBadges = [];
 
   try {

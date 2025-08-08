@@ -307,7 +307,16 @@ const GamificationHub: React.FC<GamificationHubProps> = ({
       case "quiz":
         return <DailyMiniQuiz />;
       case "cards":
-        return <CardPackOpening />;
+        return (
+          <div className="text-center p-8">
+            <Gift className="h-16 w-16 mx-auto mb-4 text-purple-500" />
+            <h3 className="text-xl font-semibold mb-2">Card Pack Opening</h3>
+            <p className="text-gray-600 mb-4">Open card packs to discover new cards!</p>
+            <button className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+              Open Card Pack
+            </button>
+          </div>
+        );
       default:
         return renderOverview();
     }
