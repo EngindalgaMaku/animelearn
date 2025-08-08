@@ -7,6 +7,7 @@ import {
   useEffect,
   ReactNode,
 } from "react";
+import { useSession, signOut } from "next-auth/react";
 
 interface User {
   id: string;
@@ -70,35 +71,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Sayfa yüklendiğinde server'dan auth durumunu kontrol et
-    checkAuthStatus();
-  }, []);
+  const { data: session, status } = useSession();
 
-  const checkAuthStatus = async () => {
-    try {
-      const response = await fetch("/api/auth");
-      if (response.ok) {
-        const data = await response.json();
-        if (data.authenticated && data.user) {
-          setIsAuthenticated(true);
-          setUser(data.user);
-        } else {
-          setIsAuthenticated(false);
-          setUser(null);
-        }
-      } else {
-        setIsAuthenticated(false);
-        setUser(null);
-      }
-    } catch (error) {
-      console.error("Auth check failed:", error);
+  useEffect(() => {
+    // NextAuth session'ına göre auth durumunu güncelle
+    if (status === "loading") {
+      setLoading(true);
+      return;
+    }
+
+    if (status === "authenticated" && session?.user) {
+      setIsAuthenticated(true);
+      // NextAuth'tan gelen user verisini local User tipine dönüştür
+      setUser({
+        id: session.user.id || '',
+        username: session.user.username || session.user.email?.split('@')[0] || 'User',
+        email: session.user.email || '',
+        role: session.user.role || 'user',
+        level: session.user.level || 1,
+        experience: session.user.experience || 0,
+        currentDiamonds: session.user.currentDiamonds || 100,
+        totalDiamonds: session.user.totalDiamonds || 100,
+        dailyDiamonds: 0,
+        lastDailyReset: new Date().toISOString(),
+        codeArenasCompleted: (session.user as any).codeArenasCompleted || 0,
+        quizzesCompleted: (session.user as any).quizzesCompleted || 0,
+        codeSubmissionCount: 0,
+        loginStreak: session.user.loginStreak || 1,
+        maxLoginStreak: session.user.maxLoginStreak || 1,
+        lastLoginDate: new Date().toISOString(),
+        isPremium: session.user.isPremium || false,
+        isActive: true,
+        emailVerified: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    } else {
       setIsAuthenticated(false);
       setUser(null);
-    } finally {
-      setLoading(false);
     }
-  };
+    
+    setLoading(false);
+  }, [session, status]);
 
   const refreshUser = async () => {
     try {
@@ -164,17 +178,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch("/api/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "logout" }),
-      });
+      await signOut({ callbackUrl: "/" });
     } catch (error) {
       console.error("Logout failed:", error);
-    } finally {
-      setIsAuthenticated(false);
-      setUser(null);
     }
+    setIsAuthenticated(false);
+    setUser(null);
   };
 
   const register = async (

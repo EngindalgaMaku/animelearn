@@ -196,11 +196,19 @@ export default function HomePage() {
                 {isAuthenticated ? (
                   <>
                     <Link
-                      href="/code-arena"
-                      className="group flex transform items-center space-x-3 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 px-8 py-4 text-lg font-bold text-white shadow-2xl transition-all hover:-translate-y-1 hover:from-yellow-600 hover:to-orange-600"
+                      href="/multiplayer"
+                      className="group flex transform items-center space-x-3 rounded-2xl bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 px-8 py-4 text-lg font-bold text-white shadow-2xl transition-all hover:-translate-y-1 hover:from-green-600 hover:via-blue-600 hover:to-purple-600"
                     >
-                      <Rocket className="h-6 w-6" />
-                      <span>Enter Code Arena</span>
+                      <Users className="h-6 w-6" />
+                      <span>🌐 Multiplayer</span>
+                      <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                    <Link
+                      href="/battle"
+                      className="group flex transform items-center space-x-3 rounded-2xl bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 px-8 py-4 text-lg font-bold text-white shadow-2xl transition-all hover:-translate-y-1 hover:from-red-600 hover:via-orange-600 hover:to-yellow-600"
+                    >
+                      <Flame className="h-6 w-6" />
+                      <span>⚔️ Battle Arena</span>
                       <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                     </Link>
                     <Link

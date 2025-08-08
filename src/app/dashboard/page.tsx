@@ -62,6 +62,7 @@ export default function Dashboard() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [authTimeout, setAuthTimeout] = useState(false);
 
   // Load site settings
   useEffect(() => {
@@ -114,6 +115,18 @@ export default function Dashboard() {
 
     loadSettings();
   }, []);
+
+  // Auth timeout fallback
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (loading) {
+        console.warn("Auth loading timeout, proceeding without authentication");
+        setAuthTimeout(true);
+      }
+    }, 10000); // 10 saniye timeout
+
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   // Load dashboard stats
   useEffect(() => {
@@ -190,7 +203,7 @@ export default function Dashboard() {
     return (user.level + 1) * 100;
   };
 
-  if (loading || !settings) {
+  if ((loading && !authTimeout) || !settings) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="text-center">
@@ -202,7 +215,7 @@ export default function Dashboard() {
     );
   }
 
-  if (!user) {
+  if (!user && !authTimeout) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="text-center">
@@ -210,10 +223,42 @@ export default function Dashboard() {
             <Users className="h-8 w-8 text-white" />
           </div>
           <p className="text-lg font-medium text-gray-600">Loading user information...</p>
+          <div className="mt-4">
+            <Link
+              href="/login"
+              className="text-sm text-blue-600 hover:text-blue-700 underline"
+            >
+              Continue to Login
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
+
+  // Eğer user yoksa ve timeout olduysa login'e yönlendir
+  if (!user && authTimeout) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-red-500 to-pink-500 p-4">
+            <Users className="h-8 w-8 text-white" />
+          </div>
+          <p className="text-lg font-medium text-gray-600">Please log in to continue</p>
+          <p className="text-sm text-gray-500 mb-4">Your session may have expired</p>
+          <Link
+            href="/login"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Go to Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // user null kontrolünden sonra kesinlikle var olduğunu bil
+  const currentUser = user!;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
@@ -230,11 +275,11 @@ export default function Dashboard() {
                 <div className="relative">
                   <div className="flex h-20 w-20 lg:h-24 lg:w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shadow-xl ring-4 ring-white/50">
                     <span className="text-2xl lg:text-3xl font-bold text-white">
-                      {user.username.charAt(0).toUpperCase()}
+                      {currentUser.username.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div className="absolute -right-2 -top-2 h-6 w-6 animate-pulse rounded-full bg-green-500 ring-3 ring-white shadow-lg"></div>
-                  {user.isPremium && (
+                  {currentUser.isPremium && (
                     <div className="absolute -bottom-1 -right-1 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-1.5 shadow-lg">
                       <Crown className="h-3 w-3 text-white" />
                     </div>
@@ -244,7 +289,7 @@ export default function Dashboard() {
                 <div className="flex-1">
                   <div className="mb-2 flex items-center space-x-3">
                     <h1 className="bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-3xl lg:text-4xl font-bold text-transparent">
-                      {getGreeting()}, {user.username}! 👋
+                      {getGreeting()}, {currentUser.username}! 👋
                     </h1>
                   </div>
                   
@@ -255,15 +300,15 @@ export default function Dashboard() {
                   <div className="flex flex-wrap gap-3">
                     <div className="inline-flex items-center rounded-full bg-gradient-to-r from-red-100 to-orange-100 px-4 py-2 text-sm font-semibold text-red-800">
                       <Flame className="mr-2 h-4 w-4" />
-                      {user.loginStreak} day streak
+                      {currentUser.loginStreak} day streak
                     </div>
                     <div className="inline-flex items-center rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 px-4 py-2 text-sm font-semibold text-blue-800">
                       <Star className="mr-2 h-4 w-4" />
-                      Level {user.level}
+                      Level {currentUser.level}
                     </div>
                     <div className="inline-flex items-center rounded-full bg-gradient-to-r from-yellow-100 to-amber-100 px-4 py-2 text-sm font-semibold text-yellow-800">
                       <span className="mr-1">{settings.currencySymbol}</span>
-                      {user.currentDiamonds}
+                      {currentUser.currentDiamonds}
                     </div>
                   </div>
                 </div>
@@ -271,12 +316,12 @@ export default function Dashboard() {
                 <div className="flex items-center space-x-3 lg:flex-col lg:space-x-0 lg:space-y-2">
                   <div className="text-center">
                     <p className="text-sm font-medium text-gray-500">Next Level</p>
-                    <p className="text-lg font-bold text-gray-900">{user.level + 1}</p>
+                    <p className="text-lg font-bold text-gray-900">{currentUser.level + 1}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-sm font-medium text-gray-500">XP Needed</p>
                     <p className="text-lg font-bold text-blue-600">
-                      {getNextLevelXp() - user.experience}
+                      {getNextLevelXp() - currentUser.experience}
                     </p>
                   </div>
                 </div>
@@ -285,8 +330,8 @@ export default function Dashboard() {
               {/* Progress Bar */}
               <div className="mt-6 lg:mt-8">
                 <div className="mb-2 flex justify-between text-sm font-medium text-gray-600">
-                  <span>Level {user.level} Progress</span>
-                  <span>{user.experience % 100}/100 XP</span>
+                  <span>Level {currentUser.level} Progress</span>
+                  <span>{currentUser.experience % 100}/100 XP</span>
                 </div>
                 <div className="relative h-3 w-full overflow-hidden rounded-full bg-gray-200 shadow-inner">
                   <div
@@ -308,7 +353,7 @@ export default function Dashboard() {
                 <div className="mb-4 rounded-xl bg-white/20 p-3 w-fit">
                   <Star className="h-6 w-6" />
                 </div>
-                <p className="text-3xl font-bold">{user.level}</p>
+                <p className="text-3xl font-bold">{currentUser.level}</p>
                 <p className="text-sm font-medium text-blue-100">Current Level</p>
               </div>
             </div>
@@ -319,7 +364,7 @@ export default function Dashboard() {
                 <div className="mb-4 rounded-xl bg-white/20 p-3 w-fit">
                   <Diamond className="h-6 w-6" />
                 </div>
-                <p className="text-3xl font-bold">{user.currentDiamonds}</p>
+                <p className="text-3xl font-bold">{currentUser.currentDiamonds}</p>
                 <p className="text-sm font-medium text-yellow-100">Diamonds</p>
               </div>
             </div>
@@ -330,7 +375,7 @@ export default function Dashboard() {
                 <div className="mb-4 rounded-xl bg-white/20 p-3 w-fit">
                   <Zap className="h-6 w-6" />
                 </div>
-                <p className="text-3xl font-bold">{user.experience}</p>
+                <p className="text-3xl font-bold">{currentUser.experience}</p>
                 <p className="text-sm font-medium text-purple-100">Total XP</p>
               </div>
             </div>
@@ -341,7 +386,7 @@ export default function Dashboard() {
                 <div className="mb-4 rounded-xl bg-white/20 p-3 w-fit">
                   <Flame className="h-6 w-6" />
                 </div>
-                <p className="text-3xl font-bold">{user.loginStreak}</p>
+                <p className="text-3xl font-bold">{currentUser.loginStreak}</p>
                 <p className="text-sm font-medium text-green-100">Day Streak</p>
               </div>
             </div>
@@ -350,6 +395,60 @@ export default function Dashboard() {
           {/* Quick Actions Grid */}
           <div className="mb-8 lg:mb-12 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
             
+            {/* Battle Arena Section */}
+            <div className="group rounded-2xl border border-white/60 bg-white/90 p-6 lg:p-8 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl">
+              <div className="mb-6 flex items-center">
+                <div className="rounded-xl bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 p-3">
+                  <Flame className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="ml-4 text-xl font-bold text-gray-900">⚔️ Battle Arena</h2>
+              </div>
+              
+              <div className="space-y-3">
+                <Link
+                  href="/battle"
+                  className="group flex items-center rounded-xl border-2 border-red-200 bg-red-50/50 p-4 transition-all duration-200 hover:border-red-400 hover:bg-red-100 hover:shadow-md"
+                >
+                  <div className="rounded-lg bg-red-500 p-2">
+                    <Flame className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="ml-4 flex-1">
+                    <p className="font-semibold text-gray-900">Elements of Legends</p>
+                    <p className="text-sm text-gray-600">Epic card battles with 7 elements</p>
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-red-600 transition-transform group-hover:translate-x-1" />
+                </Link>
+
+                <Link
+                  href="/multiplayer"
+                  className="group flex items-center rounded-xl border-2 border-green-200 bg-green-50/50 p-4 transition-all duration-200 hover:border-green-400 hover:bg-green-100 hover:shadow-md"
+                >
+                  <div className="rounded-lg bg-green-500 p-2">
+                    <Users className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="ml-4 flex-1">
+                    <p className="font-semibold text-gray-900">Multiplayer Battles</p>
+                    <p className="text-sm text-gray-600">Real-time PvP combat</p>
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-green-600 transition-transform group-hover:translate-x-1" />
+                </Link>
+
+                <Link
+                  href="/tournaments"
+                  className="group flex items-center rounded-xl border-2 border-orange-200 bg-orange-50/50 p-4 transition-all duration-200 hover:border-orange-400 hover:bg-orange-100 hover:shadow-md"
+                >
+                  <div className="rounded-lg bg-orange-500 p-2">
+                    <Trophy className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="ml-4 flex-1">
+                    <p className="font-semibold text-gray-900">Tournaments</p>
+                    <p className="text-sm text-gray-600">Compete with other players</p>
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-orange-600 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </div>
+            </div>
+
             {/* Code Arena Section */}
             {settings.arenaEnabled === 'true' && (
               <div className="group rounded-2xl border border-white/60 bg-white/90 p-6 lg:p-8 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl">
@@ -357,7 +456,7 @@ export default function Dashboard() {
                   <div className="rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 p-3">
                     <GamepadIcon className="h-6 w-6 text-white" />
                   </div>
-                  <h2 className="ml-4 text-xl font-bold text-gray-900">⚔️ Code Arena</h2>
+                  <h2 className="ml-4 text-xl font-bold text-gray-900">💻 Code Arena</h2>
                 </div>
                 
                 <div className="space-y-3">
@@ -369,8 +468,8 @@ export default function Dashboard() {
                       <Book className="h-5 w-5 text-white" />
                     </div>
                     <div className="ml-4 flex-1">
-                      <p className="font-semibold text-gray-900">Enter Arena</p>
-                      <p className="text-sm text-gray-600">Battle with Python challenges</p>
+                      <p className="font-semibold text-gray-900">Python Challenges</p>
+                      <p className="text-sm text-gray-600">Learn through interactive coding</p>
                     </div>
                     <ArrowRight className="h-5 w-5 text-blue-600 transition-transform group-hover:translate-x-1" />
                   </Link>
@@ -550,7 +649,7 @@ export default function Dashboard() {
                   <div className="mx-auto mb-2 w-fit rounded-full bg-blue-500 p-2">
                     <Book className="h-4 w-4 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-blue-600">{user.codeArenasCompleted || 0}</p>
+                  <p className="text-2xl font-bold text-blue-600">{currentUser.codeArenasCompleted || 0}</p>
                   <p className="text-xs font-medium text-blue-700">Arenas Completed</p>
                 </div>
 
@@ -558,7 +657,7 @@ export default function Dashboard() {
                   <div className="mx-auto mb-2 w-fit rounded-full bg-green-500 p-2">
                     <Brain className="h-4 w-4 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-green-600">{user.quizzesCompleted || 0}</p>
+                  <p className="text-2xl font-bold text-green-600">{currentUser.quizzesCompleted || 0}</p>
                   <p className="text-xs font-medium text-green-700">Quizzes Solved</p>
                 </div>
 
@@ -566,7 +665,7 @@ export default function Dashboard() {
                   <div className="mx-auto mb-2 w-fit rounded-full bg-purple-500 p-2">
                     <Code className="h-4 w-4 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-purple-600">{user.codeSubmissionCount || 0}</p>
+                  <p className="text-2xl font-bold text-purple-600">{currentUser.codeSubmissionCount || 0}</p>
                   <p className="text-xs font-medium text-purple-700">Code Submissions</p>
                 </div>
 
@@ -574,7 +673,7 @@ export default function Dashboard() {
                   <div className="mx-auto mb-2 w-fit rounded-full bg-yellow-500 p-2">
                     <Trophy className="h-4 w-4 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-yellow-600">{user.totalDiamonds || 0}</p>
+                  <p className="text-2xl font-bold text-yellow-600">{currentUser.totalDiamonds || 0}</p>
                   <p className="text-xs font-medium text-yellow-700">Total Earned</p>
                 </div>
               </div>

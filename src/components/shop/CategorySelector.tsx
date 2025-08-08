@@ -29,7 +29,7 @@ interface Category {
   };
   description: string;
   cardCount: number;
-  avgRating: number;
+  rarity: string;
   featured: string;
 }
 
@@ -54,7 +54,7 @@ const categoryThemes: Record<string, {
     accent: string;
     background: string;
   };
-  avgRating: number;
+  rarity: string;
   featured: string;
 }> = {
   "anime-collection": {
@@ -67,7 +67,7 @@ const categoryThemes: Record<string, {
       accent: "#F59E0B",
       background: "from-pink-50 via-purple-50 to-indigo-50"
     },
-    avgRating: 9.2,
+    rarity: "Legendary",
     featured: "Legendary Anime"
   },
   "star-collection": {
@@ -80,7 +80,7 @@ const categoryThemes: Record<string, {
       accent: "#10B981",
       background: "from-cyan-50 via-teal-50 to-blue-50"
     },
-    avgRating: 8.7,
+    rarity: "Epic",
     featured: "Celebrity Stars"
   },
   "car-collection": {
@@ -93,7 +93,7 @@ const categoryThemes: Record<string, {
       accent: "#FBBF24",
       background: "from-blue-50 via-indigo-50 to-cyan-50"
     },
-    avgRating: 8.9,
+    rarity: "Ultra Rare",
     featured: "Supercars"
   }
 };
@@ -134,7 +134,7 @@ export default function CategorySelector({
             theme: themeConfig.theme,
             description: dbCategory.description || getDefaultDescription(dbCategory.slug),
             cardCount: dbCategory.cardCount,
-            avgRating: themeConfig.avgRating,
+            rarity: themeConfig.rarity,
             featured: themeConfig.featured
           };
         });
@@ -154,7 +154,7 @@ export default function CategorySelector({
           theme: categoryThemes["anime-collection"].theme,
           description: "Discover legendary anime characters and their magical powers",
           cardCount: 150,
-          avgRating: 9.2,
+          rarity: "Legendary",
           featured: "Legendary Anime"
         },
         {
@@ -167,7 +167,7 @@ export default function CategorySelector({
           theme: categoryThemes["star-collection"].theme,
           description: "Celebrity and famous personality trading cards",
           cardCount: 120,
-          avgRating: 8.7,
+          rarity: "Epic",
           featured: "Celebrity Stars"
         },
         {
@@ -180,7 +180,7 @@ export default function CategorySelector({
           theme: categoryThemes["car-collection"].theme,
           description: "Luxury and sports car trading cards",
           cardCount: 80,
-          avgRating: 8.9,
+          rarity: "Ultra Rare",
           featured: "Supercars"
         }
       ]);
@@ -286,12 +286,12 @@ export default function CategorySelector({
                   </div>
                   <div className="text-center">
                     <div className="flex items-center justify-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                      <Zap className="h-4 w-4 text-purple-500" />
                       <span className="text-lg font-bold text-gray-900">
-                        {category.avgRating}
+                        {category.rarity}
                       </span>
                     </div>
-                    <div className="text-xs text-gray-500">Avg Rating</div>
+                    <div className="text-xs text-gray-500">Top Rarity</div>
                   </div>
                 </div>
 

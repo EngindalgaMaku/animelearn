@@ -189,42 +189,56 @@ export const authOptions: NextAuthOptions = {
       }
       return true
     },
-    async session({ session, user }) {
-      if (session.user && user) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: {
-            id: true,
-            username: true,
-            email: true,
-            role: true,
-            level: true,
-            experience: true,
-            currentDiamonds: true,
-            totalDiamonds: true,
-            loginStreak: true,
-            maxLoginStreak: true,
-            isPremium: true,
-            isActive: true,
-          }
-        })
+    async session({ session, token }) {
+      console.log("🔧 Session callback called")
+      console.log("📧 Session email:", session.user?.email)
+      console.log("🎫 Token:", token)
+      
+      if (session.user?.email) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: session.user.email },
+            select: {
+              id: true,
+              username: true,
+              email: true,
+              role: true,
+              level: true,
+              experience: true,
+              currentDiamonds: true,
+              totalDiamonds: true,
+              loginStreak: true,
+              maxLoginStreak: true,
+              isPremium: true,
+              isActive: true,
+            }
+          })
 
-        if (dbUser) {
-          session.user = {
-            ...session.user,
-            id: dbUser.id,
-            username: dbUser.username,
-            role: dbUser.role,
-            level: dbUser.level,
-            experience: dbUser.experience,
-            currentDiamonds: dbUser.currentDiamonds,
-            totalDiamonds: dbUser.totalDiamonds,
-            loginStreak: dbUser.loginStreak,
-            maxLoginStreak: dbUser.maxLoginStreak,
-            isPremium: dbUser.isPremium,
+          console.log("👤 DB User found:", dbUser)
+
+          if (dbUser) {
+            session.user = {
+              ...session.user,
+              id: dbUser.id,
+              username: dbUser.username,
+              role: dbUser.role,
+              level: dbUser.level,
+              experience: dbUser.experience,
+              currentDiamonds: dbUser.currentDiamonds,
+              totalDiamonds: dbUser.totalDiamonds,
+              loginStreak: dbUser.loginStreak,
+              maxLoginStreak: dbUser.maxLoginStreak,
+              isPremium: dbUser.isPremium,
+            }
+            
+            console.log("✅ Updated session user:", session.user)
           }
+        } catch (error) {
+          console.error("❌ Error in session callback:", error)
         }
       }
+      
+      console.log("🚀 Final session:", session)
       return session
     },
     async jwt({ token, user, account }) {
@@ -232,6 +246,24 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role
         token.username = user.username
       }
+      
+      // If token doesn't have role but has email, fetch from database
+      if (!token.role && token.email) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: token.email },
+            select: { role: true, username: true }
+          })
+          
+          if (dbUser) {
+            token.role = dbUser.role
+            token.username = dbUser.username
+          }
+        } catch (error) {
+          console.error("Error fetching user role in JWT callback:", error)
+        }
+      }
+      
       return token
     }
   },

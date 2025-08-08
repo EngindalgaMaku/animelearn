@@ -79,8 +79,12 @@ export default function MainNavigation() {
   const { isAuthenticated, user, logout, loading } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Admin kontrolü - role üzerinden
-  const isAdmin = user && user.role === "admin";
+  // Admin kontrolü - role ve email üzerinden
+  const isAdmin = user && (
+    user.role === "admin" ||
+    user.role === "ADMIN" ||
+    user.email === "admin@zumenzu.com"
+  );
   const router = useRouter();
   const pathname = usePathname();
 

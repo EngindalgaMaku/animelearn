@@ -751,33 +751,50 @@ function ShopPageContent() {
         />
       )}
 
-      {/* Card Detail Modal - Compact Professional Design */}
+      {/* Card Detail Modal - Responsive Tablet-Friendly Design */}
       {selectedCard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="max-h-[90vh] w-full max-w-4xl overflow-auto rounded-xl bg-white shadow-2xl">
-            {/* Compact Header */}
-            <div className="flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-slate-50 to-gray-50 px-6 py-4 rounded-t-xl">
-              <div className="flex items-center space-x-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-purple-600">
-                  <Star className="h-5 w-5 text-white" />
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-3 md:p-6">
+          {/* Modal positioned lower on tablets for better header access */}
+          <div className="flex min-h-full items-start justify-center pt-4 md:pt-16 lg:pt-20">
+            <div
+              className="relative w-full max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[85vh] md:max-h-[80vh] overflow-auto
+                         rounded-2xl bg-white shadow-2xl border-4 border-gray-200/50
+                         transform transition-all duration-300"
+              style={{
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+              }}
+            >
+              {/* Enhanced Header with Larger Close Button */}
+              <div className="sticky top-0 z-10 flex items-center justify-between border-b-2 border-gray-200
+                            bg-gradient-to-r from-slate-50 to-gray-50 px-4 md:px-6 py-3 md:py-4 rounded-t-2xl
+                            shadow-sm">
+                <div className="flex items-center space-x-3">
+                  <div className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full
+                                bg-gradient-to-r from-blue-600 to-purple-600 shadow-md">
+                    <Star className="h-4 w-4 md:h-5 md:w-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg md:text-xl font-bold text-gray-900 leading-tight">
+                      {selectedCard.cardTitle || selectedCard.name}
+                    </h2>
+                    <p className="text-xs text-gray-600">Card Details</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    {selectedCard.cardTitle || selectedCard.name}
-                  </h2>
-                  <p className="text-xs text-gray-600">Card Details</p>
-                </div>
+                
+                {/* Larger, More Accessible Close Button */}
+                <button
+                  onClick={() => setSelectedCard(null)}
+                  className="flex-shrink-0 rounded-full bg-red-100 hover:bg-red-200 p-2 md:p-3
+                           transition-all duration-200 hover:scale-110 active:scale-95
+                           border-2 border-red-200 hover:border-red-300 shadow-md"
+                  title="Close"
+                >
+                  <X className="h-5 w-5 md:h-6 md:w-6 text-red-600" />
+                </button>
               </div>
-              <button
-                onClick={() => setSelectedCard(null)}
-                className="rounded-full bg-gray-100 p-2 transition-all hover:bg-gray-200"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
 
-            <div className="p-6">
-              <div className="grid gap-6 lg:grid-cols-2">
+            <div className="p-4 md:p-6">
+              <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
                 {/* Left Side - Image */}
                 <div className="relative flex justify-center">
                   <div className="group relative">
@@ -786,7 +803,7 @@ function ShopPageContent() {
                       src={(selectedCard as any).secureThumbnailUrl || (selectedCard as any).secureImageUrl || `/api/secure-image?cardId=${selectedCard.id}&type=thumbnail`}
                       alt={selectedCard.cardTitle || selectedCard.name}
                       className="relative h-auto max-w-full rounded-lg shadow-xl transition-transform group-hover:scale-105"
-                      style={{ maxHeight: "400px" }}
+                      style={{ maxHeight: "300px" }}
                       onError={(e) => {
                         // Fallback chain for better production compatibility
                         const target = e.target as HTMLImageElement;
@@ -939,7 +956,7 @@ function ShopPageContent() {
               </div>
 
               {/* Compact Action Buttons */}
-              <div className="mt-6 border-t border-gray-200 pt-4">
+              <div className="mt-4 md:mt-6 border-t border-gray-200 pt-3 md:pt-4">
                 <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
                   <button
                     onClick={() => setExpandedImage(true)}
@@ -993,6 +1010,7 @@ function ShopPageContent() {
                     </div>
                   )}
                 </div>
+              </div>
               </div>
             </div>
           </div>
