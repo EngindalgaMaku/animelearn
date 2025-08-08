@@ -1,0 +1,397 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import fs from "fs";
+import path from "path";
+
+export interface GeminiAnalysisResult {
+  cardInfo: {
+    name?: string;
+    series?: string;
+    character?: string;
+    rarity?: string;
+    stats?: {
+      attack: number;
+      defense: number;
+      speed: number;
+      hp: number;
+    };
+  };
+  confidence: number;
+  ocrText: string;
+  reasoning: string[];
+}
+
+export class GeminiClient {
+  private genAI: GoogleGenerativeAI | null = null;
+  private model: any = null;
+  private readonly maxRetries = 3;
+  private readonly requestTimeout = 30000; // 30 saniye timeout
+  private isAvailable = false;
+
+  constructor() {
+    try {
+      const apiKey = process.env.GEMINI_API_KEY;
+
+      if (!apiKey || apiKey === "your_gemini_api_key_here") {
+        console.warn(
+          "⚠️ GEMINI_API_KEY is not configured. Falling back to quality analysis."
+        );
+        this.isAvailable = false;
+        return;
+      }
+
+      this.genAI = new GoogleGenerativeAI(apiKey);
+      this.model = this.genAI.getGenerativeModel({
+        model: "gemini-1.5-flash",
+        generationConfig: {
+          temperature: 0.4,
+          topK: 32,
+          topP: 1,
+          maxOutputTokens: 2048,
+        },
+      });
+      this.isAvailable = true;
+      console.log("✅ Gemini API client initialized successfully");
+    } catch (error) {
+      console.error("❌ Failed to initialize Gemini API client:", error);
+      this.isAvailable = false;
+    }
+  }
+
+  public checkAvailability(): boolean {
+    return this.isAvailable && this.model !== null;
+  }
+
+  async analyzeCardImage(imagePath: string): Promise<GeminiAnalysisResult> {
+    // API kullanılabilirlik kontrolü
+    if (!this.checkAvailability()) {
+      throw new Error(
+        "Gemini API is not available. Please check your API key configuration."
+      );
+    }
+
+    try {
+      console.log(
+        "🚀 Starting Gemini image analysis for:",
+        path.basename(imagePath)
+      );
+
+      // Dosya varlığını kontrol et
+      if (!fs.existsSync(imagePath)) {
+        throw new Error(`Image file not found: ${imagePath}`);
+      }
+
+      // Dosya boyutu kontrolü (maksimum 20MB)
+      const stats = fs.statSync(imagePath);
+      if (stats.size > 20 * 1024 * 1024) {
+        throw new Error("Image file too large (max 20MB)");
+      }
+
+      // Image'ı base64'e çevir
+      const imageBuffer = fs.readFileSync(imagePath);
+      const base64Image = imageBuffer.toString("base64");
+      const mimeType = this.getMimeType(imagePath);
+
+      console.log(
+        `📁 Image loaded: ${(stats.size / 1024).toFixed(1)}KB, type: ${mimeType}`
+      );
+
+      // Gemini için prompt hazırla
+      const prompt = this.buildAnalysisPrompt();
+
+      // Gemini API'sine gönder
+      const result = await this.callGeminiWithRetry(prompt, {
+        inlineData: {
+          data: base64Image,
+          mimeType: mimeType,
+        },
+      });
+
+      // Sonucu parse et
+      const analysisResult = this.parseGeminiResponse(result);
+
+      console.log(
+        `✅ Gemini analysis completed with ${Math.round(analysisResult.confidence * 100)}% confidence`
+      );
+      return analysisResult;
+    } catch (error) {
+      console.error("❌ Gemini analysis error:", error);
+      throw error; // Rethrow instead of returning fallback
+    }
+  }
+
+  private getMimeType(filePath: string): string {
+    const ext = path.extname(filePath).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      ".jpg": "image/jpeg",
+      ".jpeg": "image/jpeg",
+      ".png": "image/png",
+      ".gif": "image/gif",
+      ".webp": "image/webp",
+      ".bmp": "image/bmp",
+    };
+    return mimeTypes[ext] || "image/jpeg";
+  }
+
+  private buildAnalysisPrompt(): string {
+    return `
+Analyze this anime trading card image and extract the following information in JSON format:
+
+{
+  "cardInfo": {
+    "name": "Card name or character name",
+    "series": "Anime series name (e.g., Naruto, Dragon Ball, Pokemon, etc.)",
+    "character": "Main character featured",
+    "rarity": "Card rarity (Common, Uncommon, Rare, Super Rare, Ultra Rare, Secret Rare, Legendary)",
+    "stats": {
+      "attack": number (1-100),
+      "defense": number (1-100), 
+      "speed": number (1-100),
+      "hp": number (50-500)
+    }
+  },
+  "confidence": number (0.0-1.0),
+  "ocrText": "Any text visible on the card",
+  "reasoning": ["Reason 1", "Reason 2", "Reason 3"]
+}
+
+Instructions:
+- Carefully examine all visual elements including artwork, text, borders, and effects
+- Identify the anime series from characters, art style, or text
+- Determine rarity based on visual effects (holographic, foil, special borders, etc.)
+- Extract any readable text from the card
+- Generate reasonable stats based on character power level and rarity
+- Provide confidence score based on image clarity and recognizable elements
+- Give reasoning for your analysis decisions
+- If uncertain about any field, make educated guesses based on visual cues
+- For Turkish cards, translate series/character names to English
+
+Return only valid JSON without any additional text or formatting.
+`;
+  }
+
+  private async callGeminiWithRetry(
+    prompt: string,
+    imagePart: any
+  ): Promise<any> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+      try {
+        console.log(`Gemini API attempt ${attempt}/${this.maxRetries}`);
+
+        // Timeout promise
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(
+            () => reject(new Error("Request timeout")),
+            this.requestTimeout
+          );
+        });
+
+        // API call promise
+        const apiPromise = this.model.generateContent([prompt, imagePart]);
+
+        // Race between timeout and API call
+        const result = await Promise.race([apiPromise, timeoutPromise]);
+
+        if (!result || !result.response) {
+          throw new Error("Invalid response from Gemini API");
+        }
+
+        const response = await result.response;
+        const text = response.text();
+
+        if (!text) {
+          throw new Error("Empty response from Gemini API");
+        }
+
+        return text;
+      } catch (error) {
+        lastError = error as Error;
+        console.warn(`Gemini API attempt ${attempt} failed:`, error);
+
+        if (attempt < this.maxRetries) {
+          // Exponential backoff
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+          console.log(`Retrying in ${delay}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    throw new Error(
+      `Gemini API failed after ${this.maxRetries} attempts. Last error: ${lastError?.message}`
+    );
+  }
+
+  private parseGeminiResponse(response: string): GeminiAnalysisResult {
+    try {
+      // JSON'u extract et (```json``` wrapper'ları varsa temizle)
+      let jsonStr = response.trim();
+
+      // Markdown code block wrapper'larını temizle
+      if (jsonStr.startsWith("```json")) {
+        jsonStr = jsonStr.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+      } else if (jsonStr.startsWith("```")) {
+        jsonStr = jsonStr.replace(/^```\s*/, "").replace(/\s*```$/, "");
+      }
+
+      const parsed = JSON.parse(jsonStr);
+
+      // Validation ve normalization
+      return {
+        cardInfo: {
+          name: parsed.cardInfo?.name || "Unknown Card",
+          series: parsed.cardInfo?.series || "Unknown Series",
+          character: parsed.cardInfo?.character || "Unknown Character",
+          rarity: this.normalizeRarity(parsed.cardInfo?.rarity) || "Common",
+          stats: {
+            attack: Math.max(
+              1,
+              Math.min(100, parsed.cardInfo?.stats?.attack || 50)
+            ),
+            defense: Math.max(
+              1,
+              Math.min(100, parsed.cardInfo?.stats?.defense || 50)
+            ),
+            speed: Math.max(
+              1,
+              Math.min(100, parsed.cardInfo?.stats?.speed || 50)
+            ),
+            hp: Math.max(50, Math.min(500, parsed.cardInfo?.stats?.hp || 100)),
+          },
+        },
+        confidence: Math.max(0, Math.min(1, parsed.confidence || 0.5)),
+        ocrText: parsed.ocrText || "No text detected",
+        reasoning: Array.isArray(parsed.reasoning)
+          ? parsed.reasoning
+          : ["AI analysis completed"],
+      };
+    } catch (error) {
+      console.error("Failed to parse Gemini response:", error);
+      console.log("Raw response:", response);
+
+      // Fallback parsing
+      return this.createFallbackFromResponse(response);
+    }
+  }
+
+  private normalizeRarity(rarity?: string): string {
+    if (!rarity) return "Common";
+
+    const normalized = rarity.toLowerCase();
+    const rarityMap: Record<string, string> = {
+      common: "Common",
+      uncommon: "Uncommon",
+      rare: "Rare",
+      "super rare": "Super Rare",
+      sr: "Super Rare",
+      "ultra rare": "Ultra Rare",
+      ur: "Ultra Rare",
+      "secret rare": "Secret Rare",
+      scr: "Secret Rare",
+      legendary: "Legendary",
+      legend: "Legendary",
+      mythic: "Legendary",
+      epic: "Ultra Rare",
+    };
+
+    return rarityMap[normalized] || "Common";
+  }
+
+  private createFallbackFromResponse(response: string): GeminiAnalysisResult {
+    // Response'dan en azından bazı bilgileri çıkarmaya çalış
+    const extractedText = response.substring(0, 200);
+
+    return {
+      cardInfo: {
+        name: "Analyzed Card",
+        series: "Unknown Series",
+        character: "Unknown Character",
+        rarity: "Common",
+        stats: {
+          attack: 40,
+          defense: 40,
+          speed: 40,
+          hp: 80,
+        },
+      },
+      confidence: 0.3,
+      ocrText: extractedText,
+      reasoning: ["Partial analysis from response text"],
+    };
+  }
+
+  private createFallbackResult(
+    imagePath: string,
+    error: any
+  ): GeminiAnalysisResult {
+    const fileName = path.basename(imagePath, path.extname(imagePath));
+
+    return {
+      cardInfo: {
+        name: fileName,
+        series: "Unknown Series",
+        character: "Unknown Character",
+        rarity: "Common",
+        stats: {
+          attack: 30,
+          defense: 30,
+          speed: 30,
+          hp: 60,
+        },
+      },
+      confidence: 0.1,
+      ocrText: `Analysis failed: ${error?.message || "Unknown error"}`,
+      reasoning: [
+        "Gemini API analysis failed",
+        "Using filename for basic info",
+        `Error: ${error?.message || "Unknown error"}`,
+      ],
+    };
+  }
+
+  async testConnection(): Promise<boolean> {
+    if (!this.checkAvailability()) {
+      return false;
+    }
+
+    try {
+      const result = await this.model.generateContent(
+        "Hello, respond with 'OK' if you can hear me."
+      );
+      const response = await result.response;
+      const text = response.text();
+      return text?.toLowerCase().includes("ok") || false;
+    } catch (error) {
+      console.error("Gemini connection test failed:", error);
+      return false;
+    }
+  }
+}
+
+// Singleton instance - safely initialized
+let geminiClient: GeminiClient | null = null;
+
+try {
+  geminiClient = new GeminiClient();
+} catch (error) {
+  console.error("Failed to initialize Gemini client:", error);
+  geminiClient = null;
+}
+
+export { geminiClient };
+
+// Helper function with availability check
+export async function analyzeCardWithGemini(
+  imagePath: string
+): Promise<GeminiAnalysisResult> {
+  if (!geminiClient || !geminiClient.checkAvailability()) {
+    throw new Error("Gemini API is not available");
+  }
+  return geminiClient.analyzeCardImage(imagePath);
+}
+
+// Check if Gemini is available
+export function isGeminiAvailable(): boolean {
+  return geminiClient !== null && geminiClient.checkAvailability();
+}

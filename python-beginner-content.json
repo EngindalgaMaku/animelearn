@@ -1,0 +1,524 @@
+{
+  "activities": [
+    {
+      "title": "⚡ Python'a Giriş - Temel Kavramlar",
+      "description": "Python programlama dilinin temel kavramlarını öğren! Bu arena savaşında temel Python terimlerini eşleştir.",
+      "activityType": "memory_game",
+      "category": "python_basics",
+      "difficulty": 1,
+      "diamondReward": 15,
+      "experienceReward": 30,
+      "estimatedMinutes": 8,
+      "tags": ["python", "basics", "giriş", "temel"],
+      "content": {
+        "pairs": [
+          {
+            "id": 1,
+            "text": "Python",
+            "match": "Güçlü ve kolay öğrenilen programlama dili"
+          },
+          {
+            "id": 2,
+            "text": "print()",
+            "match": "Ekrana çıktı verir"
+          },
+          {
+            "id": 3,
+            "text": "İnterpreter",
+            "match": "Python kodunu çalıştıran program"
+          },
+          {
+            "id": 4,
+            "text": "IDLE",
+            "match": "Python'un resmi kod editörü"
+          },
+          {
+            "id": 5,
+            "text": "Syntax",
+            "match": "Kodun yazım kuralları"
+          },
+          {
+            "id": 6,
+            "text": "Comment",
+            "match": "# ile başlayan açıklama satırları"
+          }
+        ],
+        "timeLimit": 240,
+        "shuffleCards": true
+      },
+      "isActive": true,
+      "sortOrder": 1
+    },
+    {
+      "title": "🎯 Değişkenler ve Veri Tipleri",
+      "description": "Python'da değişken tanımlama ve veri tiplerini öğren! Her savaşçının bilmesi gereken temel silahlar.",
+      "activityType": "memory_game",
+      "category": "variables",
+      "difficulty": 1,
+      "diamondReward": 20,
+      "experienceReward": 35,
+      "estimatedMinutes": 10,
+      "tags": ["değişkenler", "veri tipleri", "str", "int", "float"],
+      "content": {
+        "pairs": [
+          {
+            "id": 1,
+            "text": "name = 'Ahmet'",
+            "match": "String (metin) değişkeni tanımlama"
+          },
+          {
+            "id": 2,
+            "text": "age = 25",
+            "match": "Integer (tam sayı) değişkeni tanımlama"
+          },
+          {
+            "id": 3,
+            "text": "price = 19.99",
+            "match": "Float (ondalık sayı) değişkeni tanımlama"
+          },
+          {
+            "id": 4,
+            "text": "is_active = True",
+            "match": "Boolean (doğru/yanlış) değişkeni"
+          },
+          {
+            "id": 5,
+            "text": "type()",
+            "match": "Değişkenin tipini öğrenmek için"
+          },
+          {
+            "id": 6,
+            "text": "str()",
+            "match": "Değişkeni metne çevirmek için"
+          }
+        ],
+        "timeLimit": 300,
+        "shuffleCards": true
+      },
+      "isActive": true,
+      "sortOrder": 2
+    },
+    {
+      "title": "💬 Print ve Input Savaşı",
+      "description": "Kullanıcıyla iletişim kurmanın temel yollarını öğren! Arena savaşçıları böyle konuşur.",
+      "activityType": "memory_game",
+      "category": "python_basics",
+      "difficulty": 1,
+      "diamondReward": 18,
+      "experienceReward": 32,
+      "estimatedMinutes": 9,
+      "tags": ["print", "input", "çıktı", "girdi"],
+      "content": {
+        "pairs": [
+          {
+            "id": 1,
+            "text": "print('Merhaba')",
+            "match": "Ekrana 'Merhaba' yazdırır"
+          },
+          {
+            "id": 2,
+            "text": "input()",
+            "match": "Kullanıcıdan veri almak için"
+          },
+          {
+            "id": 3,
+            "text": "input('Ad: ')",
+            "match": "Soru ile birlikte veri almak"
+          },
+          {
+            "id": 4,
+            "text": "print(name)",
+            "match": "Değişkenin değerini ekrana yazdırır"
+          },
+          {
+            "id": 5,
+            "text": "print('Yaş:', age)",
+            "match": "Metin ve değişkeni birlikte yazdırır"
+          },
+          {
+            "id": 6,
+            "text": "int(input())",
+            "match": "Sayı olarak veri almak için"
+          }
+        ],
+        "timeLimit": 270,
+        "shuffleCards": true
+      },
+      "isActive": true,
+      "sortOrder": 3
+    },
+    {
+      "title": "🔢 Matematiksel Operatörler",
+      "description": "Python'da sayılarla savaş! Aritmetik operatörleri kullanarak arena hesapları yap.",
+      "activityType": "memory_game",
+      "category": "python_basics",
+      "difficulty": 2,
+      "diamondReward": 22,
+      "experienceReward": 40,
+      "estimatedMinutes": 10,
+      "tags": ["operatörler", "matematik", "aritmetik"],
+      "content": {
+        "pairs": [
+          {
+            "id": 1,
+            "text": "+",
+            "match": "Toplama işlemi"
+          },
+          {
+            "id": 2,
+            "text": "-",
+            "match": "Çıkarma işlemi"
+          },
+          {
+            "id": 3,
+            "text": "*",
+            "match": "Çarpma işlemi"
+          },
+          {
+            "id": 4,
+            "text": "/",
+            "match": "Bölme işlemi (ondalık sonuç)"
+          },
+          {
+            "id": 5,
+            "text": "//",
+            "match": "Tam bölme işlemi"
+          },
+          {
+            "id": 6,
+            "text": "%",
+            "match": "Mod alma (kalan bulma)"
+          },
+          {
+            "id": 7,
+            "text": "**",
+            "match": "Üs alma işlemi"
+          }
+        ],
+        "timeLimit": 300,
+        "shuffleCards": true
+      },
+      "isActive": true,
+      "sortOrder": 4
+    },
+    {
+      "title": "🎭 String Sihirli Arena",
+      "description": "Metinlerle büyü yap! String işlemleriyle arena savaşında ustalaş.",
+      "activityType": "memory_game",
+      "category": "python_basics",
+      "difficulty": 2,
+      "diamondReward": 25,
+      "experienceReward": 45,
+      "estimatedMinutes": 12,
+      "tags": ["string", "metin", "işlemler"],
+      "content": {
+        "pairs": [
+          {
+            "id": 1,
+            "text": "len()",
+            "match": "Metnin uzunluğunu bulur"
+          },
+          {
+            "id": 2,
+            "text": ".upper()",
+            "match": "Metni büyük harfe çevirir"
+          },
+          {
+            "id": 3,
+            "text": ".lower()",
+            "match": "Metni küçük harfe çevirir"
+          },
+          {
+            "id": 4,
+            "text": ".strip()",
+            "match": "Başındaki ve sonundaki boşlukları siler"
+          },
+          {
+            "id": 5,
+            "text": ".replace()",
+            "match": "Metinde değişiklik yapar"
+          },
+          {
+            "id": 6,
+            "text": "'a' + 'b'",
+            "match": "String birleştirme işlemi"
+          },
+          {
+            "id": 7,
+            "text": "text[0]",
+            "match": "İlk karakteri alır"
+          }
+        ],
+        "timeLimit": 360,
+        "shuffleCards": true
+      },
+      "isActive": true,
+      "sortOrder": 5
+    },
+    {
+      "title": "⚔️ Koşullu İfadeler Savaşı",
+      "description": "If/elif/else ile karar ver! Arena savaşçıları böyle stratejik düşünür.",
+      "activityType": "memory_game",
+      "category": "conditionals",
+      "difficulty": 2,
+      "diamondReward": 28,
+      "experienceReward": 50,
+      "estimatedMinutes": 12,
+      "tags": ["if", "elif", "else", "koşul"],
+      "content": {
+        "pairs": [
+          {
+            "id": 1,
+            "text": "if age >= 18:",
+            "match": "Yaş 18 veya üzeriyse"
+          },
+          {
+            "id": 2,
+            "text": "elif score > 50:",
+            "match": "Aksi halde skor 50'den büyükse"
+          },
+          {
+            "id": 3,
+            "text": "else:",
+            "match": "Hiçbiri değilse"
+          },
+          {
+            "id": 4,
+            "text": "==",
+            "match": "Eşit mi kontrol eder"
+          },
+          {
+            "id": 5,
+            "text": "!=",
+            "match": "Eşit değil mi kontrol eder"
+          },
+          {
+            "id": 6,
+            "text": "and",
+            "match": "Her iki koşul da doğruysa"
+          },
+          {
+            "id": 7,
+            "text": "or",
+            "match": "Koşullardan biri doğruysa"
+          }
+        ],
+        "timeLimit": 360,
+        "shuffleCards": true
+      },
+      "isActive": true,
+      "sortOrder": 6
+    },
+    {
+      "title": "🔄 Döngüler Arena Turnuvası",
+      "description": "For ve while döngüleriyle sonsuz güç kazan! Tekrarlama arena savaşçısı ol.",
+      "activityType": "memory_game",
+      "category": "loops",
+      "difficulty": 3,
+      "diamondReward": 30,
+      "experienceReward": 55,
+      "estimatedMinutes": 15,
+      "tags": ["for", "while", "döngü", "range"],
+      "content": {
+        "pairs": [
+          {
+            "id": 1,
+            "text": "for i in range(5):",
+            "match": "0'dan 4'e kadar döngü"
+          },
+          {
+            "id": 2,
+            "text": "while x < 10:",
+            "match": "x 10'dan küçük olduğu sürece döngü"
+          },
+          {
+            "id": 3,
+            "text": "break",
+            "match": "Döngüden çıkmak için"
+          },
+          {
+            "id": 4,
+            "text": "continue",
+            "match": "Sonraki iterasyona geçmek için"
+          },
+          {
+            "id": 5,
+            "text": "range(1, 6)",
+            "match": "1'den 5'e kadar sayı dizisi"
+          },
+          {
+            "id": 6,
+            "text": "for item in liste:",
+            "match": "Liste elemanları üzerinde döngü"
+          }
+        ],
+        "timeLimit": 450,
+        "shuffleCards": true
+      },
+      "isActive": true,
+      "sortOrder": 7
+    },
+    {
+      "title": "📋 Liste Savaşçıları",
+      "description": "Python listelerinde ustalaş! Çoklu verileri yönetmenin arena sırları.",
+      "activityType": "memory_game",
+      "category": "python_basics",
+      "difficulty": 3,
+      "diamondReward": 32,
+      "experienceReward": 60,
+      "estimatedMinutes": 15,
+      "tags": ["liste", "list", "array", "diziler"],
+      "content": {
+        "pairs": [
+          {
+            "id": 1,
+            "text": "liste = [1, 2, 3]",
+            "match": "Sayı listesi oluşturur"
+          },
+          {
+            "id": 2,
+            "text": "liste.append(4)",
+            "match": "Listenin sonuna eleman ekler"
+          },
+          {
+            "id": 3,
+            "text": "liste[0]",
+            "match": "İlk elemanı alır"
+          },
+          {
+            "id": 4,
+            "text": "len(liste)",
+            "match": "Listenin uzunluğunu bulur"
+          },
+          {
+            "id": 5,
+            "text": "liste.remove(2)",
+            "match": "Değeri 2 olan elemanı siler"
+          },
+          {
+            "id": 6,
+            "text": "liste[1:3]",
+            "match": "1. ve 2. indeksteki elemanları alır"
+          },
+          {
+            "id": 7,
+            "text": "in",
+            "match": "Eleman listede var mı kontrol eder"
+          }
+        ],
+        "timeLimit": 450,
+        "shuffleCards": true
+      },
+      "isActive": true,
+      "sortOrder": 8
+    },
+    {
+      "title": "⚡ Fonksiyonlar Usta Savaşı",
+      "description": "Kendi Python büyülerini yarat! Fonksiyonlarla kod organizasyonunun efendisi ol.",
+      "activityType": "memory_game",
+      "category": "functions",
+      "difficulty": 4,
+      "diamondReward": 35,
+      "experienceReward": 70,
+      "estimatedMinutes": 18,
+      "tags": ["fonksiyon", "def", "return", "parametre"],
+      "content": {
+        "pairs": [
+          {
+            "id": 1,
+            "text": "def selamla():",
+            "match": "Parametresiz fonksiyon tanımlar"
+          },
+          {
+            "id": 2,
+            "text": "def topla(a, b):",
+            "match": "İki parametreli fonksiyon tanımlar"
+          },
+          {
+            "id": 3,
+            "text": "return sonuc",
+            "match": "Fonksiyondan değer döndürür"
+          },
+          {
+            "id": 4,
+            "text": "selamla()",
+            "match": "Fonksiyonu çağırır"
+          },
+          {
+            "id": 5,
+            "text": "def karesi(x=1):",
+            "match": "Varsayılan parametreli fonksiyon"
+          },
+          {
+            "id": 6,
+            "text": "global degisken",
+            "match": "Global değişken kullanımı"
+          }
+        ],
+        "timeLimit": 540,
+        "shuffleCards": true
+      },
+      "isActive": true,
+      "sortOrder": 9
+    },
+    {
+      "title": "🏆 Python Temelleri Final Savaşı",
+      "description": "Tüm Python temellerini bir arada! Bu arena savaşını kazanan gerçek bir Python savaşçısıdır.",
+      "activityType": "memory_game",
+      "category": "python_basics",
+      "difficulty": 4,
+      "diamondReward": 50,
+      "experienceReward": 100,
+      "estimatedMinutes": 20,
+      "tags": ["final", "kapsamlı", "review", "python"],
+      "content": {
+        "pairs": [
+          {
+            "id": 1,
+            "text": "print(f'Yaş: {age}')",
+            "match": "F-string ile formatlanmış çıktı"
+          },
+          {
+            "id": 2,
+            "text": "try/except",
+            "match": "Hata yakalama bloğu"
+          },
+          {
+            "id": 3,
+            "text": "import math",
+            "match": "Modül içe aktarma"
+          },
+          {
+            "id": 4,
+            "text": "liste.sort()",
+            "match": "Listeyi sıralar"
+          },
+          {
+            "id": 5,
+            "text": "str.split()",
+            "match": "Metni böler, liste yapar"
+          },
+          {
+            "id": 6,
+            "text": "dict = {'a': 1}",
+            "match": "Sözlük (dictionary) oluşturur"
+          },
+          {
+            "id": 7,
+            "text": "lambda x: x*2",
+            "match": "Anonim fonksiyon tanımlar"
+          },
+          {
+            "id": 8,
+            "text": "list(range(10))",
+            "match": "0-9 arası sayı listesi oluşturur"
+          }
+        ],
+        "timeLimit": 600,
+        "shuffleCards": true
+      },
+      "isActive": true,
+      "sortOrder": 10
+    }
+  ]
+}

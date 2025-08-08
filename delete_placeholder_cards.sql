@@ -1,0 +1,1 @@
+DELETE FROM Card WHERE imageUrl LIKE '/cards/%';

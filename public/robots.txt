@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://zumenzu.com/sitemap.xml
+
+# Disallow admin and API routes
+Disallow: /admin/
+Disallow: /api/
+Disallow: /setup/
+
+# Allow important pages
+Allow: /
+Allow: /shop
+Allow: /learn
+Allow: /features
+Allow: /dashboard
+Allow: /register
+Allow: /login

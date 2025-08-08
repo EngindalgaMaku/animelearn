@@ -1,0 +1,204 @@
+import type { Meta, StoryObj } from "@storybook/react";
+import { DiamondCounter } from "./diamond-counter";
+
+const meta: Meta<typeof DiamondCounter> = {
+  title: "Gamification/DiamondCounter",
+  component: DiamondCounter,
+  parameters: {
+    layout: "centered",
+    docs: {
+      description: {
+        component:
+          "A diamond counter component that displays the user's diamond count with various styling variants and animations.",
+      },
+    },
+  },
+  tags: ["autodocs"],
+  argTypes: {
+    count: {
+      control: { type: "number" },
+      description: "Number of diamonds to display",
+    },
+    variant: {
+      control: { type: "select" },
+      options: ["default", "compact", "detailed"],
+      description: "Visual variant of the counter",
+    },
+    animated: {
+      control: { type: "boolean" },
+      description: "Whether to show animations",
+    },
+    className: {
+      control: { type: "text" },
+      description: "Additional CSS classes",
+    },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+// Default story
+export const Default: Story = {
+  args: {
+    count: 150,
+    variant: "default",
+    animated: true,
+  },
+};
+
+// Compact variant
+export const Compact: Story = {
+  args: {
+    count: 75,
+    variant: "compact",
+    animated: true,
+  },
+};
+
+// Detailed variant
+export const Detailed: Story = {
+  args: {
+    count: 500,
+    variant: "detailed",
+    animated: true,
+  },
+};
+
+// Zero diamonds
+export const Zero: Story = {
+  args: {
+    count: 0,
+    variant: "default",
+    animated: false,
+  },
+};
+
+// Large number (thousands)
+export const LargeNumber: Story = {
+  args: {
+    count: 1500,
+    variant: "default",
+    animated: true,
+  },
+};
+
+// Very large number (millions)
+export const VeryLargeNumber: Story = {
+  args: {
+    count: 1500000,
+    variant: "detailed",
+    animated: true,
+  },
+};
+
+// Custom styling example
+export const CustomStyling: Story = {
+  args: {
+    count: 999,
+    variant: "default",
+    animated: true,
+    className: "scale-125 shadow-2xl",
+  },
+};
+
+// All variants showcase
+export const AllVariants: Story = {
+  render: () => (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-lg font-semibold mb-2">Default</h3>
+        <DiamondCounter count={150} variant="default" />
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold mb-2">Compact</h3>
+        <DiamondCounter count={150} variant="compact" />
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold mb-2">Detailed</h3>
+        <DiamondCounter count={150} variant="detailed" />
+      </div>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Shows all available variants of the Diamond Counter component side by side.",
+      },
+    },
+  },
+};
+
+// Interactive playground
+export const Playground: Story = {
+  args: {
+    count: 300,
+    variant: "default",
+    animated: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Interactive playground to test different props and see how they affect the component.",
+      },
+    },
+  },
+};
+
+// Responsive behavior
+export const ResponsiveBehavior: Story = {
+  render: () => (
+    <div className="w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <DiamondCounter count={100} variant="default" />
+        <DiamondCounter count={250} variant="compact" />
+        <DiamondCounter count={500} variant="detailed" />
+      </div>
+    </div>
+  ),
+  parameters: {
+    viewport: {
+      defaultViewport: "responsive",
+    },
+    docs: {
+      description: {
+        story:
+          "Demonstrates how the Diamond Counter adapts to different screen sizes.",
+      },
+    },
+  },
+};
+
+// Edge cases
+export const EdgeCases: Story = {
+  render: () => (
+    <div className="space-y-4">
+      <div>
+        <h4 className="font-medium mb-2">Zero Diamonds</h4>
+        <DiamondCounter count={0} />
+      </div>
+      <div>
+        <h4 className="font-medium mb-2">Negative (handled as zero)</h4>
+        <DiamondCounter count={-10} />
+      </div>
+      <div>
+        <h4 className="font-medium mb-2">Decimal (rounded)</h4>
+        <DiamondCounter count={123.7} />
+      </div>
+      <div>
+        <h4 className="font-medium mb-2">Very Large Number</h4>
+        <DiamondCounter count={999999999} />
+      </div>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Tests edge cases and error handling of the Diamond Counter component.",
+      },
+    },
+  },
+};

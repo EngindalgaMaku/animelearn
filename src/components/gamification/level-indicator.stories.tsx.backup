@@ -1,0 +1,366 @@
+import type { Meta, StoryObj } from "@storybook/react";
+import { LevelIndicator } from "./level-indicator";
+
+const meta: Meta<typeof LevelIndicator> = {
+  title: "Gamification/LevelIndicator",
+  component: LevelIndicator,
+  parameters: {
+    layout: "centered",
+    docs: {
+      description: {
+        component:
+          "A level indicator component that displays the user's current level and XP progress with animated progress bars.",
+      },
+    },
+  },
+  tags: ["autodocs"],
+  argTypes: {
+    currentLevel: {
+      control: { type: "number", min: 1, max: 100 },
+      description: "Current user level",
+    },
+    currentXP: {
+      control: { type: "number", min: 0 },
+      description: "Current XP amount",
+    },
+    xpForNextLevel: {
+      control: { type: "number", min: 0 },
+      description: "XP required for next level",
+    },
+    totalXPForCurrentLevel: {
+      control: { type: "number", min: 0 },
+      description: "Total XP required for current level",
+    },
+    showXPNumbers: {
+      control: { type: "boolean" },
+      description: "Whether to show XP numbers",
+    },
+    animated: {
+      control: { type: "boolean" },
+      description: "Whether to show animations",
+    },
+    size: {
+      control: { type: "select" },
+      options: ["sm", "md", "lg"],
+      description: "Size variant of the indicator",
+    },
+    variant: {
+      control: { type: "select" },
+      options: ["default", "compact", "detailed"],
+      description: "Visual variant of the indicator",
+    },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+// Default story
+export const Default: Story = {
+  args: {
+    currentLevel: 5,
+    currentXP: 750,
+    xpForNextLevel: 1000,
+    totalXPForCurrentLevel: 500,
+    showXPNumbers: true,
+    animated: true,
+    size: "md",
+    variant: "default",
+  },
+};
+
+// Compact variant
+export const Compact: Story = {
+  args: {
+    currentLevel: 3,
+    currentXP: 150,
+    xpForNextLevel: 300,
+    totalXPForCurrentLevel: 100,
+    showXPNumbers: false,
+    animated: true,
+    size: "sm",
+    variant: "compact",
+  },
+};
+
+// Detailed variant
+export const Detailed: Story = {
+  args: {
+    currentLevel: 10,
+    currentXP: 2500,
+    xpForNextLevel: 3000,
+    totalXPForCurrentLevel: 2000,
+    showXPNumbers: true,
+    animated: true,
+    size: "lg",
+    variant: "detailed",
+  },
+};
+
+// Different sizes
+export const Sizes: Story = {
+  render: () => (
+    <div className="space-y-6">
+      <div>
+        <h4 className="font-medium mb-2">Small</h4>
+        <LevelIndicator
+          currentLevel={3}
+          currentXP={150}
+          xpForNextLevel={300}
+          totalXPForCurrentLevel={100}
+          size="sm"
+        />
+      </div>
+      <div>
+        <h4 className="font-medium mb-2">Medium</h4>
+        <LevelIndicator
+          currentLevel={5}
+          currentXP={750}
+          xpForNextLevel={1000}
+          totalXPForCurrentLevel={500}
+          size="md"
+        />
+      </div>
+      <div>
+        <h4 className="font-medium mb-2">Large</h4>
+        <LevelIndicator
+          currentLevel={8}
+          currentXP={1800}
+          xpForNextLevel={2500}
+          totalXPForCurrentLevel={1500}
+          size="lg"
+        />
+      </div>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: "Shows all available sizes of the Level Indicator component.",
+      },
+    },
+  },
+};
+
+// Progress states
+export const ProgressStates: Story = {
+  render: () => (
+    <div className="space-y-4">
+      <div>
+        <h4 className="font-medium mb-2">No Progress (0%)</h4>
+        <LevelIndicator
+          currentLevel={1}
+          currentXP={0}
+          xpForNextLevel={100}
+          totalXPForCurrentLevel={0}
+        />
+      </div>
+      <div>
+        <h4 className="font-medium mb-2">Quarter Progress (25%)</h4>
+        <LevelIndicator
+          currentLevel={2}
+          currentXP={125}
+          xpForNextLevel={200}
+          totalXPForCurrentLevel={100}
+        />
+      </div>
+      <div>
+        <h4 className="font-medium mb-2">Half Progress (50%)</h4>
+        <LevelIndicator
+          currentLevel={3}
+          currentXP={250}
+          xpForNextLevel={400}
+          totalXPForCurrentLevel={200}
+        />
+      </div>
+      <div>
+        <h4 className="font-medium mb-2">Three Quarter Progress (75%)</h4>
+        <LevelIndicator
+          currentLevel={4}
+          currentXP={475}
+          xpForNextLevel={600}
+          totalXPForCurrentLevel={400}
+        />
+      </div>
+      <div>
+        <h4 className="font-medium mb-2">Almost Complete (95%)</h4>
+        <LevelIndicator
+          currentLevel={5}
+          currentXP={695}
+          xpForNextLevel={800}
+          totalXPForCurrentLevel={600}
+        />
+      </div>
+      <div>
+        <h4 className="font-medium mb-2">Complete (100%)</h4>
+        <LevelIndicator
+          currentLevel={5}
+          currentXP={800}
+          xpForNextLevel={800}
+          totalXPForCurrentLevel={600}
+        />
+      </div>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: "Shows different progress states from 0% to 100% completion.",
+      },
+    },
+  },
+};
+
+// High level characters
+export const HighLevel: Story = {
+  args: {
+    currentLevel: 50,
+    currentXP: 125000,
+    xpForNextLevel: 150000,
+    totalXPForCurrentLevel: 120000,
+    showXPNumbers: true,
+    animated: true,
+    size: "lg",
+    variant: "detailed",
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Shows how the component handles high-level characters with large XP numbers.",
+      },
+    },
+  },
+};
+
+// Without animations
+export const WithoutAnimations: Story = {
+  args: {
+    currentLevel: 7,
+    currentXP: 1400,
+    xpForNextLevel: 2000,
+    totalXPForCurrentLevel: 1000,
+    animated: false,
+  },
+};
+
+// All variants comparison
+export const AllVariants: Story = {
+  render: () => (
+    <div className="space-y-6">
+      <div>
+        <h4 className="font-medium mb-2">Default Variant</h4>
+        <LevelIndicator
+          currentLevel={5}
+          currentXP={750}
+          xpForNextLevel={1000}
+          totalXPForCurrentLevel={500}
+          variant="default"
+        />
+      </div>
+      <div>
+        <h4 className="font-medium mb-2">Compact Variant</h4>
+        <LevelIndicator
+          currentLevel={5}
+          currentXP={750}
+          xpForNextLevel={1000}
+          totalXPForCurrentLevel={500}
+          variant="compact"
+        />
+      </div>
+      <div>
+        <h4 className="font-medium mb-2">Detailed Variant</h4>
+        <LevelIndicator
+          currentLevel={5}
+          currentXP={750}
+          xpForNextLevel={1000}
+          totalXPForCurrentLevel={500}
+          variant="detailed"
+        />
+      </div>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Compares all available variants of the Level Indicator component.",
+      },
+    },
+  },
+};
+
+// Interactive playground
+export const Playground: Story = {
+  args: {
+    currentLevel: 6,
+    currentXP: 900,
+    xpForNextLevel: 1200,
+    totalXPForCurrentLevel: 700,
+    showXPNumbers: true,
+    animated: true,
+    size: "md",
+    variant: "default",
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Interactive playground to test different props and see real-time changes.",
+      },
+    },
+  },
+};
+
+// Responsive behavior
+export const ResponsiveBehavior: Story = {
+  render: () => (
+    <div className="w-full max-w-4xl">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <LevelIndicator
+          currentLevel={3}
+          currentXP={250}
+          xpForNextLevel={400}
+          totalXPForCurrentLevel={200}
+          size="sm"
+          variant="compact"
+        />
+        <LevelIndicator
+          currentLevel={7}
+          currentXP={1400}
+          xpForNextLevel={2000}
+          totalXPForCurrentLevel={1000}
+          size="md"
+          variant="default"
+        />
+        <LevelIndicator
+          currentLevel={12}
+          currentXP={6000}
+          xpForNextLevel={8000}
+          totalXPForCurrentLevel={5000}
+          size="lg"
+          variant="detailed"
+        />
+        <LevelIndicator
+          currentLevel={25}
+          currentXP={62500}
+          xpForNextLevel={75000}
+          totalXPForCurrentLevel={60000}
+          size="md"
+          variant="detailed"
+        />
+      </div>
+    </div>
+  ),
+  parameters: {
+    viewport: {
+      defaultViewport: "responsive",
+    },
+    docs: {
+      description: {
+        story:
+          "Demonstrates responsive behavior across different screen sizes.",
+      },
+    },
+  },
+};

@@ -1,0 +1,817 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Card {
+  id             String         @id @default(cuid())
+  name           String?
+  series         String?
+  character      String?
+  rarity         String?
+  category       String?        @default("anime")
+  condition      String?        @default("Good")
+  estimatedValue Float?         @default(0)
+  actualValue    Float?
+  imagePath      String
+  imageUrl       String?
+  fileName       String
+  fileSize       Int?
+  fileHash       String?
+  imageHash      String?
+  ocrText        String?
+  aiTags         String?
+  confidence     Float?         @default(0)
+  cardTitle      String?
+  attackPower    Int?
+  defense        Int?
+  speed          Int?
+  specialAbility String?
+  element        String?
+  rarityLevel    Int?
+  rating         Float?
+  uploadDate     DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  isAnalyzed     Boolean        @default(false)
+  isVerified     Boolean        @default(false)
+  diamondPrice   Int?           @default(100)
+  isPublic       Boolean        @default(true)
+  isPurchasable  Boolean        @default(true)
+  maxOwners      Int?
+  currentOwners  Int            @default(0)
+  collectionId   String?
+  thumbnailUrl   String?
+  story          String?
+  analytics      Analytics[]
+  collection     Collection?    @relation(fields: [collectionId], references: [id])
+  usedName       UsedCardNames?
+  userCards      UserCard[]
+
+  @@map("cards")
+}
+
+model Collection {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  totalCards  Int      @default(0)
+  totalValue  Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  cards       Card[]
+
+  @@map("collections")
+}
+
+model AnimeSeries {
+  id         String   @id @default(cuid())
+  name       String   @unique
+  altNames   String?
+  year       Int?
+  studio     String?
+  genre      String?
+  popularity Float?   @default(0)
+  cardCount  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("anime_series")
+}
+
+model Character {
+  id          String   @id @default(cuid())
+  name        String
+  series      String
+  description String?
+  popularity  Float?   @default(0)
+  cardCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("characters")
+}
+
+model Analytics {
+  id             String   @id @default(cuid())
+  cardId         String
+  date           DateTime @default(now())
+  estimatedValue Float?
+  marketValue    Float?
+  priceChange    Float?   @default(0)
+  views          Int      @default(0)
+  searches       Int      @default(0)
+  card           Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@map("analytics")
+}
+
+model Settings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  type        String   @default("string")
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("settings")
+}
+
+model AIModel {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  version   String
+  type      String
+  accuracy  Float?   @default(0)
+  isActive  Boolean  @default(true)
+  modelPath String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("ai_models")
+}
+
+model UsedCardNames {
+  id        String   @id @default(cuid())
+  cardTitle String   @unique
+  cardId    String   @unique
+  createdAt DateTime @default(now())
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@map("used_card_names")
+}
+
+model User {
+  id                    String                 @id @default(cuid())
+  email                 String                 @unique
+  username              String                 @unique
+  passwordHash          String?
+  firstName             String?
+  lastName              String?
+  avatar                String?
+  bio                   String?
+  birthDate             DateTime?
+  phone                 String?
+  level                 Int                    @default(1)
+  experience            Int                    @default(0)
+  totalDiamonds         Int                    @default(0)
+  currentDiamonds       Int                    @default(100)
+  dailyDiamonds         Int                    @default(0)
+  lastDailyReset        DateTime               @default(now())
+  codeArenasCompleted   Int                    @default(0)
+  quizzesCompleted      Int                    @default(0)
+  codeSubmissionCount   Int                    @default(0)
+  loginStreak           Int                    @default(0)
+  maxLoginStreak        Int                    @default(0)
+  lastLoginDate         DateTime?
+  isPremium             Boolean                @default(false)
+  premiumExpiresAt      DateTime?
+  isActive              Boolean                @default(true)
+  emailVerified         Boolean                @default(false)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  role                  String                 @default("user")
+  cardPackOpenings      CardPackOpening[]
+  codeSubmissions       CodeSubmission[]
+  dailyMiniQuizAttempts DailyMiniQuizAttempt[]
+  dailyQuests           DailyQuest[]
+  diamondTransactions   DiamondTransaction[]
+  codeArenaProgress     CodeArenaProgress[]
+  quizAttempts          QuizAttempt[]
+  badges                UserBadge[]
+  userCards             UserCard[]
+  dailyLogin            UserDailyLogin?
+  userStreak            UserStreak?
+  xpEventParticipations XPEventParticipation[]
+  diamondPurchases      DiamondPurchase[]
+  activityAttempts      ActivityAttempt[]
+  accounts              Account[]
+  sessions              Session[]
+
+  @@map("users")
+}
+
+// NextAuth.js required models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model UserCard {
+  id            String   @id @default(cuid())
+  userId        String
+  cardId        String
+  purchasePrice Int
+  purchaseDate  DateTime @default(now())
+  isLocked      Boolean  @default(false)
+  card          Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, cardId])
+  @@map("user_cards")
+}
+
+model CodeArena {
+  id                 String              @id @default(cuid())
+  title              String
+  slug               String              @unique
+  description        String
+  content            String
+  difficulty         Int
+  order              Int
+  duration           Int                 @default(30)
+  category           String              @default("basic")
+  hasCodeExercise    Boolean             @default(false)
+  starterCode        String?
+  solutionCode       String?
+  testCases          String?
+  hints              String?
+  prerequisites      String?
+  diamondReward      Int                 @default(10)
+  experienceReward   Int                 @default(50)
+  isPublished        Boolean             @default(false)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  examples           String?
+  learningObjectives String?
+  resources          String?
+  sections           String?
+  tags               String?
+  progress           CodeArenaProgress[]
+  quizzes            Quiz[]
+
+  @@map("code_arenas")
+}
+
+model CodeArenaProgress {
+  id            String    @id @default(cuid())
+  userId        String
+  codeArenaId   String
+  isStarted     Boolean   @default(false)
+  isCompleted   Boolean   @default(false)
+  score         Int?
+  attempts      Int       @default(0)
+  lastCode      String?
+  bestCode      String?
+  isCodeCorrect Boolean   @default(false)
+  timeSpent     Int       @default(0)
+  startedAt     DateTime?
+  completedAt   DateTime?
+  lastVisit     DateTime  @default(now())
+  codeArena     CodeArena @relation(fields: [codeArenaId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, codeArenaId])
+  @@map("code_arena_progress")
+}
+
+model CodeSubmission {
+  id            String   @id @default(cuid())
+  userId        String
+  codeArenaId   String?
+  code          String
+  language      String   @default("python")
+  isCorrect     Boolean  @default(false)
+  testResults   String?
+  errorMessage  String?
+  executionTime Int?
+  score         Int?
+  feedback      String?
+  submittedAt   DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("code_submissions")
+}
+
+model Quiz {
+  id               String        @id @default(cuid())
+  codeArenaId      String?
+  title            String
+  description      String?
+  questions        String
+  timeLimit        Int?          @default(300)
+  diamondReward    Int           @default(5)
+  experienceReward Int           @default(25)
+  isActive         Boolean       @default(true)
+  difficulty       Int           @default(1)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  passingScore     Int           @default(70)
+  attempts         QuizAttempt[]
+  codeArena        CodeArena?    @relation(fields: [codeArenaId], references: [id])
+
+  @@map("quizzes")
+}
+
+model QuizAttempt {
+  id             String    @id @default(cuid())
+  userId         String
+  quizId         String
+  answers        String
+  score          Int
+  correctAnswers Int       @default(0)
+  totalQuestions Int
+  timeSpent      Int
+  isCompleted    Boolean   @default(false)
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+  quiz           Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_attempts")
+}
+
+model Badge {
+  id             String      @id @default(cuid())
+  name           String      @unique
+  title          String
+  description    String
+  icon           String
+  category       String
+  rarity         String      @default("common")
+  color          String      @default("#3B82F6")
+  condition      String
+  rewardDiamonds Int         @default(25)
+  rewardXp       Int         @default(50)
+  isActive       Boolean     @default(true)
+  totalEarned    Int         @default(0)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  users          UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  badgeId  String
+  progress Int      @default(0)
+  earnedAt DateTime @default(now())
+  badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
+
+model DailyQuest {
+  id               String   @id @default(cuid())
+  userId           String
+  questType        String
+  target           Int
+  progress         Int      @default(0)
+  isCompleted      Boolean  @default(false)
+  diamondReward    Int      @default(20)
+  experienceReward Int      @default(10)
+  date             DateTime @default(now())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questType, date])
+  @@map("daily_quests")
+}
+
+model DiamondTransaction {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Int
+  type        String
+  description String
+  relatedId   String?
+  relatedType String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("diamond_transactions")
+}
+
+model DailyMiniQuiz {
+  id               String                 @id @default(cuid())
+  date             DateTime               @default(now())
+  questions        String
+  difficulty       Int                    @default(1)
+  category         String                 @default("python")
+  diamondReward    Int                    @default(15)
+  experienceReward Int                    @default(25)
+  totalAttempts    Int                    @default(0)
+  totalCorrect     Int                    @default(0)
+  isActive         Boolean                @default(true)
+  createdAt        DateTime               @default(now())
+  description      String?
+  title            String
+  attempts         DailyMiniQuizAttempt[]
+
+  @@unique([date, category])
+  @@map("daily_mini_quizzes")
+}
+
+model DailyMiniQuizAttempt {
+  id               String        @id @default(cuid())
+  userId           String
+  quizId           String
+  answers          String
+  score            Int
+  timeSpent        Int
+  diamondsEarned   Int           @default(0)
+  experienceEarned Int           @default(0)
+  completedAt      DateTime      @default(now())
+  quiz             DailyMiniQuiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, quizId])
+  @@map("daily_mini_quiz_attempts")
+}
+
+model CardPack {
+  id                String            @id @default(cuid())
+  name              String
+  description       String?
+  packType          String
+  cardCount         Int               @default(3)
+  guaranteedRarity  String?
+  diamondPrice      Int?
+  requiredLevel     Int               @default(1)
+  imageUrl          String?
+  rarity            String            @default("common")
+  isActive          Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  openings          CardPackOpening[]
+  dailyLoginBonuses DailyLoginBonus[]
+
+  @@map("card_packs")
+}
+
+model CardPackOpening {
+  id            String   @id @default(cuid())
+  userId        String
+  packId        String
+  cardsReceived String
+  sourceType    String
+  sourceId      String?
+  openedAt      DateTime @default(now())
+  pack          CardPack @relation(fields: [packId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("card_pack_openings")
+}
+
+model UserStreak {
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  currentStreak      Int       @default(0)
+  longestStreak      Int       @default(0)
+  lastActivityDate   DateTime?
+  streakStartDate    DateTime?
+  loginStreak        Int       @default(0)
+  codeArenaStreak    Int       @default(0)
+  quizStreak         Int       @default(0)
+  totalRewardsEarned Int       @default(0)
+  updatedAt          DateTime  @updatedAt
+  createdAt          DateTime  @default(now())
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_streaks")
+}
+
+model XPMultiplierEvent {
+  id             String                 @id @default(cuid())
+  name           String
+  description    String
+  multiplier     Float                  @default(2.0)
+  eventType      String
+  targetCategory String?
+  minLevel       Int?
+  startDate      DateTime
+  endDate        DateTime
+  isActive       Boolean                @default(true)
+  createdAt      DateTime               @default(now())
+  participations XPEventParticipation[]
+
+  @@map("xp_multiplier_events")
+}
+
+model XPEventParticipation {
+  id              String            @id @default(cuid())
+  userId          String
+  eventId         String
+  bonusXPEarned   Int               @default(0)
+  activitiesCount Int               @default(0)
+  joinedAt        DateTime          @default(now())
+  event           XPMultiplierEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@map("xp_event_participations")
+}
+
+model DailyLoginBonus {
+  id               String    @id @default(cuid())
+  day              Int       @unique
+  diamondReward    Int       @default(10)
+  experienceReward Int       @default(20)
+  cardPackId       String?
+  isSpecial        Boolean   @default(false)
+  specialReward    String?
+  cardPack         CardPack? @relation(fields: [cardPackId], references: [id])
+
+  @@map("daily_login_bonuses")
+}
+
+model UserDailyLogin {
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  consecutiveDays     Int       @default(0)
+  lastLoginDate       DateTime?
+  cycleStartDate      DateTime  @default(now())
+  totalDiamondsEarned Int       @default(0)
+  totalXPEarned       Int       @default(0)
+  packsEarned         Int       @default(0)
+  updatedAt           DateTime  @updatedAt
+  createdAt           DateTime  @default(now())
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_daily_logins")
+}
+
+model Category {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  slug            String   @unique
+  description     String?
+  color           String   @default("#3B82F6")
+  icon            String?
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  cardCount       Int      @default(0)
+  namingPrefixes  String?  // JSON array of name prefixes for this category
+  namingSuffixes  String?  // JSON array of name suffixes for this category
+  namingNames     String?  // JSON array of character/brand names for this category
+  namingFormats   String?  // JSON array of naming format templates
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("categories")
+}
+
+model Rarity {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  slug            String   @unique
+  description     String?
+  color           String   @default("#3B82F6")
+  bgColor         String?
+  borderColor     String?
+  textColor       String?
+  gradient        String?
+  animation       String?
+  level           Int      @unique
+  dropRate        Float    @default(100.0)
+  icon            String?  // Added icon field
+  iconUrl         String?
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  maxDiamondPrice Int      @default(100)
+  minDiamondPrice Int      @default(50)
+
+  @@map("rarities")
+}
+
+model Element {
+  id                String   @id @default(cuid())
+  name              String   @unique
+  slug              String   @unique
+  description       String?
+  color             String   @default("#3B82F6")
+  icon              String?
+  iconUrl           String?
+  effectDescription String?
+  priceModifier     Float    @default(1.0)
+  isActive          Boolean  @default(true)
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("elements")
+}
+
+model CardStyle {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  targetType      String
+  targetValue     String
+  containerClass  String?
+  imageClass      String?
+  borderClass     String?
+  backgroundClass String?
+  animationClass  String?
+  glowEffect      String?
+  hoverEffect     String?
+  isActive        Boolean  @default(true)
+  priority        Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("card_styles")
+}
+
+model CardAnalysisSettings {
+  id                    String   @id @default(cuid())
+  name                  String   @unique
+  description           String?
+  aiModel               String   @default("gpt-4o-mini")
+  confidenceThreshold   Float    @default(0.7)
+  enableOCR             Boolean  @default(true)
+  enableImageAnalysis   Boolean  @default(true)
+  enablePriceEstimation Boolean  @default(true)
+  basePriceMin          Int      @default(50)
+  basePriceMax          Int      @default(500)
+  rarityWeight          Float    @default(1.5)
+  elementWeight         Float    @default(1.2)
+  categoryWeight        Float    @default(1.1)
+  conditionWeight       Float    @default(1.3)
+  popularityWeight      Float    @default(1.4)
+  enableMarketAnalysis  Boolean  @default(true)
+  marketTrendWeight     Float    @default(1.0)
+  demandFactor          Float    @default(1.2)
+  supplyFactor          Float    @default(0.8)
+  autoUpdatePrices      Boolean  @default(false)
+  priceUpdateInterval   Int      @default(24)
+  maxPriceChange        Float    @default(0.3)
+  analyzeStats          Boolean  @default(true)
+  analyzeCharacter      Boolean  @default(true)
+  analyzeSeries         Boolean  @default(true)
+  analyzeRarity         Boolean  @default(true)
+  analyzeCondition      Boolean  @default(true)
+  analyzeElements       Boolean  @default(true)
+  minImageQuality       Float    @default(0.5)
+  maxBlurThreshold      Float    @default(0.3)
+  minResolution         Int      @default(200)
+  isActive              Boolean  @default(true)
+  isDefault             Boolean  @default(false)
+  priority              Int      @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("card_analysis_settings")
+}
+
+model AnalysisLog {
+  id                String   @id @default(cuid())
+  cardId            String
+  settingsId        String?
+  analysisType      String
+  originalData      String?
+  detectedSeries    String?
+  detectedCharacter String?
+  detectedRarity    String?
+  detectedElement   String?
+  detectedCondition String?
+  ocrResults        String?
+  aiTags            String?
+  confidence        Float?   @default(0)
+  oldPrice          Int?
+  newPrice          Int?
+  priceReason       String?
+  imageQuality      Float?
+  blurLevel         Float?
+  resolution        String?
+  status            String   @default("processing")
+  errorMessage      String?
+  processingTime    Int?
+  modelUsed         String?
+  settingsUsed      String?
+  createdAt         DateTime @default(now())
+
+  @@map("analysis_logs")
+}
+
+model DiamondPurchase {
+  id              String   @id @default(cuid())
+  userId          String
+  packageId       String
+  packageName     String
+  diamonds        Int
+  price           Float
+  currency        String   @default("TRY")
+  status          String   @default("PENDING") // PENDING, COMPLETED, FAILED, CANCELLED
+  shopierOrderId  String?  @unique
+  shopierPaymentId String?
+  paymentMethod   String?
+  failureReason   String?
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("diamond_purchases")
+}
+
+model DiamondPackage {
+  id            String   @id @default(cuid())
+  name          String
+  packageType   String   @unique // starter, popular, premium, ultimate, mega
+  diamonds      Int
+  price         Float
+  originalPrice Float?
+  bonus         Int?
+  popular       Boolean  @default(false)
+  bestValue     Boolean  @default(false)
+  level         Int
+  badge         String
+  color         String
+  glow          String
+  icon          String
+  features      String   // JSON string
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("diamond_packages")
+}
+
+model LearningActivity {
+  id                String   @id @default(cuid())
+  title             String
+  description       String?
+  activityType      String   // "memory_game", "quiz", "fill_blanks", "drag_drop", etc.
+  category          String   @default("general")
+  difficulty        Int      @default(1) // 1-5
+  diamondReward     Int      @default(10)
+  experienceReward  Int      @default(25)
+  content           String   // JSON string for activity data
+  settings          String?  // JSON string for activity settings
+  isActive          Boolean  @default(true)
+  estimatedMinutes  Int      @default(5)
+  tags              String?  // JSON array of tags
+  sortOrder         Int      @default(0)
+  prerequisiteId    String?  // Required activity to complete first
+  topicOrder        Int      @default(0) // Order within topic/category
+  isLocked          Boolean  @default(true) // Locked by default
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  attempts          ActivityAttempt[]
+  prerequisite      LearningActivity? @relation("ActivityPrerequisites", fields: [prerequisiteId], references: [id])
+  dependentActivities LearningActivity[] @relation("ActivityPrerequisites")
+
+  @@map("learning_activities")
+}
+
+model ActivityAttempt {
+  id           String          @id @default(cuid())
+  userId       String
+  activityId   String
+  answers      String?         // JSON string of user answers
+  score        Int             @default(0)
+  maxScore     Int             @default(100)
+  completed    Boolean         @default(false)
+  timeSpent    Int             @default(0) // seconds
+  hintsUsed    Int             @default(0)
+  mistakes     Int             @default(0)
+  startedAt    DateTime        @default(now())
+  completedAt  DateTime?
+  activity     LearningActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, activityId])
+  @@map("activity_attempts")
+}

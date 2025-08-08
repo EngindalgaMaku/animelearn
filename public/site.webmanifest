@@ -1,0 +1,90 @@
+{
+  "name": "Zumenzu - Python Öğren, Anime Kartları Topla",
+  "short_name": "Zumenzu",
+  "description": "Python programlama öğrenirken anime kartları toplayın, rozetler kazanın ve günlük görevleri tamamlayın. Gamifikasyon ile kodlama öğrenmenin en eğlenceli yolu!",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "tr",
+  "categories": ["education", "games", "productivity"],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Zumenzu Desktop Experience"
+    },
+    {
+      "src": "/screenshots/mobile.jpg",
+      "sizes": "640x1136",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Zumenzu Mobile Experience"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Python Dersleri",
+      "short_name": "Dersler",
+      "description": "Python programlama derslerine git",
+      "url": "/learn",
+      "icons": [
+        {
+          "src": "/shortcuts/learn.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Anime Kartları",
+      "short_name": "Kartlar",
+      "description": "Anime kart koleksiyonunu görüntüle",
+      "url": "/shop",
+      "icons": [
+        {
+          "src": "/shortcuts/cards.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Rozetlerim",
+      "short_name": "Rozetler",
+      "description": "Kazanılan rozetleri görüntüle",
+      "url": "/badges",
+      "icons": [
+        {
+          "src": "/shortcuts/badges.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

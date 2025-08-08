@@ -1,0 +1,75 @@
+-- CreateTable
+CREATE TABLE "public"."card_analysis_settings" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "aiModel" TEXT NOT NULL DEFAULT 'gpt-4o-mini',
+    "confidenceThreshold" DOUBLE PRECISION NOT NULL DEFAULT 0.7,
+    "enableOCR" BOOLEAN NOT NULL DEFAULT true,
+    "enableImageAnalysis" BOOLEAN NOT NULL DEFAULT true,
+    "enablePriceEstimation" BOOLEAN NOT NULL DEFAULT true,
+    "basePriceMin" INTEGER NOT NULL DEFAULT 50,
+    "basePriceMax" INTEGER NOT NULL DEFAULT 500,
+    "rarityWeight" DOUBLE PRECISION NOT NULL DEFAULT 1.5,
+    "elementWeight" DOUBLE PRECISION NOT NULL DEFAULT 1.2,
+    "categoryWeight" DOUBLE PRECISION NOT NULL DEFAULT 1.1,
+    "conditionWeight" DOUBLE PRECISION NOT NULL DEFAULT 1.3,
+    "popularityWeight" DOUBLE PRECISION NOT NULL DEFAULT 1.4,
+    "enableMarketAnalysis" BOOLEAN NOT NULL DEFAULT true,
+    "marketTrendWeight" DOUBLE PRECISION NOT NULL DEFAULT 1.0,
+    "demandFactor" DOUBLE PRECISION NOT NULL DEFAULT 1.2,
+    "supplyFactor" DOUBLE PRECISION NOT NULL DEFAULT 0.8,
+    "autoUpdatePrices" BOOLEAN NOT NULL DEFAULT false,
+    "priceUpdateInterval" INTEGER NOT NULL DEFAULT 24,
+    "maxPriceChange" DOUBLE PRECISION NOT NULL DEFAULT 0.3,
+    "analyzeStats" BOOLEAN NOT NULL DEFAULT true,
+    "analyzeCharacter" BOOLEAN NOT NULL DEFAULT true,
+    "analyzeSeries" BOOLEAN NOT NULL DEFAULT true,
+    "analyzeRarity" BOOLEAN NOT NULL DEFAULT true,
+    "analyzeCondition" BOOLEAN NOT NULL DEFAULT true,
+    "analyzeElements" BOOLEAN NOT NULL DEFAULT true,
+    "minImageQuality" DOUBLE PRECISION NOT NULL DEFAULT 0.5,
+    "maxBlurThreshold" DOUBLE PRECISION NOT NULL DEFAULT 0.3,
+    "minResolution" INTEGER NOT NULL DEFAULT 200,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "isDefault" BOOLEAN NOT NULL DEFAULT false,
+    "priority" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "card_analysis_settings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."analysis_logs" (
+    "id" TEXT NOT NULL,
+    "cardId" TEXT NOT NULL,
+    "settingsId" TEXT,
+    "analysisType" TEXT NOT NULL,
+    "originalData" TEXT,
+    "detectedSeries" TEXT,
+    "detectedCharacter" TEXT,
+    "detectedRarity" TEXT,
+    "detectedElement" TEXT,
+    "detectedCondition" TEXT,
+    "ocrResults" TEXT,
+    "aiTags" TEXT,
+    "confidence" DOUBLE PRECISION DEFAULT 0,
+    "oldPrice" INTEGER,
+    "newPrice" INTEGER,
+    "priceReason" TEXT,
+    "imageQuality" DOUBLE PRECISION,
+    "blurLevel" DOUBLE PRECISION,
+    "resolution" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'processing',
+    "errorMessage" TEXT,
+    "processingTime" INTEGER,
+    "modelUsed" TEXT,
+    "settingsUsed" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "analysis_logs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "card_analysis_settings_name_key" ON "public"."card_analysis_settings"("name");

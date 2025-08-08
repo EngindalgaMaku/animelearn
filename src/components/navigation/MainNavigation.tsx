@@ -1,0 +1,459 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  Home,
+  Book,
+  ShoppingBag,
+  Award,
+  Target,
+  User,
+  CreditCard,
+  LogIn,
+  LogOut,
+  Menu,
+  X,
+  Diamond,
+  Star,
+  Zap,
+  Settings,
+  Crown,
+  Gamepad2,
+  ChevronDown,
+  Sparkles,
+} from "lucide-react";
+
+const navigation = [
+  {
+    name: "Home",
+    href: "/",
+    icon: Home,
+    requireAuth: false,
+    hideForAuth: true, // Hide for authenticated users
+  },
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    icon: Gamepad2,
+    requireAuth: true,
+    color: "text-indigo-600",
+  },
+  {
+    name: "Code Arena",
+    href: "/code-arena",
+    icon: Book,
+    requireAuth: true,
+    color: "text-blue-600",
+  },
+  {
+    name: "Shop",
+    href: "/shop",
+    icon: Sparkles,
+    requireAuth: false,
+    color: "text-purple-600",
+    special: true, // Special styling for attractive appearance
+  },
+  {
+    name: "Diamond Store",
+    href: "/store",
+    icon: Diamond,
+    requireAuth: false,
+    color: "text-yellow-600",
+    special: true, // Special styling for store
+  },
+  {
+    name: "My Cards",
+    href: "/my-cards",
+    icon: CreditCard,
+    requireAuth: true,
+    color: "text-green-600",
+  },
+];
+
+export default function MainNavigation() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const { isAuthenticated, user, logout, loading } = useAuth();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Admin kontrolü - role üzerinden
+  const isAdmin = user && user.role === "admin";
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setUserDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
+  // Don't show navigation on admin pages or login page
+  if (pathname?.startsWith("/admin") || pathname === "/login") {
+    return null;
+  }
+
+  return (
+    <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="flex items-center space-x-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-purple-600">
+              <Gamepad2 className="h-5 w-5 text-white" />
+            </div>
+            <div className="hidden sm:block">
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-xl font-bold text-transparent">
+                Zumenzu
+              </span>
+              <div className="text-xs text-gray-500">Level Up Learning</div>
+            </div>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden items-center space-x-1 md:flex">
+            {navigation.map((item) => {
+              if (item.requireAuth && !isAuthenticated) return null;
+              if (item.hideForAuth && isAuthenticated) return null;
+
+              const isActive = pathname === item.href;
+              const IconComponent = item.icon;
+
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`relative flex items-center space-x-2 rounded-lg px-3 py-2 font-medium transition-all duration-200 ${
+                    isActive
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  }`}
+                >
+                  <IconComponent
+                    className={`h-4 w-4 ${
+                      isActive ? "text-white" : item.color || "text-current"
+                    }`}
+                  />
+                  <span className="text-sm">{item.name}</span>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* User Info & Actions */}
+          <div className="flex items-center space-x-3">
+            {loading ? (
+              // Loading sırasında spinner göster
+              <div className="flex h-8 w-20 items-center justify-center">
+                <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-600"></div>
+              </div>
+            ) : isAuthenticated && user ? (
+              <>
+                {/* User Dropdown */}
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                    className="flex items-center space-x-2 rounded-lg border border-gray-200 p-2 transition-colors hover:bg-gray-50"
+                  >
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-500">
+                      {user.avatar ? (
+                        <img
+                          src={user.avatar}
+                          alt={user.username}
+                          className="h-7 w-7 rounded-full"
+                        />
+                      ) : (
+                        <User className="h-4 w-4 text-white" />
+                      )}
+                    </div>
+                    <div className="hidden text-left sm:block">
+                      <div className="text-sm font-medium leading-tight text-gray-900">
+                        {user.username}
+                      </div>
+                    </div>
+                    <ChevronDown className="h-3 w-3 text-gray-400" />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {userDropdownOpen && (
+                    <div className="absolute right-0 z-50 mt-2 w-64 rounded-xl border border-gray-200 bg-white py-2 shadow-lg">
+                      {/* User Info Header */}
+                      <div className="border-b border-gray-100 px-4 py-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-500">
+                            {user.avatar ? (
+                              <img
+                                src={user.avatar}
+                                alt={user.username}
+                                className="h-10 w-10 rounded-full"
+                              />
+                            ) : (
+                              <User className="h-5 w-5 text-white" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-sm font-medium text-gray-900">
+                              {user.username}
+                            </div>
+                            <div className="truncate text-xs text-gray-500">
+                              {user.email}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Stats in Dropdown for Mobile/Small screens */}
+                        <div className="mt-3 flex items-center justify-between text-xs">
+                          <div className="flex items-center space-x-1">
+                            <Diamond className="h-3 w-3 text-yellow-600" />
+                            <span className="font-medium text-yellow-700">
+                              {user.currentDiamonds}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Star className="h-3 w-3 text-blue-600" />
+                            <span className="font-medium text-blue-700">
+                              Level {user.level}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Zap className="h-3 w-3 text-purple-600" />
+                            <span className="font-medium text-purple-700">
+                              {user.experience} XP
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Menu Items */}
+                      <div className="py-1">
+                        <Link
+                          href="/profile"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                        >
+                          <Settings className="h-4 w-4 text-gray-400" />
+                          <span>Profile Settings</span>
+                        </Link>
+
+                        {isAdmin && (
+                          <Link
+                            href="/admin"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="flex items-center space-x-3 px-4 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
+                          >
+                            <Crown className="h-4 w-4" />
+                            <span>Admin Panel</span>
+                          </Link>
+                        )}
+
+                        <div className="my-1 border-t border-gray-100"></div>
+
+                        <button
+                          onClick={() => {
+                            setUserDropdownOpen(false);
+                            handleLogout();
+                          }}
+                          className="flex w-full items-center space-x-3 px-4 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          <span>Logout</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center space-x-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 text-white shadow-sm transition-all hover:from-blue-700 hover:to-purple-700"
+              >
+                <LogIn className="h-4 w-4" />
+                <span className="text-sm font-medium">Sign In</span>
+              </Link>
+            )}
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="rounded-lg p-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 md:hidden"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <div className="md:hidden">
+            <div className="space-y-1 border-t border-gray-200 bg-white px-2 pb-3 pt-2">
+              {/* User Stats - Mobile */}
+              {isAuthenticated && user && (
+                <div className="mb-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <div className="mb-3 flex items-center space-x-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-500">
+                      {user.avatar ? (
+                        <img
+                          src={user.avatar}
+                          alt={user.username}
+                          className="h-10 w-10 rounded-full"
+                        />
+                      ) : (
+                        <User className="h-5 w-5 text-white" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium text-gray-900">
+                        {user.username}
+                      </div>
+                      <div className="truncate text-sm text-gray-500">
+                        {user.email}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Compact stats display for mobile */}
+                  <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs">
+                    <div className="flex items-center space-x-1">
+                      <Diamond className="h-3 w-3 text-yellow-600" />
+                      <span className="font-medium text-yellow-700">
+                        {user.currentDiamonds}
+                      </span>
+                    </div>
+                    <div className="h-3 w-px bg-gray-300"></div>
+                    <div className="flex items-center space-x-1">
+                      <Star className="h-3 w-3 text-blue-600" />
+                      <span className="font-medium text-blue-700">
+                        Level {user.level}
+                      </span>
+                    </div>
+                    <div className="h-3 w-px bg-gray-300"></div>
+                    <div className="flex items-center space-x-1">
+                      <Zap className="h-3 w-3 text-purple-600" />
+                      <span className="font-medium text-purple-700">
+                        {user.experience} XP
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Navigation Links */}
+              {navigation.map((item) => {
+                if (item.requireAuth && !isAuthenticated) return null;
+                if (item.hideForAuth && isAuthenticated) return null;
+
+                const isActive = pathname === item.href;
+                const IconComponent = item.icon;
+
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center space-x-3 rounded-lg px-3 py-3 font-medium transition-colors ${
+                      isActive
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    }`}
+                  >
+                    <IconComponent
+                      className={`h-5 w-5 ${
+                        isActive ? "text-white" : item.color || "text-current"
+                      }`}
+                    />
+                    <span>{item.name}</span>
+                  </Link>
+                );
+              })}
+
+              {/* Mobile Auth Actions */}
+              {loading ? (
+                <div className="border-t border-gray-200 pt-3">
+                  <div className="flex items-center justify-center py-3">
+                    <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-blue-600"></div>
+                  </div>
+                </div>
+              ) : isAuthenticated ? (
+                <div className="space-y-1 border-t border-gray-200 pt-3">
+                  <Link
+                    href="/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center space-x-3 rounded-lg px-3 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  >
+                    <Settings className="h-5 w-5" />
+                    <span>Profile Settings</span>
+                  </Link>
+
+                  {/* Admin Panel Link - Mobile */}
+                  {isAdmin && (
+                    <Link
+                      href="/admin"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center space-x-3 rounded-lg px-3 py-3 text-red-600 hover:bg-red-50 hover:text-red-700"
+                    >
+                      <Crown className="h-5 w-5" />
+                      <span>Admin Panel</span>
+                    </Link>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex w-full items-center space-x-3 rounded-lg px-3 py-3 text-red-600 hover:bg-red-50"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="border-t border-gray-200 pt-3">
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex w-full items-center justify-center space-x-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 font-medium text-white"
+                  >
+                    <LogIn className="h-5 w-5" />
+                    <span>Sign In</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </nav>
+  );
+}
