@@ -32,6 +32,8 @@ import {
   Flame,
   Globe,
   ChevronRight,
+  FileText,
+  Clock,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -828,6 +830,152 @@ export default function HomePage() {
                   <span className="text-sm text-slate-500">15 Challenges</span>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Python Blog Showcase */}
+        <section className="bg-gradient-to-r from-green-50 via-blue-50 to-indigo-50 py-20 lg:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-16 text-center">
+              <div className="mb-6 inline-flex items-center rounded-full bg-gradient-to-r from-green-500/20 to-blue-500/20 px-6 py-3 text-sm font-semibold text-green-700">
+                <FileText className="mr-2 h-4 w-4" />
+                📚 Python Öğrenme Rehberleri
+              </div>
+              <h2 className="mb-4 text-4xl font-bold text-slate-900 lg:text-5xl">
+                📖 Kapsamlı Python Blog'u
+              </h2>
+              <p className="mx-auto max-w-3xl text-xl text-slate-600">
+                Başlangıçtan ileri seviyeye Python programlamada ustalaşmanız için hazırladığımız detaylı rehberler ve makaleler
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+              {/* Blog Post Card 1 */}
+              <Link href="/blog/python-programlamaya-giris-rehberi" className="group rounded-2xl border border-green-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl hover:border-green-300 block">
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="rounded-full bg-gradient-to-r from-green-500 to-emerald-500 px-3 py-1 text-xs font-medium text-white">
+                    Python Basics
+                  </div>
+                  <div className="flex items-center space-x-1 text-xs text-slate-500">
+                    <Clock className="h-3 w-3" />
+                    <span>8 dk</span>
+                  </div>
+                </div>
+                
+                <h3 className="mb-3 text-xl font-bold text-slate-900 group-hover:text-green-600 transition-colors">
+                  Python Programlamaya Giriş Rehberi
+                </h3>
+                
+                <p className="mb-4 text-slate-600 line-clamp-3">
+                  Python öğrenmeye başlayanlar için kapsamlı bir rehber. Değişkenler, veri türleri, döngüler ve fonksiyonlar hakkında bilmeniz gereken her şey.
+                </p>
+
+                <div className="mb-4 flex flex-wrap gap-2">
+                  <span className="rounded-md bg-green-100 px-2 py-1 text-xs text-green-700">#python</span>
+                  <span className="rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700">#başlangıç</span>
+                  <span className="rounded-md bg-purple-100 px-2 py-1 text-xs text-purple-700">#programlama</span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500">1 Ağustos 2025</span>
+                  <div className="flex items-center space-x-1 text-green-600">
+                    <FileText className="h-4 w-4" />
+                    <span className="text-sm font-medium">Detayları Gör</span>
+                  </div>
+                </div>
+              </Link>
+
+              {/* Blog Post Card 2 */}
+              <Link href="/blog/python-ile-neler-yapilir-2025-rehberi" className="group rounded-2xl border border-blue-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl hover:border-blue-300 block">
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 px-3 py-1 text-xs font-medium text-white">
+                    Python Applications
+                  </div>
+                  <div className="flex items-center space-x-1 text-xs text-slate-500">
+                    <Clock className="h-3 w-3" />
+                    <span>12 dk</span>
+                  </div>
+                </div>
+                
+                <h3 className="mb-3 text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  Python ile Neler Yapılır? 2025 Rehberi
+                </h3>
+                
+                <p className="mb-4 text-slate-600 line-clamp-3">
+                  Python'un uygulama alanları ve günümüzde hangi projelerde kullanıldığını keşfedin. Web geliştirmeden yapay zekaya kadar geniş bir yelpaze.
+                </p>
+
+                <div className="mb-4 flex flex-wrap gap-2">
+                  <span className="rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700">#python</span>
+                  <span className="rounded-md bg-purple-100 px-2 py-1 text-xs text-purple-700">#kariyer</span>
+                  <span className="rounded-md bg-orange-100 px-2 py-1 text-xs text-orange-700">#projeler</span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500">3 Ağustos 2025</span>
+                  <div className="flex items-center space-x-1 text-blue-600">
+                    <FileText className="h-4 w-4" />
+                    <span className="text-sm font-medium">Detayları Gör</span>
+                  </div>
+                </div>
+              </Link>
+
+              {/* Blog Post Card 3 */}
+              <Link href="/blog/python-veri-analizi-pandas-rehberi" className="group rounded-2xl border border-purple-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl hover:border-purple-300 block">
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-3 py-1 text-xs font-medium text-white">
+                    Data Science
+                  </div>
+                  <div className="flex items-center space-x-1 text-xs text-slate-500">
+                    <Clock className="h-3 w-3" />
+                    <span>15 dk</span>
+                  </div>
+                </div>
+                
+                <h3 className="mb-3 text-xl font-bold text-slate-900 group-hover:text-purple-600 transition-colors">
+                  Python Veri Analizi: Pandas Rehberi
+                </h3>
+                
+                <p className="mb-4 text-slate-600 line-clamp-3">
+                  Pandas kütüphanesi ile veri analizi yapmayı öğrenin. DataFrame'ler, veri temizleme ve görselleştirme teknikleri.
+                </p>
+
+                <div className="mb-4 flex flex-wrap gap-2">
+                  <span className="rounded-md bg-purple-100 px-2 py-1 text-xs text-purple-700">#python</span>
+                  <span className="rounded-md bg-green-100 px-2 py-1 text-xs text-green-700">#pandas</span>
+                  <span className="rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700">#veri-analizi</span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500">5 Ağustos 2025</span>
+                  <div className="flex items-center space-x-1 text-purple-600">
+                    <FileText className="h-4 w-4" />
+                    <span className="text-sm font-medium">Detayları Gör</span>
+                  </div>
+                </div>
+              </Link>
+            </div>
+
+            {/* Blog CTA */}
+            <div className="mt-12 text-center">
+              <Link
+                href="/blog"
+                className="inline-flex items-center space-x-3 rounded-xl bg-gradient-to-r from-green-500 to-blue-500 px-8 py-4 text-lg font-semibold text-white transition-all hover:from-green-600 hover:to-blue-600 transform hover:scale-105"
+              >
+                <FileText className="h-6 w-6" />
+                <span>Tüm Blog Yazılarını Keşfet</span>
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+              <p className="mt-3 text-sm text-slate-600">
+                Python öğrenme yolculuğunuzu hızlandıracak 20+ detaylı rehber
+              </p>
+            </div>
+
+            {/* Background decoration */}
+            <div className="absolute inset-0 -z-10 overflow-hidden">
+              <div className="absolute -right-32 top-1/4 h-64 w-64 rounded-full bg-green-500/10 blur-3xl"></div>
+              <div className="absolute -left-32 bottom-1/4 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl"></div>
             </div>
           </div>
         </section>

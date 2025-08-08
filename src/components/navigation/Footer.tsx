@@ -12,6 +12,7 @@ import {
   Twitter,
   Mail,
   ExternalLink,
+  FileText,
 } from "lucide-react";
 
 export default function Footer() {
@@ -60,6 +61,12 @@ export default function Footer() {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold">Learning</h4>
             <div className="space-y-2">
+              <Link
+                href="/blog"
+                className="block text-sm text-gray-300 transition-colors hover:text-white"
+              >
+                Python Blog
+              </Link>
               <Link
                 href="/code-arena"
                 className="block text-sm text-gray-300 transition-colors hover:text-white"

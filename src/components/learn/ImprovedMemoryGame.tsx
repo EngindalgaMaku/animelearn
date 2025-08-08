@@ -347,7 +347,7 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
     
     const timeout = setTimeout(() => {
       setHoveredCard(card);
-    }, 500); // 500ms delay before showing modal
+    }, 200); // 200ms delay before showing modal
     
     setHoverTimeout(timeout);
   };
@@ -364,32 +364,44 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
     <div className="w-full max-w-6xl mx-auto p-6">
       {/* Hover Modal */}
       {hoveredCard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full p-6 relative">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+          onClick={() => setHoveredCard(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 relative transform transition-all"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={() => setHoveredCard(null)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl"
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl transition-colors"
             >
               ×
             </button>
             <div className="space-y-4">
-              <h3 className="text-xl font-bold text-gray-800">Kart Detayı</h3>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-center space-x-2 mb-2">
-                  {hoveredCard.type === 'question' ? (
-                    <HelpCircle className="h-5 w-5 text-blue-600" />
-                  ) : (
-                    <MessageSquare className="h-5 w-5 text-green-600" />
-                  )}
-                  <span className={`font-semibold ${
-                    hoveredCard.type === 'question' ? 'text-blue-800' : 'text-green-800'
-                  }`}>
-                    {hoveredCard.type === 'question' ? 'Soru' : 'Cevap'}
-                  </span>
-                </div>
-                <p className="text-lg leading-relaxed text-gray-700">
+              <div className="flex items-center space-x-3">
+                {hoveredCard.type === 'question' ? (
+                  <HelpCircle className="h-6 w-6 text-blue-600" />
+                ) : (
+                  <MessageSquare className="h-6 w-6 text-green-600" />
+                )}
+                <h3 className={`text-lg font-bold ${
+                  hoveredCard.type === 'question' ? 'text-blue-800' : 'text-green-800'
+                }`}>
+                  {hoveredCard.type === 'question' ? '📚 Soru' : '✅ Cevap'}
+                </h3>
+              </div>
+              <div className={`p-4 rounded-lg border-l-4 ${
+                hoveredCard.type === 'question'
+                  ? 'bg-blue-50 border-blue-400'
+                  : 'bg-green-50 border-green-400'
+              }`}>
+                <p className="text-base leading-relaxed text-gray-800">
                   {hoveredCard.text}
                 </p>
+              </div>
+              <div className="text-xs text-gray-500 text-center">
+                Kartı kapatmak için dışarıya tıklayın
               </div>
             </div>
           </div>
@@ -525,9 +537,9 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
           </div>
           
           <div className={`grid gap-3 ${
-            questions.length <= 3 ? 'grid-cols-1 sm:grid-cols-3' :
-            questions.length <= 6 ? 'grid-cols-2 sm:grid-cols-3' :
-            'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'
+            questions.length <= 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
+            questions.length <= 6 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
+            'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
           }`}>
             {questions.filter(q => !q.isMatched).map((question) => (
               <motion.div
@@ -535,7 +547,7 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
                 layout
                 whileHover={{ scale: gameStarted && !question.isMatched ? 1.02 : 1 }}
                 whileTap={{ scale: 0.98 }}
-                className={`relative aspect-video min-h-[80px] ${
+                className={`relative min-h-[100px] sm:min-h-[120px] lg:min-h-[100px] ${
                   !gameStarted || question.isMatched || isProcessing
                     ? 'cursor-default opacity-60'
                     : 'cursor-pointer'
@@ -545,7 +557,7 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
                 onMouseLeave={handleCardLeave}
               >
                 <div className={`
-                  absolute inset-0 rounded-lg border-2 transition-all duration-300 p-3
+                  absolute inset-0 rounded-lg border-2 transition-all duration-300 p-3 flex items-center justify-center
                   ${question.isMatched
                     ? 'border-green-400 bg-green-100'
                     : question.isHighlighted
@@ -555,14 +567,16 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
                         : 'border-blue-300 bg-white hover:border-blue-500 hover:shadow-md'
                   }
                 `}>
-                  <div className="flex h-full items-center justify-center">
-                    <div className={`text-center font-medium text-sm leading-relaxed ${
+                  <div className="w-full text-center">
+                    <div className={`font-medium text-xs sm:text-sm leading-tight ${
                       question.isMatched ? 'text-green-700' :
                       question.isHighlighted ? 'text-yellow-700' :
                       question.isSelected ? 'text-blue-700' :
                       'text-blue-800'
                     }`}>
-                      {question.text}
+                      <div className="line-clamp-3 overflow-hidden" title={question.text}>
+                        {question.text.length > 35 ? `${question.text.substring(0, 35)}...` : question.text}
+                      </div>
                     </div>
                   </div>
                   
@@ -605,9 +619,9 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
           </div>
           
           <div className={`grid gap-3 ${
-            answers.length <= 3 ? 'grid-cols-1 sm:grid-cols-3' :
-            answers.length <= 6 ? 'grid-cols-2 sm:grid-cols-3' :
-            'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'
+            answers.length <= 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
+            answers.length <= 6 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
+            'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
           }`}>
             {answers.filter(a => !a.isMatched).map((answer) => (
               <motion.div
@@ -615,7 +629,7 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
                 layout
                 whileHover={{ scale: gameStarted && !answer.isMatched ? 1.02 : 1 }}
                 whileTap={{ scale: 0.98 }}
-                className={`relative aspect-video min-h-[80px] ${
+                className={`relative min-h-[100px] sm:min-h-[120px] lg:min-h-[100px] ${
                   !gameStarted || answer.isMatched || isProcessing
                     ? 'cursor-default opacity-60'
                     : 'cursor-pointer'
@@ -625,7 +639,7 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
                 onMouseLeave={handleCardLeave}
               >
                 <div className={`
-                  absolute inset-0 rounded-lg border-2 transition-all duration-300 p-3
+                  absolute inset-0 rounded-lg border-2 transition-all duration-300 p-3 flex items-center justify-center
                   ${answer.isMatched
                     ? 'border-green-400 bg-green-100'
                     : answer.isHighlighted
@@ -635,14 +649,16 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
                         : 'border-green-300 bg-white hover:border-green-500 hover:shadow-md'
                   }
                 `}>
-                  <div className="flex h-full items-center justify-center">
-                    <div className={`text-center font-medium text-sm leading-relaxed ${
+                  <div className="w-full text-center">
+                    <div className={`font-medium text-xs sm:text-sm leading-tight ${
                       answer.isMatched ? 'text-green-700' :
                       answer.isHighlighted ? 'text-yellow-700' :
                       answer.isSelected ? 'text-green-700' :
                       'text-green-800'
                     }`}>
-                      {answer.text}
+                      <div className="line-clamp-3 overflow-hidden" title={answer.text}>
+                        {answer.text.length > 35 ? `${answer.text.substring(0, 35)}...` : answer.text}
+                      </div>
                     </div>
                   </div>
                   
