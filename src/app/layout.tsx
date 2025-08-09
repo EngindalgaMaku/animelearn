@@ -6,8 +6,14 @@ import { ThemeProvider } from "@/lib/theme/theme-provider";
 import { SessionProvider } from "@/components/SessionProvider";
 import MainNavigation from "@/components/navigation/MainNavigation";
 import Footer from "@/components/navigation/Footer";
-import { WebSiteSchema, EducationalOrganizationSchema } from "@/components/seo/SchemaMarkup";
-import { initWebVitals, addResourceHints } from "@/lib/performance/core-web-vitals";
+import {
+  WebSiteSchema,
+  EducationalOrganizationSchema,
+} from "@/components/seo/SchemaMarkup";
+import {
+  initWebVitals,
+  addResourceHints,
+} from "@/lib/performance/core-web-vitals";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -173,8 +179,12 @@ export default function RootLayout({
         {/* Performance optimizations */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="dns-prefetch" href="//www.googletagmanager.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+
         {/* Google Analytics */}
         {process.env.NEXT_PUBLIC_GA_ID && (
           <>
@@ -202,6 +212,17 @@ export default function RootLayout({
                     if (typeof initWebVitals === 'function') {
                       initWebVitals();
                     }
+                    
+                    // Register Service Worker
+                    if ('serviceWorker' in navigator) {
+                      navigator.serviceWorker.register('/sw.js')
+                        .then(function(registration) {
+                          console.log('SW registered:', registration.scope);
+                        })
+                        .catch(function(error) {
+                          console.log('SW registration failed:', error);
+                        });
+                    }
                   });
                 `,
               }}
@@ -212,32 +233,44 @@ export default function RootLayout({
         {/* Schema.org structured data */}
         <EducationalOrganizationSchema />
         <WebSiteSchema />
-        
+
         {/* SEO Meta Tags */}
         <link rel="canonical" href="https://zumenzu.com" />
         <meta name="theme-color" content="#3b82f6" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Zumenzu" />
-        
+
         {/* Icons and Manifest */}
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="/favicon-32x32.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href="/favicon-16x16.png"
+        />
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="msapplication-TileColor" content="#3b82f6" />
         <meta name="msapplication-config" content="/browserconfig.xml" />
-        
+
         {/* Critical CSS for better performance */}
-        <style dangerouslySetInnerHTML={{
-          __html: `
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
             /* Critical CSS for above-the-fold content */
             body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
             .loading-skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; }
             @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-          `
-        }} />
+          `,
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} bg-white text-slate-900 antialiased transition-colors duration-300 dark:bg-slate-900 dark:text-slate-100`}

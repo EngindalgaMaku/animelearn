@@ -1,0 +1,43 @@
+{
+  "name": "Zumenzu - Gamified Python Learning",
+  "short_name": "Zumenzu",
+  "description": "A gamified Python learning platform that combines coding education with anime card collection and achievement systems",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#007bff",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Shop",
+      "short_name": "Shop",
+      "description": "Browse anime cards and items",
+      "url": "/shop"
+    },
+    {
+      "name": "Learn",
+      "short_name": "Learn",
+      "description": "Start learning Python",
+      "url": "/learn"
+    }
+  ],
+  "categories": ["education", "games", "entertainment"],
+  "lang": "en"
+}

@@ -28,15 +28,21 @@
   ],
   "icons": [
     {
-      "src": "/android-chrome-192x192.png",
-      "sizes": "192x192",
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any"
     },
     {
-      "src": "/android-chrome-512x512.png",
-      "sizes": "512x512",
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
       "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon",
       "purpose": "any"
     },
     {
@@ -44,47 +50,38 @@
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "shortcuts": [
     {
-      "name": "Python Dersleri",
-      "short_name": "Dersler",
-      "description": "Python programlama derslerine git",
-      "url": "/learn",
-      "icons": [
-        {
-          "src": "/shortcuts/learn.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
+      "name": "Code Arena",
+      "short_name": "Code",
+      "description": "Python programming challenges",
+      "url": "/code-arena"
     },
     {
-      "name": "Anime Kartları",
-      "short_name": "Kartlar",
-      "description": "Anime kart koleksiyonunu görüntüle",
-      "url": "/shop",
-      "icons": [
-        {
-          "src": "/shortcuts/cards.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
+      "name": "Card Shop",
+      "short_name": "Shop",
+      "description": "Anime card collection",
+      "url": "/shop"
     },
     {
-      "name": "Rozetlerim",
-      "short_name": "Rozetler",
-      "description": "Kazanılan rozetleri görüntüle",
-      "url": "/badges",
-      "icons": [
-        {
-          "src": "/shortcuts/badges.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View progress and achievements",
+      "url": "/dashboard"
     }
   ]
 }

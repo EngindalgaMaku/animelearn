@@ -73,9 +73,11 @@ export default function HomePage() {
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "F12" ||
-          (e.ctrlKey && ['s', 'a', 'c', 'x', 'v', 'p', 'u'].includes(e.key)) ||
-          (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key))) {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && ["s", "a", "c", "x", "v", "p", "u"].includes(e.key)) ||
+        (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key))
+      ) {
         e.preventDefault();
         return false;
       }
@@ -118,7 +120,7 @@ export default function HomePage() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/homepage/stats');
+      const response = await fetch("/api/homepage/stats");
       if (response.ok) {
         const data = await response.json();
         setStats({
@@ -155,7 +157,7 @@ export default function HomePage() {
 
   const fetchSampleQuiz = async () => {
     try {
-      const response = await fetch('/api/homepage/sample-quiz');
+      const response = await fetch("/api/homepage/sample-quiz");
       if (response.ok) {
         const quizData = await response.json();
         setSampleQuiz(quizData);
@@ -169,14 +171,18 @@ export default function HomePage() {
   const fetchSampleCards = async () => {
     try {
       // Fetch anime cards (from anime-collection category)
-      const animeResponse = await fetch('/api/shop?category=anime-collection&limit=3&sort=newest');
+      const animeResponse = await fetch(
+        "/api/shop?category=anime-collection&limit=3&sort=newest"
+      );
       if (animeResponse.ok) {
         const animeData = await animeResponse.json();
         setAnimeCards(animeData.cards || []);
       }
 
       // Fetch star cards (from star-collection category)
-      const starResponse = await fetch('/api/shop?category=star-collection&limit=3&sort=newest');
+      const starResponse = await fetch(
+        "/api/shop?category=star-collection&limit=3&sort=newest"
+      );
       if (starResponse.ok) {
         const starData = await starResponse.json();
         setStarCards(starData.cards || []);
@@ -188,7 +194,7 @@ export default function HomePage() {
 
   const fetchDailyTip = async () => {
     try {
-      const response = await fetch('/api/python-tips/daily');
+      const response = await fetch("/api/python-tips/daily");
       if (response.ok) {
         const data = await response.json();
         setDailyTip(data.dailyTip);
@@ -204,15 +210,15 @@ export default function HomePage() {
 
     try {
       const response = await fetch(`/api/python-tips/${dailyTip.id}/interact`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, data }),
       });
 
       if (response.ok) {
         const result = await response.json();
         setTipProgress(result.userProgress);
-        
+
         // Refresh user data if XP was earned
         if (result.xpEarned && user) {
           // You might want to refresh user context here
@@ -236,11 +242,26 @@ export default function HomePage() {
   return (
     <>
       <Head>
-        <title>Zumenzu - Learn Python Programming with Anime Cards & Gamification | Interactive Code Arena</title>
-        <meta name="description" content="Master Python programming through gamified learning! Earn diamonds, collect anime cards, battle in Code Arena challenges, and track progress with badges. The most engaging way to learn coding." />
-        <meta name="keywords" content="Python learning, programming tutorial, coding education, anime cards, gamification, interactive coding, Code Arena, Python course, learn programming, coding challenges" />
-        <meta property="og:title" content="Zumenzu - Learn Python Programming with Anime Cards & Gamification" />
-        <meta property="og:description" content="Master Python programming through gamified learning! Earn diamonds, collect anime cards, and battle in interactive Code Arena challenges." />
+        <title>
+          Zumenzu - Learn Python Programming with Anime Cards & Gamification |
+          Interactive Code Arena
+        </title>
+        <meta
+          name="description"
+          content="Master Python programming through gamified learning! Earn diamonds, collect anime cards, battle in Code Arena challenges, and track progress with badges. The most engaging way to learn coding."
+        />
+        <meta
+          name="keywords"
+          content="Python learning, programming tutorial, coding education, anime cards, gamification, interactive coding, Code Arena, Python course, learn programming, coding challenges"
+        />
+        <meta
+          property="og:title"
+          content="Zumenzu - Learn Python Programming with Anime Cards & Gamification"
+        />
+        <meta
+          property="og:description"
+          content="Master Python programming through gamified learning! Earn diamonds, collect anime cards, and battle in interactive Code Arena challenges."
+        />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -251,7 +272,7 @@ export default function HomePage() {
         {/* Hero Section */}
         <section className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 py-16 lg:py-24">
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20"></div>
-          
+
           {/* Floating Elements */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <div className="absolute -right-4 top-1/4 h-72 w-72 rounded-full bg-gradient-to-r from-purple-500/30 to-pink-500/30 blur-3xl"></div>
@@ -275,72 +296,83 @@ export default function HomePage() {
               </h1>
 
               <p className="mx-auto mb-8 max-w-3xl text-lg text-blue-100 sm:text-xl lg:text-2xl">
-                Learn Python programming in the <strong className="text-yellow-300">Code Arena</strong> •
-                Earn <strong className="text-yellow-300">💎 diamonds</strong> •
-                Collect <strong className="text-pink-300">🎌 anime cards</strong> •
-                Unlock <strong className="text-green-300">🏆 achievements</strong>
+                Learn Python programming in the{" "}
+                <strong className="text-yellow-300">Code Arena</strong> • Earn{" "}
+                <strong className="text-yellow-300">💎 diamonds</strong> •
+                Collect{" "}
+                <strong className="text-pink-300">🎌 anime cards</strong> •
+                Unlock{" "}
+                <strong className="text-green-300">🏆 achievements</strong>
               </p>
 
               {/* Main CTA Buttons */}
-              <div className="mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <div className="mb-8 flex flex-col items-center justify-center gap-3">
                 {isAuthenticated ? (
                   <>
+                    {/* Primary Action */}
                     <Link
                       href="/dashboard"
-                      className="group flex transform items-center space-x-3 rounded-2xl bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 px-8 py-4 text-lg font-bold text-white shadow-2xl transition-all hover:-translate-y-1 hover:from-green-600 hover:via-blue-600 hover:to-purple-600"
+                      className="group inline-flex items-center space-x-2 rounded-xl border border-white/30 bg-white/20 px-6 py-3 text-base font-semibold text-white backdrop-blur-sm transition-all hover:scale-105 hover:bg-white/30"
                     >
-                      <Gamepad2 className="h-6 w-6" />
+                      <Gamepad2 className="h-5 w-5" />
                       <span>🎮 Dashboard</span>
-                      <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </Link>
-                    <Link
-                      href="/code-arena"
-                      className="group flex transform items-center space-x-3 rounded-2xl bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 px-8 py-4 text-lg font-bold text-white shadow-2xl transition-all hover:-translate-y-1 hover:from-red-600 hover:via-orange-600 hover:to-yellow-600"
-                    >
-                      <Code className="h-6 w-6" />
-                      <span>⚔️ Code Arena</span>
-                      <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-                    </Link>
-                    <Link
-                      href="/quiz-arena"
-                      className="group flex transform items-center space-x-3 rounded-2xl bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 px-8 py-4 text-lg font-bold text-white shadow-2xl transition-all hover:-translate-y-1 hover:from-purple-600 hover:via-indigo-600 hover:to-blue-600"
-                    >
-                      <Brain className="h-6 w-6" />
-                      <span>🧠 Quiz Arena</span>
-                      <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-                    </Link>
-                    <Link
-                      href="/shop"
-                      className="flex items-center space-x-3 rounded-2xl border-2 border-white/30 bg-white/10 px-8 py-4 text-lg font-semibold backdrop-blur-sm transition-all hover:bg-white/20"
-                    >
-                      <ShoppingBag className="h-6 w-6" />
-                      <span>Card Shop</span>
-                    </Link>
+
+                    {/* Secondary Actions Grid */}
+                    <div className="mt-2 grid grid-cols-3 gap-3">
+                      <Link
+                        href="/code-arena"
+                        className="group flex flex-col items-center rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white backdrop-blur-sm transition-all hover:scale-105 hover:bg-white/20"
+                      >
+                        <Code className="mb-1 h-4 w-4" />
+                        <span>Code Arena</span>
+                      </Link>
+                      <Link
+                        href="/quiz-arena"
+                        className="group flex flex-col items-center rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white backdrop-blur-sm transition-all hover:scale-105 hover:bg-white/20"
+                      >
+                        <Brain className="mb-1 h-4 w-4" />
+                        <span>Quiz Arena</span>
+                      </Link>
+                      <Link
+                        href="/shop"
+                        className="group flex flex-col items-center rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white backdrop-blur-sm transition-all hover:scale-105 hover:bg-white/20"
+                      >
+                        <ShoppingBag className="mb-1 h-4 w-4" />
+                        <span>Card Shop</span>
+                      </Link>
+                    </div>
                   </>
                 ) : (
                   <>
+                    {/* Primary Action */}
                     <Link
                       href="/login"
-                      className="group flex transform items-center space-x-3 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 px-8 py-4 text-lg font-bold text-white shadow-2xl transition-all hover:-translate-y-1 hover:from-yellow-600 hover:to-orange-600"
+                      className="group inline-flex items-center space-x-3 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 px-8 py-3 text-lg font-bold text-white shadow-lg transition-all hover:scale-105 hover:from-yellow-600 hover:to-orange-600"
                     >
-                      <Crown className="h-6 w-6" />
+                      <Crown className="h-5 w-5" />
                       <span>Start Free Journey</span>
-                      <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </Link>
-                    <Link
-                      href="/code-arena"
-                      className="flex items-center space-x-3 rounded-2xl border-2 border-white/30 bg-white/10 px-8 py-4 text-lg font-semibold backdrop-blur-sm transition-all hover:bg-white/20"
-                    >
-                      <Monitor className="h-6 w-6" />
-                      <span>Preview Code Arena</span>
-                    </Link>
-                    <Link
-                      href="/quiz-arena"
-                      className="flex items-center space-x-3 rounded-2xl border-2 border-white/30 bg-white/10 px-8 py-4 text-lg font-semibold backdrop-blur-sm transition-all hover:bg-white/20"
-                    >
-                      <Brain className="h-6 w-6" />
-                      <span>Preview Quiz Arena</span>
-                    </Link>
+
+                    {/* Secondary Actions */}
+                    <div className="mt-2 flex gap-4">
+                      <Link
+                        href="/code-arena"
+                        className="group inline-flex items-center space-x-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-all hover:bg-white/20"
+                      >
+                        <Monitor className="h-4 w-4" />
+                        <span>Preview Code Arena</span>
+                      </Link>
+                      <Link
+                        href="/quiz-arena"
+                        className="group inline-flex items-center space-x-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-all hover:bg-white/20"
+                      >
+                        <Brain className="h-4 w-4" />
+                        <span>Preview Quiz Arena</span>
+                      </Link>
+                    </div>
                   </>
                 )}
               </div>
@@ -348,7 +380,9 @@ export default function HomePage() {
               {/* Trust Indicators */}
               <div className="mx-auto grid max-w-5xl grid-cols-2 gap-6 md:grid-cols-4">
                 <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
-                  <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
+                  <div className="text-2xl font-bold">
+                    {stats.totalUsers.toLocaleString()}
+                  </div>
                   <div className="text-sm text-blue-200">Learning Python</div>
                 </div>
                 <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
@@ -356,7 +390,9 @@ export default function HomePage() {
                   <div className="text-sm text-blue-200">Code Challenges</div>
                 </div>
                 <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
-                  <div className="text-2xl font-bold">{stats.animeCards + stats.carCards}</div>
+                  <div className="text-2xl font-bold">
+                    {stats.animeCards + stats.carCards}
+                  </div>
                   <div className="text-sm text-blue-200">Collectible Cards</div>
                 </div>
                 <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
@@ -381,7 +417,8 @@ export default function HomePage() {
                   Learn Something New Every Day
                 </h2>
                 <p className="mx-auto max-w-2xl text-lg text-slate-600">
-                  Discover practical Python tips and tricks that will improve your coding skills
+                  Discover practical Python tips and tricks that will improve
+                  your coding skills
                 </p>
               </div>
 
@@ -398,15 +435,19 @@ export default function HomePage() {
 
               {!isAuthenticated && (
                 <div className="mt-8 text-center">
-                  <div className="mx-auto max-w-md rounded-xl bg-gradient-to-r from-yellow-50 to-orange-50 p-6 border-2 border-dashed border-yellow-300">
+                  <div className="mx-auto max-w-md rounded-xl border-2 border-dashed border-yellow-300 bg-gradient-to-r from-yellow-50 to-orange-50 p-6">
                     <div className="mb-3 flex justify-center">
                       <div className="rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 p-2">
                         <Crown className="h-6 w-6 text-white" />
                       </div>
                     </div>
-                    <h4 className="mb-2 text-lg font-bold text-slate-900">🔓 Login to Earn XP!</h4>
+                    <h4 className="mb-2 text-lg font-bold text-slate-900">
+                      🔓 Login to Earn XP!
+                    </h4>
                     <p className="mb-4 text-sm text-slate-600">
-                      Complete daily tips and earn <strong className="text-purple-600">XP + diamonds</strong> to level up your Python skills
+                      Complete daily tips and earn{" "}
+                      <strong className="text-purple-600">XP + diamonds</strong>{" "}
+                      to level up your Python skills
                     </p>
                     <Link
                       href="/login"
@@ -438,60 +479,78 @@ export default function HomePage() {
                 </span>
               </h2>
               <p className="mx-auto max-w-3xl text-xl text-slate-600">
-                Join weekly challenges, solve Python quizzes, and unlock exclusive rewards only available to registered members
+                Join weekly challenges, solve Python quizzes, and unlock
+                exclusive rewards only available to registered members
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 items-center">
+            <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
               {/* Mini Quiz Widget */}
               <div className="relative">
-                <div className="rounded-3xl bg-white p-8 shadow-2xl border border-purple-200">
+                <div className="rounded-3xl border border-purple-200 bg-white p-8 shadow-2xl">
                   <div className="mb-6 flex items-center space-x-4">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white">
                       <Brain className="h-6 w-6" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-slate-900">Python Quiz Challenge</h3>
-                      <p className="text-slate-600">Test your knowledge and earn diamonds</p>
+                      <h3 className="text-2xl font-bold text-slate-900">
+                        Python Quiz Challenge
+                      </h3>
+                      <p className="text-slate-600">
+                        Test your knowledge and earn diamonds
+                      </p>
                     </div>
                   </div>
 
                   {/* Sample Quiz Question */}
                   <div className="mb-6 rounded-xl bg-slate-50 p-6">
                     <div className="mb-4 flex items-center justify-between">
-                      <span className="text-sm font-semibold text-purple-600">Question 1/5</span>
+                      <span className="text-sm font-semibold text-purple-600">
+                        Question 1/5
+                      </span>
                       <div className="flex items-center space-x-1 text-yellow-500">
                         <Diamond className="h-4 w-4" />
-                        <span className="text-sm font-bold">+{sampleQuiz?.diamondReward || 50} 💎</span>
+                        <span className="text-sm font-bold">
+                          +{sampleQuiz?.diamondReward || 50} 💎
+                        </span>
                       </div>
                     </div>
-                    
+
                     <h4 className="mb-4 text-lg font-semibold text-slate-900">
-                      {renderTextWithCode(sampleQuiz?.question || "What is the correct way to define a function in Python?")}
+                      {renderTextWithCode(
+                        sampleQuiz?.question ||
+                          "What is the correct way to define a function in Python?"
+                      )}
                     </h4>
-                    
+
                     <div className="space-y-3">
-                      {(sampleQuiz?.options || [
-                        'function myFunc(): pass',
-                        'def myFunc(): pass',
-                        'func myFunc(): pass',
-                        'define myFunc(): pass'
-                      ]).map((option: string, index: number) => (
+                      {(
+                        sampleQuiz?.options || [
+                          "function myFunc(): pass",
+                          "def myFunc(): pass",
+                          "func myFunc(): pass",
+                          "define myFunc(): pass",
+                        ]
+                      ).map((option: string, index: number) => (
                         <button
                           key={index}
                           className={`w-full rounded-lg border-2 p-3 text-left transition-all hover:border-purple-300 hover:bg-purple-50 ${
                             (sampleQuiz?.correctAnswer || 1) === index
-                              ? 'border-purple-300 bg-purple-50'
-                              : 'border-slate-200 bg-white'
+                              ? "border-purple-300 bg-purple-50"
+                              : "border-slate-200 bg-white"
                           }`}
                         >
-                          <span className={`font-semibold ${
-                            (sampleQuiz?.correctAnswer || 1) === index
-                              ? 'text-purple-700'
-                              : 'text-slate-700'
-                          }`}>
+                          <span
+                            className={`font-semibold ${
+                              (sampleQuiz?.correctAnswer || 1) === index
+                                ? "text-purple-700"
+                                : "text-slate-700"
+                            }`}
+                          >
                             {String.fromCharCode(65 + index)})
-                          </span> {renderOption(option)} {(sampleQuiz?.correctAnswer || 1) === index && ' ✓'}
+                          </span>{" "}
+                          {renderOption(option)}{" "}
+                          {(sampleQuiz?.correctAnswer || 1) === index && " ✓"}
                         </button>
                       ))}
                     </div>
@@ -499,29 +558,44 @@ export default function HomePage() {
 
                   {/* Reward Preview for Non-Logged Users */}
                   {!isAuthenticated ? (
-                    <div className="rounded-xl bg-gradient-to-r from-yellow-50 to-orange-50 p-6 border-2 border-dashed border-yellow-300">
+                    <div className="rounded-xl border-2 border-dashed border-yellow-300 bg-gradient-to-r from-yellow-50 to-orange-50 p-6">
                       <div className="text-center">
                         <div className="mb-4 flex justify-center">
                           <div className="rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 p-3">
                             <Crown className="h-8 w-8 text-white" />
                           </div>
                         </div>
-                        <h4 className="mb-2 text-lg font-bold text-slate-900">🔒 Login to Unlock Rewards!</h4>
+                        <h4 className="mb-2 text-lg font-bold text-slate-900">
+                          🔒 Login to Unlock Rewards!
+                        </h4>
                         <p className="mb-4 text-sm text-slate-600">
-                          Complete this quiz and earn <strong className="text-yellow-600">250 💎 diamonds</strong> + <strong className="text-purple-600">XP bonus</strong>
+                          Complete this quiz and earn{" "}
+                          <strong className="text-yellow-600">
+                            250 💎 diamonds
+                          </strong>{" "}
+                          +{" "}
+                          <strong className="text-purple-600">XP bonus</strong>
                         </p>
                         <div className="flex flex-col space-y-2">
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-slate-600">Base Reward:</span>
-                            <span className="font-bold text-yellow-600">+50 💎 per question</span>
+                            <span className="font-bold text-yellow-600">
+                              +50 💎 per question
+                            </span>
                           </div>
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-slate-600">Login Bonus:</span>
-                            <span className="font-bold text-green-600">+100% multiplier</span>
+                            <span className="font-bold text-green-600">
+                              +100% multiplier
+                            </span>
                           </div>
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-slate-600">Weekly Streak:</span>
-                            <span className="font-bold text-purple-600">+50 XP bonus</span>
+                            <span className="text-slate-600">
+                              Weekly Streak:
+                            </span>
+                            <span className="font-bold text-purple-600">
+                              +50 XP bonus
+                            </span>
                           </div>
                         </div>
                         <Link
@@ -548,86 +622,120 @@ export default function HomePage() {
                 </div>
 
                 {/* Floating Elements */}
-                <div className="absolute -right-4 -top-4 rounded-lg bg-yellow-500 p-2 shadow-lg animate-bounce">
+                <div className="absolute -right-4 -top-4 animate-bounce rounded-lg bg-yellow-500 p-2 shadow-lg">
                   <Diamond className="h-6 w-6 text-white" />
                 </div>
-                <div className="absolute -bottom-4 -left-4 rounded-lg bg-purple-500 p-2 shadow-lg animate-pulse">
+                <div className="absolute -bottom-4 -left-4 animate-pulse rounded-lg bg-purple-500 p-2 shadow-lg">
                   <Brain className="h-6 w-6 text-white" />
                 </div>
               </div>
 
               {/* Login Benefits Showcase */}
               <div className="space-y-6">
-                <div className="rounded-2xl bg-white p-6 shadow-lg border border-indigo-200">
+                <div className="rounded-2xl border border-indigo-200 bg-white p-6 shadow-lg">
                   <div className="mb-4 flex items-center space-x-3">
                     <div className="rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 p-2">
                       <Calendar className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h4 className="text-lg font-bold text-slate-900">Daily Login Streaks</h4>
-                      <p className="text-sm text-slate-600">Consecutive login rewards</p>
+                      <h4 className="text-lg font-bold text-slate-900">
+                        Daily Login Streaks
+                      </h4>
+                      <p className="text-sm text-slate-600">
+                        Consecutive login rewards
+                      </p>
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-3">
-                    <div className="rounded-lg bg-green-50 p-3 text-center border border-green-200">
-                      <div className="text-lg font-bold text-green-600">Day 1</div>
+                    <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-center">
+                      <div className="text-lg font-bold text-green-600">
+                        Day 1
+                      </div>
                       <div className="text-xs text-green-600">+50 💎</div>
                     </div>
-                    <div className="rounded-lg bg-blue-50 p-3 text-center border border-blue-200">
-                      <div className="text-lg font-bold text-blue-600">Day 7</div>
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-center">
+                      <div className="text-lg font-bold text-blue-600">
+                        Day 7
+                      </div>
                       <div className="text-xs text-blue-600">+500 💎</div>
                     </div>
-                    <div className="rounded-lg bg-purple-50 p-3 text-center border border-purple-200">
-                      <div className="text-lg font-bold text-purple-600">Day 30</div>
+                    <div className="rounded-lg border border-purple-200 bg-purple-50 p-3 text-center">
+                      <div className="text-lg font-bold text-purple-600">
+                        Day 30
+                      </div>
                       <div className="text-xs text-purple-600">Rare Card</div>
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-2xl bg-white p-6 shadow-lg border border-indigo-200">
+                <div className="rounded-2xl border border-indigo-200 bg-white p-6 shadow-lg">
                   <div className="mb-4 flex items-center space-x-3">
                     <div className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 p-2">
                       <Target className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h4 className="text-lg font-bold text-slate-900">Weekly Challenges</h4>
-                      <p className="text-sm text-slate-600">Exclusive member rewards</p>
+                      <h4 className="text-lg font-bold text-slate-900">
+                        Weekly Challenges
+                      </h4>
+                      <p className="text-sm text-slate-600">
+                        Exclusive member rewards
+                      </p>
                     </div>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-600">Complete 5 Quizzes</span>
+                      <span className="text-sm text-slate-600">
+                        Complete 5 Quizzes
+                      </span>
                       <span className="font-bold text-purple-600">+300 💎</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-600">Code Arena Victory</span>
+                      <span className="text-sm text-slate-600">
+                        Code Arena Victory
+                      </span>
                       <span className="font-bold text-blue-600">+500 💎</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-600">Perfect Week</span>
-                      <span className="font-bold text-yellow-600">Epic Card Pack</span>
+                      <span className="text-sm text-slate-600">
+                        Perfect Week
+                      </span>
+                      <span className="font-bold text-yellow-600">
+                        Epic Card Pack
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-2xl bg-white p-6 shadow-lg border border-indigo-200">
+                <div className="rounded-2xl border border-indigo-200 bg-white p-6 shadow-lg">
                   <div className="mb-4 flex items-center space-x-3">
                     <div className="rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 p-2">
                       <Gift className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h4 className="text-lg font-bold text-slate-900">Card Pack Opening</h4>
-                      <p className="text-sm text-slate-600">Premium animated experience</p>
+                      <h4 className="text-lg font-bold text-slate-900">
+                        Card Pack Opening
+                      </h4>
+                      <p className="text-sm text-slate-600">
+                        Premium animated experience
+                      </p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 p-3 text-center border border-blue-200">
-                      <div className="text-sm font-bold text-blue-600">3D Animations</div>
-                      <div className="text-xs text-blue-600">Premium Effects</div>
+                    <div className="rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 p-3 text-center">
+                      <div className="text-sm font-bold text-blue-600">
+                        3D Animations
+                      </div>
+                      <div className="text-xs text-blue-600">
+                        Premium Effects
+                      </div>
                     </div>
-                    <div className="rounded-lg bg-gradient-to-r from-pink-50 to-red-50 p-3 text-center border border-pink-200">
-                      <div className="text-sm font-bold text-pink-600">Rarity Bursts</div>
-                      <div className="text-xs text-pink-600">Legendary Cards</div>
+                    <div className="rounded-lg border border-pink-200 bg-gradient-to-r from-pink-50 to-red-50 p-3 text-center">
+                      <div className="text-sm font-bold text-pink-600">
+                        Rarity Bursts
+                      </div>
+                      <div className="text-xs text-pink-600">
+                        Legendary Cards
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -636,7 +744,7 @@ export default function HomePage() {
                   <div className="text-center">
                     <Link
                       href="/login"
-                      className="inline-flex items-center space-x-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-8 py-4 text-lg font-bold text-white transition-all hover:from-indigo-600 hover:to-purple-600 transform hover:scale-105"
+                      className="inline-flex transform items-center space-x-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-8 py-4 text-lg font-bold text-white transition-all hover:scale-105 hover:from-indigo-600 hover:to-purple-600"
                     >
                       <Rocket className="h-6 w-6" />
                       <span>Unlock All Benefits</span>
@@ -654,20 +762,34 @@ export default function HomePage() {
             <div className="mt-16 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-900 to-purple-900 p-8 text-white">
               <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
                 <div className="text-center">
-                  <div className="mb-2 text-3xl font-bold text-yellow-400">{(stats.totalUsers || 2500).toLocaleString()}+</div>
-                  <div className="text-sm text-slate-300">Active Quiz Participants</div>
+                  <div className="mb-2 text-3xl font-bold text-yellow-400">
+                    {(stats.totalUsers || 2500).toLocaleString()}+
+                  </div>
+                  <div className="text-sm text-slate-300">
+                    Active Quiz Participants
+                  </div>
                 </div>
                 <div className="text-center">
-                  <div className="mb-2 text-3xl font-bold text-green-400">{stats.totalLessons || 50}+</div>
-                  <div className="text-sm text-slate-300">Python Challenges</div>
+                  <div className="mb-2 text-3xl font-bold text-green-400">
+                    {stats.totalLessons || 50}+
+                  </div>
+                  <div className="text-sm text-slate-300">
+                    Python Challenges
+                  </div>
                 </div>
                 <div className="text-center">
-                  <div className="mb-2 text-3xl font-bold text-purple-400">{Math.floor((stats.totalDiamonds || 10000000) / 1000000)}M+</div>
+                  <div className="mb-2 text-3xl font-bold text-purple-400">
+                    {Math.floor((stats.totalDiamonds || 10000000) / 1000000)}M+
+                  </div>
                   <div className="text-sm text-slate-300">Diamonds Earned</div>
                 </div>
                 <div className="text-center">
-                  <div className="mb-2 text-3xl font-bold text-pink-400">98%</div>
-                  <div className="text-sm text-slate-300">Member Satisfaction</div>
+                  <div className="mb-2 text-3xl font-bold text-pink-400">
+                    98%
+                  </div>
+                  <div className="text-sm text-slate-300">
+                    Member Satisfaction
+                  </div>
                 </div>
               </div>
             </div>
@@ -684,7 +806,7 @@ export default function HomePage() {
                     <Zap className="mr-2 h-4 w-4" />
                     Featured Experience
                   </div>
-                  
+
                   <h2 className="mb-6 text-4xl font-bold lg:text-5xl">
                     ⚔️ Code Arena
                     <br />
@@ -692,32 +814,48 @@ export default function HomePage() {
                       Learn & Conquer
                     </span>
                   </h2>
-                  
+
                   <p className="mb-8 text-lg text-slate-300">
-                    Master Python programming through interactive coding challenges. Each lesson teaches real concepts
-                    while keeping you engaged with rewards, progression, and gamified elements.
+                    Master Python programming through interactive coding
+                    challenges. Each lesson teaches real concepts while keeping
+                    you engaged with rewards, progression, and gamified
+                    elements.
                   </p>
 
                   <div className="mb-8 grid grid-cols-2 gap-4">
                     <div className="rounded-xl bg-white/10 p-4 backdrop-blur-sm">
                       <Brain className="mb-2 h-8 w-8 text-blue-400" />
-                      <div className="text-sm font-semibold">Interactive Challenges</div>
-                      <div className="text-xs text-slate-400">Memory games & puzzles</div>
+                      <div className="text-sm font-semibold">
+                        Interactive Challenges
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        Memory games & puzzles
+                      </div>
                     </div>
                     <div className="rounded-xl bg-white/10 p-4 backdrop-blur-sm">
                       <Trophy className="mb-2 h-8 w-8 text-yellow-400" />
-                      <div className="text-sm font-semibold">Progressive Unlocks</div>
-                      <div className="text-xs text-slate-400">Earn your way forward</div>
+                      <div className="text-sm font-semibold">
+                        Progressive Unlocks
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        Earn your way forward
+                      </div>
                     </div>
                     <div className="rounded-xl bg-white/10 p-4 backdrop-blur-sm">
                       <Diamond className="mb-2 h-8 w-8 text-purple-400" />
                       <div className="text-sm font-semibold">Real Rewards</div>
-                      <div className="text-xs text-slate-400">Diamonds & XP system</div>
+                      <div className="text-xs text-slate-400">
+                        Diamonds & XP system
+                      </div>
                     </div>
                     <div className="rounded-xl bg-white/10 p-4 backdrop-blur-sm">
                       <Timer className="mb-2 h-8 w-8 text-green-400" />
-                      <div className="text-sm font-semibold">Bite-sized Learning</div>
-                      <div className="text-xs text-slate-400">5-15 minute sessions</div>
+                      <div className="text-sm font-semibold">
+                        Bite-sized Learning
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        5-15 minute sessions
+                      </div>
                     </div>
                   </div>
 
@@ -739,11 +877,15 @@ export default function HomePage() {
                         <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
                         <div className="h-3 w-3 rounded-full bg-green-500"></div>
                       </div>
-                      <div className="text-sm text-slate-400">Python Challenge</div>
+                      <div className="text-sm text-slate-400">
+                        Python Challenge
+                      </div>
                     </div>
-                    
+
                     <div className="rounded-lg bg-slate-900 p-4 font-mono text-sm">
-                      <div className="mb-2 text-green-400"># Python Fundamentals - Memory Challenge</div>
+                      <div className="mb-2 text-green-400">
+                        # Python Fundamentals - Memory Challenge
+                      </div>
                       <div className="mb-2 text-slate-300">
                         <span className="text-blue-400">def</span>{" "}
                         <span className="text-yellow-400">calculate_score</span>
@@ -758,7 +900,7 @@ export default function HomePage() {
                         <span className="text-cyan-400">10</span>
                       </div>
                     </div>
-                    
+
                     <div className="mt-4 flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-1 text-yellow-400">
@@ -770,10 +912,12 @@ export default function HomePage() {
                           <span className="text-sm font-semibold">+25 XP</span>
                         </div>
                       </div>
-                      <div className="text-xs text-green-400">Challenge Complete! 🎉</div>
+                      <div className="text-xs text-green-400">
+                        Challenge Complete! 🎉
+                      </div>
                     </div>
                   </div>
-                  
+
                   {/* Floating elements */}
                   <div className="absolute -right-4 -top-4 rounded-lg bg-yellow-500 p-2 shadow-lg">
                     <Diamond className="h-6 w-6 text-white" />
@@ -795,7 +939,8 @@ export default function HomePage() {
                 🐍 Master Python Programming
               </h2>
               <p className="mx-auto max-w-3xl text-xl text-slate-600">
-                From beginner to expert through structured, gamified learning paths
+                From beginner to expert through structured, gamified learning
+                paths
               </p>
             </div>
 
@@ -805,22 +950,31 @@ export default function HomePage() {
                 <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-3xl text-white">
                   🌱
                 </div>
-                <h3 className="mb-4 text-2xl font-bold text-slate-900">Python Basics</h3>
+                <h3 className="mb-4 text-2xl font-bold text-slate-900">
+                  Python Basics
+                </h3>
                 <p className="mb-6 text-slate-600">
-                  Start your journey with variables, data types, and fundamental programming concepts.
+                  Start your journey with variables, data types, and fundamental
+                  programming concepts.
                 </p>
                 <div className="mb-6 space-y-3">
                   <div className="flex items-center space-x-3">
                     <CheckCircle className="h-5 w-5 text-emerald-600" />
-                    <span className="text-sm text-slate-700">Variables & Data Types</span>
+                    <span className="text-sm text-slate-700">
+                      Variables & Data Types
+                    </span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <CheckCircle className="h-5 w-5 text-emerald-600" />
-                    <span className="text-sm text-slate-700">Conditional Statements</span>
+                    <span className="text-sm text-slate-700">
+                      Conditional Statements
+                    </span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <CheckCircle className="h-5 w-5 text-emerald-600" />
-                    <span className="text-sm text-slate-700">Loops & Functions</span>
+                    <span className="text-sm text-slate-700">
+                      Loops & Functions
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
@@ -837,22 +991,31 @@ export default function HomePage() {
                 <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-3xl text-white">
                   ⚡
                 </div>
-                <h3 className="mb-4 text-2xl font-bold text-slate-900">Data Structures</h3>
+                <h3 className="mb-4 text-2xl font-bold text-slate-900">
+                  Data Structures
+                </h3>
                 <p className="mb-6 text-slate-600">
-                  Master lists, dictionaries, and advanced data manipulation techniques.
+                  Master lists, dictionaries, and advanced data manipulation
+                  techniques.
                 </p>
                 <div className="mb-6 space-y-3">
                   <div className="flex items-center space-x-3">
                     <CheckCircle className="h-5 w-5 text-blue-600" />
-                    <span className="text-sm text-slate-700">Lists & Dictionaries</span>
+                    <span className="text-sm text-slate-700">
+                      Lists & Dictionaries
+                    </span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <CheckCircle className="h-5 w-5 text-blue-600" />
-                    <span className="text-sm text-slate-700">String Manipulation</span>
+                    <span className="text-sm text-slate-700">
+                      String Manipulation
+                    </span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <CheckCircle className="h-5 w-5 text-blue-600" />
-                    <span className="text-sm text-slate-700">File Operations</span>
+                    <span className="text-sm text-slate-700">
+                      File Operations
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
@@ -869,22 +1032,31 @@ export default function HomePage() {
                 <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-purple-500 to-purple-600 text-3xl text-white">
                   🚀
                 </div>
-                <h3 className="mb-4 text-2xl font-bold text-slate-900">Advanced Concepts</h3>
+                <h3 className="mb-4 text-2xl font-bold text-slate-900">
+                  Advanced Concepts
+                </h3>
                 <p className="mb-6 text-slate-600">
-                  Explore object-oriented programming, algorithms, and real-world applications.
+                  Explore object-oriented programming, algorithms, and
+                  real-world applications.
                 </p>
                 <div className="mb-6 space-y-3">
                   <div className="flex items-center space-x-3">
                     <CheckCircle className="h-5 w-5 text-purple-600" />
-                    <span className="text-sm text-slate-700">OOP & Classes</span>
+                    <span className="text-sm text-slate-700">
+                      OOP & Classes
+                    </span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <CheckCircle className="h-5 w-5 text-purple-600" />
-                    <span className="text-sm text-slate-700">Algorithms & Logic</span>
+                    <span className="text-sm text-slate-700">
+                      Algorithms & Logic
+                    </span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <CheckCircle className="h-5 w-5 text-purple-600" />
-                    <span className="text-sm text-slate-700">Web Development</span>
+                    <span className="text-sm text-slate-700">
+                      Web Development
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
@@ -911,13 +1083,17 @@ export default function HomePage() {
                 📖 Comprehensive Python Blog
               </h2>
               <p className="mx-auto max-w-3xl text-xl text-slate-600">
-                Detailed guides and articles we've prepared for you to master Python programming from beginner to advanced level
+                Detailed guides and articles we've prepared for you to master
+                Python programming from beginner to advanced level
               </p>
             </div>
 
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
               {/* Blog Post Card 1 */}
-              <Link href="/blog/python-programming-introduction-guide" className="group rounded-2xl border border-green-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl hover:border-green-300 block">
+              <Link
+                href="/blog/python-programming-introduction-guide"
+                className="group block rounded-2xl border border-green-200 bg-white p-6 shadow-lg transition-all hover:border-green-300 hover:shadow-xl"
+              >
                 <div className="mb-4 flex items-center justify-between">
                   <div className="rounded-full bg-gradient-to-r from-green-500 to-emerald-500 px-3 py-1 text-xs font-medium text-white">
                     Python Basics
@@ -927,19 +1103,27 @@ export default function HomePage() {
                     <span>8 dk</span>
                   </div>
                 </div>
-                
-                <h3 className="mb-3 text-xl font-bold text-slate-900 group-hover:text-green-600 transition-colors">
+
+                <h3 className="mb-3 text-xl font-bold text-slate-900 transition-colors group-hover:text-green-600">
                   Python Programming Introduction Guide
                 </h3>
-                
-                <p className="mb-4 text-slate-600 line-clamp-3">
-                  A comprehensive guide for those starting to learn Python. Everything you need to know about variables, data types, loops and functions.
+
+                <p className="mb-4 line-clamp-3 text-slate-600">
+                  A comprehensive guide for those starting to learn Python.
+                  Everything you need to know about variables, data types, loops
+                  and functions.
                 </p>
 
                 <div className="mb-4 flex flex-wrap gap-2">
-                  <span className="rounded-md bg-green-100 px-2 py-1 text-xs text-green-700">#python</span>
-                  <span className="rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700">#beginner</span>
-                  <span className="rounded-md bg-purple-100 px-2 py-1 text-xs text-purple-700">#programming</span>
+                  <span className="rounded-md bg-green-100 px-2 py-1 text-xs text-green-700">
+                    #python
+                  </span>
+                  <span className="rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700">
+                    #beginner
+                  </span>
+                  <span className="rounded-md bg-purple-100 px-2 py-1 text-xs text-purple-700">
+                    #programming
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -952,7 +1136,10 @@ export default function HomePage() {
               </Link>
 
               {/* Blog Post Card 2 */}
-              <Link href="/blog/what-can-you-do-with-python-2024-guide" className="group rounded-2xl border border-blue-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl hover:border-blue-300 block">
+              <Link
+                href="/blog/what-can-you-do-with-python-2024-guide"
+                className="group block rounded-2xl border border-blue-200 bg-white p-6 shadow-lg transition-all hover:border-blue-300 hover:shadow-xl"
+              >
                 <div className="mb-4 flex items-center justify-between">
                   <div className="rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 px-3 py-1 text-xs font-medium text-white">
                     Python Applications
@@ -962,19 +1149,27 @@ export default function HomePage() {
                     <span>12 dk</span>
                   </div>
                 </div>
-                
-                <h3 className="mb-3 text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+
+                <h3 className="mb-3 text-xl font-bold text-slate-900 transition-colors group-hover:text-blue-600">
                   What Can You Do with Python? 2024 Guide
                 </h3>
-                
-                <p className="mb-4 text-slate-600 line-clamp-3">
-                  Discover Python's application areas and which projects it's used in today. A wide range from web development to artificial intelligence.
+
+                <p className="mb-4 line-clamp-3 text-slate-600">
+                  Discover Python's application areas and which projects it's
+                  used in today. A wide range from web development to artificial
+                  intelligence.
                 </p>
 
                 <div className="mb-4 flex flex-wrap gap-2">
-                  <span className="rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700">#python</span>
-                  <span className="rounded-md bg-purple-100 px-2 py-1 text-xs text-purple-700">#career</span>
-                  <span className="rounded-md bg-orange-100 px-2 py-1 text-xs text-orange-700">#projects</span>
+                  <span className="rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700">
+                    #python
+                  </span>
+                  <span className="rounded-md bg-purple-100 px-2 py-1 text-xs text-purple-700">
+                    #career
+                  </span>
+                  <span className="rounded-md bg-orange-100 px-2 py-1 text-xs text-orange-700">
+                    #projects
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -987,7 +1182,10 @@ export default function HomePage() {
               </Link>
 
               {/* Blog Post Card 3 */}
-              <Link href="/blog/python-data-analysis-pandas-guide" className="group rounded-2xl border border-purple-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl hover:border-purple-300 block">
+              <Link
+                href="/blog/python-data-analysis-pandas-guide"
+                className="group block rounded-2xl border border-purple-200 bg-white p-6 shadow-lg transition-all hover:border-purple-300 hover:shadow-xl"
+              >
                 <div className="mb-4 flex items-center justify-between">
                   <div className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-3 py-1 text-xs font-medium text-white">
                     Data Science
@@ -997,19 +1195,26 @@ export default function HomePage() {
                     <span>15 dk</span>
                   </div>
                 </div>
-                
-                <h3 className="mb-3 text-xl font-bold text-slate-900 group-hover:text-purple-600 transition-colors">
+
+                <h3 className="mb-3 text-xl font-bold text-slate-900 transition-colors group-hover:text-purple-600">
                   Python Data Analysis: Pandas Guide
                 </h3>
-                
-                <p className="mb-4 text-slate-600 line-clamp-3">
-                  Learn to do data analysis with the Pandas library. DataFrames, data cleaning and visualization techniques.
+
+                <p className="mb-4 line-clamp-3 text-slate-600">
+                  Learn to do data analysis with the Pandas library. DataFrames,
+                  data cleaning and visualization techniques.
                 </p>
 
                 <div className="mb-4 flex flex-wrap gap-2">
-                  <span className="rounded-md bg-purple-100 px-2 py-1 text-xs text-purple-700">#python</span>
-                  <span className="rounded-md bg-green-100 px-2 py-1 text-xs text-green-700">#pandas</span>
-                  <span className="rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700">#data-analysis</span>
+                  <span className="rounded-md bg-purple-100 px-2 py-1 text-xs text-purple-700">
+                    #python
+                  </span>
+                  <span className="rounded-md bg-green-100 px-2 py-1 text-xs text-green-700">
+                    #pandas
+                  </span>
+                  <span className="rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700">
+                    #data-analysis
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -1026,7 +1231,7 @@ export default function HomePage() {
             <div className="mt-12 text-center">
               <Link
                 href="/blog"
-                className="inline-flex items-center space-x-3 rounded-xl bg-gradient-to-r from-green-500 to-blue-500 px-8 py-4 text-lg font-semibold text-white transition-all hover:from-green-600 hover:to-blue-600 transform hover:scale-105"
+                className="inline-flex transform items-center space-x-3 rounded-xl bg-gradient-to-r from-green-500 to-blue-500 px-8 py-4 text-lg font-semibold text-white transition-all hover:scale-105 hover:from-green-600 hover:to-blue-600"
               >
                 <FileText className="h-6 w-6" />
                 <span>Explore All Blog Posts</span>
@@ -1053,7 +1258,8 @@ export default function HomePage() {
                 🎌 Collect Epic Cards
               </h2>
               <p className="mx-auto max-w-3xl text-xl text-slate-600">
-                Earn diamonds through Python challenges and collect rare anime & star cards
+                Earn diamonds through Python challenges and collect rare anime &
+                star cards
               </p>
             </div>
 
@@ -1065,50 +1271,72 @@ export default function HomePage() {
                     🎌
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-slate-900">Anime Collection</h3>
-                    <p className="text-slate-600">{stats.animeCards} unique characters available</p>
+                    <h3 className="text-2xl font-bold text-slate-900">
+                      Anime Collection
+                    </h3>
+                    <p className="text-slate-600">
+                      {stats.animeCards} unique characters available
+                    </p>
                   </div>
                 </div>
 
                 <div className="mb-6 grid grid-cols-3 gap-4">
-                  {animeCards.length > 0 ? (
-                    animeCards.slice(0, 3).map((card, index) => (
-                      <div key={card.id} className="group aspect-[3/4] overflow-hidden rounded-xl bg-gradient-to-br from-pink-100 to-purple-100 p-2 transition-all hover:scale-105 hover:shadow-lg">
-                        <img
-                          src={card.secureThumbnailUrl || card.secureImageUrl || `/api/secure-image?cardId=${card.id}&type=thumbnail` || card.thumbnailUrl || card.imageUrl}
-                          alt={`${card.name} - ${card.rarity?.name || 'Anime'} card - ${card.diamondCost} diamonds`}
-                          className="h-full w-full rounded-lg object-cover shadow-md transition-all group-hover:shadow-lg"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = '/placeholder-card.svg';
-                          }}
-                          draggable={false}
-                          onContextMenu={(e) => e.preventDefault()}
-                        />
-                      </div>
-                    ))
-                  ) : (
-                    // Fallback placeholder cards
-                    Array.from({ length: 3 }, (_, index) => (
-                      <div key={index} className="aspect-[3/4] rounded-xl bg-gradient-to-br from-pink-100 to-purple-100 p-4">
-                        <div className="h-full w-full rounded-lg bg-gradient-to-br from-pink-200 to-purple-200"></div>
-                      </div>
-                    ))
-                  )}
+                  {animeCards.length > 0
+                    ? animeCards.slice(0, 3).map((card, index) => (
+                        <div
+                          key={card.id}
+                          className="group aspect-[3/4] overflow-hidden rounded-xl bg-gradient-to-br from-pink-100 to-purple-100 p-2 transition-all hover:scale-105 hover:shadow-lg"
+                        >
+                          <img
+                            src={
+                              card.secureThumbnailUrl ||
+                              card.secureImageUrl ||
+                              `/api/secure-image?cardId=${card.id}&type=thumbnail` ||
+                              card.thumbnailUrl ||
+                              card.imageUrl
+                            }
+                            alt={`${card.name} - ${card.rarity?.name || "Anime"} card - ${card.diamondCost} diamonds`}
+                            className="h-full w-full rounded-lg object-cover shadow-md transition-all group-hover:shadow-lg"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = "/placeholder-card.svg";
+                            }}
+                            draggable={false}
+                            onContextMenu={(e) => e.preventDefault()}
+                          />
+                        </div>
+                      ))
+                    : // Fallback placeholder cards
+                      Array.from({ length: 3 }, (_, index) => (
+                        <div
+                          key={index}
+                          className="aspect-[3/4] rounded-xl bg-gradient-to-br from-pink-100 to-purple-100 p-4"
+                        >
+                          <div className="h-full w-full rounded-lg bg-gradient-to-br from-pink-200 to-purple-200"></div>
+                        </div>
+                      ))}
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-600">Common Cards</span>
-                    <span className="font-semibold text-slate-900">50-100 💎</span>
+                    <span className="font-semibold text-slate-900">
+                      50-100 💎
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-600">Rare Cards</span>
-                    <span className="font-semibold text-slate-900">200-500 💎</span>
+                    <span className="font-semibold text-slate-900">
+                      200-500 💎
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-600">Legendary Cards</span>
-                    <span className="font-semibold text-slate-900">1000+ 💎</span>
+                    <span className="text-sm text-slate-600">
+                      Legendary Cards
+                    </span>
+                    <span className="font-semibold text-slate-900">
+                      1000+ 💎
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1120,50 +1348,70 @@ export default function HomePage() {
                     ⭐
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-slate-900">Star Collection</h3>
-                    <p className="text-slate-600">{stats.carCards} celestial stars available</p>
+                    <h3 className="text-2xl font-bold text-slate-900">
+                      Star Collection
+                    </h3>
+                    <p className="text-slate-600">
+                      {stats.carCards} celestial stars available
+                    </p>
                   </div>
                 </div>
 
                 <div className="mb-6 grid grid-cols-3 gap-4">
-                  {starCards.length > 0 ? (
-                    starCards.slice(0, 3).map((card, index) => (
-                      <div key={card.id} className="group aspect-[3/4] overflow-hidden rounded-xl bg-gradient-to-br from-yellow-100 to-orange-100 p-2 transition-all hover:scale-105 hover:shadow-lg">
-                        <img
-                          src={card.secureThumbnailUrl || card.secureImageUrl || `/api/secure-image?cardId=${card.id}&type=thumbnail` || card.thumbnailUrl || card.imageUrl}
-                          alt={`${card.name} - ${card.rarity?.name || 'Star'} card - ${card.diamondCost} diamonds`}
-                          className="h-full w-full rounded-lg object-cover shadow-md transition-all group-hover:shadow-lg"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = '/placeholder-card.svg';
-                          }}
-                          draggable={false}
-                          onContextMenu={(e) => e.preventDefault()}
-                        />
-                      </div>
-                    ))
-                  ) : (
-                    // Fallback placeholder cards
-                    Array.from({ length: 3 }, (_, index) => (
-                      <div key={index} className="aspect-[3/4] rounded-xl bg-gradient-to-br from-yellow-100 to-orange-100 p-4">
-                        <div className="h-full w-full rounded-lg bg-gradient-to-br from-yellow-200 to-orange-200"></div>
-                      </div>
-                    ))
-                  )}
+                  {starCards.length > 0
+                    ? starCards.slice(0, 3).map((card, index) => (
+                        <div
+                          key={card.id}
+                          className="group aspect-[3/4] overflow-hidden rounded-xl bg-gradient-to-br from-yellow-100 to-orange-100 p-2 transition-all hover:scale-105 hover:shadow-lg"
+                        >
+                          <img
+                            src={
+                              card.secureThumbnailUrl ||
+                              card.secureImageUrl ||
+                              `/api/secure-image?cardId=${card.id}&type=thumbnail` ||
+                              card.thumbnailUrl ||
+                              card.imageUrl
+                            }
+                            alt={`${card.name} - ${card.rarity?.name || "Star"} card - ${card.diamondCost} diamonds`}
+                            className="h-full w-full rounded-lg object-cover shadow-md transition-all group-hover:shadow-lg"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = "/placeholder-card.svg";
+                            }}
+                            draggable={false}
+                            onContextMenu={(e) => e.preventDefault()}
+                          />
+                        </div>
+                      ))
+                    : // Fallback placeholder cards
+                      Array.from({ length: 3 }, (_, index) => (
+                        <div
+                          key={index}
+                          className="aspect-[3/4] rounded-xl bg-gradient-to-br from-yellow-100 to-orange-100 p-4"
+                        >
+                          <div className="h-full w-full rounded-lg bg-gradient-to-br from-yellow-200 to-orange-200"></div>
+                        </div>
+                      ))}
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-600">Common Stars</span>
-                    <span className="font-semibold text-slate-900">60-120 💎</span>
+                    <span className="font-semibold text-slate-900">
+                      60-120 💎
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-600">Bright Stars</span>
-                    <span className="font-semibold text-slate-900">250-600 💎</span>
+                    <span className="font-semibold text-slate-900">
+                      250-600 💎
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-600">Supernovas</span>
-                    <span className="font-semibold text-slate-900">1200+ 💎</span>
+                    <span className="font-semibold text-slate-900">
+                      1200+ 💎
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1189,14 +1437,20 @@ export default function HomePage() {
               <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-blue-900 to-purple-900 p-8 text-white lg:p-12">
                 <div className="mb-8 flex flex-col items-start justify-between lg:flex-row">
                   <div>
-                    <h2 className="mb-2 text-3xl font-bold">Welcome back, {user.username}! 👋</h2>
-                    <p className="text-lg text-slate-300">Continue your Python mastery journey</p>
+                    <h2 className="mb-2 text-3xl font-bold">
+                      Welcome back, {user.username}! 👋
+                    </h2>
+                    <p className="text-lg text-slate-300">
+                      Continue your Python mastery journey
+                    </p>
                   </div>
                   <div className="mt-4 flex items-center space-x-4 lg:mt-0">
                     <div className="rounded-xl bg-white/10 px-4 py-2 backdrop-blur-sm">
                       <div className="flex items-center space-x-2">
                         <Diamond className="h-5 w-5 text-yellow-400" />
-                        <span className="font-bold">{user.currentDiamonds}</span>
+                        <span className="font-bold">
+                          {user.currentDiamonds}
+                        </span>
                       </div>
                       <div className="text-xs text-slate-400">Diamonds</div>
                     </div>
@@ -1228,7 +1482,9 @@ export default function HomePage() {
                   >
                     <ShoppingBag className="mb-3 h-8 w-8 text-pink-400 transition-transform group-hover:scale-110" />
                     <h3 className="font-semibold">Card Collection</h3>
-                    <p className="mt-1 text-sm text-slate-400">Expand your collection</p>
+                    <p className="mt-1 text-sm text-slate-400">
+                      Expand your collection
+                    </p>
                   </Link>
 
                   <Link
@@ -1237,7 +1493,9 @@ export default function HomePage() {
                   >
                     <Award className="mb-3 h-8 w-8 text-orange-400 transition-transform group-hover:scale-110" />
                     <h3 className="font-semibold">Achievements</h3>
-                    <p className="mt-1 text-sm text-slate-400">View your badges</p>
+                    <p className="mt-1 text-sm text-slate-400">
+                      View your badges
+                    </p>
                   </Link>
 
                   <Link
@@ -1246,7 +1504,9 @@ export default function HomePage() {
                   >
                     <BarChart3 className="mb-3 h-8 w-8 text-blue-400 transition-transform group-hover:scale-110" />
                     <h3 className="font-semibold">Progress Hub</h3>
-                    <p className="mt-1 text-sm text-slate-400">Complete dashboard</p>
+                    <p className="mt-1 text-sm text-slate-400">
+                      Complete dashboard
+                    </p>
                   </Link>
                 </div>
               </div>
@@ -1262,14 +1522,15 @@ export default function HomePage() {
                 🌟 Loved by Python Learners
               </h2>
               <p className="mx-auto max-w-3xl text-xl text-slate-600">
-                Join thousands of students who've mastered Python through gamified learning
+                Join thousands of students who've mastered Python through
+                gamified learning
               </p>
             </div>
 
             <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
               <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-lg">
                 <div className="mb-4 flex items-center">
-                  <div className="mr-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold">
+                  <div className="mr-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-500 font-bold text-white">
                     A
                   </div>
                   <div>
@@ -1278,13 +1539,15 @@ export default function HomePage() {
                   </div>
                 </div>
                 <p className="text-slate-600">
-                  "The Code Arena made learning Python addictive! I collected over 50 anime cards while mastering data structures. Best learning experience ever!"
+                  "The Code Arena made learning Python addictive! I collected
+                  over 50 anime cards while mastering data structures. Best
+                  learning experience ever!"
                 </p>
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-lg">
                 <div className="mb-4 flex items-center">
-                  <div className="mr-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold">
+                  <div className="mr-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-teal-500 font-bold text-white">
                     E
                   </div>
                   <div>
@@ -1293,22 +1556,27 @@ export default function HomePage() {
                   </div>
                 </div>
                 <p className="text-slate-600">
-                  "Finally, a platform that makes coding fun! The memory challenges helped me understand Python concepts better than any textbook."
+                  "Finally, a platform that makes coding fun! The memory
+                  challenges helped me understand Python concepts better than
+                  any textbook."
                 </p>
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-lg">
                 <div className="mb-4 flex items-center">
-                  <div className="mr-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold">
+                  <div className="mr-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-red-500 font-bold text-white">
                     M
                   </div>
                   <div>
-                    <div className="font-semibold text-slate-900">Mehmet Y.</div>
+                    <div className="font-semibold text-slate-900">
+                      Mehmet Y.
+                    </div>
                     <div className="text-sm text-yellow-500">⭐⭐⭐⭐⭐</div>
                   </div>
                 </div>
                 <p className="text-slate-600">
-                  "From zero to Python developer in 6 months! The progressive unlocking system kept me motivated throughout the journey."
+                  "From zero to Python developer in 6 months! The progressive
+                  unlocking system kept me motivated throughout the journey."
                 </p>
               </div>
             </div>
@@ -1322,7 +1590,8 @@ export default function HomePage() {
               Ready to Master Python?
             </h2>
             <p className="mb-8 text-xl text-blue-100">
-              Join thousands of students who've transformed their coding skills through gamified learning
+              Join thousands of students who've transformed their coding skills
+              through gamified learning
             </p>
 
             {!isAuthenticated && (
@@ -1335,7 +1604,7 @@ export default function HomePage() {
                   <span>Start Free Journey</span>
                   <ArrowRight className="h-6 w-6" />
                 </Link>
-                
+
                 <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-blue-200">
                   <div className="flex items-center space-x-2">
                     <CheckCircle className="h-4 w-4 text-green-400" />
@@ -1367,13 +1636,22 @@ export default function HomePage() {
                   <h3 className="text-2xl font-bold">Zumenzu</h3>
                 </div>
                 <p className="mb-4 text-lg text-slate-300">
-                  Master Python programming through gamified learning. Collect cards, earn rewards, and become a coding expert!
+                  Master Python programming through gamified learning. Collect
+                  cards, earn rewards, and become a coding expert!
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full bg-blue-500/20 px-3 py-1 text-sm text-blue-300">🐍 Python</span>
-                  <span className="rounded-full bg-purple-500/20 px-3 py-1 text-sm text-purple-300">🎮 Gamification</span>
-                  <span className="rounded-full bg-pink-500/20 px-3 py-1 text-sm text-pink-300">🎌 Anime Cards</span>
-                  <span className="rounded-full bg-yellow-500/20 px-3 py-1 text-sm text-yellow-300">⭐ Star Cards</span>
+                  <span className="rounded-full bg-blue-500/20 px-3 py-1 text-sm text-blue-300">
+                    🐍 Python
+                  </span>
+                  <span className="rounded-full bg-purple-500/20 px-3 py-1 text-sm text-purple-300">
+                    🎮 Gamification
+                  </span>
+                  <span className="rounded-full bg-pink-500/20 px-3 py-1 text-sm text-pink-300">
+                    🎌 Anime Cards
+                  </span>
+                  <span className="rounded-full bg-yellow-500/20 px-3 py-1 text-sm text-yellow-300">
+                    ⭐ Star Cards
+                  </span>
                 </div>
               </div>
 
@@ -1388,19 +1666,27 @@ export default function HomePage() {
               </div>
 
               <div>
-                <h4 className="mb-4 text-lg font-semibold">📊 Platform Stats</h4>
+                <h4 className="mb-4 text-lg font-semibold">
+                  📊 Platform Stats
+                </h4>
                 <div className="space-y-2 text-slate-300">
                   <div className="flex justify-between">
                     <span>Students:</span>
-                    <span className="font-bold text-blue-400">{stats.totalUsers.toLocaleString()}</span>
+                    <span className="font-bold text-blue-400">
+                      {stats.totalUsers.toLocaleString()}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Challenges:</span>
-                    <span className="font-bold text-green-400">{stats.totalLessons}</span>
+                    <span className="font-bold text-green-400">
+                      {stats.totalLessons}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Cards:</span>
-                    <span className="font-bold text-pink-400">{stats.animeCards + stats.carCards}</span>
+                    <span className="font-bold text-pink-400">
+                      {stats.animeCards + stats.carCards}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1408,10 +1694,12 @@ export default function HomePage() {
 
             <div className="border-t border-slate-700 pt-8 text-center">
               <p className="text-lg text-slate-400">
-                🎯 Master Python • 💎 Earn Rewards • 🎌 Collect Anime & Star Cards • 🏆 Achieve Greatness
+                🎯 Master Python • 💎 Earn Rewards • 🎌 Collect Anime & Star
+                Cards • 🏆 Achieve Greatness
               </p>
               <p className="mt-2 text-sm text-slate-500">
-                © 2024 Zumenzu. The ultimate Python learning platform with gamification.
+                © 2024 Zumenzu. The ultimate Python learning platform with
+                gamification.
               </p>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     today.setHours(0, 0, 0, 0);
 
     // Get today's tip
-    let dailyTip = await db.dailyPythonTip.findFirst({
+    let dailyTip = await prisma.dailyPythonTip.findFirst({
       where: {
         date: today,
         isActive: true,
@@ -36,11 +36,11 @@ export async function GET(request: NextRequest) {
       // Get user's difficulty preference or default
       let userDifficulty = "beginner";
       if (session?.user) {
-        const user = await db.user.findUnique({
+        const user = await prisma.user.findUnique({
           where: { id: session.user.id as string },
           select: { level: true },
         });
-        
+
         if (user) {
           if (user.level >= 10) userDifficulty = "advanced";
           else if (user.level >= 5) userDifficulty = "intermediate";
@@ -48,9 +48,12 @@ export async function GET(request: NextRequest) {
       }
 
       // Get a suitable tip for today
-      const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
-      
-      const availableTips = await db.pythonTip.findMany({
+      const dayOfYear = Math.floor(
+        (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) /
+          86400000
+      );
+
+      const availableTips = await prisma.pythonTip.findMany({
         where: {
           isActive: true,
           difficulty: userDifficulty,
@@ -66,9 +69,9 @@ export async function GET(request: NextRequest) {
 
       if (availableTips.length > 0) {
         const selectedTip = availableTips[dayOfYear % availableTips.length];
-        
+
         // Create daily tip entry
-        dailyTip = await db.dailyPythonTip.create({
+        dailyTip = await prisma.dailyPythonTip.create({
           data: {
             tipId: selectedTip.id,
             date: today,
@@ -100,10 +103,10 @@ export async function GET(request: NextRequest) {
     // Get user interaction data if authenticated
     let userInteraction = null;
     let userStreak = null;
-    
+
     if (session?.user) {
       [userInteraction, userStreak] = await Promise.all([
-        db.userPythonTipInteraction.findUnique({
+        prisma.userPythonTipInteraction.findUnique({
           where: {
             userId_tipId: {
               userId: session.user.id as string,
@@ -111,7 +114,7 @@ export async function GET(request: NextRequest) {
             },
           },
         }),
-        db.pythonTipStreak.findUnique({
+        prisma.pythonTipStreak.findUnique({
           where: { userId: session.user.id as string },
         }),
       ]);
@@ -120,19 +123,23 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       dailyTip: dailyTip.tip,
-      userProgress: userInteraction ? {
-        hasViewed: userInteraction.hasViewed,
-        hasLiked: userInteraction.hasLiked,
-        hasCompleted: userInteraction.hasCompleted,
-        xpEarned: userInteraction.xpEarned,
-        timeSpent: userInteraction.timeSpent,
-      } : null,
-      streak: userStreak ? {
-        current: userStreak.currentStreak,
-        longest: userStreak.longestStreak,
-        totalTipsViewed: userStreak.totalTipsViewed,
-        totalXPEarned: userStreak.totalXPEarned,
-      } : null,
+      userProgress: userInteraction
+        ? {
+            hasViewed: userInteraction.hasViewed,
+            hasLiked: userInteraction.hasLiked,
+            hasCompleted: userInteraction.hasCompleted,
+            xpEarned: userInteraction.xpEarned,
+            timeSpent: userInteraction.timeSpent,
+          }
+        : null,
+      streak: userStreak
+        ? {
+            current: userStreak.currentStreak,
+            longest: userStreak.longestStreak,
+            totalTipsViewed: userStreak.totalTipsViewed,
+            totalXPEarned: userStreak.totalXPEarned,
+          }
+        : null,
     });
   } catch (error) {
     console.error("Daily tip fetch error:", error);
@@ -147,7 +154,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user || session.user.role !== "admin") {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
@@ -169,7 +176,7 @@ export async function POST(request: NextRequest) {
     targetDate.setHours(0, 0, 0, 0);
 
     // Check if tip exists
-    const tip = await db.pythonTip.findUnique({
+    const tip = await prisma.pythonTip.findUnique({
       where: { id: tipId },
     });
 
@@ -181,7 +188,7 @@ export async function POST(request: NextRequest) {
     }
 
     // First try to find existing daily tip for this date
-    const existingTip = await db.dailyPythonTip.findFirst({
+    const existingTip = await prisma.dailyPythonTip.findFirst({
       where: {
         date: targetDate,
       },
@@ -190,7 +197,7 @@ export async function POST(request: NextRequest) {
     let dailyTip;
     if (existingTip) {
       // Update existing tip
-      dailyTip = await db.dailyPythonTip.update({
+      dailyTip = await prisma.dailyPythonTip.update({
         where: { id: existingTip.id },
         data: {
           tipId,
@@ -206,7 +213,7 @@ export async function POST(request: NextRequest) {
       });
     } else {
       // Create new tip
-      dailyTip = await db.dailyPythonTip.create({
+      dailyTip = await prisma.dailyPythonTip.create({
         data: {
           tipId,
           date: targetDate,
