@@ -448,49 +448,87 @@ function ShopPageContent() {
         />
       </div>
 
-      {/* Mobile-Optimized Welcome Text with Info Guide Button */}
-      <div className="text-center mb-4 sm:mb-6">
-        <div className="flex flex-col sm:flex-row items-center justify-center mb-2 space-y-2 sm:space-y-0">
-          <h2
-            className="text-xl sm:text-2xl lg:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r text-center"
-            style={{
-              backgroundImage: `linear-gradient(to right, ${themeConfig.primary}, ${themeConfig.secondary})`
-            }}
-          >
-            <span className="hidden sm:inline">✨ </span>
-            {selectedCategory === 'anime-collection' ? 'Anime Legends' : selectedCategory === 'star-collection' ? 'Celebrity Stars' : 'Supercar Collection'} Shop
-          </h2>
-          <button
-            onClick={() => setShowInfoModal(true)}
-            className="sm:ml-4 flex transform items-center space-x-2 rounded-lg bg-slate-600 px-3 sm:px-4 py-2 text-white
-                     shadow-md transition-all hover:bg-slate-700 min-h-[44px] touch-manipulation"
-            title="Card Guide"
-          >
-            <HelpCircle className="h-4 w-4" />
-            <span className="text-xs sm:text-sm">Card Guide</span>
-          </button>
-        </div>
-        <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base px-2 sm:px-0">
-          {selectedCategory === 'anime-collection'
-            ? 'Discover legendary anime characters with magical powers and epic abilities!'
-            : selectedCategory === 'star-collection'
-            ? 'Collect iconic celebrity stars and famous personalities!'
-            : 'Own the world\'s most exclusive supercars and racing legends!'
-          }
-        </p>
-        {selectedCategory === 'star-collection' && (
-          <div className="mt-3 mx-auto max-w-2xl px-2 sm:px-0">
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 sm:p-3">
-              <p className="text-amber-800 text-xs sm:text-sm flex items-start">
-                <span className="mr-2 flex-shrink-0">⚠️</span>
-                <span>
-                  <strong>Disclaimer:</strong> The celebrity cards in this collection are fictional characters and do not represent real people.
-                  All names and characters are created for entertainment purposes only.
-                </span>
-              </p>
-            </div>
+      {/* Mobile-Optimized Compact Welcome Text */}
+      <div className="text-center mb-3 sm:mb-6">
+        {/* Mobile: Very compact header */}
+        <div className="block sm:hidden">
+          <div className="flex items-center justify-between mb-2 px-2">
+            <h2
+              className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r"
+              style={{
+                backgroundImage: `linear-gradient(to right, ${themeConfig.primary}, ${themeConfig.secondary})`
+              }}
+            >
+              {selectedCategory === 'anime-collection' ? 'Anime Shop' : selectedCategory === 'star-collection' ? 'Star Shop' : 'Car Shop'}
+            </h2>
+            <button
+              onClick={() => setShowInfoModal(true)}
+              className="flex items-center space-x-1 rounded-lg bg-slate-600 px-2 py-1.5 text-white
+                       shadow-md transition-all hover:bg-slate-700 min-h-[36px] touch-manipulation"
+              title="Card Guide"
+            >
+              <HelpCircle className="h-3 w-3" />
+              <span className="text-xs">Guide</span>
+            </button>
           </div>
-        )}
+          {selectedCategory === 'star-collection' && (
+            <div className="mt-2 mx-2">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-2">
+                <p className="text-amber-800 text-xs flex items-start">
+                  <span className="mr-1 flex-shrink-0">⚠️</span>
+                  <span>
+                    <strong>Note:</strong> Fictional characters for entertainment only.
+                  </span>
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop: Full header */}
+        <div className="hidden sm:block">
+          <div className="flex flex-col sm:flex-row items-center justify-center mb-2 space-y-2 sm:space-y-0">
+            <h2
+              className="text-xl sm:text-2xl lg:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r text-center"
+              style={{
+                backgroundImage: `linear-gradient(to right, ${themeConfig.primary}, ${themeConfig.secondary})`
+              }}
+            >
+              <span className="hidden sm:inline">✨ </span>
+              {selectedCategory === 'anime-collection' ? 'Anime Legends' : selectedCategory === 'star-collection' ? 'Celebrity Stars' : 'Supercar Collection'} Shop
+            </h2>
+            <button
+              onClick={() => setShowInfoModal(true)}
+              className="sm:ml-4 flex transform items-center space-x-2 rounded-lg bg-slate-600 px-3 sm:px-4 py-2 text-white
+                       shadow-md transition-all hover:bg-slate-700 min-h-[44px] touch-manipulation"
+              title="Card Guide"
+            >
+              <HelpCircle className="h-4 w-4" />
+              <span className="text-xs sm:text-sm">Card Guide</span>
+            </button>
+          </div>
+          <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base px-2 sm:px-0">
+            {selectedCategory === 'anime-collection'
+              ? 'Discover legendary anime characters with magical powers and epic abilities!'
+              : selectedCategory === 'star-collection'
+              ? 'Collect iconic celebrity stars and famous personalities!'
+              : 'Own the world\'s most exclusive supercars and racing legends!'
+            }
+          </p>
+          {selectedCategory === 'star-collection' && (
+            <div className="mt-3 mx-auto max-w-2xl px-2 sm:px-0">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 sm:p-3">
+                <p className="text-amber-800 text-xs sm:text-sm flex items-start">
+                  <span className="mr-2 flex-shrink-0">⚠️</span>
+                  <span>
+                    <strong>Disclaimer:</strong> The celebrity cards in this collection are fictional characters and do not represent real people.
+                    All names and characters are created for entertainment purposes only.
+                  </span>
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
 
@@ -852,42 +890,43 @@ function ShopPageContent() {
               <div className="grid gap-3 sm:gap-4 md:gap-6 lg:grid-cols-2">
                 {/* Mobile-First Image Section */}
                 <div className="relative flex justify-center order-1 lg:order-none">
-                  <div className="group relative w-full max-w-xs sm:max-w-sm md:max-w-md">
+                  <div className="group relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
                     <div className="absolute -inset-1 sm:-inset-2 rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600/20 to-purple-600/20 blur-md sm:blur-lg"></div>
-                    <img
-                      src={(selectedCard as any).secureThumbnailUrl || (selectedCard as any).secureImageUrl || `/api/secure-image?cardId=${selectedCard.id}&type=thumbnail`}
-                      alt={selectedCard.cardTitle || selectedCard.name}
-                      className="relative h-auto w-full max-w-full rounded-lg shadow-xl transition-transform group-hover:scale-105"
-                      style={{ maxHeight: "250px" }}
-                      onError={(e) => {
-                        // Fallback chain for better production compatibility
-                        const target = e.target as HTMLImageElement;
-                        const currentSrc = target.src;
-                        
-                        if (!currentSrc.includes('placeholder')) {
-                          // Try direct API call first
-                          if (!currentSrc.includes('/api/secure-image')) {
-                            target.src = `/api/secure-image?cardId=${selectedCard.id}&type=thumbnail`;
-                          } else if (!currentSrc.includes('type=preview')) {
-                            // Try preview type
-                            target.src = `/api/secure-image?cardId=${selectedCard.id}&type=preview`;
-                          } else {
-                            // Final fallback
-                            target.src = '/placeholder-card.svg';
+                    <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg shadow-xl">
+                      <img
+                        src={(selectedCard as any).secureThumbnailUrl || (selectedCard as any).secureImageUrl || `/api/secure-image?cardId=${selectedCard.id}&type=thumbnail`}
+                        alt={selectedCard.cardTitle || selectedCard.name}
+                        className="h-full w-full object-cover object-center transition-transform group-hover:scale-105"
+                        onError={(e) => {
+                          // Fallback chain for better production compatibility
+                          const target = e.target as HTMLImageElement;
+                          const currentSrc = target.src;
+                          
+                          if (!currentSrc.includes('placeholder')) {
+                            // Try direct API call first
+                            if (!currentSrc.includes('/api/secure-image')) {
+                              target.src = `/api/secure-image?cardId=${selectedCard.id}&type=thumbnail`;
+                            } else if (!currentSrc.includes('type=preview')) {
+                              // Try preview type
+                              target.src = `/api/secure-image?cardId=${selectedCard.id}&type=preview`;
+                            } else {
+                              // Final fallback
+                              target.src = '/placeholder-card.svg';
+                            }
                           }
-                        }
-                      }}
-                    />
-                    {/* Touch-Optimized Expand Icon */}
-                    <button
-                      onClick={() => setExpandedImage(true)}
-                      className="absolute right-2 top-2 sm:right-3 sm:top-3 rounded-full bg-black/60 p-2 text-white
-                               opacity-100 transition-all hover:bg-black/80 min-w-[40px] min-h-[40px]
-                               flex items-center justify-center"
-                      title="View Full Image"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
+                        }}
+                      />
+                      {/* Touch-Optimized Expand Icon */}
+                      <button
+                        onClick={() => setExpandedImage(true)}
+                        className="absolute right-2 top-2 sm:right-3 sm:top-3 rounded-full bg-black/60 p-2 text-white
+                                 opacity-100 transition-all hover:bg-black/80 min-w-[40px] min-h-[40px]
+                                 flex items-center justify-center"
+                        title="View Full Image"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
