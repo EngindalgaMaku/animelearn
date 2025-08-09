@@ -1,90 +1,90 @@
 ---
-title: "Python Veri Analizi: Pandas ile Sıfırdan İleri Seviyeye 2025 Rehberi"
-description: "Pandas kütüphanesi ile Python'da veri analizi yapmayı öğrenin. Gerçek projelerle desteklenen kapsamlı rehber, örnekler ve en iyi uygulamalar."
+title: "Python Data Analysis: From Zero to Advanced with Pandas 2025 Guide"
+description: "Learn data analysis in Python with the Pandas library. Comprehensive guide supported with real projects, examples and best practices."
 date: "2025-08-08"
-author: "Zumenzu Veri Bilimi Ekibi"
-category: "Veri Analizi"
-tags: ["python", "pandas", "veri analizi", "data science", "csv", "excel", "matplotlib", "numpy"]
-readTime: "12 dk"
+author: "Zumenzu Data Science Team"
+category: "Data Analysis"
+tags: ["python", "pandas", "data analysis", "data science", "csv", "excel", "matplotlib", "numpy"]
+readTime: "12 min"
 featured: true
-seoKeywords: "python veri analizi, pandas tutorial, python pandas örnekleri, veri bilimi python"
+seoKeywords: "python data analysis, pandas tutorial, python pandas examples, data science python"
 ---
 
-# Python Veri Analizi: Pandas ile Sıfırdan İleri Seviyeye 2025 Rehberi
+# Python Data Analysis: From Zero to Advanced with Pandas 2025 Guide
 
-Günümüzde veri, işletmelerin en değerli varlıklarından biridir. Python'un **Pandas** kütüphanesi, bu verileri analiz etmek ve anlamlı bilgiler çıkarmak için en güçlü araçlardan biridir. Bu kapsamlı rehberde, Pandas ile veri analizi yapmayı sıfırdan öğreneceksiniz.
+Today, data is one of the most valuable assets of businesses. Python's **Pandas** library is one of the most powerful tools for analyzing this data and extracting meaningful insights. In this comprehensive guide, you'll learn data analysis with Pandas from scratch.
 
-## 🐼 Pandas Nedir ve Neden Önemlidir?
+## 🐼 What is Pandas and Why is it Important?
 
-Pandas (Python Data Analysis Library), Python programlama dili için geliştirilmiş açık kaynaklı bir veri manipülasyonu ve analizi kütüphanesidir. Excel'in programlama dünyasındaki karşılığı olarak düşünebilirsiniz, ama çok daha güçlü!
+Pandas (Python Data Analysis Library) is an open-source data manipulation and analysis library developed for the Python programming language. You can think of it as the programming world's equivalent of Excel, but much more powerful!
 
-### Pandas'ın Avantajları:
-- ✅ **Hızlı ve Verimli**: Büyük veri setleriyle çalışabilir
-- ✅ **Esnek Veri Yapıları**: DataFrame ve Series
-- ✅ **Kolay Veri Temizleme**: Eksik verilerle başa çıkma
-- ✅ **Güçlü İhracat/İthalat**: CSV, Excel, JSON, SQL desteği
-- ✅ **İstatistiksel Analizler**: Tanımlayıcı istatistikler
+### Advantages of Pandas:
+- ✅ **Fast and Efficient**: Can work with large datasets
+- ✅ **Flexible Data Structures**: DataFrame and Series
+- ✅ **Easy Data Cleaning**: Handling missing data
+- ✅ **Powerful Import/Export**: CSV, Excel, JSON, SQL support
+- ✅ **Statistical Analysis**: Descriptive statistics
 
-## 🚀 Pandas Kurulumu ve İlk Adımlar
+## 🚀 Pandas Installation and First Steps
 
-### Kurulum
+### Installation
 ```bash
-# pip ile kurulum
+# Installation with pip
 pip install pandas
 
-# Anaconda kullanıyorsanız
+# If using Anaconda
 conda install pandas
 
-# Görselleştirme için ek kütüphaneler
+# Additional libraries for visualization
 pip install matplotlib seaborn
 ```
 
-### İlk Pandas Kodu
+### First Pandas Code
 ```python
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Pandas versiyonunu kontrol edin
-print(f"Pandas versiyonu: {pd.__version__}")
+# Check Pandas version
+print(f"Pandas version: {pd.__version__}")
 
-# Basit bir DataFrame oluşturma
+# Creating a simple DataFrame
 data = {
-    'isim': ['Ahmet', 'Ayşe', 'Mehmet', 'Fatma', 'Ali'],
-    'yas': [25, 30, 35, 28, 32],
-    'maas': [5000, 6500, 7200, 5800, 6800],
-    'sehir': ['İstanbul', 'Ankara', 'İzmir', 'İstanbul', 'Ankara']
+    'name': ['John', 'Sarah', 'Michael', 'Emma', 'David'],
+    'age': [25, 30, 35, 28, 32],
+    'salary': [5000, 6500, 7200, 5800, 6800],
+    'city': ['New York', 'Boston', 'Chicago', 'New York', 'Boston']
 }
 
 df = pd.DataFrame(data)
 print(df)
 ```
 
-**Çıktı:**
+**Output:**
 ```
-     isim  yas  maas     sehir
-0   Ahmet   25  5000  İstanbul
-1    Ayşe   30  6500    Ankara
-2  Mehmet   35  7200     İzmir
-3   Fatma   28  5800  İstanbul
-4     Ali   32  6800    Ankara
+      name  age  salary      city
+0     John   25    5000  New York
+1    Sarah   30    6500    Boston
+2  Michael   35    7200   Chicago
+3     Emma   28    5800  New York
+4    David   32    6800    Boston
 ```
 
-## 📊 Pandas Temel Veri Yapıları
+## 📊 Pandas Basic Data Structures
 
-### 1. Series (Seri)
-Tek boyutlu veri yapısıdır, Excel'deki bir sütuna benzer.
+### 1. Series
+One-dimensional data structure, similar to a column in Excel.
 
 ```python
-# Series oluşturma
-ages = pd.Series([25, 30, 35, 28, 32], name='yaslar')
+# Creating Series
+ages = pd.Series([25, 30, 35, 28, 32], name='ages')
 print(ages)
 
-# Index ile Series
+# Series with index
 temperatures = pd.Series(
-    [22, 25, 19, 30, 27], 
-    index=['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma'],
-    name='sicaklik'
+    [22, 25, 19, 30, 27],
+    index=['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+    name='temperature'
 )
 print(temperatures)
 ```
@@ -518,17 +518,17 @@ Pandas ile veri analizi öğrenmek size şu fırsatları açar:
 4. **"Data cleaning process flowchart showing missing values handling"**
 5. **"Business intelligence dashboard showing sales analytics charts"**
 
-## 💡 Pratik Öneriler
+## 💡 Practical Tips
 
-### Günlük Veri Analizi Rutini:
-1. **Veri Keşfi** (15 dk): `.head()`, `.info()`, `.describe()`
-2. **Veri Temizleme** (30 dk): Eksik değerler, duplikatlar
-3. **Analiz** (45 dk): Gruplama, agregasyon, pivot
-4. **Görselleştirme** (30 dk): Grafik ve tablolar
-5. **Raporlama** (30 dk): Bulguları özetleme
+### Daily Data Analysis Routine:
+1. **Data Exploration** (15 min): `.head()`, `.info()`, `.describe()`
+2. **Data Cleaning** (30 min): Missing values, duplicates
+3. **Analysis** (45 min): Grouping, aggregation, pivot
+4. **Visualization** (30 min): Charts and tables
+5. **Reporting** (30 min): Summarizing findings
 
-Bu rehberle Pandas'ın gücünü keşfettiniz. Artık gerçek veri setleriyle çalışarak profesyonel analizler yapabilirsiniz!
+With this guide, you've discovered the power of Pandas. Now you can work with real datasets and perform professional analyses!
 
 ---
 
-*Bu makale Zumenzu veri bilimi ekibi tarafından hazırlanmıştır. Interaktif Pandas dersleri için [Zumenzu platformunu](/) ziyaret edin.*
+*This article was prepared by the Zumenzu data science team. Visit the [Zumenzu platform](/) for interactive Pandas lessons.*

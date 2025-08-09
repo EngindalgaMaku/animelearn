@@ -179,7 +179,52 @@ export const authOptions: NextAuthOptions = {
             }
             return true
           } else {
-            // New user - let NextAuth adapter handle creation
+            // Create new user manually to ensure it works
+            const username = user.email!.split('@')[0]
+            
+            // Ensure username is unique
+            let finalUsername = username
+            let counter = 1
+            while (await prisma.user.findUnique({ where: { username: finalUsername } })) {
+              finalUsername = `${username}_${counter}`
+              counter++
+            }
+
+            // Create new user
+            const newUser = await prisma.user.create({
+              data: {
+                email: user.email!,
+                username: finalUsername,
+                currentDiamonds: 100,
+                totalDiamonds: 100,
+                loginStreak: 1,
+                maxLoginStreak: 1,
+                lastLoginDate: new Date(),
+                isActive: true,
+                role: "user",
+                level: 1,
+                experience: 0,
+                isPremium: false,
+              }
+            })
+
+            // Create account record
+            await prisma.account.create({
+              data: {
+                userId: newUser.id,
+                type: account.type,
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+                refresh_token: account.refresh_token,
+                access_token: account.access_token,
+                expires_at: account.expires_at,
+                token_type: account.token_type,
+                scope: account.scope,
+                id_token: account.id_token,
+                session_state: account.session_state,
+              }
+            })
+
             return true
           }
         } catch (error) {

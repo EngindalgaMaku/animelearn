@@ -1,147 +1,147 @@
 ---
-title: "Python ile Neler Yapılır? 2025 Kapsamlı Rehberi"
-description: "Python programlama dilinin uygulama alanlarını keşfedin. Web geliştirmeden yapay zekaya, veri analizinden oyun geliştirmeye kadar Python'un gücünü öğrenin."
+title: "What Can You Do with Python? 2025 Comprehensive Guide"
+description: "Discover Python programming language's application areas. Learn Python's power from web development to artificial intelligence, from data analysis to game development."
 date: "2025-08-08"
-author: "Zumenzu Ekibi"
-category: "Python Temelleri"
-tags: ["python", "programlama", "kariyer", "web geliştirme", "yapay zeka", "veri analizi"]
-readTime: "8 dk"
+author: "Zumenzu Team"
+category: "Python Basics"
+tags: ["python", "programming", "career", "web development", "artificial intelligence", "data analysis"]
+readTime: "8 min"
 featured: true
-seoKeywords: "python ile neler yapılır, python uygulama alanları, python programlama, python öğren"
+seoKeywords: "what can you do with python, python applications, python programming, learn python"
 ---
 
-# Python ile Neler Yapılır? 2025 Kapsamlı Rehberi
+# What Can You Do with Python? 2025 Comprehensive Guide
 
-Python, günümüzün en popüler ve çok yönlü programlama dillerinden biridir. Basit sözdizimi ve güçlü kütüphaneleri sayesinde hem yeni başlayanlar hem de deneyimli geliştiriciler tarafından tercih edilmektedir. Peki Python ile gerçekte neler yapabilirsiniz?
+Python is one of today's most popular and versatile programming languages. Thanks to its simple syntax and powerful libraries, it is preferred by both beginners and experienced developers. So what can you actually do with Python?
 
-## 🌐 Web Geliştirme
+## 🌐 Web Development
 
-Python, web geliştirme alanında güçlü çözümler sunar:
+Python offers powerful solutions in web development:
 
-### Backend Geliştirme
+### Backend Development
 ```python
-# Django ile basit bir web uygulaması
+# Simple web application with Django
 from django.http import HttpResponse
 from django.shortcuts import render
 
-def anasayfa(request):
+def homepage(request):
     return render(request, 'index.html', {
-        'baslik': 'Python ile Web Geliştirme',
-        'mesaj': 'Hoş geldiniz!'
+        'title': 'Web Development with Python',
+        'message': 'Welcome!'
     })
 ```
 
-**Popüler Framework'ler:**
-- **Django**: Büyük ölçekli web uygulamaları
-- **Flask**: Mikro web framework
-- **FastAPI**: Modern, hızlı API geliştirme
-- **Pyramid**: Esnek web framework
+**Popular Frameworks:**
+- **Django**: Large-scale web applications
+- **Flask**: Micro web framework
+- **FastAPI**: Modern, fast API development
+- **Pyramid**: Flexible web framework
 
-### Gerçek Dünya Örnekleri
-- **Instagram**: Django kullanılarak geliştirildi
-- **Pinterest**: Web backend'i Python ile yazıldı
-- **Spotify**: Müzik önerileri Python algoritmaları ile
-- **YouTube**: Video işleme sistemleri
+### Real World Examples
+- **Instagram**: Developed using Django
+- **Pinterest**: Web backend written in Python
+- **Spotify**: Music recommendations with Python algorithms
+- **YouTube**: Video processing systems
 
-## 🤖 Yapay Zeka ve Makine Öğrenmesi
+## 🤖 Artificial Intelligence and Machine Learning
 
-Python, AI/ML alanının vazgeçilmez dilidir:
+Python is the indispensable language of the AI/ML field:
 
-### Makine Öğrenmesi Örneği
+### Machine Learning Example
 ```python
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 
-# Veri yükleme ve model eğitimi
-data = pd.read_csv('ev_fiyatlari.csv')
-X = data[['metrekare', 'oda_sayisi', 'yas']]
-y = data['fiyat']
+# Data loading and model training
+data = pd.read_csv('house_prices.csv')
+X = data[['square_meters', 'room_count', 'age']]
+y = data['price']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
 model = LinearRegression()
 model.fit(X_train, y_train)
 
-# Tahmin yapma
-tahmin = model.predict(X_test)
-hata = mean_squared_error(y_test, tahmin)
-print(f"Model hatası: {hata}")
+# Making predictions
+prediction = model.predict(X_test)
+error = mean_squared_error(y_test, prediction)
+print(f"Model error: {error}")
 ```
 
-**Uygulama Alanları:**
-- **Görüntü İşleme**: OpenCV, PIL
-- **Doğal Dil İşleme**: NLTK, spaCy
-- **Derin Öğrenme**: TensorFlow, PyTorch
-- **Veri Madenciliği**: scikit-learn, pandas
+**Application Areas:**
+- **Image Processing**: OpenCV, PIL
+- **Natural Language Processing**: NLTK, spaCy
+- **Deep Learning**: TensorFlow, PyTorch
+- **Data Mining**: scikit-learn, pandas
 
-### AI Proje Örnekleri
-1. **Chatbot Geliştirme**
-2. **Yüz Tanıma Sistemleri**
-3. **Sentiment Analizi**
-4. **Öneri Sistemleri**
-5. **Ses Tanıma Uygulamaları**
+### AI Project Examples
+1. **Chatbot Development**
+2. **Face Recognition Systems**
+3. **Sentiment Analysis**
+4. **Recommendation Systems**
+5. **Voice Recognition Applications**
 
-## 📊 Veri Analizi ve Bilim
+## 📊 Data Analysis and Science
 
-Python, veri bilimcilerin en çok tercih ettiği dildir:
+Python is the most preferred language by data scientists:
 
-### Veri Analizi Örneği
+### Data Analysis Example
 ```python
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Satış verilerini analiz etme
-satis_data = pd.read_csv('satis_verileri.csv')
+# Analyzing sales data
+sales_data = pd.read_csv('sales_data.csv')
 
-# Temel istatistikler
-print(satis_data.describe())
+# Basic statistics
+print(sales_data.describe())
 
-# Aylık satış trendi
-satis_data['tarih'] = pd.to_datetime(satis_data['tarih'])
-aylik_satis = satis_data.groupby(satis_data['tarih'].dt.month)['miktar'].sum()
+# Monthly sales trend
+sales_data['date'] = pd.to_datetime(sales_data['date'])
+monthly_sales = sales_data.groupby(sales_data['date'].dt.month)['amount'].sum()
 
-# Görselleştirme
+# Visualization
 plt.figure(figsize=(12, 6))
-aylik_satis.plot(kind='bar')
-plt.title('Aylık Satış Trendleri')
-plt.xlabel('Ay')
-plt.ylabel('Satış Miktarı')
+monthly_sales.plot(kind='bar')
+plt.title('Monthly Sales Trends')
+plt.xlabel('Month')
+plt.ylabel('Sales Amount')
 plt.show()
 ```
 
-**Kullanılan Kütüphaneler:**
-- **Pandas**: Veri manipülasyonu
-- **NumPy**: Sayısal hesaplamalar
-- **Matplotlib/Seaborn**: Veri görselleştirme
-- **Jupyter Notebook**: İnteraktif analiz
+**Used Libraries:**
+- **Pandas**: Data manipulation
+- **NumPy**: Numerical computations
+- **Matplotlib/Seaborn**: Data visualization
+- **Jupyter Notebook**: Interactive analysis
 
-## 🎮 Oyun Geliştirme
+## 🎮 Game Development
 
-Python ile basit ama eğlenceli oyunlar geliştirebilirsiniz:
+You can develop simple but fun games with Python:
 
-### Basit Snake Oyunu
+### Simple Snake Game
 ```python
 import pygame
 import random
 
-# Pygame başlatma
+# Initialize Pygame
 pygame.init()
 
-# Oyun ayarları
+# Game settings
 WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Snake Oyunu")
+pygame.display.set_caption("Snake Game")
 
-# Renkler
+# Colors
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 
-# Oyun döngüsü
-def oyun_dongusu():
+# Game loop
+def game_loop():
     clock = pygame.time.Clock()
     running = True
     
@@ -151,68 +151,68 @@ def oyun_dongusu():
                 running = False
         
         screen.fill(BLACK)
-        # Oyun logikleri burada...
+        # Game logic goes here...
         
         pygame.display.flip()
         clock.tick(60)
     
     pygame.quit()
 
-oyun_dongusu()
+game_loop()
 ```
 
-**Oyun Geliştirme Araçları:**
-- **Pygame**: 2D oyun geliştirme
-- **Panda3D**: 3D oyun motoru
-- **Arcade**: Modern Python oyun kütüphanesi
+**Game Development Tools:**
+- **Pygame**: 2D game development
+- **Panda3D**: 3D game engine
+- **Arcade**: Modern Python game library
 
-## 🔧 Otomasyon ve Scripting
+## 🔧 Automation and Scripting
 
-Python, tekrarlayan işleri otomatikleştirmek için mükemmeldir:
+Python is perfect for automating repetitive tasks:
 
-### Dosya Organizasyonu Scripti
+### File Organization Script
 ```python
 import os
 import shutil
 from pathlib import Path
 
-def dosyalari_organize_et(klasor_yolu):
-    """Dosyaları uzantılarına göre organize eder"""
+def organize_files(folder_path):
+    """Organizes files by their extensions"""
     
-    uzanti_klasorleri = {
-        '.jpg': 'Resimler',
-        '.png': 'Resimler', 
-        '.pdf': 'Belgeler',
-        '.docx': 'Belgeler',
-        '.mp3': 'Muzik',
-        '.mp4': 'Videolar'
+    extension_folders = {
+        '.jpg': 'Images',
+        '.png': 'Images',
+        '.pdf': 'Documents',
+        '.docx': 'Documents',
+        '.mp3': 'Music',
+        '.mp4': 'Videos'
     }
     
-    for dosya in os.listdir(klasor_yolu):
-        dosya_yolu = os.path.join(klasor_yolu, dosya)
+    for file in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, file)
         
-        if os.path.isfile(dosya_yolu):
-            uzanti = Path(dosya).suffix.lower()
+        if os.path.isfile(file_path):
+            extension = Path(file).suffix.lower()
             
-            if uzanti in uzanti_klasorleri:
-                hedef_klasor = os.path.join(klasor_yolu, uzanti_klasorleri[uzanti])
+            if extension in extension_folders:
+                target_folder = os.path.join(folder_path, extension_folders[extension])
                 
-                # Klasör yoksa oluştur
-                os.makedirs(hedef_klasor, exist_ok=True)
+                # Create folder if it doesn't exist
+                os.makedirs(target_folder, exist_ok=True)
                 
-                # Dosyayı taşı
-                shutil.move(dosya_yolu, os.path.join(hedef_klasor, dosya))
-                print(f"{dosya} -> {uzanti_klasorleri[uzanti]} klasörüne taşındı")
+                # Move file
+                shutil.move(file_path, os.path.join(target_folder, file))
+                print(f"{file} -> moved to {extension_folders[extension]} folder")
 
-# Kullanım
-dosyalari_organize_et("/path/to/your/folder")
+# Usage
+organize_files("/path/to/your/folder")
 ```
 
-**Otomasyon Örnekleri:**
-- Email gönderimi
-- Excel rapor oluşturma
+**Automation Examples:**
+- Email sending
+- Excel report generation
 - Web scraping
-- Sistem yönetimi
+- System administration
 - Social media posting
 
 ## 💻 Masaüstü Uygulamaları
@@ -400,65 +400,65 @@ class MobilUygulamaApp(App):
 MobilUygulamaApp().run()
 ```
 
-## 🔍 Python ile Kariyer Fırsatları
+## 🔍 Career Opportunities with Python
 
-Python öğrenmek size şu kariyer yollarını açar:
+Learning Python opens these career paths for you:
 
 ### 1. **Web Developer**
-- Ortalama Maaş: 45,000 - 80,000 TL
-- Kullanılan Teknolojiler: Django, Flask, FastAPI
+- Average Salary: $35,000 - $65,000
+- Technologies Used: Django, Flask, FastAPI
 
 ### 2. **Data Scientist**
-- Ortalama Maaş: 60,000 - 120,000 TL
-- Kullanılan Teknolojiler: Pandas, NumPy, Scikit-learn
+- Average Salary: $50,000 - $95,000
+- Technologies Used: Pandas, NumPy, Scikit-learn
 
 ### 3. **Machine Learning Engineer**
-- Ortalama Maaş: 70,000 - 150,000 TL
-- Kullanılan Teknolojiler: TensorFlow, PyTorch, Keras
+- Average Salary: $60,000 - $120,000
+- Technologies Used: TensorFlow, PyTorch, Keras
 
 ### 4. **DevOps Engineer**
-- Ortalama Maaş: 55,000 - 100,000 TL
-- Kullanılan Teknolojiler: Ansible, Docker, Kubernetes
+- Average Salary: $45,000 - $80,000
+- Technologies Used: Ansible, Docker, Kubernetes
 
 ### 5. **Backend Developer**
-- Ortalama Maaş: 50,000 - 90,000 TL
-- Kullanılan Teknolojiler: Django, FastAPI, PostgreSQL
+- Average Salary: $40,000 - $75,000
+- Technologies Used: Django, FastAPI, PostgreSQL
 
-## 🚀 Python Öğrenmeye Nereden Başlanır?
+## 🚀 Where to Start Learning Python?
 
 ### Beginner Roadmap:
-1. **Python Temellerini Öğrenin** (2-3 hafta)
-   - Değişkenler, veri tipleri
-   - Döngüler ve koşullar
-   - Fonksiyonlar
+1. **Learn Python Fundamentals** (2-3 weeks)
+   - Variables, data types
+   - Loops and conditions
+   - Functions
 
-2. **Proje Tabanlı Öğrenme** (1-2 ay)
-   - Basit hesap makinesi
-   - Todo list uygulaması
+2. **Project-Based Learning** (1-2 months)
+   - Simple calculator
+   - Todo list application
    - Web scraper
 
-3. **Specialized Framework** (2-3 ay)
-   - Web için Django/Flask
-   - Data Science için Pandas/NumPy
-   - AI için TensorFlow/PyTorch
+3. **Specialized Framework** (2-3 months)
+   - Django/Flask for web
+   - Pandas/NumPy for Data Science
+   - TensorFlow/PyTorch for AI
 
-4. **Gerçek Proje Geliştirin** (3-6 ay)
-   - Github portföyü oluşturun
-   - Open source projelere katkıda bulunun
-   - Kendi projelerinizi deploy edin
+4. **Build Real Projects** (3-6 months)
+   - Create Github portfolio
+   - Contribute to open source projects
+   - Deploy your own projects
 
-## 💡 Sonuç
+## 💡 Conclusion
 
-Python'un çok yönlülüğü onu hem yeni başlayanlar hem de ileri seviye geliştiriciler için ideal kılar. Web geliştirmeden yapay zekaya, veri analizinden oyun geliştirmeye kadar geniş bir yelpazede kullanabilirsiniz.
+Python's versatility makes it ideal for both beginners and advanced developers. You can use it in a wide range from web development to artificial intelligence, from data analysis to game development.
 
-**Python öğrenmeye başlamak için en iyi zaman şu andır!** Zumenzu platformunda interaktif quiz'ler ve projelerle Python serüveninize başlayabilirsiniz.
+**The best time to start learning Python is now!** You can start your Python adventure with interactive quizzes and projects on the Zumenzu platform.
 
-### 🔗 İlgili Kaynaklar:
-- [Python Resmi Dokümantasyonu](https://docs.python.org/3/)
+### 🔗 Related Resources:
+- [Official Python Documentation](https://docs.python.org/3/)
 - [Python Package Index (PyPI)](https://pypi.org/)
-- [GitHub Python Projeleri](https://github.com/topics/python)
-- [Python Topluluk Forumu](https://discuss.python.org/)
+- [GitHub Python Projects](https://github.com/topics/python)
+- [Python Community Forum](https://discuss.python.org/)
 
 ---
 
-*Bu makale Zumenzu ekibi tarafından Python öğrenmek isteyenler için hazırlanmıştır. Interaktif Python dersleri için [Zumenzu platformunu](/) ziyaret edin.*
+*This article was prepared by the Zumenzu team for those who want to learn Python. Visit the [Zumenzu platform](/) for interactive Python lessons.*

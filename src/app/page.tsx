@@ -38,7 +38,6 @@ import {
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import Head from "next/head";
-import CodeHighlight from "@/components/quiz/code-highlight";
 
 interface Stats {
   totalUsers: number;
@@ -182,44 +181,14 @@ export default function HomePage() {
     }
   };
 
-  // Helper function to detect and render code with highlighting
+  // Helper function to render text without code highlighting
   const renderTextWithCode = (text: string) => {
-    const codePattern = /```([\s\S]*?)```|`([^`]+)`/g;
-    const parts = [];
-    let lastIndex = 0;
-    let match;
-
-    while ((match = codePattern.exec(text)) !== null) {
-      // Add text before code
-      if (match.index > lastIndex) {
-        parts.push(text.slice(lastIndex, match.index));
-      }
-      
-      // Add highlighted code
-      const code = match[1] || match[2]; // Block code or inline code
-      const isBlock = !!match[1];
-      parts.push(
-        <CodeHighlight
-          key={match.index}
-          code={code}
-          inline={!isBlock}
-        />
-      );
-      
-      lastIndex = match.index + match[0].length;
-    }
-    
-    // Add remaining text
-    if (lastIndex < text.length) {
-      parts.push(text.slice(lastIndex));
-    }
-    
-    return parts.length > 1 ? parts : text;
+    return text;
   };
 
-  // Helper function to render quiz options with code highlighting
+  // Helper function to render quiz options without code highlighting
   const renderOption = (option: string) => {
-    return renderTextWithCode(option);
+    return option;
   };
 
   return (
@@ -840,13 +809,13 @@ export default function HomePage() {
             <div className="mb-16 text-center">
               <div className="mb-6 inline-flex items-center rounded-full bg-gradient-to-r from-green-500/20 to-blue-500/20 px-6 py-3 text-sm font-semibold text-green-700">
                 <FileText className="mr-2 h-4 w-4" />
-                📚 Python Öğrenme Rehberleri
+                📚 Python Learning Guides
               </div>
               <h2 className="mb-4 text-4xl font-bold text-slate-900 lg:text-5xl">
-                📖 Kapsamlı Python Blog'u
+                📖 Comprehensive Python Blog
               </h2>
               <p className="mx-auto max-w-3xl text-xl text-slate-600">
-                Başlangıçtan ileri seviyeye Python programlamada ustalaşmanız için hazırladığımız detaylı rehberler ve makaleler
+                Detailed guides and articles we've prepared for you to master Python programming from beginner to advanced level
               </p>
             </div>
 
@@ -864,24 +833,24 @@ export default function HomePage() {
                 </div>
                 
                 <h3 className="mb-3 text-xl font-bold text-slate-900 group-hover:text-green-600 transition-colors">
-                  Python Programlamaya Giriş Rehberi
+                  Python Programming Introduction Guide
                 </h3>
                 
                 <p className="mb-4 text-slate-600 line-clamp-3">
-                  Python öğrenmeye başlayanlar için kapsamlı bir rehber. Değişkenler, veri türleri, döngüler ve fonksiyonlar hakkında bilmeniz gereken her şey.
+                  A comprehensive guide for those starting to learn Python. Everything you need to know about variables, data types, loops and functions.
                 </p>
 
                 <div className="mb-4 flex flex-wrap gap-2">
                   <span className="rounded-md bg-green-100 px-2 py-1 text-xs text-green-700">#python</span>
-                  <span className="rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700">#başlangıç</span>
-                  <span className="rounded-md bg-purple-100 px-2 py-1 text-xs text-purple-700">#programlama</span>
+                  <span className="rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700">#beginner</span>
+                  <span className="rounded-md bg-purple-100 px-2 py-1 text-xs text-purple-700">#programming</span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500">1 Ağustos 2025</span>
+                  <span className="text-xs text-slate-500">August 1, 2025</span>
                   <div className="flex items-center space-x-1 text-green-600">
                     <FileText className="h-4 w-4" />
-                    <span className="text-sm font-medium">Detayları Gör</span>
+                    <span className="text-sm font-medium">Read More</span>
                   </div>
                 </div>
               </Link>
@@ -899,24 +868,24 @@ export default function HomePage() {
                 </div>
                 
                 <h3 className="mb-3 text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                  Python ile Neler Yapılır? 2025 Rehberi
+                  What Can You Do with Python? 2025 Guide
                 </h3>
                 
                 <p className="mb-4 text-slate-600 line-clamp-3">
-                  Python'un uygulama alanları ve günümüzde hangi projelerde kullanıldığını keşfedin. Web geliştirmeden yapay zekaya kadar geniş bir yelpaze.
+                  Discover Python's application areas and which projects it's used in today. A wide range from web development to artificial intelligence.
                 </p>
 
                 <div className="mb-4 flex flex-wrap gap-2">
                   <span className="rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700">#python</span>
-                  <span className="rounded-md bg-purple-100 px-2 py-1 text-xs text-purple-700">#kariyer</span>
-                  <span className="rounded-md bg-orange-100 px-2 py-1 text-xs text-orange-700">#projeler</span>
+                  <span className="rounded-md bg-purple-100 px-2 py-1 text-xs text-purple-700">#career</span>
+                  <span className="rounded-md bg-orange-100 px-2 py-1 text-xs text-orange-700">#projects</span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500">3 Ağustos 2025</span>
+                  <span className="text-xs text-slate-500">August 3, 2025</span>
                   <div className="flex items-center space-x-1 text-blue-600">
                     <FileText className="h-4 w-4" />
-                    <span className="text-sm font-medium">Detayları Gör</span>
+                    <span className="text-sm font-medium">Read More</span>
                   </div>
                 </div>
               </Link>
@@ -934,24 +903,24 @@ export default function HomePage() {
                 </div>
                 
                 <h3 className="mb-3 text-xl font-bold text-slate-900 group-hover:text-purple-600 transition-colors">
-                  Python Veri Analizi: Pandas Rehberi
+                  Python Data Analysis: Pandas Guide
                 </h3>
                 
                 <p className="mb-4 text-slate-600 line-clamp-3">
-                  Pandas kütüphanesi ile veri analizi yapmayı öğrenin. DataFrame'ler, veri temizleme ve görselleştirme teknikleri.
+                  Learn to do data analysis with the Pandas library. DataFrames, data cleaning and visualization techniques.
                 </p>
 
                 <div className="mb-4 flex flex-wrap gap-2">
                   <span className="rounded-md bg-purple-100 px-2 py-1 text-xs text-purple-700">#python</span>
                   <span className="rounded-md bg-green-100 px-2 py-1 text-xs text-green-700">#pandas</span>
-                  <span className="rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700">#veri-analizi</span>
+                  <span className="rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700">#data-analysis</span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500">5 Ağustos 2025</span>
+                  <span className="text-xs text-slate-500">August 5, 2025</span>
                   <div className="flex items-center space-x-1 text-purple-600">
                     <FileText className="h-4 w-4" />
-                    <span className="text-sm font-medium">Detayları Gör</span>
+                    <span className="text-sm font-medium">Read More</span>
                   </div>
                 </div>
               </Link>
@@ -964,11 +933,11 @@ export default function HomePage() {
                 className="inline-flex items-center space-x-3 rounded-xl bg-gradient-to-r from-green-500 to-blue-500 px-8 py-4 text-lg font-semibold text-white transition-all hover:from-green-600 hover:to-blue-600 transform hover:scale-105"
               >
                 <FileText className="h-6 w-6" />
-                <span>Tüm Blog Yazılarını Keşfet</span>
+                <span>Explore All Blog Posts</span>
                 <ArrowRight className="h-5 w-5" />
               </Link>
               <p className="mt-3 text-sm text-slate-600">
-                Python öğrenme yolculuğunuzu hızlandıracak 20+ detaylı rehber
+                20+ detailed guides to accelerate your Python learning journey
               </p>
             </div>
 

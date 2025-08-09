@@ -1,57 +1,57 @@
 ---
-title: "Python Programlamaya Giriş: Sıfırdan İlk Projeye Kadar 2025 Rehberi"
-description: "Python programlama dilini sıfırdan öğrenin! Kurulumdan ilk projenize kadar adım adım rehber. Örnekler, alıştırmalar ve projelerle destekli."
+title: "Introduction to Python Programming: From Zero to First Project 2025 Guide"
+description: "Learn Python programming language from scratch! Step-by-step guide from installation to your first project. Supported with examples, exercises and projects."
 date: "2025-08-08"
-author: "Zumenzu Programlama Ekibi"
-category: "Python Temelleri"
-tags: ["python", "programlama giriş", "python öğren", "başlangıç", "tutorial", "kod yazmaya başla"]
-readTime: "15 dk"
+author: "Zumenzu Programming Team"
+category: "Python Basics"
+tags: ["python", "programming introduction", "learn python", "beginner", "tutorial", "start coding"]
+readTime: "15 min"
 featured: true
-seoKeywords: "python öğren, python programlama giriş, python nasıl öğrenilir, python kurulum, programlamaya başla"
+seoKeywords: "learn python, python programming introduction, how to learn python, python installation, start programming"
 ---
 
-# Python Programlamaya Giriş: Sıfırdan İlk Projeye Kadar 2025 Rehberi
+# Introduction to Python Programming: From Zero to First Project 2025 Guide
 
-Python öğrenmek mi istiyorsunuz? Doğru yerdesiniz! Bu kapsamlı rehberde Python programlama dilini sıfırdan öğrenecek, ilk kodlarınızı yazacak ve gerçek projeler geliştireceksiniz. Hiçbir programlama deneyiminiz olmasa bile, bu rehberi takip ederek Python'a hakim olabilirsiniz.
+Do you want to learn Python? You're in the right place! In this comprehensive guide, you'll learn Python programming language from scratch, write your first codes, and develop real projects. Even if you have no programming experience, you can master Python by following this guide.
 
-## 🐍 Python Nedir ve Neden Tercih Edilir?
+## 🐍 What is Python and Why Choose It?
 
-Python, 1991 yılında Guido van Rossum tarafından geliştirilen, **okunabilir**, **öğrenmesi kolay** ve **güçlü** bir programlama dilidir. Dünyanın en popüler programlama dillerinden biri haline gelmiştir.
+Python is a **readable**, **easy to learn** and **powerful** programming language developed by Guido van Rossum in 1991. It has become one of the world's most popular programming languages.
 
-### Python'un Avantajları:
-- ✅ **Basit Sözdizimi**: İngilizce'ye benzer yapısı
-- ✅ **Çok Amaçlı**: Web, veri analizi, AI, otomasyon
-- ✅ **Büyük Topluluk**: Milyonlarca geliştirici desteği
-- ✅ **Zengin Kütüphane**: Her ihtiyacınız için hazır çözümler
-- ✅ **Platform Bağımsız**: Windows, Mac, Linux'ta çalışır
-- ✅ **Yüksek Maaş**: Python geliştiricileri için iyi iş fırsatları
+### Advantages of Python:
+- ✅ **Simple Syntax**: English-like structure
+- ✅ **Multi-Purpose**: Web, data analysis, AI, automation
+- ✅ **Large Community**: Support from millions of developers
+- ✅ **Rich Libraries**: Ready solutions for every need
+- ✅ **Platform Independent**: Works on Windows, Mac, Linux
+- ✅ **High Salary**: Good job opportunities for Python developers
 
-### Python ile Neler Yapabilirsiniz?
-- 🌐 **Web Siteleri**: Django, Flask ile
-- 📊 **Veri Analizi**: Pandas, NumPy ile  
-- 🤖 **Yapay Zeka**: TensorFlow, PyTorch ile
-- 🎮 **Oyunlar**: Pygame ile
-- 📱 **Mobil Uygulamalar**: Kivy ile
-- 🔧 **Otomasyon Scriptleri**: Günlük işleri otomatikleştirme
+### What Can You Do with Python?
+- 🌐 **Websites**: With Django, Flask
+- 📊 **Data Analysis**: With Pandas, NumPy
+- 🤖 **Artificial Intelligence**: With TensorFlow, PyTorch
+- 🎮 **Games**: With Pygame
+- 📱 **Mobile Applications**: With Kivy
+- 🔧 **Automation Scripts**: Automating daily tasks
 
-## 🚀 Python Kurulumu
+## 🚀 Python Installation
 
-### Windows'a Kurulum
-1. [python.org](https://python.org) adresine gidin
-2. "Download Python 3.12" butonuna tıklayın
-3. İndirilen `.exe` dosyasını çalıştırın
-4. **"Add Python to PATH"** kutucuğunu işaretleyin ⚠️ ÖNEMLİ
-5. "Install Now" butonuna tıklayın
+### Windows Installation
+1. Go to [python.org](https://python.org)
+2. Click "Download Python 3.12" button
+3. Run the downloaded `.exe` file
+4. Check **"Add Python to PATH"** checkbox ⚠️ IMPORTANT
+5. Click "Install Now" button
 
-### Mac'e Kurulum
+### Mac Installation
 ```bash
-# Homebrew ile (önerilen)
+# With Homebrew (recommended)
 brew install python
 
-# veya python.org'dan indirip kurun
+# or download and install from python.org
 ```
 
-### Linux'a Kurulum
+### Linux Installation
 ```bash
 # Ubuntu/Debian
 sudo apt update
@@ -61,14 +61,14 @@ sudo apt install python3 python3-pip
 sudo yum install python3 python3-pip
 ```
 
-### Kurulum Kontrolü
+### Installation Check
 ```bash
-# Terminal/Command Prompt'ta çalıştırın
+# Run in Terminal/Command Prompt
 python --version
-# veya
+# or
 python3 --version
 
-# Çıktı: Python 3.12.0 (veya benzer)
+# Output: Python 3.12.0 (or similar)
 ```
 
 ## 💻 Geliştirme Ortamı Hazırlığı
@@ -99,122 +99,122 @@ python3 --version
 3. Aşağıdaki kodu yazın:
 
 ```python
-print("Merhaba, Python Dünyası!")
-print("Ben Python öğreniyorum 🐍")
+print("Hello, Python World!")
+print("I'm learning Python 🐍")
 ```
 
 4. `Ctrl+F5` ile çalıştırın
 
-## 📚 Python Temel Kavramları
+## 📚 Python Basic Concepts
 
-### 1. Değişkenler (Variables)
-Değişkenler, veriyi bellekte saklamak için kullanılır.
+### 1. Variables
+Variables are used to store data in memory.
 
 ```python
-# Değişken tanımlama
-isim = "Ahmet"
-yas = 25
-boy = 1.75
-ogrenci_mi = True
+# Variable definition
+name = "John"
+age = 25
+height = 1.75
+is_student = True
 
-# Değişkenleri yazdırma
-print("İsim:", isim)
-print("Yaş:", yas)
-print("Boy:", boy)
-print("Öğrenci mi?", ogrenci_mi)
+# Printing variables
+print("Name:", name)
+print("Age:", age)
+print("Height:", height)
+print("Is student?", is_student)
 
-# Değişken türlerini öğrenme
-print(type(isim))    # <class 'str'>
-print(type(yas))     # <class 'int'>
-print(type(boy))     # <class 'float'>
-print(type(ogrenci_mi))  # <class 'bool'>
+# Learning variable types
+print(type(name))    # <class 'str'>
+print(type(age))     # <class 'int'>
+print(type(height))     # <class 'float'>
+print(type(is_student))  # <class 'bool'>
 ```
 
-### 2. Veri Tipleri (Data Types)
+### 2. Data Types
 
-#### String (Metin)
+#### String (Text)
 ```python
-# String tanımlama
-ad = "Python"
-soyad = 'Programcısı'
-mesaj = """Bu bir
-çok satırlı
-string'dir."""
+# String definition
+first_name = "Python"
+last_name = 'Programmer'
+message = """This is a
+multi-line
+string."""
 
-# String işlemleri
-tam_isim = ad + " " + soyad  # Birleştirme
-print(tam_isim.upper())      # PYTHON PROGRAMCISI
-print(tam_isim.lower())      # python programcısı
-print(len(tam_isim))         # String uzunluğu
+# String operations
+full_name = first_name + " " + last_name  # Concatenation
+print(full_name.upper())      # PYTHON PROGRAMMER
+print(full_name.lower())      # python programmer
+print(len(full_name))         # String length
 
 # String formatting
-print(f"Merhaba, ben {tam_isim}")
-print("Yaşım {} ve boyum {}".format(yas, boy))
+print(f"Hello, I am {full_name}")
+print("My age is {} and height is {}".format(age, height))
 ```
 
-#### Number (Sayılar)
+#### Number (Numbers)
 ```python
-# Integer (Tam sayı)
-sayi1 = 42
-sayi2 = -17
+# Integer (Whole number)
+num1 = 42
+num2 = -17
 
-# Float (Ondalıklı sayı)
+# Float (Decimal number)
 pi = 3.14159
-sicaklik = -5.5
+temperature = -5.5
 
-# Matematiksel işlemler
-toplam = sayi1 + sayi2       # Toplama
-fark = sayi1 - sayi2         # Çıkarma
-carpim = sayi1 * sayi2       # Çarpma
-bolum = sayi1 / sayi2        # Bölme
-kalan = sayi1 % sayi2        # Mod (kalan)
-us = sayi1 ** 2              # Üs alma
+# Mathematical operations
+sum_result = num1 + num2       # Addition
+difference = num1 - num2       # Subtraction
+product = num1 * num2          # Multiplication
+division = num1 / num2         # Division
+remainder = num1 % num2        # Modulo (remainder)
+power = num1 ** 2              # Exponentiation
 
-print(f"Toplam: {toplam}")
-print(f"Çarpım: {carpim}")
-print(f"42'nin karesi: {us}")
+print(f"Sum: {sum_result}")
+print(f"Product: {product}")
+print(f"42 squared: {power}")
 ```
 
 #### Boolean (True/False)
 ```python
-# Boolean değerler
-dogru = True
-yanlis = False
+# Boolean values
+true_val = True
+false_val = False
 
-# Boolean işlemleri
-sonuc1 = 5 > 3        # True
-sonuc2 = 10 == 5      # False
-sonuc3 = "python" in "python programlama"  # True
+# Boolean operations
+result1 = 5 > 3        # True
+result2 = 10 == 5      # False
+result3 = "python" in "python programming"  # True
 
-print(f"5 > 3: {sonuc1}")
-print(f"10 == 5: {sonuc2}")
+print(f"5 > 3: {result1}")
+print(f"10 == 5: {result2}")
 ```
 
-### 3. Listeler (Lists)
-Listeler, birden fazla öğeyi saklamak için kullanılır.
+### 3. Lists
+Lists are used to store multiple items.
 
 ```python
-# Liste oluşturma
-meyveler = ["elma", "armut", "muz", "üzüm"]
-sayilar = [1, 2, 3, 4, 5]
-karisik = ["Python", 42, True, 3.14]
+# Creating lists
+fruits = ["apple", "pear", "banana", "grape"]
+numbers = [1, 2, 3, 4, 5]
+mixed = ["Python", 42, True, 3.14]
 
-# Liste elemanlarına erişim
-print(meyveler[0])    # elma (ilk eleman)
-print(meyveler[-1])   # üzüm (son eleman)
-print(meyveler[1:3])  # ['armut', 'muz'] (slice)
+# Accessing list elements
+print(fruits[0])    # apple (first element)
+print(fruits[-1])   # grape (last element)
+print(fruits[1:3])  # ['pear', 'banana'] (slice)
 
-# Liste işlemleri
-meyveler.append("kiraz")        # Eleman ekleme
-meyveler.remove("armut")        # Eleman silme
-meyveler.insert(1, "portakal")  # Belirli pozisyona ekleme
+# List operations
+fruits.append("cherry")        # Adding element
+fruits.remove("pear")          # Removing element
+fruits.insert(1, "orange")     # Adding to specific position
 
-print("Güncel meyve listesi:", meyveler)
-print("Liste uzunluğu:", len(meyveler))
+print("Current fruit list:", fruits)
+print("List length:", len(fruits))
 
-# Liste üzerinde döngü
-for meyve in meyveler:
-    print(f"Sevdiğim meyve: {meyve}")
+# Looping through list
+for fruit in fruits:
+    print(f"My favorite fruit: {fruit}")
 ```
 
 ### 4. Sözlükler (Dictionaries)

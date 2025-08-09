@@ -32,7 +32,7 @@ const navigation = [
     href: "/",
     icon: Home,
     requireAuth: false,
-    hideForAuth: true, // Hide for authenticated users
+    // Remove hideForAuth - Home should always be visible and first
   },
   {
     name: "Dashboard",
@@ -150,9 +150,8 @@ export default function MainNavigation() {
             <div className="flex items-center space-x-1">
               {navigation.filter(item => {
                 if (item.requireAuth && !isAuthenticated) return false;
-                if (item.hideForAuth && isAuthenticated) return false;
-                // Show primary items on tablet: Dashboard, Code Arena, Shop
-                return ['Dashboard', 'Code Arena', 'Shop'].includes(item.name);
+                // Show primary items on tablet: Home, Dashboard, Code Arena, Shop
+                return ['Home', 'Dashboard', 'Code Arena', 'Shop'].includes(item.name);
               }).map((item) => {
                 const isActive = pathname === item.href;
                 const IconComponent = item.icon;
@@ -185,8 +184,7 @@ export default function MainNavigation() {
                 {/* Show remaining items normally on large screens */}
                 {navigation.filter(item => {
                   if (item.requireAuth && !isAuthenticated) return false;
-                  if (item.hideForAuth && isAuthenticated) return false;
-                  return !['Dashboard', 'Code Arena', 'Shop'].includes(item.name);
+                  return !['Home', 'Dashboard', 'Code Arena', 'Shop'].includes(item.name);
                 }).map((item) => {
                   const isActive = pathname === item.href;
                   const IconComponent = item.icon;
@@ -216,8 +214,7 @@ export default function MainNavigation() {
               {(() => {
                 const secondaryItems = navigation.filter(item => {
                   if (item.requireAuth && !isAuthenticated) return false;
-                  if (item.hideForAuth && isAuthenticated) return false;
-                  return !['Dashboard', 'Code Arena', 'Shop'].includes(item.name);
+                  return !['Home', 'Dashboard', 'Code Arena', 'Shop'].includes(item.name);
                 });
 
                 if (secondaryItems.length === 0) return null;
@@ -474,7 +471,6 @@ export default function MainNavigation() {
               {/* Navigation Links */}
               {navigation.map((item) => {
                 if (item.requireAuth && !isAuthenticated) return null;
-                if (item.hideForAuth && isAuthenticated) return null;
 
                 const isActive = pathname === item.href;
                 const IconComponent = item.icon;

@@ -22,10 +22,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   const getCategoryColor = (category: string) => {
     switch (category) {
+      case "Python Basics":
       case "Python Temelleri":
         return "bg-blue-100 text-blue-800 border-blue-200";
       case "Python Applications":
         return "bg-purple-100 text-purple-800 border-purple-200";
+      case "Data Analysis":
       case "Veri Analizi":
         return "bg-green-100 text-green-800 border-green-200";
       default:
@@ -44,7 +46,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               className="inline-flex items-center space-x-2 text-white/80 hover:text-white transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span>Blog'a Dön</span>
+              <span>Back to Blog</span>
             </Link>
           </div>
 
@@ -106,10 +108,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             {/* Bottom CTA */}
             <div className="mt-12 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 p-8 text-center border border-blue-200">
               <h3 className="mb-4 text-2xl font-bold text-slate-900">
-                🚀 Python Öğrenmeye Devam Edin!
+                🚀 Continue Learning Python!
               </h3>
               <p className="mb-6 text-slate-600">
-                Blog yazısını okudunuz, şimdi sıra interaktif derslerle pratik yapmaya geldi!
+                You've read the blog post, now it's time to practice with interactive lessons!
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
@@ -117,14 +119,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   className="inline-flex items-center space-x-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 px-6 py-3 font-semibold text-white transition-all hover:from-blue-600 hover:to-purple-600"
                 >
                   <FileText className="h-5 w-5" />
-                  <span>Code Arena'ya Başla</span>
+                  <span>Start Code Arena</span>
                 </Link>
                 <Link
                   href="/blog"
                   className="inline-flex items-center space-x-2 rounded-xl border-2 border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 transition-all hover:bg-slate-50"
                 >
                   <ArrowLeft className="h-5 w-5" />
-                  <span>Diğer Blog Yazıları</span>
+                  <span>Other Blog Posts</span>
                 </Link>
               </div>
             </div>

@@ -424,13 +424,13 @@ function ShopPageContent() {
 
   if (initialLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="text-center">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
+        <div className="text-center max-w-sm mx-auto">
           <div
-            className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-t-transparent"
+            className="mx-auto h-12 w-12 sm:h-16 sm:w-16 animate-spin rounded-full border-4 border-t-transparent"
             style={{ borderColor: `${themeConfig.primary}40`, borderTopColor: 'transparent' }}
           ></div>
-          <p className="mt-4 text-lg font-medium text-gray-700">Loading shop...</p>
+          <p className="mt-4 text-base sm:text-lg font-medium text-gray-700">Loading shop...</p>
           <p className="mt-2 text-sm text-gray-500">Preparing your collection experience</p>
         </div>
       </div>
@@ -438,7 +438,7 @@ function ShopPageContent() {
   }
 
   return (
-    <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8 xl:px-12">
+    <div className="mx-auto max-w-[1400px] px-2 py-3 sm:px-4 sm:py-6 lg:px-8 xl:px-12">
       {/* Category Selector */}
       <div className="mb-6">
         <CategorySelector
@@ -448,27 +448,29 @@ function ShopPageContent() {
         />
       </div>
 
-      {/* Welcome Text with Info Guide Button */}
-      <div className="text-center mb-6">
-        <div className="flex items-center justify-center mb-2">
+      {/* Mobile-Optimized Welcome Text with Info Guide Button */}
+      <div className="text-center mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row items-center justify-center mb-2 space-y-2 sm:space-y-0">
           <h2
-            className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r"
+            className="text-xl sm:text-2xl lg:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r text-center"
             style={{
               backgroundImage: `linear-gradient(to right, ${themeConfig.primary}, ${themeConfig.secondary})`
             }}
           >
-            ✨ {selectedCategory === 'anime-collection' ? 'Anime Legends' : selectedCategory === 'star-collection' ? 'Celebrity Stars' : 'Supercar Collection'} Shop
+            <span className="hidden sm:inline">✨ </span>
+            {selectedCategory === 'anime-collection' ? 'Anime Legends' : selectedCategory === 'star-collection' ? 'Celebrity Stars' : 'Supercar Collection'} Shop
           </h2>
           <button
             onClick={() => setShowInfoModal(true)}
-            className="ml-4 flex transform items-center space-x-2 rounded-lg bg-slate-600 px-4 py-2 text-white shadow-md transition-all hover:bg-slate-700"
+            className="sm:ml-4 flex transform items-center space-x-2 rounded-lg bg-slate-600 px-3 sm:px-4 py-2 text-white
+                     shadow-md transition-all hover:bg-slate-700 min-h-[44px] touch-manipulation"
             title="Card Guide"
           >
             <HelpCircle className="h-4 w-4" />
-            <span className="text-sm">Card Guide</span>
+            <span className="text-xs sm:text-sm">Card Guide</span>
           </button>
         </div>
-        <p className="text-gray-600 max-w-2xl mx-auto">
+        <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base px-2 sm:px-0">
           {selectedCategory === 'anime-collection'
             ? 'Discover legendary anime characters with magical powers and epic abilities!'
             : selectedCategory === 'star-collection'
@@ -477,10 +479,10 @@ function ShopPageContent() {
           }
         </p>
         {selectedCategory === 'star-collection' && (
-          <div className="mt-3 mx-auto max-w-2xl">
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-              <p className="text-amber-800 text-sm flex items-center">
-                <span className="mr-2">⚠️</span>
+          <div className="mt-3 mx-auto max-w-2xl px-2 sm:px-0">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 sm:p-3">
+              <p className="text-amber-800 text-xs sm:text-sm flex items-start">
+                <span className="mr-2 flex-shrink-0">⚠️</span>
                 <span>
                   <strong>Disclaimer:</strong> The celebrity cards in this collection are fictional characters and do not represent real people.
                   All names and characters are created for entertainment purposes only.
@@ -492,109 +494,124 @@ function ShopPageContent() {
       </div>
 
 
-      {/* Minimized Single Row Filters */}
-      <div className="mb-4 rounded-xl bg-white/80 p-3 shadow-md backdrop-blur-sm">
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Search */}
-          <div className="relative flex-1 min-w-[200px]">
+      {/* Mobile-First Responsive Filters */}
+      <div className="mb-4 rounded-xl bg-white/80 p-3 sm:p-4 shadow-md backdrop-blur-sm">
+        {/* Mobile: Stacked Layout, Desktop: Single Row */}
+        <div className="space-y-3 sm:space-y-0 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
+          
+          {/* Search - Full width on mobile */}
+          <div className="relative w-full sm:flex-1 sm:min-w-[200px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
             <input
               type="text"
               placeholder="Search cards..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-200 py-3 sm:py-2 pl-9 pr-3 text-sm
+                       focus:border-transparent focus:ring-2 focus:ring-blue-500 touch-manipulation"
             />
           </div>
 
-          {/* Rarity Filter */}
-          <select
-            value={selectedRarity}
-            onChange={(e) => setSelectedRarity(e.target.value)}
-            className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Rarity</option>
-            {categories.map((cat) => (
-              <option key={cat.rarity} value={cat.rarity}>
-                {cat.rarity} ({cat.count})
-              </option>
-            ))}
-          </select>
+          {/* Filters Row - Responsive grid on mobile */}
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3 sm:flex-wrap">
+            {/* Rarity Filter */}
+            <select
+              value={selectedRarity}
+              onChange={(e) => setSelectedRarity(e.target.value)}
+              className="rounded-lg border border-gray-200 px-2 sm:px-3 py-3 sm:py-2 text-xs sm:text-sm
+                       focus:border-transparent focus:ring-2 focus:ring-blue-500 touch-manipulation"
+            >
+              <option value="">All Rarity</option>
+              {categories.map((cat) => (
+                <option key={cat.rarity} value={cat.rarity}>
+                  {cat.rarity} ({cat.count})
+                </option>
+              ))}
+            </select>
 
-          {/* Element Filter */}
-          <select
-            value={selectedElement}
-            onChange={(e) => setSelectedElement(e.target.value)}
-            className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Elements</option>
-            {['Fire', 'Water', 'Earth', 'Air', 'Lightning', 'Dark', 'Light'].map((element) => (
-              <option key={element} value={element}>
-                {element}
-              </option>
-            ))}
-          </select>
+            {/* Element Filter */}
+            <select
+              value={selectedElement}
+              onChange={(e) => setSelectedElement(e.target.value)}
+              className="rounded-lg border border-gray-200 px-2 sm:px-3 py-3 sm:py-2 text-xs sm:text-sm
+                       focus:border-transparent focus:ring-2 focus:ring-blue-500 touch-manipulation"
+            >
+              <option value="">All Elements</option>
+              {['Fire', 'Water', 'Earth', 'Air', 'Lightning', 'Dark', 'Light'].map((element) => (
+                <option key={element} value={element}>
+                  {element}
+                </option>
+              ))}
+            </select>
 
-          {/* Sort */}
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="price">💰 Price</option>
-            <option value="rarity">💎 Rarity</option>
-            <option value="rating">⭐ Rating</option>
-            <option value="name">🔤 Name</option>
-            <option value="newest">🆕 Newest</option>
-          </select>
+            {/* Sort */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="rounded-lg border border-gray-200 px-2 sm:px-3 py-3 sm:py-2 text-xs sm:text-sm
+                       focus:border-transparent focus:ring-2 focus:ring-blue-500 touch-manipulation"
+            >
+              <option value="price">💰 Price</option>
+              <option value="rarity">💎 Rarity</option>
+              <option value="rating">⭐ Rating</option>
+              <option value="name">🔤 Name</option>
+              <option value="newest">🆕 Newest</option>
+            </select>
 
-          {/* Cards Count */}
-          <div className="text-gray-600 text-sm ml-auto">
-            <span className="text-base font-bold" style={{ color: themeConfig.primary }}>
-              {pagination?.total || 0}
-            </span> cards
+            {/* Clear Button */}
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedRarity("");
+                setSelectedElement("");
+              }}
+              className="rounded-lg bg-gray-100 px-2 sm:px-3 py-3 sm:py-2 text-xs text-gray-700
+                       transition-colors hover:bg-gray-200 touch-manipulation min-h-[44px] sm:min-h-auto"
+            >
+              Clear
+            </button>
           </div>
 
-          {/* Clear Button */}
-          <button
-            onClick={() => {
-              setSearchTerm("");
-              setSelectedRarity("");
-              setSelectedElement("");
-            }}
-            className="rounded-lg bg-gray-100 px-3 py-2 text-xs text-gray-700 transition-colors hover:bg-gray-200"
-          >
-            Clear
-          </button>
+          {/* Bottom Row - Cards count and view mode */}
+          <div className="flex items-center justify-between w-full sm:w-auto sm:ml-auto sm:gap-3">
+            {/* Cards Count */}
+            <div className="text-gray-600 text-xs sm:text-sm">
+              <span className="text-sm sm:text-base font-bold" style={{ color: themeConfig.primary }}>
+                {pagination?.total || 0}
+              </span> cards
+            </div>
 
-          {/* View Mode */}
-          <div className="flex space-x-1">
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`rounded-lg p-2 ${
-                viewMode === "grid"
-                  ? "text-white"
-                  : "text-gray-400 hover:text-gray-600"
-              }`}
-              style={{
-                backgroundColor: viewMode === "grid" ? themeConfig.primary : "transparent"
-              }}
-            >
-              <Grid className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setViewMode("list")}
-              className={`rounded-lg p-2 ${
-                viewMode === "list"
-                  ? "text-white"
-                  : "text-gray-400 hover:text-gray-600"
-              }`}
-              style={{
-                backgroundColor: viewMode === "list" ? themeConfig.primary : "transparent"
-              }}
-            >
-              <List className="h-4 w-4" />
-            </button>
+            {/* View Mode */}
+            <div className="flex space-x-1">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`rounded-lg p-2 sm:p-2 transition-all min-w-[40px] min-h-[40px] sm:min-w-auto sm:min-h-auto
+                  touch-manipulation flex items-center justify-center ${
+                  viewMode === "grid"
+                    ? "text-white"
+                    : "text-gray-400 hover:text-gray-600"
+                }`}
+                style={{
+                  backgroundColor: viewMode === "grid" ? themeConfig.primary : "transparent"
+                }}
+              >
+                <Grid className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`rounded-lg p-2 sm:p-2 transition-all min-w-[40px] min-h-[40px] sm:min-w-auto sm:min-h-auto
+                  touch-manipulation flex items-center justify-center ${
+                  viewMode === "list"
+                    ? "text-white"
+                    : "text-gray-400 hover:text-gray-600"
+                }`}
+                style={{
+                  backgroundColor: viewMode === "list" ? themeConfig.primary : "transparent"
+                }}
+              >
+                <List className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -611,12 +628,12 @@ function ShopPageContent() {
         )}
         
         {filteredCards.length === 0 ? (
-          <div className="py-12 text-center">
-            <ShoppingBag className="mx-auto mb-4 h-16 w-16 text-gray-400" />
-            <h3 className="mb-2 text-xl font-medium text-gray-900">
+          <div className="py-8 sm:py-12 text-center px-4">
+            <ShoppingBag className="mx-auto mb-4 h-12 w-12 sm:h-16 sm:w-16 text-gray-400" />
+            <h3 className="mb-2 text-lg sm:text-xl font-medium text-gray-900">
               No Cards Found
             </h3>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600 max-w-md mx-auto">
               Try changing your search criteria and try again.
             </p>
           </div>
@@ -625,8 +642,8 @@ function ShopPageContent() {
             ref={cardsRef}
             className={
               viewMode === "grid"
-                ? "grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4 xl:grid-cols-5"
-                : "space-y-4"
+                ? "grid grid-cols-1 gap-3 xs:grid-cols-2 sm:gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
+                : "space-y-3 sm:space-y-4"
             }
           >
             {filteredCards.map((card) => (
@@ -645,98 +662,134 @@ function ShopPageContent() {
         )}
       </div>
 
-      {/* Pagination */}
+      {/* Mobile-Optimized Pagination */}
       {pagination && pagination.pages > 1 && (
-        <div className="mt-8 flex items-center justify-center space-x-2">
-          {/* First Page Button */}
-          <button
-            onClick={() => setCurrentPage(1)}
-            disabled={currentPage === 1}
-            className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-white/80 px-3 py-2 text-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <span>First</span>
-          </button>
+        <div className="mt-6 sm:mt-8">
+          {/* Mobile: Simplified pagination */}
+          <div className="flex sm:hidden items-center justify-between px-4">
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={!pagination.hasPrev}
+              className="flex items-center space-x-2 rounded-lg border border-gray-200 bg-white/80 px-4 py-3
+                       transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50
+                       min-h-[44px] touch-manipulation"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span className="text-sm">Previous</span>
+            </button>
 
-          {/* Previous Button */}
-          <button
-            onClick={() => setCurrentPage(currentPage - 1)}
-            disabled={!pagination.hasPrev}
-            className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-white/80 px-3 py-2 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span>Prev</span>
-          </button>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">Page</span>
+              <span className="text-sm font-bold" style={{ color: themeConfig.primary }}>
+                {currentPage}
+              </span>
+              <span className="text-sm text-gray-600">of {pagination.pages}</span>
+            </div>
 
-          <div className="flex items-center space-x-1">
-            {/* Show first page if not in range */}
-            {currentPage > 3 && (
-              <>
-                <button
-                  onClick={() => setCurrentPage(1)}
-                  className="h-10 w-10 rounded-lg border border-gray-200 bg-white/80 text-gray-700 transition-colors hover:bg-gray-50"
-                >
-                  1
-                </button>
-                {currentPage > 4 && <span className="text-gray-500">...</span>}
-              </>
-            )}
-
-            {/* Page numbers around current page */}
-            {Array.from({ length: 5 }, (_, index) => {
-              const page = Math.max(1, currentPage - 2) + index;
-              if (page > pagination.pages) return null;
-
-              return (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`h-10 w-10 rounded-lg border transition-colors ${
-                    currentPage === page
-                      ? "text-white shadow-lg"
-                      : "border-gray-200 bg-white/80 text-gray-700 hover:bg-gray-50"
-                  }`}
-                  style={{
-                    backgroundColor: currentPage === page ? themeConfig.primary : undefined,
-                    borderColor: currentPage === page ? themeConfig.primary : undefined
-                  }}
-                >
-                  {page}
-                </button>
-              );
-            })}
-
-            {/* Show last page if not in range */}
-            {currentPage < pagination.pages - 2 && (
-              <>
-                {currentPage < pagination.pages - 3 && <span className="text-gray-500">...</span>}
-                <button
-                  onClick={() => setCurrentPage(pagination.pages)}
-                  className="h-10 w-10 rounded-lg border border-gray-200 bg-white/80 text-gray-700 transition-colors hover:bg-gray-50"
-                >
-                  {pagination.pages}
-                </button>
-              </>
-            )}
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={!pagination.hasNext}
+              className="flex items-center space-x-2 rounded-lg border border-gray-200 bg-white/80 px-4 py-3
+                       transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50
+                       min-h-[44px] touch-manipulation"
+            >
+              <span className="text-sm">Next</span>
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
 
-          {/* Next Button */}
-          <button
-            onClick={() => setCurrentPage(currentPage + 1)}
-            disabled={!pagination.hasNext}
-            className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-white/80 px-3 py-2 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <span>Next</span>
-            <ChevronRight className="h-4 w-4" />
-          </button>
+          {/* Desktop: Full pagination */}
+          <div className="hidden sm:flex items-center justify-center space-x-2">
+            {/* First Page Button */}
+            <button
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+              className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-white/80 px-3 py-2 text-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <span>First</span>
+            </button>
 
-          {/* Last Page Button */}
-          <button
-            onClick={() => setCurrentPage(pagination.pages)}
-            disabled={currentPage === pagination.pages}
-            className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-white/80 px-3 py-2 text-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <span>Last</span>
-          </button>
+            {/* Previous Button */}
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={!pagination.hasPrev}
+              className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-white/80 px-3 py-2 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span>Prev</span>
+            </button>
+
+            <div className="flex items-center space-x-1">
+              {/* Show first page if not in range */}
+              {currentPage > 3 && (
+                <>
+                  <button
+                    onClick={() => setCurrentPage(1)}
+                    className="h-10 w-10 rounded-lg border border-gray-200 bg-white/80 text-gray-700 transition-colors hover:bg-gray-50"
+                  >
+                    1
+                  </button>
+                  {currentPage > 4 && <span className="text-gray-500">...</span>}
+                </>
+              )}
+
+              {/* Page numbers around current page */}
+              {Array.from({ length: 5 }, (_, index) => {
+                const page = Math.max(1, currentPage - 2) + index;
+                if (page > pagination.pages) return null;
+
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`h-10 w-10 rounded-lg border transition-colors ${
+                      currentPage === page
+                        ? "text-white shadow-lg"
+                        : "border-gray-200 bg-white/80 text-gray-700 hover:bg-gray-50"
+                    }`}
+                    style={{
+                      backgroundColor: currentPage === page ? themeConfig.primary : undefined,
+                      borderColor: currentPage === page ? themeConfig.primary : undefined
+                    }}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+
+              {/* Show last page if not in range */}
+              {currentPage < pagination.pages - 2 && (
+                <>
+                  {currentPage < pagination.pages - 3 && <span className="text-gray-500">...</span>}
+                  <button
+                    onClick={() => setCurrentPage(pagination.pages)}
+                    className="h-10 w-10 rounded-lg border border-gray-200 bg-white/80 text-gray-700 transition-colors hover:bg-gray-50"
+                  >
+                    {pagination.pages}
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Next Button */}
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={!pagination.hasNext}
+              className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-white/80 px-3 py-2 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <span>Next</span>
+              <ChevronRight className="h-4 w-4" />
+            </button>
+
+            {/* Last Page Button */}
+            <button
+              onClick={() => setCurrentPage(pagination.pages)}
+              disabled={currentPage === pagination.pages}
+              className="flex items-center space-x-1 rounded-lg border border-gray-200 bg-white/80 px-3 py-2 text-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <span>Last</span>
+            </button>
+          </div>
         </div>
       )}
 
@@ -751,59 +804,61 @@ function ShopPageContent() {
         />
       )}
 
-      {/* Card Detail Modal - Responsive Tablet-Friendly Design */}
+      {/* Card Detail Modal - Enhanced Mobile-First Responsive Design */}
       {selectedCard && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-3 md:p-6">
-          {/* Modal positioned lower on tablets for better header access */}
-          <div className="flex min-h-full items-start justify-center pt-4 md:pt-16 lg:pt-20">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-2 sm:p-4 md:p-6">
+          {/* Mobile-optimized modal positioning */}
+          <div className="flex min-h-full items-start justify-center pt-2 sm:pt-4 md:pt-8 lg:pt-12">
             <div
-              className="relative w-full max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[85vh] md:max-h-[80vh] overflow-auto
-                         rounded-2xl bg-white shadow-2xl border-4 border-gray-200/50
+              className="relative w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl xl:max-w-4xl
+                         max-h-[95vh] sm:max-h-[90vh] md:max-h-[85vh] overflow-auto
+                         rounded-xl sm:rounded-2xl bg-white shadow-2xl border-2 sm:border-4 border-gray-200/50
                          transform transition-all duration-300"
               style={{
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
               }}
             >
-              {/* Enhanced Header with Larger Close Button */}
-              <div className="sticky top-0 z-10 flex items-center justify-between border-b-2 border-gray-200
-                            bg-gradient-to-r from-slate-50 to-gray-50 px-4 md:px-6 py-3 md:py-4 rounded-t-2xl
-                            shadow-sm">
-                <div className="flex items-center space-x-3">
-                  <div className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full
-                                bg-gradient-to-r from-blue-600 to-purple-600 shadow-md">
-                    <Star className="h-4 w-4 md:h-5 md:w-5 text-white" />
+              {/* Mobile-Optimized Header with Touch-Friendly Close Button */}
+              <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200
+                            bg-gradient-to-r from-slate-50 to-gray-50 px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4
+                            rounded-t-xl sm:rounded-t-2xl shadow-sm">
+                <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                  <div className="flex h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 items-center justify-center rounded-full
+                                bg-gradient-to-r from-blue-600 to-purple-600 shadow-md flex-shrink-0">
+                    <Star className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 text-white" />
                   </div>
-                  <div>
-                    <h2 className="text-lg md:text-xl font-bold text-gray-900 leading-tight">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 leading-tight truncate">
                       {selectedCard.cardTitle || selectedCard.name}
                     </h2>
-                    <p className="text-xs text-gray-600">Card Details</p>
+                    <p className="text-xs text-gray-600 hidden sm:block">Card Details</p>
                   </div>
                 </div>
                 
-                {/* Larger, More Accessible Close Button */}
+                {/* Touch-Optimized Close Button */}
                 <button
                   onClick={() => setSelectedCard(null)}
-                  className="flex-shrink-0 rounded-full bg-red-100 hover:bg-red-200 p-2 md:p-3
+                  className="flex-shrink-0 rounded-full bg-red-100 hover:bg-red-200 p-2 sm:p-3
                            transition-all duration-200 hover:scale-110 active:scale-95
-                           border-2 border-red-200 hover:border-red-300 shadow-md"
+                           border-2 border-red-200 hover:border-red-300 shadow-md min-w-[44px] min-h-[44px]
+                           flex items-center justify-center"
                   title="Close"
                 >
-                  <X className="h-5 w-5 md:h-6 md:w-6 text-red-600" />
+                  <X className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-red-600" />
                 </button>
               </div>
 
-            <div className="p-4 md:p-6">
-              <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
-                {/* Left Side - Image */}
-                <div className="relative flex justify-center">
-                  <div className="group relative">
-                    <div className="absolute -inset-2 rounded-xl bg-gradient-to-r from-blue-600/20 to-purple-600/20 blur-lg"></div>
+            <div className="p-3 sm:p-4 md:p-6">
+              <div className="grid gap-3 sm:gap-4 md:gap-6 lg:grid-cols-2">
+                {/* Mobile-First Image Section */}
+                <div className="relative flex justify-center order-1 lg:order-none">
+                  <div className="group relative w-full max-w-xs sm:max-w-sm md:max-w-md">
+                    <div className="absolute -inset-1 sm:-inset-2 rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600/20 to-purple-600/20 blur-md sm:blur-lg"></div>
                     <img
                       src={(selectedCard as any).secureThumbnailUrl || (selectedCard as any).secureImageUrl || `/api/secure-image?cardId=${selectedCard.id}&type=thumbnail`}
                       alt={selectedCard.cardTitle || selectedCard.name}
-                      className="relative h-auto max-w-full rounded-lg shadow-xl transition-transform group-hover:scale-105"
-                      style={{ maxHeight: "300px" }}
+                      className="relative h-auto w-full max-w-full rounded-lg shadow-xl transition-transform group-hover:scale-105"
+                      style={{ maxHeight: "250px" }}
                       onError={(e) => {
                         // Fallback chain for better production compatibility
                         const target = e.target as HTMLImageElement;
@@ -823,10 +878,12 @@ function ShopPageContent() {
                         }
                       }}
                     />
-                    {/* Expand Icon - Always visible on mobile/tablet, hover on desktop */}
+                    {/* Touch-Optimized Expand Icon */}
                     <button
                       onClick={() => setExpandedImage(true)}
-                      className="absolute right-3 top-3 rounded-full bg-black/60 p-2 text-white opacity-100 transition-all hover:bg-black/80 md:opacity-0 md:group-hover:opacity-100"
+                      className="absolute right-2 top-2 sm:right-3 sm:top-3 rounded-full bg-black/60 p-2 text-white
+                               opacity-100 transition-all hover:bg-black/80 min-w-[40px] min-h-[40px]
+                               flex items-center justify-center"
                       title="View Full Image"
                     >
                       <Eye className="h-4 w-4" />
@@ -834,18 +891,18 @@ function ShopPageContent() {
                   </div>
                 </div>
 
-                {/* Right Side - Details */}
-                <div className="space-y-4">
-                  {/* Card Information */}
-                  <div className="rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 p-4">
-                    <h3 className="mb-3 text-lg font-bold text-gray-900 flex items-center">
-                      <div className="mr-2 h-6 w-6 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
+                {/* Mobile-First Details Section */}
+                <div className="space-y-3 sm:space-y-4 order-2 lg:order-none">
+                  {/* Mobile-Optimized Card Information */}
+                  <div className="rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 p-3 sm:p-4">
+                    <h3 className="mb-2 sm:mb-3 text-base sm:text-lg font-bold text-gray-900 flex items-center">
+                      <div className="mr-2 h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
                         <span className="text-white text-xs">📊</span>
                       </div>
                       Information
                     </h3>
 
-                    <div className="grid gap-3 text-sm">
+                    <div className="grid gap-2 sm:gap-3 text-xs sm:text-sm">
                       {selectedCard.series && (
                         <div className="flex items-center justify-between">
                           <span className="font-medium text-gray-600">Category</span>
@@ -900,86 +957,92 @@ function ShopPageContent() {
                     </div>
                   </div>
 
-                  {/* Power Statistics */}
+                  {/* Mobile-Optimized Power Statistics */}
                   {selectedCard.attackPower && selectedCard.defense && selectedCard.speed && (
-                    <div className="rounded-lg bg-gradient-to-r from-red-50 via-blue-50 to-green-50 p-4">
-                      <h4 className="mb-3 text-lg font-bold text-gray-900 flex items-center">
+                    <div className="rounded-lg bg-gradient-to-r from-red-50 via-blue-50 to-green-50 p-3 sm:p-4">
+                      <h4 className="mb-2 sm:mb-3 text-base sm:text-lg font-bold text-gray-900 flex items-center">
                         <span className="mr-2">⚔️</span>
                         Battle Stats
                       </h4>
-                      <div className="grid grid-cols-3 gap-3">
-                        <div className="rounded-lg bg-gradient-to-br from-red-500 to-red-600 p-3 text-center shadow-md">
-                          <Zap className="mx-auto mb-1 h-4 w-4 text-white" />
+                      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                        <div className="rounded-lg bg-gradient-to-br from-red-500 to-red-600 p-2 sm:p-3 text-center shadow-md">
+                          <Zap className="mx-auto mb-1 h-3 w-3 sm:h-4 sm:w-4 text-white" />
                           <div className="text-xs font-medium text-red-100">ATK</div>
-                          <div className="text-xl font-bold text-white">{selectedCard.attackPower}</div>
+                          <div className="text-base sm:text-lg lg:text-xl font-bold text-white">{selectedCard.attackPower}</div>
                         </div>
                         
-                        <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-3 text-center shadow-md">
-                          <Shield className="mx-auto mb-1 h-4 w-4 text-white" />
+                        <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-2 sm:p-3 text-center shadow-md">
+                          <Shield className="mx-auto mb-1 h-3 w-3 sm:h-4 sm:w-4 text-white" />
                           <div className="text-xs font-medium text-blue-100">DEF</div>
-                          <div className="text-xl font-bold text-white">{selectedCard.defense}</div>
+                          <div className="text-base sm:text-lg lg:text-xl font-bold text-white">{selectedCard.defense}</div>
                         </div>
                         
-                        <div className="rounded-lg bg-gradient-to-br from-green-500 to-green-600 p-3 text-center shadow-md">
-                          <Wind className="mx-auto mb-1 h-4 w-4 text-white" />
+                        <div className="rounded-lg bg-gradient-to-br from-green-500 to-green-600 p-2 sm:p-3 text-center shadow-md">
+                          <Wind className="mx-auto mb-1 h-3 w-3 sm:h-4 sm:w-4 text-white" />
                           <div className="text-xs font-medium text-green-100">SPD</div>
-                          <div className="text-xl font-bold text-white">{selectedCard.speed}</div>
+                          <div className="text-base sm:text-lg lg:text-xl font-bold text-white">{selectedCard.speed}</div>
                         </div>
                       </div>
                     </div>
                   )}
 
-                  {/* Special Ability */}
+                  {/* Mobile-Optimized Special Ability */}
                   {selectedCard.specialAbility && (
-                    <div className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
-                      <h4 className="mb-2 text-lg font-bold flex items-center">
+                    <div className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 p-3 sm:p-4 text-white">
+                      <h4 className="mb-2 text-base sm:text-lg font-bold flex items-center">
                         <span className="mr-2">✨</span>
                         Special Ability
                       </h4>
-                      <p className="text-purple-100 text-sm leading-relaxed">
+                      <p className="text-purple-100 text-xs sm:text-sm leading-relaxed">
                         {selectedCard.specialAbility}
                       </p>
                     </div>
                   )}
 
-                  {/* Pricing */}
-                  <div className="rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 p-4 text-center">
-                    <h4 className="mb-2 text-lg font-bold text-gray-900 flex items-center justify-center">
+                  {/* Mobile-Optimized Pricing */}
+                  <div className="rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 p-3 sm:p-4 text-center">
+                    <h4 className="mb-2 text-base sm:text-lg font-bold text-gray-900 flex items-center justify-center">
                       <span className="mr-2">💎</span>
                       Price
                     </h4>
-                    <div className="text-2xl font-bold" style={{ color: themeConfig.primary }}>
+                    <div className="text-xl sm:text-2xl font-bold" style={{ color: themeConfig.primary }}>
                       {selectedCard.diamondPrice}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Compact Action Buttons */}
-              <div className="mt-4 md:mt-6 border-t border-gray-200 pt-3 md:pt-4">
-                <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
+              {/* Touch-Optimized Action Buttons */}
+              <div className="mt-3 sm:mt-4 md:mt-6 border-t border-gray-200 pt-3 md:pt-4">
+                <div className="grid gap-2 grid-cols-2 sm:grid-cols-4">
                   <button
                     onClick={() => setExpandedImage(true)}
-                    className="flex items-center justify-center space-x-1 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-2 text-sm font-medium text-white transition-all hover:scale-105"
+                    className="flex items-center justify-center space-x-1 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600
+                             px-3 py-3 sm:py-2 text-xs sm:text-sm font-medium text-white transition-all hover:scale-105
+                             min-h-[44px] touch-manipulation"
                   >
                     <Eye className="h-4 w-4" />
-                    <span>View</span>
+                    <span className="hidden sm:inline">View</span>
                   </button>
                   
                   <button
                     onClick={() => {/* Add to favorites */}}
-                    className="flex items-center justify-center space-x-1 rounded-lg bg-gradient-to-r from-pink-600 to-rose-600 px-3 py-2 text-sm font-medium text-white transition-all hover:scale-105"
+                    className="flex items-center justify-center space-x-1 rounded-lg bg-gradient-to-r from-pink-600 to-rose-600
+                             px-3 py-3 sm:py-2 text-xs sm:text-sm font-medium text-white transition-all hover:scale-105
+                             min-h-[44px] touch-manipulation"
                   >
                     <span>❤️</span>
-                    <span>Like</span>
+                    <span className="hidden sm:inline">Like</span>
                   </button>
                   
                   <button
                     onClick={() => {/* Share */}}
-                    className="flex items-center justify-center space-x-1 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 px-3 py-2 text-sm font-medium text-white transition-all hover:scale-105"
+                    className="flex items-center justify-center space-x-1 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600
+                             px-3 py-3 sm:py-2 text-xs sm:text-sm font-medium text-white transition-all hover:scale-105
+                             min-h-[44px] touch-manipulation"
                   >
                     <span>📤</span>
-                    <span>Share</span>
+                    <span className="hidden sm:inline">Share</span>
                   </button>
                   
                   {!selectedCard.isOwned ? (
@@ -989,24 +1052,27 @@ function ShopPageContent() {
                         setSelectedCard(null);
                       }}
                       disabled={purchasing === selectedCard.id}
-                      className="flex items-center justify-center space-x-1 rounded-lg bg-gradient-to-r from-purple-600 to-violet-600 px-3 py-2 text-sm font-medium text-white transition-all hover:scale-105 disabled:opacity-50"
+                      className="flex items-center justify-center space-x-1 rounded-lg bg-gradient-to-r from-purple-600 to-violet-600
+                               px-3 py-3 sm:py-2 text-xs sm:text-sm font-medium text-white transition-all hover:scale-105
+                               disabled:opacity-50 min-h-[44px] touch-manipulation"
                     >
                       {purchasing === selectedCard.id ? (
                         <>
                           <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          <span>Buy</span>
+                          <span className="hidden sm:inline">Buy</span>
                         </>
                       ) : (
                         <>
                           <ShoppingBag className="h-4 w-4" />
-                          <span>Buy</span>
+                          <span className="hidden sm:inline">Buy</span>
                         </>
                       )}
                     </button>
                   ) : (
-                    <div className="flex items-center justify-center space-x-1 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 px-3 py-2 text-sm font-medium text-white">
+                    <div className="flex items-center justify-center space-x-1 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600
+                                  px-3 py-3 sm:py-2 text-xs sm:text-sm font-medium text-white min-h-[44px]">
                       <CheckCircle className="h-4 w-4" />
-                      <span>Owned</span>
+                      <span className="hidden sm:inline">Owned</span>
                     </div>
                   )}
                 </div>

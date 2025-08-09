@@ -8,10 +8,12 @@ export default function BlogPage() {
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
+      case "Python Basics":
       case "Python Temelleri":
         return <Code className="h-5 w-5 text-blue-500" />;
       case "Python Applications":
         return <Zap className="h-5 w-5 text-purple-500" />;
+      case "Data Analysis":
       case "Veri Analizi":
         return <Brain className="h-5 w-5 text-green-500" />;
       default:
@@ -21,10 +23,12 @@ export default function BlogPage() {
 
   const getCategoryColor = (category: string) => {
     switch (category) {
+      case "Python Basics":
       case "Python Temelleri":
         return "bg-blue-100 text-blue-800 border-blue-200";
       case "Python Applications":
         return "bg-purple-100 text-purple-800 border-purple-200";
+      case "Data Analysis":
       case "Veri Analizi":
         return "bg-green-100 text-green-800 border-green-200";
       default:
@@ -42,7 +46,7 @@ export default function BlogPage() {
           <div className="text-center text-white">
             <div className="mb-6 inline-flex items-center rounded-full bg-white/20 px-6 py-3 text-sm font-semibold backdrop-blur-sm">
               <BookOpen className="mr-2 h-4 w-4 text-yellow-300" />
-              Python Öğrenme Rehberleri
+              Python Learning Guides
             </div>
 
             <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
@@ -53,7 +57,7 @@ export default function BlogPage() {
             </h1>
 
             <p className="mx-auto mb-8 max-w-3xl text-lg text-blue-100 sm:text-xl">
-              Python programlama dilini öğrenirken ihtiyacınız olan tüm rehberler, ipuçları ve en iyi pratikler burada.
+              All the guides, tips and best practices you need while learning Python programming language are here.
             </p>
           </div>
         </div>
@@ -64,18 +68,18 @@ export default function BlogPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center">
             <h2 className="mb-4 text-3xl font-bold text-slate-900 lg:text-4xl">
-              📚 Python Öğrenme Rehberleri
+              📚 Python Learning Guides
             </h2>
             <p className="mx-auto max-w-2xl text-lg text-slate-600">
-              Başlangıçtan ileri seviyeye Python programlamada ustalaşmanız için hazırladığımız kapsamlı rehberler
+              Comprehensive guides we've prepared for you to master Python programming from beginner to advanced level
             </p>
           </div>
 
           {posts.length === 0 ? (
             <div className="text-center py-12">
               <FileText className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-              <h3 className="text-xl font-medium text-gray-900 mb-2">Henüz blog yazısı bulunmuyor</h3>
-              <p className="text-gray-600">Yakında Python öğrenme rehberleri yayınlanacak!</p>
+              <h3 className="text-xl font-medium text-gray-900 mb-2">No blog posts found yet</h3>
+              <p className="text-gray-600">Python learning guides will be published soon!</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 xl:grid-cols-3">
@@ -129,7 +133,7 @@ export default function BlogPage() {
                       href={`/blog/${post.slug}`}
                       className="inline-flex items-center space-x-1 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
                     >
-                      <span>Devamını Oku</span>
+                      <span>Read More</span>
                       <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
                     </Link>
                   </div>
@@ -144,10 +148,10 @@ export default function BlogPage() {
       <section className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 py-16 text-white">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <h2 className="mb-6 text-3xl font-bold lg:text-4xl">
-            🚀 Python Yolculuğunuza Başlayın
+            🚀 Start Your Python Journey
           </h2>
           <p className="mb-8 text-lg text-blue-100">
-            Blog yazılarını okuduktan sonra Zumenzu'da interaktif Python dersleri ile pratik yapın!
+            After reading blog posts, practice with interactive Python lessons on Zumenzu!
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -156,7 +160,7 @@ export default function BlogPage() {
               className="inline-flex items-center space-x-2 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-3 font-semibold transition-all hover:from-yellow-600 hover:to-orange-600"
             >
               <Code className="h-5 w-5" />
-              <span>Code Arena'ya Başla</span>
+              <span>Start Code Arena</span>
             </Link>
             
             <Link
@@ -164,7 +168,7 @@ export default function BlogPage() {
               className="inline-flex items-center space-x-2 rounded-xl border-2 border-white/30 bg-white/10 px-6 py-3 font-semibold backdrop-blur-sm transition-all hover:bg-white/20"
             >
               <FileText className="h-5 w-5" />
-              <span>Kart Koleksiyonu</span>
+              <span>Card Collection</span>
             </Link>
           </div>
         </div>

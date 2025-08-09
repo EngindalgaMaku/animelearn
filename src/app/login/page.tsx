@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LogIn, Sparkles, Eye, EyeOff } from "lucide-react";
+import { LogIn, Sparkles, Eye, EyeOff, Trophy, Target, Star, Zap, Diamond, Crown, Gift, TrendingUp, Award } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { signIn, getSession } from "next-auth/react";
+import { motion } from "framer-motion";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -52,32 +53,216 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <Link href="/" className="mb-8 inline-flex items-center space-x-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-purple-600">
-              <Sparkles className="h-7 w-7 text-white" />
-            </div>
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-2xl font-bold text-transparent">
-              Zumenzu
-            </span>
-          </Link>
+    <div className="flex min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0">
+        {/* Floating Gaming Icons */}
+        <motion.div
+          className="absolute top-20 left-10 text-yellow-400 opacity-20"
+          animate={{ y: [-10, 10, -10], rotate: [0, 5, -5, 0] }}
+          transition={{ duration: 6, repeat: Infinity }}
+        >
+          <Trophy className="h-12 w-12" />
+        </motion.div>
+        <motion.div
+          className="absolute top-40 right-20 text-blue-400 opacity-20"
+          animate={{ y: [10, -10, 10], rotate: [0, -5, 5, 0] }}
+          transition={{ duration: 8, repeat: Infinity, delay: 1 }}
+        >
+          <Target className="h-16 w-16" />
+        </motion.div>
+        <motion.div
+          className="absolute bottom-40 left-20 text-green-400 opacity-20"
+          animate={{ y: [-15, 15, -15], rotate: [0, 10, -10, 0] }}
+          transition={{ duration: 7, repeat: Infinity, delay: 2 }}
+        >
+          <Star className="h-10 w-10" />
+        </motion.div>
+        <motion.div
+          className="absolute bottom-20 right-10 text-purple-400 opacity-20"
+          animate={{ y: [20, -20, 20], rotate: [0, -8, 8, 0] }}
+          transition={{ duration: 9, repeat: Infinity, delay: 0.5 }}
+        >
+          <Zap className="h-14 w-14" />
+        </motion.div>
+        
+        {/* Particle Effects */}
+        <div className="absolute inset-0">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-white rounded-full opacity-10"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [-50, 50],
+                opacity: [0.1, 0.3, 0.1],
+              }}
+              transition={{
+                duration: Math.random() * 3 + 2,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+        </div>
+      </div>
 
-          <h2 className="mb-2 text-3xl font-bold text-gray-900">Sign In</h2>
-          <p className="text-gray-600">
-            Sign in to start your Python learning adventure
-          </p>
+      <div className="flex w-full">
+        {/* Left Side - Benefits & Gamification Features */}
+        <div className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center p-12 text-white relative z-10">
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="max-w-lg"
+          >
+            <div className="mb-8">
+              <motion.div
+                className="flex items-center space-x-3 mb-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500">
+                  <Crown className="h-7 w-7 text-white" />
+                </div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+                  Level Up Your Coding!
+                </h1>
+              </motion.div>
+              
+              <motion.p
+                className="text-xl text-gray-300 mb-8"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                Unlock the full power of our gamified Python learning platform
+              </motion.p>
+            </div>
+
+            {/* Features List */}
+            <motion.div
+              className="space-y-6"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              {[
+                {
+                  icon: <Trophy className="h-6 w-6" />,
+                  title: "Earn Achievements",
+                  description: "Unlock badges and trophies as you master new concepts",
+                  color: "from-yellow-400 to-orange-500"
+                },
+                {
+                  icon: <Target className="h-6 w-6" />,
+                  title: "Daily Challenges",
+                  description: "Complete coding challenges and earn bonus rewards",
+                  color: "from-blue-400 to-purple-500"
+                },
+                {
+                  icon: <TrendingUp className="h-6 w-6" />,
+                  title: "Track Progress",
+                  description: "Monitor your learning journey with detailed statistics",
+                  color: "from-green-400 to-blue-500"
+                },
+                {
+                  icon: <Diamond className="h-6 w-6" />,
+                  title: "Collect Cards",
+                  description: "Build your collection with exclusive Python concept cards",
+                  color: "from-purple-400 to-pink-500"
+                },
+                {
+                  icon: <Zap className="h-6 w-6" />,
+                  title: "XP & Levels",
+                  description: "Gain experience points and level up your programming skills",
+                  color: "from-indigo-400 to-purple-500"
+                },
+                {
+                  icon: <Gift className="h-6 w-6" />,
+                  title: "Exclusive Rewards",
+                  description: "Access premium content and special features",
+                  color: "from-pink-400 to-red-500"
+                }
+              ].map((feature, index) => (
+                <motion.div
+                  key={index}
+                  className="flex items-start space-x-4 p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.8 + index * 0.1 }}
+                  whileHover={{ scale: 1.02, backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+                >
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r ${feature.color} flex-shrink-0`}>
+                    {feature.icon}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white">{feature.title}</h3>
+                    <p className="text-sm text-gray-300">{feature.description}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
         </div>
 
-        {/* Login Form */}
-        <div className="rounded-2xl bg-white/80 p-8 shadow-xl backdrop-blur-sm">
+        {/* Right Side - Login Form */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            className="w-full max-w-md space-y-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            {/* Header */}
+            <div className="text-center">
+              <Link href="/" className="mb-8 inline-flex items-center space-x-3">
+                <motion.div
+                  className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-purple-600"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <Sparkles className="h-7 w-7 text-white" />
+                </motion.div>
+                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-2xl font-bold text-transparent">
+                  Zumenzu
+                </span>
+              </Link>
+
+              <motion.h2
+                className="mb-2 text-3xl font-bold text-white"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                Welcome Back, Coder! 🎮
+              </motion.h2>
+              <motion.p
+                className="text-gray-300"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                Continue your epic Python learning journey
+              </motion.p>
+            </div>
+
+            {/* Login Form */}
+            <motion.div
+              className="rounded-2xl bg-white/10 backdrop-blur-lg border border-white/20 p-8 shadow-2xl"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4 }}
+            >
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label
                 htmlFor="username"
-                className="mb-2 block text-sm font-medium text-gray-700"
+                className="mb-2 block text-sm font-medium text-gray-300"
               >
                 Username
               </label>
@@ -88,7 +273,7 @@ export default function LoginPage() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="relative block w-full appearance-none rounded-xl border border-gray-300 bg-white/50 px-4 py-3 text-gray-900 placeholder-gray-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="relative block w-full appearance-none rounded-xl border border-white/30 bg-white/10 px-4 py-3 text-white placeholder-gray-300 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500 backdrop-blur-sm"
                 placeholder="Enter your username"
               />
             </div>
@@ -96,7 +281,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="password"
-                className="mb-2 block text-sm font-medium text-gray-700"
+                className="mb-2 block text-sm font-medium text-gray-300"
               >
                 Password
               </label>
@@ -108,7 +293,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="relative block w-full appearance-none rounded-xl border border-gray-300 bg-white/50 px-4 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="relative block w-full appearance-none rounded-xl border border-white/30 bg-white/10 px-4 py-3 text-white placeholder-gray-300 focus:z-10 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500 backdrop-blur-sm"
                   placeholder="Enter your password"
                 />
                 <button
@@ -117,45 +302,51 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <EyeOff className="h-5 w-5 text-gray-300 hover:text-white" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <Eye className="h-5 w-5 text-gray-300 hover:text-white" />
                   )}
                 </button>
               </div>
             </div>
 
             {error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+              <motion.div
+                className="rounded-xl border border-red-400 bg-red-500/20 p-4 backdrop-blur-sm"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
                 <div className="flex">
                   <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-800">
+                    <h3 className="text-sm font-medium text-red-300">
                       Sign In Error
                     </h3>
-                    <div className="mt-2 text-sm text-red-700">{error}</div>
+                    <div className="mt-2 text-sm text-red-200">{error}</div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             <div>
-              <button
+              <motion.button
                 type="submit"
                 disabled={isLoading}
-                className="group relative flex w-full justify-center rounded-xl border border-transparent bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-medium text-white transition-all hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="group relative flex w-full justify-center rounded-xl border border-transparent bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-medium text-white transition-all hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                    <span>Signing in...</span>
+                    <span>Logging into your adventure...</span>
                   </div>
                 ) : (
                   <div className="flex items-center space-x-2">
                     <LogIn className="h-4 w-4" />
-                    <span>Sign In</span>
+                    <span>Start Gaming! 🚀</span>
                   </div>
                 )}
-              </button>
+              </motion.button>
             </div>
           </form>
 
@@ -163,17 +354,19 @@ export default function LoginPage() {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-white/30" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                <span className="bg-white/10 backdrop-blur-sm px-2 text-gray-300">Or continue with</span>
               </div>
             </div>
 
             <div className="mt-6">
-              <button
+              <motion.button
                 onClick={handleGoogleSignIn}
-                className="group relative flex w-full justify-center rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="group relative flex w-full justify-center rounded-xl border border-white/30 bg-white/10 px-4 py-3 text-sm font-medium text-white transition-all hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 backdrop-blur-sm"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 <div className="flex items-center space-x-3">
                   <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -196,50 +389,95 @@ export default function LoginPage() {
                   </svg>
                   <span>Continue with Google</span>
                 </div>
-              </button>
+              </motion.button>
             </div>
           </div>
 
-          {/* Demo Info */}
-          <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
-            <div className="text-sm">
-              <h4 className="mb-2 font-medium text-blue-900">
-                Don't have an account?
-              </h4>
-              <p className="text-blue-800">
-                Create a free account and start learning Python!
-              </p>
-              <Link
-                href="/register"
-                className="mt-2 inline-block font-medium text-blue-600 hover:text-blue-800"
+              {/* Demo Info */}
+              <motion.div
+                className="mt-6 rounded-xl border border-purple-400/30 bg-gradient-to-r from-purple-500/20 to-pink-500/20 p-4 backdrop-blur-sm"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
               >
-                Sign Up →
-              </Link>
-            </div>
-          </div>
-        </div>
+                <div className="text-sm">
+                  <h4 className="mb-2 font-medium text-white flex items-center space-x-2">
+                    <Star className="h-4 w-4 text-yellow-400" />
+                    <span>Ready to start your journey?</span>
+                  </h4>
+                  <p className="text-gray-300 mb-3">
+                    Join thousands of learners mastering Python through gamified challenges!
+                  </p>
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center space-x-2 font-medium text-yellow-400 hover:text-yellow-300 transition-colors"
+                  >
+                    <Award className="h-4 w-4" />
+                    <span>Create Free Account →</span>
+                  </Link>
+                </div>
+              </motion.div>
 
-        {/* Back to Home */}
-        <div className="text-center">
-          <Link
-            href="/"
-            className="inline-flex items-center space-x-2 text-gray-600 transition-colors hover:text-gray-900"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+              {/* Mobile Benefits Preview */}
+              <motion.div
+                className="mt-6 lg:hidden rounded-xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+              >
+                <h4 className="font-medium text-white mb-3 flex items-center space-x-2">
+                  <Trophy className="h-4 w-4 text-yellow-400" />
+                  <span>What you'll unlock:</span>
+                </h4>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="flex items-center space-x-2 text-gray-300">
+                    <Target className="h-3 w-3 text-blue-400" />
+                    <span>Daily Challenges</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-gray-300">
+                    <Diamond className="h-3 w-3 text-purple-400" />
+                    <span>Collect Cards</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-gray-300">
+                    <Zap className="h-3 w-3 text-yellow-400" />
+                    <span>Earn XP</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-gray-300">
+                    <TrendingUp className="h-3 w-3 text-green-400" />
+                    <span>Track Progress</span>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+
+            {/* Back to Home */}
+            <motion.div
+              className="text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1 }}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
-            <span>Back to home</span>
-          </Link>
+              <Link
+                href="/"
+                className="inline-flex items-center space-x-2 text-gray-400 transition-colors hover:text-white"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                  />
+                </svg>
+                <span>Back to home</span>
+              </Link>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </div>

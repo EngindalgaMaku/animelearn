@@ -244,8 +244,9 @@ export default function GamifiedCard({
   if (viewMode === "grid") {
     return (
       <motion.div
-        className={`group relative cursor-pointer rounded-2xl overflow-hidden transition-all duration-300 ${rarityEffect.glow} ${rarityEffect.animation}`}
-        whileHover={{ y: -8, scale: 1.02 }}
+        className={`group relative cursor-pointer rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300
+                   ${rarityEffect.glow} ${rarityEffect.animation} h-full flex flex-col`}
+        whileHover={{ y: -4, scale: 1.01 }}
         whileTap={{ scale: 0.98 }}
         onMouseEnter={() => handleCardHover(true)}
         onMouseLeave={() => handleCardHover(false)}
@@ -255,7 +256,7 @@ export default function GamifiedCard({
         <div className={`absolute inset-0 bg-gradient-to-br ${elementTheme?.bg || 'from-gray-50 to-gray-100'} opacity-30`} />
         
         {/* Rarity Border */}
-        <div className={`absolute inset-0 border-2 ${rarityEffect.borderColor} rounded-2xl`} />
+        <div className={`absolute inset-0 border sm:border-2 ${rarityEffect.borderColor} rounded-xl sm:rounded-2xl`} />
 
         {/* Particle Effects for Rare Cards */}
         <AnimatePresence>
@@ -289,9 +290,10 @@ export default function GamifiedCard({
           )}
         </AnimatePresence>
 
-        <div className="relative p-4 bg-white/80 backdrop-blur-sm h-full">
-          {/* Image Container */}
-          <div className="relative aspect-[3/4] rounded-xl overflow-hidden mb-4 group-hover:shadow-xl transition-all duration-500 group-hover:scale-110">
+        <div className="relative p-2 sm:p-3 md:p-4 bg-white/80 backdrop-blur-sm h-full flex flex-col">
+          {/* Image Container - Mobile optimized */}
+          <div className="relative aspect-[3/4] rounded-lg sm:rounded-xl overflow-hidden mb-2 sm:mb-3 md:mb-4
+                         group-hover:shadow-xl transition-all duration-500 group-hover:scale-105 sm:group-hover:scale-110 flex-shrink-0">
             <img
               src={card.secureThumbnailUrl || card.secureImageUrl || `/api/secure-image?cardId=${card.id}&type=thumbnail`}
               alt={card.cardTitle || card.name}
@@ -319,58 +321,64 @@ export default function GamifiedCard({
             {/* Overlay Effects */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
             
-            {/* Status Badges */}
-            <div className="absolute top-2 left-2 flex flex-col space-y-1">
+            {/* Status Badges - Mobile optimized */}
+            <div className="absolute top-1 sm:top-2 left-1 sm:left-2 flex flex-col space-y-1">
               {card.isLimited && (
                 <motion.div
-                  className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg"
+                  className="bg-red-500 text-white text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full shadow-lg"
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  LIMITED!
+                  <span className="hidden sm:inline">LIMITED!</span>
+                  <span className="sm:hidden">LTD</span>
                 </motion.div>
               )}
               {isRare && (
-                <motion.div 
-                  className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg"
-                  animate={{ 
-                    boxShadow: ["0 0 0 0 rgba(251, 191, 36, 0.7)", "0 0 0 10px rgba(251, 191, 36, 0)", "0 0 0 0 rgba(251, 191, 36, 0)"] 
+                <motion.div
+                  className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full shadow-lg"
+                  animate={{
+                    boxShadow: ["0 0 0 0 rgba(251, 191, 36, 0.7)", "0 0 0 10px rgba(251, 191, 36, 0)", "0 0 0 0 rgba(251, 191, 36, 0)"]
                   }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  ⭐ RARE
+                  <span className="hidden sm:inline">⭐ RARE</span>
+                  <span className="sm:hidden">⭐</span>
                 </motion.div>
               )}
             </div>
 
             {card.isOwned && (
-              <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1 shadow-lg">
-                <CheckCircle className="h-4 w-4" />
+              <div className="absolute top-1 sm:top-2 right-1 sm:right-2 bg-green-500 text-white rounded-full p-1 shadow-lg">
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
               </div>
             )}
 
-            {/* Quick View Button - Always visible on mobile/tablet, hover on desktop */}
+            {/* Touch-Optimized Quick View Button */}
             <motion.div
-              className="absolute bottom-2 right-2 bg-black/60 text-white rounded-full p-2 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100"
+              className="absolute bottom-1 sm:bottom-2 right-1 sm:right-2 bg-black/60 text-white rounded-full
+                       p-1.5 sm:p-2 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100
+                       min-w-[32px] min-h-[32px] sm:min-w-auto sm:min-h-auto flex items-center justify-center"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >
-              <Eye className="h-4 w-4" />
+              <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
             </motion.div>
           </div>
 
-          {/* Card Info */}
-          <div className="space-y-3">
+          {/* Card Info - Mobile optimized with flex-grow */}
+          <div className="space-y-2 sm:space-y-3 flex-grow flex flex-col">
             {/* Title */}
-            <h3 className="font-bold text-gray-900 truncate text-sm group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-pink-500 group-hover:to-purple-600 transition-all">
+            <h3 className="font-bold text-gray-900 text-xs sm:text-sm truncate group-hover:text-transparent
+                         group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-pink-500
+                         group-hover:to-purple-600 transition-all leading-tight">
               {card.cardTitle || card.name}
             </h3>
 
-            {/* Badges Row */}
+            {/* Badges Row - Responsive */}
             <div className="flex flex-wrap gap-1">
-              {/* Rarity Badge - Using Database Data with Fallback */}
+              {/* Rarity Badge - Mobile optimized */}
               <span
-                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border"
+                className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium border"
                 style={{
                   backgroundColor: rarityData?.bgColor || (rarityData?.color ? `${rarityData.color}20` : rarityBadge.bgColor),
                   borderColor: rarityData?.borderColor || rarityData?.color || rarityBadge.color,
@@ -381,19 +389,21 @@ export default function GamifiedCard({
                   <img
                     src={rarityData.iconUrl}
                     alt={rarityData.name}
-                    className="h-3 w-3 mr-1"
+                    className="h-2 w-2 sm:h-3 sm:w-3 mr-1"
                   />
                 ) : rarityData?.icon ? (
-                  <span className="mr-1">{rarityData.icon}</span>
+                  <span className="mr-1 text-xs">{rarityData.icon}</span>
                 ) : (
                   <span className="mr-1">{rarityBadge.icon}</span>
                 )}
-                {rarityData?.name || card.rarity}
+                <span className="text-xs truncate max-w-[60px] sm:max-w-none">
+                  {rarityData?.name || card.rarity}
+                </span>
               </span>
 
-              {/* Element Badge - Using Database Data with Fallback */}
+              {/* Element Badge - Mobile optimized */}
               <span
-                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium"
                 style={{
                   backgroundColor: elementData?.color ? `${elementData.color}20` : ELEMENT_THEMES[card.element as keyof typeof ELEMENT_THEMES]?.color ? `${ELEMENT_THEMES[card.element as keyof typeof ELEMENT_THEMES].color}20` : "#3B82F620",
                   color: elementData?.color || ELEMENT_THEMES[card.element as keyof typeof ELEMENT_THEMES]?.color || "#3B82F6"
@@ -403,51 +413,54 @@ export default function GamifiedCard({
                   <img
                     src={elementData.iconUrl}
                     alt={elementData.name}
-                    className="h-3 w-3 mr-1"
+                    className="h-2 w-2 sm:h-3 sm:w-3 mr-1"
                   />
                 ) : elementData?.icon ? (
-                  <span className="mr-1">{elementData.icon}</span>
+                  <span className="mr-1 text-xs">{elementData.icon}</span>
                 ) : (
                   <span className="mr-1">{ELEMENT_THEMES[card.element as keyof typeof ELEMENT_THEMES]?.icon || "✨"}</span>
                 )}
-                <span>{elementData?.name || card.element}</span>
+                <span className="text-xs truncate max-w-[50px] sm:max-w-none">
+                  {elementData?.name || card.element}
+                </span>
               </span>
             </div>
 
-            {/* Power Stats */}
-            <div className="grid grid-cols-3 gap-1 text-xs">
-              <div className="flex items-center space-x-1 text-red-600">
-                <Zap className="h-3 w-3" />
-                <span className="font-medium">{card.attackPower}</span>
+            {/* Power Stats - Mobile optimized */}
+            <div className="grid grid-cols-3 gap-1 text-xs flex-shrink-0">
+              <div className="flex items-center space-x-0.5 sm:space-x-1 text-red-600">
+                <Zap className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
+                <span className="font-medium text-xs">{card.attackPower}</span>
               </div>
-              <div className="flex items-center space-x-1 text-blue-600">
-                <Shield className="h-3 w-3" />
-                <span className="font-medium">{card.defense}</span>
+              <div className="flex items-center space-x-0.5 sm:space-x-1 text-blue-600">
+                <Shield className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
+                <span className="font-medium text-xs">{card.defense}</span>
               </div>
-              <div className="flex items-center space-x-1 text-green-600">
-                <Wind className="h-3 w-3" />
-                <span className="font-medium">{card.speed}</span>
+              <div className="flex items-center space-x-0.5 sm:space-x-1 text-green-600">
+                <Wind className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
+                <span className="font-medium text-xs">{card.speed}</span>
               </div>
             </div>
 
-            {/* Price */}
-            <div className="flex justify-end">
+            {/* Price - Mobile optimized */}
+            <div className="flex justify-end flex-shrink-0">
               <div
-                className="text-sm font-bold flex items-center space-x-1"
+                className="text-xs sm:text-sm font-bold flex items-center space-x-1"
                 style={{ color: themeConfig.primary }}
               >
-                <Diamond className="h-4 w-4" />
+                <Diamond className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span>{card.diamondPrice}</span>
               </div>
             </div>
 
-            {/* Quick Purchase Button */}
+            {/* Quick Purchase Button - Touch optimized */}
             {!card.isOwned && (
               <motion.button
-                className="w-full py-2 rounded-lg text-white text-xs font-medium shadow-lg transition-all"
+                className="w-full py-2.5 sm:py-2 rounded-lg text-white text-xs font-medium shadow-lg
+                         transition-all mt-auto min-h-[40px] touch-manipulation"
                 style={{ backgroundColor: themeConfig.primary }}
-                whileHover={{ scale: 1.05, boxShadow: `0 8px 25px ${themeConfig.primary}40` }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02, boxShadow: `0 8px 25px ${themeConfig.primary}40` }}
+                whileTap={{ scale: 0.98 }}
                 onClick={(e) => {
                   e.stopPropagation();
                   onPurchase(card.id);
@@ -457,12 +470,14 @@ export default function GamifiedCard({
                 {purchasing ? (
                   <div className="flex items-center justify-center space-x-2">
                     <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Buying...</span>
+                    <span className="hidden sm:inline">Buying...</span>
+                    <span className="sm:hidden">...</span>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center space-x-2">
                     <ShoppingBag className="h-3 w-3" />
-                    <span>Quick Buy</span>
+                    <span className="hidden sm:inline">Quick Buy</span>
+                    <span className="sm:hidden">Buy</span>
                   </div>
                 )}
               </motion.button>
@@ -486,15 +501,18 @@ export default function GamifiedCard({
     );
   }
 
-  // List view (simplified version)
+  // List view - Mobile optimized
   return (
     <motion.div
-      className={`flex items-center space-x-4 p-4 rounded-xl bg-white/80 backdrop-blur-sm border cursor-pointer transition-all ${rarityEffect.glow}`}
-      whileHover={{ scale: 1.02 }}
+      className={`flex items-center space-x-2 sm:space-x-3 md:space-x-4 p-2 sm:p-3 md:p-4 rounded-lg sm:rounded-xl
+                 bg-white/80 backdrop-blur-sm border cursor-pointer transition-all ${rarityEffect.glow}
+                 min-h-[80px] sm:min-h-auto`}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.99 }}
       onClick={() => onCardClick(card)}
     >
-      {/* Thumbnail */}
-      <div className="relative flex-shrink-0 w-16 h-20 rounded-lg overflow-hidden">
+      {/* Mobile-optimized Thumbnail */}
+      <div className="relative flex-shrink-0 w-12 h-16 sm:w-14 sm:h-18 md:w-16 md:h-20 rounded-md sm:rounded-lg overflow-hidden">
         <img
           src={card.secureThumbnailUrl || card.secureImageUrl || `/api/secure-image?cardId=${card.id}&type=thumbnail`}
           alt={card.cardTitle || card.name}
@@ -519,25 +537,71 @@ export default function GamifiedCard({
           }}
         />
         {card.isOwned && (
-          <CheckCircle className="absolute -top-1 -right-1 h-5 w-5 text-green-500 bg-white rounded-full" />
+          <CheckCircle className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 h-4 w-4 sm:h-5 sm:w-5 text-green-500 bg-white rounded-full" />
         )}
       </div>
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-gray-900 truncate">{card.cardTitle || card.name}</h3>
-        <p className="text-sm text-gray-600">{card.series} • {card.character}</p>
-        <div className="flex items-center space-x-2 mt-1">
-          <span className="text-xs px-2 py-1 bg-gray-100 rounded">{card.rarity}</span>
-          <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">{card.element}</span>
+      {/* Mobile-optimized Info */}
+      <div className="flex-1 min-w-0 space-y-1">
+        <h3 className="font-semibold text-gray-900 truncate text-sm sm:text-base leading-tight">
+          {card.cardTitle || card.name}
+        </h3>
+        <p className="text-xs sm:text-sm text-gray-600 truncate">
+          <span className="hidden sm:inline">{card.series} • {card.character}</span>
+          <span className="sm:hidden">{card.series}</span>
+        </p>
+        <div className="flex items-center space-x-1 sm:space-x-2 flex-wrap">
+          <span className="text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 rounded text-gray-700 truncate max-w-[60px] sm:max-w-none">
+            {card.rarity}
+          </span>
+          <span className="text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 bg-blue-100 text-blue-800 rounded truncate max-w-[50px] sm:max-w-none">
+            {card.element}
+          </span>
         </div>
       </div>
 
-      {/* Price & Action */}
-      <div className="text-right">
-        <div className="text-lg font-bold" style={{ color: themeConfig.primary }}>
-          💎 {card.diamondPrice}
+      {/* Mobile-optimized Price & Stats */}
+      <div className="text-right flex-shrink-0 space-y-1">
+        <div className="text-sm sm:text-base md:text-lg font-bold flex items-center justify-end space-x-1" style={{ color: themeConfig.primary }}>
+          <Diamond className="h-3 w-3 sm:h-4 sm:w-4" />
+          <span>{card.diamondPrice}</span>
         </div>
+        
+        {/* Quick stats on mobile */}
+        <div className="flex items-center space-x-1 text-xs text-gray-500">
+          <span className="flex items-center space-x-0.5">
+            <Zap className="h-2.5 w-2.5 text-red-500" />
+            <span>{card.attackPower}</span>
+          </span>
+          <span className="flex items-center space-x-0.5">
+            <Shield className="h-2.5 w-2.5 text-blue-500" />
+            <span>{card.defense}</span>
+          </span>
+          <span className="flex items-center space-x-0.5">
+            <Wind className="h-2.5 w-2.5 text-green-500" />
+            <span>{card.speed}</span>
+          </span>
+        </div>
+
+        {/* Quick buy button for list view */}
+        {!card.isOwned && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onPurchase(card.id);
+            }}
+            disabled={purchasing}
+            className="mt-1 px-2 py-1 rounded text-xs text-white font-medium transition-all touch-manipulation
+                     hover:scale-105 active:scale-95 disabled:opacity-50 min-h-[32px] flex items-center justify-center"
+            style={{ backgroundColor: themeConfig.primary }}
+          >
+            {purchasing ? (
+              <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <ShoppingBag className="h-3 w-3" />
+            )}
+          </button>
+        )}
       </div>
     </motion.div>
   );
