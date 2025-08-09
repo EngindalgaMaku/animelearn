@@ -195,6 +195,11 @@ model User {
   loginStreakData       LoginStreak?
   accounts              Account[]
   sessions              Session[]
+  
+  // Python Tips Feature Relations
+  pythonTipInteractions UserPythonTipInteraction[]
+  pythonTipStreak       PythonTipStreak?
+  pythonTipFeedback     PythonTipFeedback[]
 
   @@map("users")
 }
@@ -1139,4 +1144,223 @@ model LoginStreak {
   @@index([userId])
   @@index([lastLoginDate])
   @@map("login_streaks")
+}
+
+// ===== PYTHON TIPS FEATURE MODELS =====
+
+model PythonTipCategory {
+  id              String      @id @default(cuid())
+  name            String      @unique
+  slug            String      @unique
+  description     String?
+  color           String      @default("#3B82F6")
+  icon            String?
+  sortOrder       Int         @default(0)
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Relations
+  tips            PythonTip[]
+
+  @@map("python_tip_categories")
+}
+
+model PythonTip {
+  id                String                    @id @default(cuid())
+  title             String
+  content           String                    @db.Text
+  codeExample       String?                   @db.Text
+  difficulty        String                    @default("beginner") // "beginner", "intermediate", "advanced"
+  categoryId        String
+  xpReward          Int                       @default(10)
+  viewCount         Int                       @default(0)
+  likeCount         Int                       @default(0)
+  shareCount        Int                       @default(0)
+  isActive          Boolean                   @default(true)
+  publishDate       DateTime?
+  tags              String?                   // JSON array of tags
+  estimatedMinutes  Int                       @default(2)
+  prerequisites     String?                   // JSON array of prerequisite tip IDs
+  relatedTips       String?                   // JSON array of related tip IDs
+  
+  // SEO & Analytics
+  slug              String?                   @unique
+  metaDescription   String?
+  metaKeywords      String?
+  socialImageUrl    String?
+  
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+  
+  // Relations
+  category          PythonTipCategory         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  interactions      UserPythonTipInteraction[]
+  dailyTips         DailyPythonTip[]
+  feedback          PythonTipFeedback[]
+  
+  @@index([publishDate])
+  @@index([difficulty])
+  @@index([categoryId])
+  @@index([isActive])
+  @@map("python_tips")
+}
+
+model UserPythonTipInteraction {
+  id                String              @id @default(cuid())
+  userId            String
+  tipId             String
+  
+  // Interaction types
+  hasViewed         Boolean             @default(false)
+  hasLiked          Boolean             @default(false)
+  hasShared         Boolean             @default(false)
+  hasCompleted      Boolean             @default(false) // For challenge-type tips
+  
+  // Progress tracking
+  timeSpent         Int                 @default(0) // seconds
+  completionScore   Int?                // 0-100 for quiz-type tips
+  attemptCount      Int                 @default(0)
+  
+  // Reward tracking
+  xpEarned          Int                 @default(0)
+  diamondsEarned    Int                 @default(0)
+  badgeEarned       String?             // Badge ID if earned
+  
+  // Metadata
+  firstViewedAt     DateTime?
+  lastViewedAt      DateTime?
+  likedAt           DateTime?
+  sharedAt          DateTime?
+  completedAt       DateTime?
+  
+  // Analytics
+  deviceType        String?             // "mobile", "desktop", "tablet"
+  sourceType        String?             // "daily", "random", "category", "search"
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relations
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tip               PythonTip           @relation(fields: [tipId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, tipId])
+  @@index([userId])
+  @@index([tipId])
+  @@index([hasViewed])
+  @@index([hasCompleted])
+  @@map("user_python_tip_interactions")
+}
+
+model PythonTipStreak {
+  id                    String      @id @default(cuid())
+  userId                String      @unique
+  
+  // Streak tracking
+  currentStreak         Int         @default(0)
+  longestStreak         Int         @default(0)
+  lastTipDate           DateTime?   @db.Date
+  streakStartDate       DateTime?   @db.Date
+  
+  // Statistics
+  totalTipsViewed       Int         @default(0)
+  totalTipsCompleted    Int         @default(0)
+  totalXPEarned         Int         @default(0)
+  totalDiamondsEarned   Int         @default(0)
+  
+  // Milestone tracking
+  streakMilestones      String      @default("[]") // JSON array of achieved milestones
+  nextMilestone         Int         @default(7)    // Next milestone target
+  
+  // Category progress
+  categoriesCompleted   String      @default("{}") // JSON object with category completion stats
+  
+  // Difficulty progress
+  beginnerCompleted     Int         @default(0)
+  intermediateCompleted Int         @default(0)
+  advancedCompleted     Int         @default(0)
+  
+  // Weekly/Monthly stats
+  weeklyGoal            Int         @default(7)    // Tips per week goal
+  weeklyProgress        Int         @default(0)
+  monthlyGoal           Int         @default(30)   // Tips per month goal
+  monthlyProgress       Int         @default(0)
+  
+  // Last reset dates
+  lastWeeklyReset       DateTime    @default(now())
+  lastMonthlyReset      DateTime    @default(now())
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  // Relations
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([currentStreak])
+  @@index([lastTipDate])
+  @@map("python_tip_streaks")
+}
+
+model DailyPythonTip {
+  id              String      @id @default(cuid())
+  tipId           String
+  date            DateTime    @db.Date
+  isActive        Boolean     @default(true)
+  viewCount       Int         @default(0)
+  likeCount       Int         @default(0)
+  shareCount      Int         @default(0)
+  completionRate  Float       @default(0.0) // Percentage of users who completed it
+  
+  // A/B Testing
+  variant         String?     // "A", "B", etc. for testing different tips
+  testingActive   Boolean     @default(false)
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Relations
+  tip             PythonTip   @relation(fields: [tipId], references: [id], onDelete: Cascade)
+  
+  @@unique([date, variant])
+  @@index([date])
+  @@index([isActive])
+  @@map("daily_python_tips")
+}
+
+model PythonTipFeedback {
+  id              String      @id @default(cuid())
+  userId          String
+  tipId           String
+  
+  // Feedback types
+  rating          Int?        // 1-5 star rating
+  difficulty      String?     // "too_easy", "just_right", "too_hard"
+  helpfulness     Int?        // 1-5 scale
+  clarity         Int?        // 1-5 scale
+  
+  // Text feedback
+  comment         String?     @db.Text
+  suggestion      String?     @db.Text
+  reportReason    String?     // "incorrect", "offensive", "spam", etc.
+  
+  // Metadata
+  isPublic        Boolean     @default(false)
+  isVerified      Boolean     @default(false)
+  adminResponse   String?     @db.Text
+  respondedAt     DateTime?
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Relations
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tip             PythonTip   @relation(fields: [tipId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, tipId])
+  @@index([tipId])
+  @@index([rating])
+  @@index([isPublic])
+  @@map("python_tip_feedback")
 }

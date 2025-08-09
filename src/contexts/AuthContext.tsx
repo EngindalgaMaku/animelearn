@@ -70,10 +70,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   const { data: session, status } = useSession();
 
+  // Handle hydration
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // Don't process auth state until component is mounted (client-side)
+    if (!mounted) return;
+
     // NextAuth session'ına göre auth durumunu güncelle
     if (status === "loading") {
       setLoading(true);
@@ -112,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     setLoading(false);
-  }, [session, status]);
+  }, [session, status, mounted]);
 
   const refreshUser = async () => {
     try {

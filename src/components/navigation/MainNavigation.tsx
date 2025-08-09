@@ -32,7 +32,7 @@ const navigation = [
     href: "/",
     icon: Home,
     requireAuth: false,
-    // Home should always be visible and first
+    hideForAuth: true, // Hide when user is logged in - moved to More dropdown
   },
   {
     name: "Blog",
@@ -69,6 +69,7 @@ const navigation = [
     href: "/store",
     icon: Diamond,
     requireAuth: false,
+    hideForAuth: true, // Hide when user is logged in - moved to More dropdown
     color: "text-yellow-600",
     special: true, // Special styling for store
   },
@@ -77,6 +78,7 @@ const navigation = [
     href: "/my-cards",
     icon: CreditCard,
     requireAuth: true,
+    hideForAuth: true, // Hide when user is logged in - moved to More dropdown
     color: "text-green-600",
   },
 ];
@@ -85,9 +87,15 @@ export default function MainNavigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { isAuthenticated, user, logout, loading } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const moreDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Prevent hydration mismatch by ensuring component is mounted
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Admin kontrolü - role ve email üzerinden
   const isAdmin = user && (
@@ -135,6 +143,62 @@ export default function MainNavigation() {
     return null;
   }
 
+  // Prevent hydration mismatch during SSR
+  if (!mounted || loading) {
+    return (
+      <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            {/* Logo */}
+            <Link href="/" className="flex items-center space-x-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-purple-600">
+                <Gamepad2 className="h-5 w-5 text-white" />
+              </div>
+              <div className="hidden sm:block">
+                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-xl font-bold text-transparent">
+                  Zumenzu
+                </span>
+                <div className="text-xs text-gray-500">Level Up Learning</div>
+              </div>
+            </Link>
+
+            {/* Static navigation for SSR - show default items */}
+            <div className="hidden items-center space-x-1 md:flex">
+              <div className="flex items-center space-x-1">
+                <Link
+                  href="/"
+                  className="relative flex items-center space-x-2 rounded-lg px-3 py-2 font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                >
+                  <Home className="h-4 w-4" />
+                  <span className="text-sm lg:block hidden">Home</span>
+                </Link>
+                <Link
+                  href="/blog"
+                  className="relative flex items-center space-x-2 rounded-lg px-3 py-2 font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                >
+                  <Book className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm lg:block hidden">Blog</span>
+                </Link>
+                <Link
+                  href="/shop"
+                  className="relative flex items-center space-x-2 rounded-lg px-3 py-2 font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                >
+                  <Sparkles className="h-4 w-4 text-purple-600" />
+                  <span className="text-sm lg:block hidden">Shop</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Loading skeleton */}
+            <div className="flex items-center space-x-3">
+              <div className="h-8 w-20 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
   return (
     <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -159,8 +223,13 @@ export default function MainNavigation() {
               {navigation.filter(item => {
                 if (item.requireAuth && !isAuthenticated) return false;
                 if (item.hideForAuth && isAuthenticated) return false;
-                // Show primary items on tablet: Home, Blog (for non-auth), Dashboard, Code Arena, Shop
-                return ['Home', 'Blog', 'Dashboard', 'Code Arena', 'Shop'].includes(item.name);
+                // Show primary items on tablet: Dashboard, Code Arena, Shop for authenticated users
+                // Show Home, Blog, Shop for non-authenticated users
+                if (isAuthenticated) {
+                  return ['Dashboard', 'Code Arena', 'Shop'].includes(item.name);
+                } else {
+                  return ['Home', 'Blog', 'Shop'].includes(item.name);
+                }
               }).map((item) => {
                 const isActive = pathname === item.href;
                 const IconComponent = item.icon;
@@ -189,43 +258,99 @@ export default function MainNavigation() {
 
             {/* Secondary Navigation - Dropdown for smaller screens */}
             <div className="relative">
-              <div className="lg:flex lg:items-center lg:space-x-1 hidden">
-                {/* Show remaining items normally on large screens */}
-                {navigation.filter(item => {
-                  if (item.requireAuth && !isAuthenticated) return false;
-                  if (item.hideForAuth && isAuthenticated) return false;
-                  return !['Home', 'Blog', 'Dashboard', 'Code Arena', 'Shop'].includes(item.name);
-                }).map((item) => {
-                  const isActive = pathname === item.href;
-                  const IconComponent = item.icon;
+              {/* Large screens - show remaining items but exclude hidden ones for authenticated users */}
+              {!isAuthenticated && (
+                <div className="lg:flex lg:items-center lg:space-x-1 hidden">
+                  {/* Show remaining items normally on large screens for non-authenticated users only */}
+                  {navigation.filter(item => {
+                    if (item.requireAuth && !isAuthenticated) return false;
+                    if (item.hideForAuth && isAuthenticated) return false;
+                    // For non-authenticated users
+                    const isPrimaryNav = ['Home', 'Blog', 'Shop'].includes(item.name);
+                    return !isPrimaryNav;
+                  }).map((item) => {
+                    const isActive = pathname === item.href;
+                    const IconComponent = item.icon;
 
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className={`relative flex items-center space-x-2 rounded-lg px-3 py-2 font-medium transition-all duration-200 ${
-                        isActive
-                          ? "bg-blue-600 text-white shadow-md"
-                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                      }`}
-                    >
-                      <IconComponent
-                        className={`h-4 w-4 ${
-                          isActive ? "text-white" : item.color || "text-current"
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className={`relative flex items-center space-x-2 rounded-lg px-3 py-2 font-medium transition-all duration-200 ${
+                          isActive
+                            ? "bg-blue-600 text-white shadow-md"
+                            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                         }`}
-                      />
-                      <span className="text-sm">{item.name}</span>
-                    </Link>
-                  );
-                })}
-              </div>
+                      >
+                        <IconComponent
+                          className={`h-4 w-4 ${
+                            isActive ? "text-white" : item.color || "text-current"
+                          }`}
+                        />
+                        <span className="text-sm">{item.name}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
 
-              {/* More dropdown for tablet screens */}
-              {(() => {
+              {/* More dropdown for authenticated users */}
+              {isAuthenticated && (() => {
+                const hiddenItems = navigation.filter(item => {
+                  return item.hideForAuth === true;
+                });
+
+                if (hiddenItems.length === 0) return null;
+
+                return (
+                  <div className="relative" ref={moreDropdownRef}>
+                    <button
+                      onClick={() => setMoreDropdownOpen(!moreDropdownOpen)}
+                      className="flex items-center space-x-1 rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    >
+                      <Menu className="h-4 w-4" />
+                      <span className="text-sm">More</span>
+                      <ChevronDown className="h-3 w-3" />
+                    </button>
+
+                    {moreDropdownOpen && (
+                      <div className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                        {hiddenItems.map((item) => {
+                          const isActive = pathname === item.href;
+                          const IconComponent = item.icon;
+
+                          return (
+                            <Link
+                              key={item.name}
+                              href={item.href}
+                              onClick={() => setMoreDropdownOpen(false)}
+                              className={`flex items-center space-x-3 px-4 py-2 text-sm transition-colors ${
+                                isActive
+                                  ? "bg-blue-50 text-blue-600"
+                                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                              }`}
+                            >
+                              <IconComponent
+                                className={`h-4 w-4 ${
+                                  isActive ? "text-blue-600" : item.color || "text-current"
+                                }`}
+                              />
+                              <span>{item.name}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* More dropdown for non-authenticated users (tablet screens only) */}
+              {!isAuthenticated && (() => {
                 const secondaryItems = navigation.filter(item => {
                   if (item.requireAuth && !isAuthenticated) return false;
-                  if (item.hideForAuth && isAuthenticated) return false;
-                  return !['Home', 'Blog', 'Dashboard', 'Code Arena', 'Shop'].includes(item.name);
+                  if (item.hideForAuth) return false;
+                  return !['Home', 'Blog', 'Shop'].includes(item.name);
                 });
 
                 if (secondaryItems.length === 0) return null;
@@ -479,11 +604,75 @@ export default function MainNavigation() {
                 </div>
               )}
 
-              {/* Navigation Links */}
-              {navigation.map((item) => {
-                if (item.requireAuth && !isAuthenticated) return null;
-                if (item.hideForAuth && isAuthenticated) return null;
+              {/* Navigation Links - Mobile */}
+              {/* Primary navigation items */}
+              {navigation.filter(item => {
+                if (item.requireAuth && !isAuthenticated) return false;
+                if (item.hideForAuth && isAuthenticated) return false;
+                
+                // Show main navigation items
+                if (isAuthenticated) {
+                  return ['Dashboard', 'Code Arena', 'Shop'].includes(item.name);
+                } else {
+                  return ['Home', 'Blog', 'Shop'].includes(item.name);
+                }
+              }).map((item) => {
+                const isActive = pathname === item.href;
+                const IconComponent = item.icon;
 
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center space-x-3 rounded-lg px-3 py-3 font-medium transition-colors ${
+                      isActive
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    }`}
+                  >
+                    <IconComponent
+                      className={`h-5 w-5 ${
+                        isActive ? "text-white" : item.color || "text-current"
+                      }`}
+                    />
+                    <span>{item.name}</span>
+                  </Link>
+                );
+              })}
+
+              {/* Hidden items for authenticated users - shown in mobile as regular links */}
+              {isAuthenticated && navigation.filter(item => item.hideForAuth === true).map((item) => {
+                const isActive = pathname === item.href;
+                const IconComponent = item.icon;
+
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center space-x-3 rounded-lg px-3 py-3 font-medium transition-colors ${
+                      isActive
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    }`}
+                  >
+                    <IconComponent
+                      className={`h-5 w-5 ${
+                        isActive ? "text-white" : item.color || "text-current"
+                      }`}
+                    />
+                    <span>{item.name}</span>
+                  </Link>
+                );
+              })}
+
+              {/* Remaining items for non-authenticated users */}
+              {!isAuthenticated && navigation.filter(item => {
+                if (item.requireAuth && !isAuthenticated) return false;
+                if (item.hideForAuth) return false;
+                return !['Home', 'Blog', 'Shop'].includes(item.name);
+              }).map((item) => {
                 const isActive = pathname === item.href;
                 const IconComponent = item.icon;
 

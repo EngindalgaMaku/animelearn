@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import PythonTipWidget from "@/components/python-tips/PythonTipWidget";
 
 interface DashboardStats {
   totalCards: number;
@@ -63,6 +64,8 @@ export default function Dashboard() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [authTimeout, setAuthTimeout] = useState(false);
+  const [dailyTip, setDailyTip] = useState<any>(null);
+  const [tipLoading, setTipLoading] = useState(true);
 
   // Load site settings
   useEffect(() => {
@@ -178,6 +181,27 @@ export default function Dashboard() {
 
     loadStats();
   }, [user]);
+
+  // Load daily Python tip
+  useEffect(() => {
+    const loadDailyTip = async () => {
+      try {
+        setTipLoading(true);
+        const response = await fetch('/api/python-tips/daily');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('API Response:', data); // Debug log
+          setDailyTip(data.dailyTip);
+        }
+      } catch (error) {
+        console.error('Failed to load daily tip:', error);
+      } finally {
+        setTipLoading(false);
+      }
+    };
+
+    loadDailyTip();
+  }, []);
 
   // Update current time
   useEffect(() => {
@@ -390,6 +414,61 @@ export default function Dashboard() {
                 <p className="text-sm font-medium text-green-100">Day Streak</p>
               </div>
             </div>
+          </div>
+
+          {/* Daily Python Tip Section */}
+          <div className="mb-8 lg:mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">🐍 Daily Python Tip</h2>
+              <div className="bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                Today's Learning
+              </div>
+            </div>
+            {tipLoading ? (
+              <div className="rounded-2xl border border-white/60 bg-white/90 p-6 shadow-xl backdrop-blur-sm">
+                <div className="animate-pulse flex space-x-4">
+                  <div className="rounded-lg bg-gray-200 h-12 w-12"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                </div>
+              </div>
+            ) : dailyTip ? (
+              <PythonTipWidget
+                tip={dailyTip}
+                onInteraction={async (tipId: string, type: string) => {
+                  try {
+                    const response = await fetch(`/api/python-tips/${tipId}/interact`, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ interactionType: type }),
+                    });
+                    
+                    if (response.ok) {
+                      const data = await response.json();
+                      // Update user stats if XP was awarded
+                      if (data.xpAwarded) {
+                        // You could update user context here or show a notification
+                        console.log(`+${data.xpAwarded} XP for ${type}!`);
+                      }
+                    }
+                  } catch (error) {
+                    console.error('Failed to record interaction:', error);
+                  }
+                }}
+              />
+            ) : (
+              <div className="rounded-2xl border border-white/60 bg-white/90 p-6 shadow-xl backdrop-blur-sm text-center">
+                <div className="text-gray-500">
+                  <Code className="mx-auto h-12 w-12 mb-4" />
+                  <p>No Python tip available today</p>
+                  <p className="text-sm mt-2">Check back tomorrow for a new tip!</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Main Features - Always Prominent */}
