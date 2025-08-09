@@ -134,3 +134,42 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #a5b4fc;
 }
+
+/* Admin Sidebar Fix - ULTRA PRIORITY */
+.admin-sidebar,
+div.admin-sidebar,
+.admin-sidebar > *,
+.admin-sidebar nav,
+.admin-sidebar nav > *,
+.admin-sidebar nav a,
+.admin-sidebar nav button,
+.admin-sidebar nav div {
+  z-index: 99999 !important;
+  pointer-events: auto !important;
+  position: relative !important;
+}
+
+.admin-sidebar a:hover,
+.admin-sidebar button:hover,
+.admin-sidebar a:active,
+.admin-sidebar button:active,
+.admin-sidebar a:focus,
+.admin-sidebar button:focus {
+  z-index: 100000 !important;
+  pointer-events: auto !important;
+  position: relative !important;
+}
+
+/* Force all admin sidebar interactions */
+.admin-sidebar * {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+.admin-sidebar a,
+.admin-sidebar button {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  z-index: 100001 !important;
+  position: relative !important;
+}

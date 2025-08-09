@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import {
   Heart,
@@ -158,7 +156,7 @@ export default function Footer() {
             {/* Copyright and Links */}
             <div className="flex flex-col items-center space-y-3 sm:space-y-4">
               <p className="text-xs sm:text-sm text-gray-400 text-center">
-                © 2024 Zumenzu. All rights reserved.
+                © {new Date().getFullYear()} Zumenzu. All rights reserved.
               </p>
               
               {/* Legal Links - Better mobile spacing */}

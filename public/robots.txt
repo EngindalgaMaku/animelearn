@@ -1,19 +1,32 @@
 User-agent: *
 Allow: /
 
-# Sitemap
+# Sitemaps
 Sitemap: https://zumenzu.com/sitemap.xml
+Sitemap: https://zumenzu.com/sitemap-pages.xml
+Sitemap: https://zumenzu.com/sitemap-blog.xml
+Sitemap: https://zumenzu.com/sitemap-cards.xml
+Sitemap: https://zumenzu.com/sitemap-categories.xml
 
 # Disallow admin and API routes
 Disallow: /admin/
 Disallow: /api/
+Disallow: /_next/
 Disallow: /setup/
 
-# Allow important pages
+# Allow important SEO pages
 Allow: /
 Allow: /shop
-Allow: /learn
-Allow: /features
+Allow: /code-arena
+Allow: /quiz-arena
+Allow: /blog
 Allow: /dashboard
 Allow: /register
 Allow: /login
+Allow: /python-kursu
+Allow: /kart-koleksiyonu
+Allow: /rozetler-basarimlar
+Allow: /gunluk-gorevler
+
+# Crawl-delay
+Crawl-delay: 1

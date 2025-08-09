@@ -178,13 +178,9 @@ export default function AdminPanel() {
                 
                 <div className="text-right">
                   <div className="flex items-center space-x-2 mb-2">
-                    <div className={`w-3 h-3 rounded-full ${
-                      stats?.systemHealth === 'good' ? 'bg-green-500' :
-                      stats?.systemHealth === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
-                    }`}></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
                     <span className="text-sm font-medium text-gray-600">
-                      System {stats?.systemHealth === 'good' ? 'Healthy' : 
-                             stats?.systemHealth === 'warning' ? 'Warning' : 'Critical'}
+                      System Online
                     </span>
                   </div>
                   <p className="text-xs text-gray-500">Last updated: {new Date().toLocaleTimeString()}</p>

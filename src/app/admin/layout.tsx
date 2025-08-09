@@ -51,12 +51,6 @@ const adminNavigation = [
         description: "Manage shop cards for purchase",
       },
       {
-        name: "Collection Cards",
-        href: "/admin/collection-cards",
-        icon: Package,
-        description: "Manage user collection cards",
-      },
-      {
         name: "Categories",
         href: "/admin/categories",
         icon: Tag,
@@ -249,18 +243,22 @@ export default function AdminLayout({
       {/* Sidebar Overlay for mobile */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden"
+          className="fixed inset-0 z-[9998] bg-black bg-opacity-50 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 bg-white shadow-xl transition-all duration-300 ease-in-out md:static md:z-auto ${
+        className={`fixed inset-y-0 left-0 bg-white shadow-xl transition-all duration-300 ease-in-out md:static ${
           sidebarOpen
             ? "w-64 translate-x-0 md:w-64"
             : "w-64 -translate-x-full md:w-0 md:translate-x-0"
-        } overflow-hidden`}
+        } overflow-hidden admin-sidebar`}
+        style={{
+          zIndex: 99999,
+          pointerEvents: 'auto'
+        }}
       >
         {/* Sidebar Header */}
         <div className="flex h-16 items-center justify-between border-b border-gray-200 px-6">
@@ -320,7 +318,13 @@ export default function AdminLayout({
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-2 p-4">
+        <nav
+          className="flex-1 space-y-2 p-4 relative admin-nav"
+          style={{
+            zIndex: 100000,
+            pointerEvents: 'auto'
+          }}
+        >
           {adminNavigation.map((item) => {
             const IconComponent = item.icon;
             const isExpanded = expandedMenus.has(item.name);
