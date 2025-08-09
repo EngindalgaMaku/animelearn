@@ -917,7 +917,7 @@ export default function HomePage() {
 
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
               {/* Blog Post Card 1 */}
-              <Link href="/blog/python-programlamaya-giris-rehberi" className="group rounded-2xl border border-green-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl hover:border-green-300 block">
+              <Link href="/blog/python-programming-introduction-guide" className="group rounded-2xl border border-green-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl hover:border-green-300 block">
                 <div className="mb-4 flex items-center justify-between">
                   <div className="rounded-full bg-gradient-to-r from-green-500 to-emerald-500 px-3 py-1 text-xs font-medium text-white">
                     Python Basics
@@ -952,7 +952,7 @@ export default function HomePage() {
               </Link>
 
               {/* Blog Post Card 2 */}
-              <Link href="/blog/python-ile-neler-yapilir-2025-rehberi" className="group rounded-2xl border border-blue-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl hover:border-blue-300 block">
+              <Link href="/blog/what-can-you-do-with-python-2024-guide" className="group rounded-2xl border border-blue-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl hover:border-blue-300 block">
                 <div className="mb-4 flex items-center justify-between">
                   <div className="rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 px-3 py-1 text-xs font-medium text-white">
                     Python Applications
@@ -964,7 +964,7 @@ export default function HomePage() {
                 </div>
                 
                 <h3 className="mb-3 text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                  What Can You Do with Python? 2025 Guide
+                  What Can You Do with Python? 2024 Guide
                 </h3>
                 
                 <p className="mb-4 text-slate-600 line-clamp-3">
@@ -987,7 +987,7 @@ export default function HomePage() {
               </Link>
 
               {/* Blog Post Card 3 */}
-              <Link href="/blog/python-veri-analizi-pandas-rehberi" className="group rounded-2xl border border-purple-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl hover:border-purple-300 block">
+              <Link href="/blog/python-data-analysis-pandas-guide" className="group rounded-2xl border border-purple-200 bg-white p-6 shadow-lg transition-all hover:shadow-xl hover:border-purple-300 block">
                 <div className="mb-4 flex items-center justify-between">
                   <div className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-3 py-1 text-xs font-medium text-white">
                     Data Science
