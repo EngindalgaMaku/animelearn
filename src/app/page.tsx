@@ -191,7 +191,7 @@ export default function HomePage() {
       const response = await fetch('/api/python-tips/daily');
       if (response.ok) {
         const data = await response.json();
-        setDailyTip(data.tip);
+        setDailyTip(data.dailyTip);
         setTipProgress(data.userProgress);
       }
     } catch (error) {
