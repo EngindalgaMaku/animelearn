@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 import { createHash } from "crypto";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
@@ -10,18 +12,21 @@ interface AuthUser {
   username: string;
 }
 
-// Token'dan kullanıcı bilgilerini çıkart
-function getUserFromToken(request: NextRequest): AuthUser | null {
-  const token = request.cookies.get("auth-token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
+// NextAuth session'dan kullanıcı bilgilerini çıkart
+async function getUserFromSession(): Promise<AuthUser | null> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
+      return null;
+    }
+
+    return {
+      userId: session.user.id,
+      username: session.user.username || session.user.email?.split('@')[0] || 'User'
+    };
   } catch (error) {
+    console.error("Session error:", error);
     return null;
   }
 }
@@ -166,7 +171,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Kullanıcı girişi varsa sahiplik bilgilerini ekle
-    const authUser = getUserFromToken(request);
+    const authUser = await getUserFromSession();
     if (authUser) {
       const userCards = await prisma.userCard.findMany({
         where: {
@@ -247,7 +252,7 @@ export async function GET(request: NextRequest) {
 // POST - Kart satın alma
 export async function POST(request: NextRequest) {
   try {
-    const authUser = getUserFromToken(request);
+    const authUser = await getUserFromSession();
 
     if (!authUser) {
       return NextResponse.json(
@@ -428,7 +433,7 @@ export async function POST(request: NextRequest) {
 // PUT - Kart fiyatı güncelleme (Admin only)
 export async function PUT(request: NextRequest) {
   try {
-    const authUser = getUserFromToken(request);
+    const authUser = await getUserFromSession();
 
     if (!authUser) {
       return NextResponse.json(

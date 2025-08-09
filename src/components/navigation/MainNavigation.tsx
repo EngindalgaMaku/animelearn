@@ -297,7 +297,7 @@ export default function MainNavigation() {
               {/* More dropdown for authenticated users */}
               {isAuthenticated && (() => {
                 const hiddenItems = navigation.filter(item => {
-                  return item.hideForAuth === true;
+                  return item.hideForAuth === true && item.name !== "Home";
                 });
 
                 if (hiddenItems.length === 0) return null;
@@ -642,7 +642,7 @@ export default function MainNavigation() {
               })}
 
               {/* Hidden items for authenticated users - shown in mobile as regular links */}
-              {isAuthenticated && navigation.filter(item => item.hideForAuth === true).map((item) => {
+              {isAuthenticated && navigation.filter(item => item.hideForAuth === true && item.name !== "Home").map((item) => {
                 const isActive = pathname === item.href;
                 const IconComponent = item.icon;
 

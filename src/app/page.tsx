@@ -34,9 +34,11 @@ import {
   ChevronRight,
   FileText,
   Clock,
+  Terminal,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import PythonTipWidget from "@/components/python-tips/PythonTipWidget";
 import Head from "next/head";
 
 interface Stats {
@@ -58,6 +60,8 @@ export default function HomePage() {
   const [animeCards, setAnimeCards] = useState<any[]>([]);
   const [starCards, setStarCards] = useState<any[]>([]);
   const [sampleQuiz, setSampleQuiz] = useState<any>(null);
+  const [dailyTip, setDailyTip] = useState<any>(null);
+  const [tipProgress, setTipProgress] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { isAuthenticated, user } = useAuth();
 
@@ -109,6 +113,7 @@ export default function HomePage() {
     fetchStats();
     fetchSampleCards();
     fetchSampleQuiz();
+    fetchDailyTip();
   }, []);
 
   const fetchStats = async () => {
@@ -178,6 +183,43 @@ export default function HomePage() {
       }
     } catch (error) {
       console.error("Failed to fetch sample cards:", error);
+    }
+  };
+
+  const fetchDailyTip = async () => {
+    try {
+      const response = await fetch('/api/python-tips/daily');
+      if (response.ok) {
+        const data = await response.json();
+        setDailyTip(data.tip);
+        setTipProgress(data.userProgress);
+      }
+    } catch (error) {
+      console.error("Failed to fetch daily tip:", error);
+    }
+  };
+
+  const handleTipInteraction = async (action: string, data?: any) => {
+    if (!dailyTip || !isAuthenticated) return;
+
+    try {
+      const response = await fetch(`/api/python-tips/${dailyTip.id}/interact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, data }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setTipProgress(result.userProgress);
+        
+        // Refresh user data if XP was earned
+        if (result.xpEarned && user) {
+          // You might want to refresh user context here
+        }
+      }
+    } catch (error) {
+      console.error("Tip interaction failed:", error);
     }
   };
 
@@ -325,6 +367,60 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* Daily Python Tip Section */}
+        {dailyTip && (
+          <section className="py-12 lg:py-16">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="mb-8 text-center">
+                <div className="mb-4 inline-flex items-center rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 px-6 py-3 text-sm font-semibold text-blue-700">
+                  <Terminal className="mr-2 h-4 w-4" />
+                  🐍 Daily Python Tip
+                </div>
+                <h2 className="mb-2 text-3xl font-bold text-slate-900 lg:text-4xl">
+                  Learn Something New Every Day
+                </h2>
+                <p className="mx-auto max-w-2xl text-lg text-slate-600">
+                  Discover practical Python tips and tricks that will improve your coding skills
+                </p>
+              </div>
+
+              <div className="mx-auto max-w-4xl">
+                <PythonTipWidget
+                  tip={dailyTip}
+                  userProgress={tipProgress}
+                  streak={null}
+                  compact={true}
+                  onInteraction={handleTipInteraction}
+                  className="mx-auto max-w-2xl"
+                />
+              </div>
+
+              {!isAuthenticated && (
+                <div className="mt-8 text-center">
+                  <div className="mx-auto max-w-md rounded-xl bg-gradient-to-r from-yellow-50 to-orange-50 p-6 border-2 border-dashed border-yellow-300">
+                    <div className="mb-3 flex justify-center">
+                      <div className="rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 p-2">
+                        <Crown className="h-6 w-6 text-white" />
+                      </div>
+                    </div>
+                    <h4 className="mb-2 text-lg font-bold text-slate-900">🔓 Login to Earn XP!</h4>
+                    <p className="mb-4 text-sm text-slate-600">
+                      Complete daily tips and earn <strong className="text-purple-600">XP + diamonds</strong> to level up your Python skills
+                    </p>
+                    <Link
+                      href="/login"
+                      className="inline-flex items-center space-x-2 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 px-4 py-2 text-sm font-bold text-white transition-all hover:from-yellow-600 hover:to-orange-600"
+                    >
+                      <Crown className="h-4 w-4" />
+                      <span>Login & Start Learning</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Login Benefits & Challenge Showcase */}
         <section className="relative bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50 py-20 lg:py-24">
