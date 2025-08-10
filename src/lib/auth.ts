@@ -26,6 +26,7 @@ const getBaseUrl = () => {
 };
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   adapter: PrismaAdapter(prisma) as any,
   providers: [
     GoogleProvider({

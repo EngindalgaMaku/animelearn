@@ -71,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const { data: session, status } = useSession();
 
@@ -85,44 +86,67 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (status === "loading") {
-      setLoading(true);
-      return;
-    }
+    try {
+      if (status === "loading") {
+        setLoading(true);
+        return;
+      }
 
-    if (status === "authenticated" && session?.user) {
-      setIsAuthenticated(true);
-      // Convert NextAuth user data to local User type
-      setUser({
-        id: session.user.id || "",
-        username:
-          session.user.username || session.user.email?.split("@")[0] || "User",
-        email: session.user.email || "",
-        role: session.user.role || "user",
-        level: session.user.level || 1,
-        experience: session.user.experience || 0,
-        currentDiamonds: session.user.currentDiamonds || 100,
-        totalDiamonds: session.user.totalDiamonds || 100,
-        dailyDiamonds: 0,
-        lastDailyReset: new Date().toISOString(),
-        codeArenasCompleted: (session.user as any).codeArenasCompleted || 0,
-        quizzesCompleted: (session.user as any).quizzesCompleted || 0,
-        codeSubmissionCount: 0,
-        loginStreak: session.user.loginStreak || 1,
-        maxLoginStreak: session.user.maxLoginStreak || 1,
-        lastLoginDate: new Date().toISOString(),
-        isPremium: session.user.isPremium || false,
-        isActive: true,
-        emailVerified: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
-    } else {
+      if (status === "authenticated" && session?.user) {
+        setIsAuthenticated(true);
+        setAuthError(null);
+
+        // Safely extract user data with comprehensive null checks
+        const sessionUser = session.user;
+        const safeEmail = sessionUser?.email || "";
+        const safeName = sessionUser?.name || "";
+        const emailUsername = safeEmail ? safeEmail.split("@")[0] : "";
+
+        // Create user object with maximum safety
+        const safeUser: User = {
+          id: sessionUser?.id || "",
+          username: sessionUser?.username || emailUsername || "User",
+          email: safeEmail,
+          role: sessionUser?.role || "user",
+          firstName: safeName ? safeName.split(" ")[0] : "",
+          lastName: safeName ? safeName.split(" ").slice(1).join(" ") : "",
+          avatar: sessionUser?.image || "",
+          level: Number(sessionUser?.level) || 1,
+          experience: Number(sessionUser?.experience) || 0,
+          currentDiamonds: Number(sessionUser?.currentDiamonds) || 100,
+          totalDiamonds: Number(sessionUser?.totalDiamonds) || 100,
+          dailyDiamonds: 0,
+          lastDailyReset: new Date().toISOString(),
+          codeArenasCompleted:
+            Number((sessionUser as any)?.codeArenasCompleted) || 0,
+          quizzesCompleted: Number((sessionUser as any)?.quizzesCompleted) || 0,
+          codeSubmissionCount: 0,
+          loginStreak: Number(sessionUser?.loginStreak) || 1,
+          maxLoginStreak: Number(sessionUser?.maxLoginStreak) || 1,
+          lastLoginDate: new Date().toISOString(),
+          isPremium: Boolean(sessionUser?.isPremium) || false,
+          isActive: true,
+          emailVerified: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        setUser(safeUser);
+      } else {
+        // status === "unauthenticated" or any other state
+        setIsAuthenticated(false);
+        setUser(null);
+        setAuthError(null);
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error("AuthContext processing error:", error);
+      setAuthError("Failed to process authentication");
       setIsAuthenticated(false);
       setUser(null);
+      setLoading(false);
     }
-
-    setLoading(false);
   }, [session, status, isHydrated]);
 
   const refreshUser = async () => {
@@ -130,12 +154,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await fetch("/api/users/profile");
       if (response.ok) {
         const data = await response.json();
-        if (data.success) {
+        if (data.success && data.user) {
           setUser(data.user);
+          setAuthError(null);
         }
       }
     } catch (error) {
       console.error("User refresh failed:", error);
+      setAuthError("Failed to refresh user data");
     }
   };
 
@@ -256,6 +282,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return Math.max(0, 100 - user.dailyDiamonds);
   };
 
+  // Don't render children until hydrated to prevent SSR mismatches
+  if (!isHydrated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -273,6 +308,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         getDailyDiamondsRemaining,
       }}
     >
+      {authError && (
+        <div className="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
+          Auth Error: {authError}
+        </div>
+      )}
       {children}
     </AuthContext.Provider>
   );
