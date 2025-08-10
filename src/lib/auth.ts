@@ -284,25 +284,48 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async jwt({ token, user, account }) {
+      // First time JWT created (user login)
       if (user) {
         token.role = user.role;
         token.username = user.username;
+        token.id = user.id;
       }
 
-      // If token doesn't have role but has email, fetch from database
-      if (!token.role && token.email) {
+      // Always ensure we have user data in token for consistent access
+      if (token.email && (!token.role || !token.username)) {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { email: token.email },
-            select: { role: true, username: true },
+            select: {
+              id: true,
+              role: true,
+              username: true,
+              level: true,
+              experience: true,
+              currentDiamonds: true,
+              totalDiamonds: true,
+              loginStreak: true,
+              maxLoginStreak: true,
+              isPremium: true,
+              isActive: true,
+            },
           });
 
           if (dbUser) {
+            token.id = dbUser.id;
             token.role = dbUser.role;
             token.username = dbUser.username;
+            token.level = dbUser.level;
+            token.experience = dbUser.experience;
+            token.currentDiamonds = dbUser.currentDiamonds;
+            token.totalDiamonds = dbUser.totalDiamonds;
+            token.loginStreak = dbUser.loginStreak;
+            token.maxLoginStreak = dbUser.maxLoginStreak;
+            token.isPremium = dbUser.isPremium;
+            token.isActive = dbUser.isActive;
           }
         } catch (error) {
-          console.error("Error fetching user role in JWT callback:", error);
+          console.error("Error fetching user data in JWT callback:", error);
         }
       }
 
@@ -311,7 +334,8 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 7 * 24 * 60 * 60, // 7 days for better security
+    updateAge: 24 * 60 * 60, // Update session every 24 hours
   },
   pages: {
     signIn: "/login",
@@ -329,8 +353,10 @@ export const authOptions: NextAuthOptions = {
         sameSite: "lax",
         path: "/",
         secure: process.env.NODE_ENV === "production",
+        // Remove domain restriction for localhost development
         domain:
           process.env.NODE_ENV === "production" ? ".zumenzu.com" : undefined,
+        maxAge: 7 * 24 * 60 * 60, // 7 days
       },
     },
     callbackUrl: {

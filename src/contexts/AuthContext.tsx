@@ -7,7 +7,7 @@ import {
   useEffect,
   ReactNode,
 } from "react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession, signOut, signIn, getSession } from "next-auth/react";
 
 interface User {
   id: string;
@@ -167,20 +167,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await fetch("/api/users/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usernameOrEmail: username, password }),
+      const result = await signIn("credentials", {
+        usernameOrEmail: username,
+        password: password,
+        redirect: false,
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setIsAuthenticated(true);
-        setUser(data.user);
+      if (result?.ok) {
+        // Force session refresh
+        const newSession = await getSession();
+        if (newSession?.user) {
+          setIsAuthenticated(true);
+          setUser({
+            id: newSession.user.id || "",
+            username:
+              newSession.user.username ||
+              newSession.user.email?.split("@")[0] ||
+              "User",
+            email: newSession.user.email || "",
+            role: newSession.user.role || "user",
+            level: newSession.user.level || 1,
+            experience: newSession.user.experience || 0,
+            currentDiamonds: newSession.user.currentDiamonds || 100,
+            totalDiamonds: newSession.user.totalDiamonds || 100,
+            dailyDiamonds: 0,
+            lastDailyReset: new Date().toISOString(),
+            codeArenasCompleted:
+              (newSession.user as any).codeArenasCompleted || 0,
+            quizzesCompleted: (newSession.user as any).quizzesCompleted || 0,
+            codeSubmissionCount: 0,
+            loginStreak: newSession.user.loginStreak || 1,
+            maxLoginStreak: newSession.user.maxLoginStreak || 1,
+            lastLoginDate: new Date().toISOString(),
+            isPremium: newSession.user.isPremium || false,
+            isActive: true,
+            emailVerified: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }
         return { success: true };
       } else {
-        return { success: false, error: data.error || "Login failed" };
+        return { success: false, error: result?.error || "Login failed" };
       }
     } catch (error) {
       return { success: false, error: "Connection error" };

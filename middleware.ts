@@ -1,54 +1,71 @@
-import { withAuth } from "next-auth/middleware"
-import { NextResponse } from "next/server"
+import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
 
 export default withAuth(
   function middleware(req) {
-    console.log("🔍 Middleware Debug:")
-    console.log("📍 Path:", req.nextUrl.pathname)
-    console.log("🔑 Token:", req.nextauth.token)
-    console.log("👤 Email:", req.nextauth.token?.email)
-    console.log("🎭 Role:", req.nextauth.token?.role)
-    
+    const isProduction = process.env.NODE_ENV === "production";
+
+    if (!isProduction) {
+      console.log("🔍 Middleware Debug:");
+      console.log("📍 Path:", req.nextUrl.pathname);
+      console.log("🔑 Token exists:", !!req.nextauth.token);
+      console.log("👤 Email:", req.nextauth.token?.email);
+      console.log("🎭 Role:", req.nextauth.token?.role);
+    }
+
     // Check if user is trying to access admin routes
     if (req.nextUrl.pathname.startsWith("/admin")) {
-      const token = req.nextauth.token
-      
-      console.log("🚨 Admin route access attempt")
-      console.log("Token exists:", !!token)
-      
-      if (token) {
-        console.log("Token details:", {
-          email: token.email,
-          role: token.role,
-          name: token.name
-        })
+      const token = req.nextauth.token;
+
+      if (!isProduction) {
+        console.log("🚨 Admin route access attempt");
+        console.log("Token exists:", !!token);
+
+        if (token) {
+          console.log("Token details:", {
+            email: token.email,
+            role: token.role,
+            id: token.id,
+            isActive: token.isActive,
+          });
+        }
       }
-      
-      // Check if user has admin role
-      const isAdmin = token && (
-        token.role === "admin" ||
-        token.role === "ADMIN" ||
-        token.email === "admin@zumenzu.com"
-      )
-      
-      console.log("Is admin:", isAdmin)
-      
+
+      // Enhanced admin role checking
+      const isAdmin =
+        token &&
+        token.isActive !== false &&
+        (token.role === "admin" ||
+          token.role === "ADMIN" ||
+          token.email === "admin@zumenzu.com");
+
+      if (!isProduction) {
+        console.log("Is admin:", isAdmin);
+      }
+
       if (!isAdmin) {
-        console.log("❌ Access denied - redirecting to dashboard")
-        return NextResponse.redirect(new URL("/dashboard", req.url))
+        if (!isProduction) {
+          console.log("❌ Access denied - redirecting to dashboard");
+        }
+        return NextResponse.redirect(new URL("/dashboard", req.url));
       }
-      
-      console.log("✅ Admin access granted")
+
+      if (!isProduction) {
+        console.log("✅ Admin access granted");
+      }
     }
-    
-    return NextResponse.next()
+
+    return NextResponse.next();
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token
+      authorized: ({ token, req }) => {
+        // Allow access if token exists and user is active
+        return !!token && token.isActive !== false;
+      },
     },
   }
-)
+);
 
 export const config = {
   matcher: [
@@ -57,6 +74,6 @@ export const config = {
     // Protect other authenticated routes if needed
     "/dashboard/:path*",
     "/battle/:path*",
-    "/tournaments/:path*"
-  ]
-}
+    "/tournaments/:path*",
+  ],
+};

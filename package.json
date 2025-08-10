@@ -41,6 +41,7 @@
     "db:seed-lessons": "tsx prisma/seed-lessons.ts",
     "db:seed-enhanced": "tsx prisma/enhanced-lessons-seed.ts",
     "create-test-user": "tsx scripts/create-test-user.ts",
+    "create-admin": "tsx scripts/create-admin.ts",
     "test-apis": "tsx scripts/test-apis.ts",
     "balance-drop-rates": "tsx scripts/balance-drop-rates.ts",
     "rebalance-cards": "tsx scripts/rebalance-existing-cards.ts",
