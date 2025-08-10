@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowLeft, Calendar, Clock, FileText, User, Tag } from "lucide-react";
-import { getBlogPostBySlug } from "@/lib/blog";
 import { notFound } from "next/navigation";
 
 interface BlogPostPageProps {
@@ -11,10 +10,27 @@ interface BlogPostPageProps {
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
-  
-  // Server component olarak blog post'u direkt yükle
-  const post = getBlogPostBySlug(slug);
-  
+
+  // Get blog post from database
+  let post;
+  try {
+    const response = await fetch(
+      `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/blog/posts/${slug}`,
+      {
+        cache: "no-store", // Always fetch fresh data
+      }
+    );
+
+    if (response.ok) {
+      post = await response.json();
+    } else {
+      notFound();
+    }
+  } catch (error) {
+    console.error("Error fetching blog post:", error);
+    notFound();
+  }
+
   // Post bulunamazsa 404 sayfasına yönlendir
   if (!post) {
     notFound();
@@ -43,7 +59,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <div className="mb-6">
             <Link
               href="/blog"
-              className="inline-flex items-center space-x-2 text-white/80 hover:text-white transition-colors"
+              className="inline-flex items-center space-x-2 text-white/80 transition-colors hover:text-white"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Back to Blog</span>
@@ -51,7 +67,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
 
           <div className="text-white">
-            <div className={`inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium mb-4 ${getCategoryColor(post.category)} bg-white`}>
+            <div
+              className={`mb-4 inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium ${getCategoryColor(post.category)} bg-white`}
+            >
               <FileText className="mr-2 h-4 w-4" />
               {post.category}
             </div>
@@ -71,7 +89,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               </div>
               <div className="flex items-center space-x-2">
                 <Calendar className="h-4 w-4" />
-                <span>{new Date(post.createdAt).toLocaleDateString('tr-TR')}</span>
+                <span>
+                  {new Date(
+                    post.publishedAt || post.createdAt
+                  ).toLocaleDateString("tr-TR")}
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <Clock className="h-4 w-4" />
@@ -88,7 +110,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <div className="rounded-2xl bg-white p-8 shadow-xl lg:p-12">
             {/* Tags */}
             <div className="mb-8 flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
+              {post.tags.map((tag: string) => (
                 <span
                   key={tag}
                   className="inline-flex items-center space-x-1 rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600"
@@ -100,20 +122,21 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </div>
 
             {/* Article Content - Rendered HTML */}
-            <div 
+            <div
               className="prose prose-lg max-w-none"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
 
             {/* Bottom CTA */}
-            <div className="mt-12 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 p-8 text-center border border-blue-200">
+            <div className="mt-12 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 p-8 text-center">
               <h3 className="mb-4 text-2xl font-bold text-slate-900">
                 🚀 Continue Learning Python!
               </h3>
               <p className="mb-6 text-slate-600">
-                You've read the blog post, now it's time to practice with interactive lessons!
+                You've read the blog post, now it's time to practice with
+                interactive lessons!
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col justify-center gap-4 sm:flex-row">
                 <Link
                   href="/code-arena"
                   className="inline-flex items-center space-x-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 px-6 py-3 font-semibold text-white transition-all hover:from-blue-600 hover:to-purple-600"

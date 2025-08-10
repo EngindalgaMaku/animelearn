@@ -169,16 +169,16 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
     return (
       <motion.div
         className={cn(
-          "bg-white rounded-lg border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden",
+          "cursor-pointer overflow-hidden rounded-lg border bg-white shadow-sm transition-all duration-200 hover:shadow-md",
           className
         )}
         whileHover={{ y: -2 }}
         onClick={onView}
       >
         <div className="p-4">
-          <div className="flex items-start space-x-3 mb-3">
+          <div className="mb-3 flex items-start space-x-3">
             <div
-              className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white font-bold shadow-sm"
+              className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-purple-400 to-blue-500 font-bold text-white shadow-sm"
               style={{
                 backgroundImage: group.coverImage
                   ? `url(${group.coverImage})`
@@ -190,30 +190,30 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
               {!group.coverImage && group.name.charAt(0).toUpperCase()}
             </div>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-2 mb-1">
-                <h3 className="font-semibold text-gray-800 truncate">
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 flex items-center space-x-2">
+                <h3 className="truncate font-semibold text-gray-800">
                   {group.name}
                 </h3>
-                <PrivacyIcon className="w-4 h-4 text-gray-400" />
+                <PrivacyIcon className="h-4 w-4 text-gray-400" />
               </div>
-              <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+              <p className="mb-2 line-clamp-2 text-sm text-gray-600">
                 {group.description}
               </p>
 
               <div className="flex items-center space-x-3 text-xs text-gray-500">
                 <div className="flex items-center space-x-1">
-                  <Users className="w-3 h-3" />
+                  <Users className="h-3 w-3" />
                   <span>
                     {group.memberCount}/{group.maxMembers}
                   </span>
                 </div>
                 <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <div className="h-2 w-2 rounded-full bg-green-500" />
                   <span>{getOnlineMembersCount()} çevrimiçi</span>
                 </div>
                 <span
-                  className="px-2 py-1 rounded-full text-xs font-medium"
+                  className="rounded-full px-2 py-1 text-xs font-medium"
                   style={{
                     backgroundColor: category.bg,
                     color: category.color,
@@ -236,7 +236,7 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
                   e.stopPropagation();
                   onJoin?.();
                 }}
-                className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+                className="rounded bg-blue-500 px-3 py-1 text-sm text-white transition-colors hover:bg-blue-600"
               >
                 Katıl
               </button>
@@ -251,7 +251,7 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
     return (
       <motion.div
         className={cn(
-          "bg-gradient-to-br from-white to-gray-50 rounded-xl border-2 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden",
+          "cursor-pointer overflow-hidden rounded-xl border-2 bg-gradient-to-br from-white to-gray-50 shadow-lg transition-all duration-300 hover:shadow-xl",
           className
         )}
         whileHover={{ y: -4, scale: 1.02 }}
@@ -259,7 +259,7 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
       >
         {/* Cover Image/Header */}
         <div
-          className="h-32 bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-500 relative"
+          className="relative h-32 bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-500"
           style={{
             backgroundImage: group.coverImage
               ? `url(${group.coverImage})`
@@ -269,50 +269,50 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
           }}
         >
           <div className="absolute inset-0 bg-black/20" />
-          <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
-            <span className="px-3 py-1 rounded-full text-xs font-bold text-white bg-white/20 backdrop-blur-sm">
+          <div className="absolute left-4 right-4 top-4 flex items-start justify-between">
+            <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">
               {category.label}
             </span>
             <div className="flex space-x-2">
-              <PrivacyIcon className="w-5 h-5 text-white/80" />
-              {group.isMember && <Crown className="w-5 h-5 text-yellow-400" />}
+              <PrivacyIcon className="h-5 w-5 text-white/80" />
+              {group.isMember && <Crown className="h-5 w-5 text-yellow-400" />}
             </div>
           </div>
 
           <div className="absolute bottom-4 left-4 right-4">
             <h2
               style={typographyPresets.heading.h3}
-              className="text-white mb-1"
+              className="mb-1 text-white"
             >
               {group.name}
             </h2>
-            <p className="text-white/90 text-sm">{group.topic}</p>
+            <p className="text-sm text-white/90">{group.topic}</p>
           </div>
         </div>
 
         <div className="p-6">
-          <p className="text-gray-600 mb-4 line-clamp-2">{group.description}</p>
+          <p className="mb-4 line-clamp-2 text-gray-600">{group.description}</p>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <div className="text-center p-3 bg-blue-50 rounded-lg">
-              <Users className="w-5 h-5 text-blue-500 mx-auto mb-1" />
+          <div className="mb-4 grid grid-cols-3 gap-4">
+            <div className="rounded-lg bg-blue-50 p-3 text-center">
+              <Users className="mx-auto mb-1 h-5 w-5 text-blue-500" />
               <div className="font-semibold text-blue-700">
                 {group.memberCount}
               </div>
               <div className="text-xs text-blue-600">Üye</div>
             </div>
 
-            <div className="text-center p-3 bg-green-50 rounded-lg">
-              <BookOpen className="w-5 h-5 text-green-500 mx-auto mb-1" />
+            <div className="rounded-lg bg-green-50 p-3 text-center">
+              <BookOpen className="mx-auto mb-1 h-5 w-5 text-green-500" />
               <div className="font-semibold text-green-700">
                 {group.completedLessons}
               </div>
               <div className="text-xs text-green-600">Ders</div>
             </div>
 
-            <div className="text-center p-3 bg-purple-50 rounded-lg">
-              <Zap className="w-5 h-5 text-purple-500 mx-auto mb-1" />
+            <div className="rounded-lg bg-purple-50 p-3 text-center">
+              <Zap className="mx-auto mb-1 h-5 w-5 text-purple-500" />
               <div className="font-semibold text-purple-700">
                 {group.totalXP.toLocaleString()}
               </div>
@@ -322,13 +322,13 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
 
           {/* Weekly Progress */}
           <div className="mb-4">
-            <div className="flex justify-between text-sm mb-2">
+            <div className="mb-2 flex justify-between text-sm">
               <span className="font-medium text-gray-700">Haftalık Hedef</span>
               <span className="text-gray-500">
                 {Math.round(getProgressPercentage())}%
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
+            <div className="h-3 w-full rounded-full bg-gray-200">
               <motion.div
                 className="h-3 rounded-full bg-gradient-to-r from-green-500 to-blue-500"
                 initial={{ width: 0 }}
@@ -336,7 +336,7 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
                 transition={{ duration: 1 }}
               />
             </div>
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <div className="mt-1 flex justify-between text-xs text-gray-500">
               <span>{group.weeklyProgress} dakika</span>
               <span>{group.weeklyGoal} dakika</span>
             </div>
@@ -345,7 +345,7 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
           {/* Recent Activity Preview */}
           {group.recentActivities.length > 0 && (
             <div className="mb-4">
-              <h4 className="font-medium text-gray-800 mb-2">
+              <h4 className="mb-2 font-medium text-gray-800">
                 Son Aktiviteler
               </h4>
               <div className="space-y-2">
@@ -354,7 +354,7 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
                     key={activity.id}
                     className="flex items-center space-x-2 text-sm text-gray-600"
                   >
-                    <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                    <div className="h-2 w-2 rounded-full bg-blue-500" />
                     <span className="font-medium">{activity.username}</span>
                     <span>{activity.description}</span>
                   </div>
@@ -371,9 +371,9 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
                   e.stopPropagation();
                   onJoin?.();
                 }}
-                className="flex-1 py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium flex items-center justify-center space-x-2"
+                className="flex flex-1 items-center justify-center space-x-2 rounded-lg bg-blue-500 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-600"
               >
-                <UserPlus className="w-4 h-4" />
+                <UserPlus className="h-4 w-4" />
                 <span>Gruba Katıl</span>
               </button>
             )}
@@ -384,9 +384,9 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
                   e.stopPropagation();
                   onMessage?.();
                 }}
-                className="flex-1 py-2 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium flex items-center justify-center space-x-2"
+                className="flex flex-1 items-center justify-center space-x-2 rounded-lg bg-green-500 px-4 py-2 font-medium text-white transition-colors hover:bg-green-600"
               >
-                <MessageCircle className="w-4 h-4" />
+                <MessageCircle className="h-4 w-4" />
                 <span>Sohbete Katıl</span>
               </button>
             )}
@@ -400,14 +400,14 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
   return (
     <motion.div
       className={cn(
-        "bg-white rounded-lg border shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden",
+        "overflow-hidden rounded-lg border bg-white shadow-sm transition-all duration-200 hover:shadow-md",
         className
       )}
       whileHover={{ y: -2 }}
     >
       {/* Header */}
       <div
-        className="h-24 bg-gradient-to-r from-purple-500 to-blue-500 relative cursor-pointer"
+        className="relative h-24 cursor-pointer bg-gradient-to-r from-purple-500 to-blue-500"
         style={{
           backgroundImage: group.coverImage
             ? `url(${group.coverImage})`
@@ -418,13 +418,13 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
         onClick={onView}
       >
         <div className="absolute inset-0 bg-black/20" />
-        <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
-          <span className="px-2 py-1 rounded-full text-xs font-medium text-white bg-white/20 backdrop-blur-sm">
+        <div className="absolute left-3 right-3 top-3 flex items-start justify-between">
+          <span className="rounded-full bg-white/20 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">
             {category.label}
           </span>
           <div className="flex items-center space-x-1">
-            <PrivacyIcon className="w-4 h-4 text-white/80" />
-            {group.isMember && <Crown className="w-4 h-4 text-yellow-400" />}
+            <PrivacyIcon className="h-4 w-4 text-white/80" />
+            {group.isMember && <Crown className="h-4 w-4 text-yellow-400" />}
           </div>
         </div>
       </div>
@@ -432,55 +432,55 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
       <div className="p-4">
         {/* Group Info */}
         <div className="mb-4">
-          <div className="flex items-start justify-between mb-2">
+          <div className="mb-2 flex items-start justify-between">
             <h3
-              className="font-semibold text-gray-800 cursor-pointer hover:text-blue-600 transition-colors"
+              className="cursor-pointer font-semibold text-gray-800 transition-colors hover:text-blue-600"
               onClick={onView}
             >
               {group.name}
             </h3>
             <button className="text-gray-400 hover:text-gray-600">
-              <MoreHorizontal className="w-4 h-4" />
+              <MoreHorizontal className="h-4 w-4" />
             </button>
           </div>
 
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+          <p className="mb-3 line-clamp-2 text-sm text-gray-600">
             {group.description}
           </p>
 
           <div className="flex items-center space-x-4 text-sm text-gray-500">
             <div className="flex items-center space-x-1">
-              <Users className="w-4 h-4" />
+              <Users className="h-4 w-4" />
               <span>
                 {group.memberCount}/{group.maxMembers}
               </span>
             </div>
             <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full" />
+              <div className="h-2 w-2 rounded-full bg-green-500" />
               <span>{getOnlineMembersCount()} çevrimiçi</span>
             </div>
             <div className="flex items-center space-x-1">
-              <Clock className="w-4 h-4" />
+              <Clock className="h-4 w-4" />
               <span>{formatLastActivity(group.lastActivity)}</span>
             </div>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="text-center p-2 bg-gray-50 rounded">
+        <div className="mb-4 grid grid-cols-3 gap-3">
+          <div className="rounded bg-gray-50 p-2 text-center">
             <div className="text-sm font-semibold text-gray-800">
               {group.completedLessons}
             </div>
             <div className="text-xs text-gray-500">Ders</div>
           </div>
-          <div className="text-center p-2 bg-gray-50 rounded">
+          <div className="rounded bg-gray-50 p-2 text-center">
             <div className="text-sm font-semibold text-gray-800">
               {group.activeDiscussions}
             </div>
             <div className="text-xs text-gray-500">Tartışma</div>
           </div>
-          <div className="text-center p-2 bg-gray-50 rounded">
+          <div className="rounded bg-gray-50 p-2 text-center">
             <div className="text-sm font-semibold text-gray-800">
               {group.totalXP.toLocaleString()}
             </div>
@@ -490,11 +490,11 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
 
         {/* Progress Bar */}
         <div className="mb-4">
-          <div className="flex justify-between text-xs text-gray-500 mb-1">
+          <div className="mb-1 flex justify-between text-xs text-gray-500">
             <span>Haftalık İlerleme</span>
             <span>{Math.round(getProgressPercentage())}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="h-2 w-full rounded-full bg-gray-200">
             <motion.div
               className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"
               initial={{ width: 0 }}
@@ -511,13 +511,13 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
               {group.tags.slice(0, 3).map((tag, index) => (
                 <span
                   key={index}
-                  className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs"
+                  className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600"
                 >
                   #{tag}
                 </span>
               ))}
               {group.tags.length > 3 && (
-                <span className="px-2 py-1 bg-gray-100 text-gray-500 rounded text-xs">
+                <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-500">
                   +{group.tags.length - 3}
                 </span>
               )}
@@ -531,7 +531,7 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
             <button
               onClick={onJoin}
               className={cn(
-                "flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors",
+                "flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 group.joinRequestPending
                   ? "bg-yellow-100 text-yellow-700"
                   : "bg-blue-500 text-white hover:bg-blue-600"
@@ -544,7 +544,7 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
           {group.isMember && (
             <button
               onClick={onMessage}
-              className="flex-1 py-2 px-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
+              className="flex-1 rounded-lg bg-green-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-green-600"
             >
               Sohbet
             </button>
@@ -552,7 +552,7 @@ export const StudyGroupCard: React.FC<StudyGroupCardProps> = ({
 
           <button
             onClick={onView}
-            className="py-2 px-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+            className="rounded-lg bg-gray-100 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-200"
           >
             Görüntüle
           </button>
@@ -568,9 +568,9 @@ export const sampleStudyGroups: StudyGroup[] = [
     id: "1",
     name: "Python Başlangıç Grubu",
     description:
-      "Python öğrenmeye yeni başlayanlar için destek grubu. Beraber öğrenelim ve büyüyelim!",
+      "Support group for Python beginners. Let's learn and grow together!",
     category: "beginner",
-    topic: "Python Temelleri",
+    topic: "Python Fundamentals",
     privacy: "public",
     memberCount: 24,
     maxMembers: 30,
@@ -589,17 +589,17 @@ export const sampleStudyGroups: StudyGroup[] = [
         type: "lesson_completed",
         userId: "user1",
         username: "ahmet123",
-        description: "Değişkenler dersini tamamladı",
+        description: "completed Variables lesson",
         timestamp: new Date(Date.now() - 1800000),
       },
     ],
-    tags: ["python", "başlangıç", "programlama", "yazılım"],
+    tags: ["python", "beginner", "programming", "software"],
   },
   {
     id: "2",
     name: "Machine Learning Warriors",
     description:
-      "ML algoritmaları ve deep learning konularında deneyim paylaşımı yapıyoruz.",
+      "We share experience on ML algorithms and deep learning topics.",
     category: "advanced",
     topic: "Machine Learning",
     privacy: "invite_only",

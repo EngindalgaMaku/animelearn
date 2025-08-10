@@ -14,6 +14,7 @@ import {
   initWebVitals,
   addResourceHints,
 } from "@/lib/performance/core-web-vitals";
+import "@/lib/automation-init";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

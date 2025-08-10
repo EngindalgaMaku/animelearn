@@ -1,53 +1,75 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
-// GET - Blog postlarını getir
+// Admin kontrolü
+async function checkAdminAccess() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user || session.user.role !== "admin") {
+    return false;
+  }
+  return true;
+}
+
+// GET - Tüm blog postlarını getir (Admin only)
 export async function GET(request: NextRequest) {
   try {
+    const isAdmin = await checkAdminAccess();
+    if (!isAdmin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
+    const published = searchParams.get("published");
     const featured = searchParams.get("featured");
     const limit = searchParams.get("limit");
     const offset = searchParams.get("offset");
+    const search = searchParams.get("search");
 
-    const where: any = {
-      isPublished: true,
-    };
+    const where: any = {};
 
     if (category && category !== "all") {
       where.category = category;
+    }
+
+    if (published === "true") {
+      where.isPublished = true;
+    } else if (published === "false") {
+      where.isPublished = false;
     }
 
     if (featured === "true") {
       where.featured = true;
     }
 
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { author: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
     const posts = await prisma.blogPost.findMany({
       where,
-      orderBy: [
-        { featured: "desc" },
-        { publishedAt: "desc" },
-        { createdAt: "desc" },
-      ],
+      orderBy: [{ createdAt: "desc" }],
       take: limit ? parseInt(limit) : undefined,
       skip: offset ? parseInt(offset) : undefined,
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        description: true,
-        excerpt: true,
-        category: true,
-        tags: true,
-        featured: true,
-        readTime: true,
-        estimatedMinutes: true,
-        author: true,
-        viewCount: true,
-        likeCount: true,
-        publishedAt: true,
-        createdAt: true,
-        socialImageUrl: true,
+      include: {
+        authorUser: {
+          select: {
+            username: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        _count: {
+          select: {
+            interactions: true,
+          },
+        },
       },
     });
 
@@ -57,9 +79,20 @@ export async function GET(request: NextRequest) {
       tags: post.tags ? JSON.parse(post.tags) : [],
     }));
 
-    return NextResponse.json(transformedPosts);
+    // Get total count for pagination
+    const totalCount = await prisma.blogPost.count({ where });
+
+    return NextResponse.json({
+      posts: transformedPosts,
+      totalCount,
+      pagination: {
+        limit: limit ? parseInt(limit) : posts.length,
+        offset: offset ? parseInt(offset) : 0,
+        hasMore: totalCount > (offset ? parseInt(offset) : 0) + posts.length,
+      },
+    });
   } catch (error) {
-    console.error("Error fetching blog posts:", error);
+    console.error("Error fetching admin blog posts:", error);
     return NextResponse.json(
       { error: "Failed to fetch blog posts" },
       { status: 500 }
@@ -70,6 +103,11 @@ export async function GET(request: NextRequest) {
 // POST - Yeni blog post oluştur (Admin only)
 export async function POST(request: NextRequest) {
   try {
+    const isAdmin = await checkAdminAccess();
+    if (!isAdmin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const {
       title,
@@ -132,6 +170,15 @@ export async function POST(request: NextRequest) {
         publishedAt: isPublished ? publishedAt || new Date() : null,
         authorId,
         language: language || "tr",
+      },
+      include: {
+        authorUser: {
+          select: {
+            username: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
       },
     });
 

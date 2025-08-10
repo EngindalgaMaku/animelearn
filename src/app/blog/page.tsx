@@ -11,10 +11,31 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Head from "next/head";
-import { getAllBlogPosts, BlogPost } from "@/lib/blog";
 import { BlogCategoryFilter } from "@/components/blog/BlogCategoryFilter";
 import { BlogPostCard } from "@/components/blog/BlogPostCard";
 import { BreadcrumbSchema, WebSiteSchema } from "@/components/seo/SchemaMarkup";
+
+// Database BlogPost interface
+interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string;
+  excerpt?: string;
+  category: string;
+  tags: string[];
+  featured: boolean;
+  readTime: string;
+  estimatedMinutes: number;
+  author: string;
+  viewCount: number;
+  likeCount: number;
+  isPublished: boolean;
+  publishedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  socialImageUrl?: string;
+}
 
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -28,16 +49,20 @@ export default function BlogPage() {
     setMounted(true);
   }, []);
 
-  // Load blog posts on client side
+  // Load blog posts from database
   useEffect(() => {
     if (!mounted) return;
 
     const loadPosts = async () => {
       try {
-        // Since getAllBlogPosts uses fs, we need to call it via an API route
         const response = await fetch("/api/blog/posts");
         if (response.ok) {
           const blogPosts = await response.json();
+          console.log(
+            "🔍 Loaded blog posts from API:",
+            blogPosts.length,
+            blogPosts
+          );
           setPosts(blogPosts);
           setFilteredPosts(blogPosts);
         } else {
@@ -74,7 +99,16 @@ export default function BlogPage() {
 
   const featuredPosts = posts.filter((post) => post.featured).slice(0, 3);
 
+  console.log("🔍 Total posts:", posts.length);
+  console.log("🔍 Featured posts:", featuredPosts.length);
+  console.log("🔍 Filtered posts for display:", filteredPosts.length);
+
   const handleFilteredPostsChange = (newFilteredPosts: BlogPost[]) => {
+    console.log(
+      "🔍 Filtered posts changed:",
+      newFilteredPosts.length,
+      newFilteredPosts
+    );
     setFilteredPosts(newFilteredPosts);
   };
 

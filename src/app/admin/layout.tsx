@@ -30,6 +30,12 @@ import {
   Search,
   BookOpen,
   GraduationCap,
+  FileText,
+  Edit3,
+  Globe,
+  Code,
+  Brain,
+  Calendar,
 } from "lucide-react";
 
 const adminNavigation = [
@@ -93,6 +99,50 @@ const adminNavigation = [
     href: "/admin/users",
     icon: Users,
     color: "text-blue-600",
+  },
+  {
+    name: "Blog Management",
+    icon: FileText,
+    color: "text-indigo-600",
+    submenu: [
+      {
+        name: "Manage Posts",
+        href: "/admin/blog",
+        icon: Edit3,
+        description: "Create, edit, and publish blog posts",
+      },
+      {
+        name: "Blog Settings",
+        href: "/admin/blog/settings",
+        icon: Globe,
+        description: "Manage categories and blog settings",
+      },
+    ],
+  },
+  {
+    name: "Python Tips",
+    icon: Code,
+    color: "text-yellow-600",
+    submenu: [
+      {
+        name: "Manage Tips",
+        href: "/admin/python-tips",
+        icon: Brain,
+        description: "Create, edit, and manage Python tips",
+      },
+      {
+        name: "Categories",
+        href: "/admin/python-tips/categories",
+        icon: Tag,
+        description: "Manage tip categories",
+      },
+      {
+        name: "Daily Tips",
+        href: "/admin/python-tips/daily",
+        icon: Calendar,
+        description: "Schedule and manage daily tips",
+      },
+    ],
   },
   {
     name: "Learning System",
@@ -254,10 +304,10 @@ export default function AdminLayout({
           sidebarOpen
             ? "w-64 translate-x-0 md:w-64"
             : "w-64 -translate-x-full md:w-0 md:translate-x-0"
-        } overflow-hidden admin-sidebar`}
+        } admin-sidebar overflow-hidden`}
         style={{
           zIndex: 99999,
-          pointerEvents: 'auto'
+          pointerEvents: "auto",
         }}
       >
         {/* Sidebar Header */}
@@ -319,10 +369,10 @@ export default function AdminLayout({
 
         {/* Navigation */}
         <nav
-          className="flex-1 space-y-2 p-4 relative admin-nav"
+          className="admin-nav relative flex-1 space-y-2 p-4"
           style={{
             zIndex: 100000,
-            pointerEvents: 'auto'
+            pointerEvents: "auto",
           }}
         >
           {adminNavigation.map((item) => {

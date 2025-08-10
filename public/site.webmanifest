@@ -1,14 +1,14 @@
 {
-  "name": "Zumenzu - Python Öğren, Anime Kartları Topla",
+  "name": "Zumenzu - Learn Python, Collect Anime Cards",
   "short_name": "Zumenzu",
-  "description": "Python programlama öğrenirken anime kartları toplayın, rozetler kazanın ve günlük görevleri tamamlayın. Gamifikasyon ile kodlama öğrenmenin en eğlenceli yolu!",
+  "description": "Learn Python programming while collecting anime cards, earning badges, and completing daily quests. The most fun way to learn coding with gamification!",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
   "scope": "/",
-  "lang": "tr",
+  "lang": "en",
   "categories": ["education", "games", "productivity"],
   "screenshots": [
     {
