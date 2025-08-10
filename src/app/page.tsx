@@ -305,45 +305,98 @@ export default function HomePage() {
                 <strong className="text-green-300">🏆 achievements</strong>
               </p>
 
-              {/* Main CTA Buttons */}
-              <div className="mb-8 flex flex-col items-center justify-center gap-3">
+              {/* Unified Dashboard Section */}
+              <div className="mb-8 flex flex-col items-center justify-center">
                 {isAuthenticated ? (
-                  <>
-                    {/* Primary Action */}
-                    <Link
-                      href="/dashboard"
-                      className="group inline-flex items-center space-x-2 rounded-xl border border-white/30 bg-white/20 px-6 py-3 text-base font-semibold text-white backdrop-blur-sm transition-all hover:scale-105 hover:bg-white/30"
-                    >
-                      <Gamepad2 className="h-5 w-5" />
-                      <span>🎮 Dashboard</span>
-                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </Link>
+                  <div className="w-full max-w-5xl space-y-6">
+                    {/* Welcome Header */}
+                    <div className="rounded-2xl bg-white/95 p-6 shadow-xl backdrop-blur-sm">
+                      <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+                        <div className="flex items-center space-x-4">
+                          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 text-2xl font-bold text-white">
+                            🎮
+                          </div>
+                          <div className="text-center sm:text-left">
+                            <h3 className="text-xl font-bold text-slate-900">
+                              Welcome back!
+                            </h3>
+                            <p className="text-slate-600">
+                              Continue your Python mastery with Zumenzu
+                            </p>
+                          </div>
+                        </div>
+                        <Link
+                          href="/dashboard"
+                          className="group flex items-center space-x-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 px-6 py-3 font-semibold text-white transition-all hover:from-blue-600 hover:to-purple-600"
+                        >
+                          <Gamepad2 className="h-5 w-5" />
+                          <span>Full Dashboard</span>
+                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                        </Link>
+                      </div>
+                    </div>
 
-                    {/* Secondary Actions Grid */}
-                    <div className="mt-2 grid grid-cols-3 gap-3">
+                    {/* Navigation Grid - Dashboard Style */}
+                    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                      {/* Dashboard */}
+                      <Link
+                        href="/dashboard"
+                        className="group rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 p-6 text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+                      >
+                        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
+                          <BarChart3 className="h-6 w-6" />
+                        </div>
+                        <div className="mb-2 text-xl font-bold">Dashboard</div>
+                        <div className="text-sm text-emerald-100">
+                          🎮 Overview
+                        </div>
+                      </Link>
+
+                      {/* Code Arena */}
                       <Link
                         href="/code-arena"
-                        className="group flex flex-col items-center rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white backdrop-blur-sm transition-all hover:scale-105 hover:bg-white/20"
+                        className="group rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 p-6 text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
                       >
-                        <Code className="mb-1 h-4 w-4" />
-                        <span>Code Arena</span>
+                        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
+                          <Terminal className="h-6 w-6" />
+                        </div>
+                        <div className="mb-2 text-xl font-bold">Code Arena</div>
+                        <div className="text-sm text-orange-100">
+                          ⚔️ Learn & Battle
+                        </div>
                       </Link>
+
+                      {/* Quiz Arena */}
                       <Link
                         href="/quiz-arena"
-                        className="group flex flex-col items-center rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white backdrop-blur-sm transition-all hover:scale-105 hover:bg-white/20"
+                        className="group rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-500 p-6 text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
                       >
-                        <Brain className="mb-1 h-4 w-4" />
-                        <span>Quiz Arena</span>
+                        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
+                          <Brain className="h-6 w-6" />
+                        </div>
+                        <div className="mb-2 text-xl font-bold">Quiz Arena</div>
+                        <div className="text-sm text-purple-100">
+                          🧠 Test Skills
+                        </div>
                       </Link>
+
+                      {/* Card Shop */}
                       <Link
                         href="/shop"
-                        className="group flex flex-col items-center rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white backdrop-blur-sm transition-all hover:scale-105 hover:bg-white/20"
+                        className="group rounded-2xl border-2 border-purple-300 bg-white/95 p-6 text-purple-700 shadow-lg transition-all hover:scale-105 hover:border-purple-400 hover:bg-purple-50 hover:shadow-xl"
                       >
-                        <ShoppingBag className="mb-1 h-4 w-4" />
-                        <span>Card Shop</span>
+                        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100">
+                          <ShoppingBag className="h-6 w-6 text-purple-600" />
+                        </div>
+                        <div className="mb-2 text-xl font-bold text-purple-700">
+                          Card Shop
+                        </div>
+                        <div className="text-sm text-purple-600">
+                          🛒 Collect Cards
+                        </div>
                       </Link>
                     </div>
-                  </>
+                  </div>
                 ) : (
                   <>
                     {/* Primary Action */}

@@ -28,10 +28,13 @@ import {
   GamepadIcon,
   Home,
   Settings,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import PythonTipWidget from "@/components/python-tips/PythonTipWidget";
+import Portal from "@/components/ui/Portal";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface DashboardStats {
   totalCards: number;
@@ -65,7 +68,14 @@ export default function Dashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [authTimeout, setAuthTimeout] = useState(false);
   const [dailyTip, setDailyTip] = useState<any>(null);
+  const [tipProgress, setTipProgress] = useState<any>(null);
   const [tipLoading, setTipLoading] = useState(true);
+  const [showDailyRewardsModal, setShowDailyRewardsModal] = useState(false);
+  const [dailyRewardsData, setDailyRewardsData] = useState<any>(null);
+  const [rewardsLoading, setRewardsLoading] = useState(false);
+  const [claimingReward, setClaimingReward] = useState(false);
+  const [weeklyChallenges, setWeeklyChallenges] = useState<any>(null);
+  const [challengesLoading, setChallengesLoading] = useState(true);
 
   // Load site settings
   useEffect(() => {
@@ -193,6 +203,7 @@ export default function Dashboard() {
           const data = await response.json();
           console.log("API Response:", data); // Debug log
           setDailyTip(data.dailyTip);
+          setTipProgress(data.userProgress);
         }
       } catch (error) {
         console.error("Failed to load daily tip:", error);
@@ -203,6 +214,136 @@ export default function Dashboard() {
 
     loadDailyTip();
   }, []);
+
+  const handleTipInteraction = async (action: string, data?: any) => {
+    if (!dailyTip || !user) return;
+
+    try {
+      const response = await fetch(`/api/python-tips/${dailyTip.id}/interact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, data }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setTipProgress(result.userProgress);
+
+        // Refresh user data if XP was earned
+        if (result.xpEarned && user) {
+          // You might want to refresh user context here
+        }
+      }
+    } catch (error) {
+      console.error("Tip interaction failed:", error);
+    }
+  };
+
+  // Load daily rewards data when modal opens
+  const loadDailyRewardsData = async () => {
+    if (!user) return;
+
+    try {
+      setRewardsLoading(true);
+      const response = await fetch("/api/daily-login-reward");
+      if (response.ok) {
+        const data = await response.json();
+        setDailyRewardsData(data);
+      } else {
+        console.error("Failed to load daily rewards data");
+      }
+    } catch (error) {
+      console.error("Error loading daily rewards:", error);
+    } finally {
+      setRewardsLoading(false);
+    }
+  };
+
+  // Claim daily reward
+  const claimDailyReward = async () => {
+    if (!user || claimingReward) return;
+
+    try {
+      setClaimingReward(true);
+      const response = await fetch("/api/daily-login-reward", {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Reward claimed:", result);
+
+        // Refresh daily rewards data
+        await loadDailyRewardsData();
+
+        // Refresh user data by reloading the page data
+        window.location.reload();
+      } else {
+        const error = await response.json();
+        if (error.alreadyClaimed) {
+          alert("You have already claimed your reward today!");
+        } else {
+          alert(error.error || "Failed to claim reward");
+        }
+      }
+    } catch (error) {
+      console.error("Error claiming reward:", error);
+      alert("Failed to claim reward. Please try again.");
+    } finally {
+      setClaimingReward(false);
+    }
+  };
+
+  // Load weekly challenges data
+  const loadWeeklyChallenges = async () => {
+    if (!user) return;
+
+    try {
+      setChallengesLoading(true);
+      const response = await fetch("/api/weekly-challenges");
+      if (response.ok) {
+        const data = await response.json();
+        setWeeklyChallenges(data);
+      } else {
+        console.error("Failed to load weekly challenges");
+      }
+    } catch (error) {
+      console.error("Error loading weekly challenges:", error);
+    } finally {
+      setChallengesLoading(false);
+    }
+  };
+
+  // Track daily login when component loads
+  useEffect(() => {
+    const trackDailyLogin = async () => {
+      if (!user) return;
+
+      try {
+        await fetch("/api/login-streak/track", {
+          method: "POST",
+        });
+      } catch (error) {
+        console.error("Error tracking daily login:", error);
+      }
+    };
+
+    trackDailyLogin();
+  }, [user]);
+
+  // Load weekly challenges when component loads
+  useEffect(() => {
+    if (user) {
+      loadWeeklyChallenges();
+    }
+  }, [user]);
+
+  // Load daily rewards data when modal opens
+  useEffect(() => {
+    if (showDailyRewardsModal && user) {
+      loadDailyRewardsData();
+    }
+  }, [showDailyRewardsModal, user]);
 
   // Update current time
   useEffect(() => {
@@ -300,11 +441,12 @@ export default function Dashboard() {
       {/* Background Pattern */}
       <div className="bg-grid-pattern absolute inset-0 opacity-[0.02]"></div>
 
-      <div className="relative z-10 py-6 lg:py-8">
+      <div className="relative py-6 lg:py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Enhanced Header with Dynamic Content */}
+          {/* Unified Header with Stats - Combined Layout */}
           <div className="mb-8 lg:mb-12">
-            <div className="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-xl backdrop-blur-sm lg:p-8">
+            {/* Combined Header Section */}
+            <div className="mb-6 rounded-2xl border border-white/60 bg-white/80 p-6 shadow-xl backdrop-blur-sm lg:p-8">
               <div className="flex flex-col items-start space-y-6 lg:flex-row lg:items-center lg:space-x-8 lg:space-y-0">
                 <div className="relative">
                   <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shadow-xl ring-4 ring-white/50 lg:h-24 lg:w-24">
@@ -385,117 +527,42 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Enhanced Stats Grid */}
-          <div className="mb-8 grid grid-cols-2 gap-4 lg:mb-12 lg:grid-cols-4 lg:gap-6">
-            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 p-6 text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
-              <div className="absolute right-0 top-0 h-20 w-20 -translate-y-8 translate-x-8 rounded-full bg-white/10"></div>
-              <div className="relative z-10">
-                <div className="mb-4 w-fit rounded-xl bg-white/20 p-3">
-                  <Star className="h-6 w-6" />
-                </div>
-                <p className="text-3xl font-bold">{currentUser.level}</p>
-                <p className="text-sm font-medium text-blue-100">
-                  Current Level
-                </p>
-              </div>
-            </div>
-
-            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-yellow-500 via-amber-500 to-orange-500 p-6 text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
-              <div className="absolute right-0 top-0 h-20 w-20 -translate-y-8 translate-x-8 rounded-full bg-white/10"></div>
-              <div className="relative z-10">
-                <div className="mb-4 w-fit rounded-xl bg-white/20 p-3">
-                  <Diamond className="h-6 w-6" />
-                </div>
-                <p className="text-3xl font-bold">
-                  {currentUser.currentDiamonds}
-                </p>
-                <p className="text-sm font-medium text-yellow-100">Diamonds</p>
-              </div>
-            </div>
-
-            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 via-purple-600 to-pink-600 p-6 text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
-              <div className="absolute right-0 top-0 h-20 w-20 -translate-y-8 translate-x-8 rounded-full bg-white/10"></div>
-              <div className="relative z-10">
-                <div className="mb-4 w-fit rounded-xl bg-white/20 p-3">
-                  <Zap className="h-6 w-6" />
-                </div>
-                <p className="text-3xl font-bold">{currentUser.experience}</p>
-                <p className="text-sm font-medium text-purple-100">Total XP</p>
-              </div>
-            </div>
-
-            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-500 via-emerald-500 to-teal-500 p-6 text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
-              <div className="absolute right-0 top-0 h-20 w-20 -translate-y-8 translate-x-8 rounded-full bg-white/10"></div>
-              <div className="relative z-10">
-                <div className="mb-4 w-fit rounded-xl bg-white/20 p-3">
-                  <Flame className="h-6 w-6" />
-                </div>
-                <p className="text-3xl font-bold">{currentUser.loginStreak}</p>
-                <p className="text-sm font-medium text-green-100">Day Streak</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Daily Python Tip Section - Compact */}
+          {/* Compact Daily Python Tip */}
           <div className="mb-6">
-            <div className="mb-3 flex items-center">
-              <h2 className="flex items-center text-lg font-bold text-gray-900">
+            <div className="mb-2 flex items-center">
+              <h2 className="flex items-center text-base font-semibold text-gray-900">
                 🐍 Daily Python Tip
-                <span className="ml-3 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 px-2 py-1 text-xs font-medium text-green-800">
+                <span className="ml-2 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 px-2 py-1 text-xs font-medium text-green-800">
                   Today's Learning
                 </span>
               </h2>
             </div>
             {tipLoading ? (
-              <div className="rounded-lg border border-white/60 bg-white/95 p-3 shadow-lg backdrop-blur-sm">
+              <div className="rounded-lg border border-white/60 bg-white/95 p-3 shadow-sm backdrop-blur-sm">
                 <div className="flex animate-pulse space-x-3">
-                  <div className="h-8 w-8 rounded-lg bg-gray-200"></div>
-                  <div className="flex-1 space-y-2">
+                  <div className="h-6 w-6 rounded bg-gray-200"></div>
+                  <div className="flex-1 space-y-1">
                     <div className="h-3 w-3/4 rounded bg-gray-200"></div>
-                    <div className="h-3 w-1/2 rounded bg-gray-200"></div>
+                    <div className="h-2 w-1/2 rounded bg-gray-200"></div>
                   </div>
                 </div>
               </div>
             ) : dailyTip ? (
-              <div className="overflow-hidden rounded-lg border border-white/60 bg-white/95 shadow-lg backdrop-blur-sm">
+              <div className="rounded-lg border border-white/60 bg-white/95 shadow-sm backdrop-blur-sm">
                 <PythonTipWidget
                   tip={dailyTip}
+                  userProgress={tipProgress}
+                  streak={null}
                   compact={true}
-                  onInteraction={async (tipId: string, type: string) => {
-                    try {
-                      const response = await fetch(
-                        `/api/python-tips/${tipId}/interact`,
-                        {
-                          method: "POST",
-                          headers: {
-                            "Content-Type": "application/json",
-                          },
-                          body: JSON.stringify({ interactionType: type }),
-                        }
-                      );
-
-                      if (response.ok) {
-                        const data = await response.json();
-                        // Update user stats if XP was awarded
-                        if (data.xpAwarded) {
-                          // You could update user context here or show a notification
-                          console.log(`+${data.xpAwarded} XP for ${type}!`);
-                        }
-                      }
-                    } catch (error) {
-                      console.error("Failed to record interaction:", error);
-                    }
-                  }}
+                  onInteraction={handleTipInteraction}
+                  className="mx-auto"
                 />
               </div>
             ) : (
-              <div className="rounded-lg border border-white/60 bg-white/95 p-4 text-center shadow-lg backdrop-blur-sm">
+              <div className="rounded-lg border border-white/60 bg-white/95 p-3 text-center shadow-sm backdrop-blur-sm">
                 <div className="text-gray-500">
-                  <Code className="mx-auto mb-2 h-8 w-8" />
-                  <p className="text-sm">No Python tip available today</p>
-                  <p className="mt-1 text-xs text-gray-400">
-                    Check back tomorrow for a new tip!
-                  </p>
+                  <Code className="mx-auto mb-1 h-6 w-6" />
+                  <p className="text-xs">No Python tip available today</p>
                 </div>
               </div>
             )}
@@ -542,18 +609,18 @@ export default function Dashboard() {
                     </Link>
 
                     <Link
-                      href="/leaderboard"
+                      href="/quiz-arena"
                       className="group flex items-center rounded-xl border-2 border-purple-200 bg-purple-50/70 p-4 transition-all duration-200 hover:border-purple-400 hover:bg-purple-100 hover:shadow-md"
                     >
                       <div className="rounded-lg bg-purple-500 p-2 shadow-md">
-                        <Trophy className="h-5 w-5 text-white" />
+                        <Brain className="h-5 w-5 text-white" />
                       </div>
                       <div className="ml-4 flex-1">
                         <p className="font-semibold text-gray-900">
-                          Leaderboard
+                          Quiz Arena
                         </p>
                         <p className="text-sm text-gray-600">
-                          See top performers
+                          Test your Python knowledge
                         </p>
                       </div>
                       <ArrowRight className="h-5 w-5 text-purple-600 transition-transform group-hover:translate-x-1" />
@@ -562,14 +629,14 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {/* Shop & Collection - Important Feature */}
+              {/* Shop & Store - Simplified */}
               <div className="group rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-teal-50 p-6 shadow-xl backdrop-blur-sm transition-all duration-300 hover:border-emerald-400 hover:shadow-2xl lg:p-8">
                 <div className="mb-6 flex items-center">
                   <div className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 p-3 shadow-lg">
                     <ShoppingBag className="h-7 w-7 text-white" />
                   </div>
                   <h2 className="ml-4 text-xl font-bold text-gray-900">
-                    🛍️ Shop & Store
+                    🛍️ Card Shop
                   </h2>
                   <div className="ml-auto rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-800">
                     Popular
@@ -578,22 +645,6 @@ export default function Dashboard() {
 
                 <div className="space-y-3">
                   <Link
-                    href="/card-packs"
-                    className="group flex items-center rounded-xl border-2 border-purple-200 bg-purple-50/70 p-4 transition-all duration-200 hover:border-purple-400 hover:bg-purple-100 hover:shadow-md"
-                  >
-                    <div className="rounded-lg bg-purple-500 p-2 shadow-md">
-                      <Gift className="h-5 w-5 text-white" />
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <p className="font-semibold text-gray-900">Card Packs</p>
-                      <p className="text-sm text-gray-600">
-                        Open packs with advanced rarity system
-                      </p>
-                    </div>
-                    <ArrowRight className="h-5 w-5 text-purple-600 transition-transform group-hover:translate-x-1" />
-                  </Link>
-
-                  <Link
                     href="/shop"
                     className="group flex items-center rounded-xl border-2 border-emerald-200 bg-emerald-50/70 p-4 transition-all duration-200 hover:border-emerald-400 hover:bg-emerald-100 hover:shadow-md"
                   >
@@ -601,30 +652,30 @@ export default function Dashboard() {
                       <Sparkles className="h-5 w-5 text-white" />
                     </div>
                     <div className="ml-4 flex-1">
-                      <p className="font-semibold text-gray-900">Card Shop</p>
+                      <p className="font-semibold text-gray-900">
+                        Browse Cards
+                      </p>
                       <p className="text-sm text-gray-600">
-                        Buy exclusive anime cards
+                        Buy exclusive anime & star cards
                       </p>
                     </div>
                     <ArrowRight className="h-5 w-5 text-emerald-600 transition-transform group-hover:translate-x-1" />
                   </Link>
 
                   <Link
-                    href="/store"
-                    className="group flex items-center rounded-xl border-2 border-yellow-200 bg-yellow-50/70 p-4 transition-all duration-200 hover:border-yellow-400 hover:bg-yellow-100 hover:shadow-md"
+                    href="/leaderboard"
+                    className="group flex items-center rounded-xl border-2 border-blue-200 bg-blue-50/70 p-4 transition-all duration-200 hover:border-blue-400 hover:bg-blue-100 hover:shadow-md"
                   >
-                    <div className="rounded-lg bg-yellow-500 p-2 shadow-md">
-                      <Diamond className="h-5 w-5 text-white" />
+                    <div className="rounded-lg bg-blue-500 p-2 shadow-md">
+                      <Trophy className="h-5 w-5 text-white" />
                     </div>
                     <div className="ml-4 flex-1">
-                      <p className="font-semibold text-gray-900">
-                        Diamond Store
-                      </p>
+                      <p className="font-semibold text-gray-900">Leaderboard</p>
                       <p className="text-sm text-gray-600">
-                        Purchase premium currency
+                        See top collectors & learners
                       </p>
                     </div>
-                    <ArrowRight className="h-5 w-5 text-yellow-600 transition-transform group-hover:translate-x-1" />
+                    <ArrowRight className="h-5 w-5 text-blue-600 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </div>
               </div>
@@ -682,203 +733,169 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Gamification Features - Secondary Section */}
+          {/* Rewards & Challenges - Unified Professional Card */}
           <div className="mb-8 lg:mb-12">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">
                 🎮 Rewards & Challenges
               </h2>
               <div className="rounded-full bg-gradient-to-r from-purple-100 to-pink-100 px-3 py-1 text-sm font-medium text-purple-800">
-                New Features
+                Active
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
-              {/* Daily Login Rewards */}
-              <div className="group rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50 to-pink-50 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 p-2">
-                      <Gift className="h-5 w-5 text-white" />
+
+            {/* Single Unified Card */}
+            <div className="border-gradient rounded-2xl border-2 bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 p-8 shadow-xl backdrop-blur-sm">
+              <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                {/* Daily Rewards */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 p-3 shadow-lg">
+                      <Gift className="h-6 w-6 text-white" />
                     </div>
-                    <h3 className="ml-3 text-lg font-bold text-gray-900">
-                      Daily Rewards
-                    </h3>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">
+                        Daily Rewards
+                      </h3>
+                      <div className="w-fit rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+                        Available
+                      </div>
+                    </div>
                   </div>
-                  <div className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
-                    Available
-                  </div>
-                </div>
 
-                <div className="mb-3 text-center">
-                  <div className="text-2xl font-bold text-orange-600">
-                    {currentUser.loginStreak} Day Streak
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Keep logging in for better rewards!
-                  </div>
-                </div>
-
-                <Link
-                  href="/daily-rewards"
-                  className="block w-full rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 py-2 text-center font-medium text-white shadow-md transition-all hover:from-orange-600 hover:to-pink-600"
-                >
-                  Claim Daily Reward
-                </Link>
-              </div>
-
-              {/* Python Quiz Arena */}
-              <div className="group rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
-                <div className="mb-4 flex items-center">
-                  <div className="rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 p-2">
-                    <Brain className="h-5 w-5 text-white" />
-                  </div>
-                  <h3 className="ml-3 text-lg font-bold text-gray-900">
-                    Quiz Arena
-                  </h3>
-                </div>
-
-                <div className="mb-3 text-center">
-                  <div className="text-2xl font-bold text-blue-600">
-                    12 Questions
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Best Strike Record
-                  </div>
-                </div>
-
-                <Link
-                  href="/quiz-arena"
-                  className="block w-full rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 py-2 text-center font-medium text-white shadow-md transition-all hover:from-blue-600 hover:to-indigo-600"
-                >
-                  Start Quiz Challenge
-                </Link>
-              </div>
-
-              {/* Weekly Challenges */}
-              <div className="group rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
-                <div className="mb-4 flex items-center">
-                  <div className="rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 p-2">
-                    <Target className="h-5 w-5 text-white" />
-                  </div>
-                  <h3 className="ml-3 text-lg font-bold text-gray-900">
-                    Weekly Goals
-                  </h3>
-                </div>
-
-                <div className="mb-3 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Code Arenas</span>
-                    <span className="font-medium text-emerald-600">2/5</span>
-                  </div>
-                  <div className="h-2 w-full rounded-full bg-gray-200">
-                    <div
-                      className="h-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
-                      style={{ width: "40%" }}
-                    ></div>
-                  </div>
-                </div>
-
-                <Link
-                  href="/weekly-challenges"
-                  className="block w-full rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 py-2 text-center font-medium text-white shadow-md transition-all hover:from-emerald-600 hover:to-teal-600"
-                >
-                  View All Challenges
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Additional Tools */}
-          <div className="mb-8 lg:mb-12">
-            <h2 className="mb-6 text-2xl font-bold text-gray-900">
-              🛠️ Tools & Analytics
-            </h2>
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
-              {/* Code Editor */}
-              <div className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
-                <div className="mb-4 flex items-center">
-                  <div className="rounded-lg bg-gradient-to-r from-gray-600 to-slate-700 p-2">
-                    <Code className="h-5 w-5 text-white" />
-                  </div>
-                  <h3 className="ml-3 text-lg font-bold text-gray-900">
-                    Code Editor
-                  </h3>
-                </div>
-
-                <p className="mb-4 text-sm text-gray-600">
-                  Practice Python coding with our interactive editor
-                </p>
-
-                <Link
-                  href="/code-editor"
-                  className="block w-full rounded-lg bg-gradient-to-r from-gray-600 to-slate-700 py-2 text-center font-medium text-white shadow-md transition-all hover:from-gray-700 hover:to-slate-800"
-                >
-                  Open Editor
-                </Link>
-              </div>
-
-              {/* Achievements */}
-              <div className="group rounded-2xl border border-yellow-200 bg-gradient-to-br from-yellow-50 to-orange-50 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
-                <div className="mb-4 flex items-center">
-                  <div className="rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 p-2">
-                    <Trophy className="h-5 w-5 text-white" />
-                  </div>
-                  <h3 className="ml-3 text-lg font-bold text-gray-900">
-                    Achievements
-                  </h3>
-                </div>
-
-                <div className="mb-4 grid grid-cols-4 gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-yellow-400 to-orange-400">
-                    <Crown className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-blue-400 to-indigo-400">
-                    <Zap className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-300 opacity-50">
-                    <Star className="h-4 w-4 text-gray-600" />
-                  </div>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-300 opacity-50">
-                    <Brain className="h-4 w-4 text-gray-600" />
-                  </div>
-                </div>
-
-                <Link
-                  href="/achievements"
-                  className="block w-full rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 py-2 text-center font-medium text-white shadow-md transition-all hover:from-yellow-600 hover:to-orange-600"
-                >
-                  View All
-                </Link>
-              </div>
-
-              {/* Analytics */}
-              <div className="group rounded-2xl border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
-                <div className="mb-4 flex items-center">
-                  <div className="rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 p-2">
-                    <BarChart3 className="h-5 w-5 text-white" />
-                  </div>
-                  <h3 className="ml-3 text-lg font-bold text-gray-900">
-                    Progress Analytics
-                  </h3>
-                </div>
-
-                <div className="mb-4 grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <div className="text-lg font-bold text-green-600">2.5h</div>
-                    <div className="text-xs text-gray-600">This Week</div>
+                    <div className="text-3xl font-bold text-orange-600">
+                      {currentUser.loginStreak}
+                    </div>
+                    <div className="text-sm font-medium text-gray-600">
+                      Day Streak
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-green-600">85%</div>
-                    <div className="text-xs text-gray-600">Accuracy</div>
-                  </div>
+
+                  <button
+                    onClick={() => setShowDailyRewardsModal(true)}
+                    className="block w-full rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 py-3 text-center font-semibold text-white shadow-lg transition-all hover:from-orange-600 hover:to-pink-600 hover:shadow-xl"
+                  >
+                    Claim Reward
+                  </button>
                 </div>
 
-                <Link
-                  href="/analytics"
-                  className="block w-full rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 py-2 text-center font-medium text-white shadow-md transition-all hover:from-green-600 hover:to-emerald-600"
-                >
-                  Detailed View
-                </Link>
+                {/* Weekly Goals */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 p-3 shadow-lg">
+                      <Target className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">
+                        Weekly Goals
+                      </h3>
+                      <div className="text-xs text-gray-600">
+                        Progress Tracking
+                      </div>
+                    </div>
+                  </div>
+
+                  {challengesLoading ? (
+                    <div className="space-y-3">
+                      <div className="flex animate-pulse justify-between">
+                        <div className="h-4 w-20 rounded bg-gray-200"></div>
+                        <div className="h-4 w-12 rounded bg-gray-200"></div>
+                      </div>
+                      <div className="h-3 w-full rounded-full bg-gray-200"></div>
+                    </div>
+                  ) : weeklyChallenges?.challenges?.length > 0 ? (
+                    <div className="space-y-3">
+                      {weeklyChallenges.challenges
+                        .slice(0, 2)
+                        .map((challenge: any) => {
+                          const progress =
+                            challenge.userProgress?.currentValue || 0;
+                          const target = challenge.targetValue || 1;
+                          const progressPercentage = Math.min(
+                            (progress / target) * 100,
+                            100
+                          );
+
+                          return (
+                            <div key={challenge.id} className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span className="flex items-center text-gray-700">
+                                  <span className="mr-1">{challenge.icon}</span>
+                                  {challenge.title}
+                                </span>
+                                <span className="font-bold text-emerald-600">
+                                  {progress}/{target}
+                                </span>
+                              </div>
+                              <div className="h-2 w-full rounded-full bg-gray-200 shadow-inner">
+                                <div
+                                  className={`h-2 rounded-full transition-all duration-300 ${
+                                    challenge.userProgress?.isCompleted
+                                      ? "bg-gradient-to-r from-green-500 to-emerald-500"
+                                      : "bg-gradient-to-r from-emerald-500 to-teal-500"
+                                  }`}
+                                  style={{ width: `${progressPercentage}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="py-4 text-center">
+                        <div className="text-sm text-gray-500">
+                          No active challenges this week
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <Link
+                    href="/weekly-challenges"
+                    className="block w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-3 text-center font-semibold text-white shadow-lg transition-all hover:from-emerald-600 hover:to-teal-600 hover:shadow-xl"
+                  >
+                    View All Goals
+                  </Link>
+                </div>
+
+                {/* Achievements */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 p-3 shadow-lg">
+                      <Trophy className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">
+                        Achievements
+                      </h3>
+                      <div className="text-xs text-gray-600">Unlock Badges</div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-r from-yellow-400 to-orange-400 shadow-md">
+                      <Crown className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-r from-blue-400 to-indigo-400 shadow-md">
+                      <Zap className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-300 opacity-60 shadow-md">
+                      <Star className="h-5 w-5 text-gray-600" />
+                    </div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-300 opacity-60 shadow-md">
+                      <Brain className="h-5 w-5 text-gray-600" />
+                    </div>
+                  </div>
+
+                  <Link
+                    href="/achievements"
+                    className="block w-full rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 py-3 text-center font-semibold text-white shadow-lg transition-all hover:from-yellow-600 hover:to-orange-600 hover:shadow-xl"
+                  >
+                    View All
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -1028,6 +1045,248 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Daily Rewards Modal */}
+      <AnimatePresence>
+        {showDailyRewardsModal && (
+          <Portal>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+              onClick={() => setShowDailyRewardsModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ type: "spring", duration: 0.3 }}
+                className="relative max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Modal Header */}
+                <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 p-6 text-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="rounded-xl bg-white/20 p-3">
+                        <Gift className="h-8 w-8 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold">Daily Rewards</h2>
+                        <p className="text-white/90">
+                          Claim your daily login bonus!
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowDailyRewardsModal(false)}
+                      className="rounded-lg bg-white/20 p-2 transition-colors hover:bg-white/30"
+                    >
+                      <X className="h-6 w-6" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Modal Content */}
+                <div className="max-h-[calc(90vh-200px)] overflow-y-auto p-6">
+                  {rewardsLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="text-center">
+                        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-orange-200 border-t-orange-600"></div>
+                        <p className="mt-4 text-sm text-gray-600">
+                          Loading rewards...
+                        </p>
+                      </div>
+                    </div>
+                  ) : dailyRewardsData ? (
+                    <>
+                      {/* Current Streak */}
+                      <div className="mb-6 text-center">
+                        <div className="mb-2 inline-flex items-center rounded-full bg-gradient-to-r from-orange-100 to-pink-100 px-4 py-2">
+                          <Flame className="mr-2 h-5 w-5 text-orange-500" />
+                          <span className="font-semibold text-orange-800">
+                            {dailyRewardsData.loginStatus?.consecutiveDays || 0}{" "}
+                            Day Streak
+                          </span>
+                        </div>
+                        <p className="text-gray-600">
+                          Keep logging in daily to maintain your streak and earn
+                          better rewards!
+                        </p>
+                      </div>
+
+                      {/* Reward Calendar */}
+                      <div className="mb-6">
+                        <h3 className="mb-4 text-lg font-semibold text-gray-900">
+                          Weekly Rewards
+                        </h3>
+                        <div className="grid grid-cols-7 gap-2">
+                          {dailyRewardsData.upcomingRewards?.map(
+                            (dayData: any, index: number) => {
+                              const isToday = dayData.isToday;
+                              const isClaimed = dayData.isClaimed;
+                              const isPast =
+                                index <
+                                dailyRewardsData.loginStatus?.currentDay - 1;
+
+                              return (
+                                <div
+                                  key={index}
+                                  className={`relative rounded-xl border-2 p-4 text-center transition-all ${
+                                    isToday && !isClaimed
+                                      ? "border-orange-400 bg-gradient-to-br from-orange-50 to-pink-50 shadow-lg"
+                                      : isPast || isClaimed
+                                        ? "border-green-300 bg-green-50"
+                                        : "border-gray-200 bg-gray-50"
+                                  }`}
+                                >
+                                  {(isPast || isClaimed) && (
+                                    <div className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-green-500">
+                                      <CheckCircle className="h-4 w-4 text-white" />
+                                    </div>
+                                  )}
+                                  {isToday && !isClaimed && (
+                                    <div className="absolute -right-1 -top-1 flex h-6 w-6 animate-pulse items-center justify-center rounded-full bg-orange-500">
+                                      <Star className="h-4 w-4 text-white" />
+                                    </div>
+                                  )}
+
+                                  <div className="mb-1 text-xs font-medium text-gray-600">
+                                    Day {dayData.day}
+                                  </div>
+                                  <div
+                                    className={`text-lg font-bold ${
+                                      isToday && !isClaimed
+                                        ? "text-orange-600"
+                                        : isPast || isClaimed
+                                          ? "text-green-600"
+                                          : "text-gray-400"
+                                    }`}
+                                  >
+                                    {dayData.reward?.diamondReward || 0}{" "}
+                                    {settings.currencySymbol}
+                                  </div>
+                                  {dayData.reward?.isSpecial && (
+                                    <div className="text-xs font-medium text-purple-600">
+                                      Special!
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Today's Reward */}
+                      <div className="mb-6 rounded-xl border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-pink-50 p-6">
+                        <div className="text-center">
+                          <div className="mb-3 inline-flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-pink-500">
+                            <Gift className="h-8 w-8 text-white" />
+                          </div>
+                          <h3 className="mb-2 text-xl font-bold text-gray-900">
+                            {dailyRewardsData.loginStatus?.canClaimToday
+                              ? "Today's Reward"
+                              : "Already Claimed!"}
+                          </h3>
+                          <div className="mb-2 text-3xl font-bold text-orange-600">
+                            {dailyRewardsData.todayReward?.diamondReward || 0}{" "}
+                            {settings.currencySymbol}
+                          </div>
+                          <p className="mb-4 text-gray-600">
+                            {dailyRewardsData.todayReward?.isSpecial
+                              ? "Special Bonus Reward!"
+                              : "Daily Login Reward"}
+                          </p>
+
+                          <button
+                            onClick={claimDailyReward}
+                            disabled={
+                              !dailyRewardsData.loginStatus?.canClaimToday ||
+                              claimingReward
+                            }
+                            className={`w-full rounded-xl px-6 py-3 font-semibold text-white shadow-lg transition-all ${
+                              dailyRewardsData.loginStatus?.canClaimToday &&
+                              !claimingReward
+                                ? "cursor-pointer bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 hover:shadow-xl"
+                                : "cursor-not-allowed bg-gray-400"
+                            }`}
+                          >
+                            <span className="flex items-center justify-center">
+                              {claimingReward ? (
+                                <>
+                                  <div className="mr-2 h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                  Claiming...
+                                </>
+                              ) : dailyRewardsData.loginStatus
+                                  ?.canClaimToday ? (
+                                <>
+                                  <Gift className="mr-2 h-5 w-5" />
+                                  Claim{" "}
+                                  {dailyRewardsData.todayReward
+                                    ?.diamondReward || 0}{" "}
+                                  {settings.currencySymbol}
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="mr-2 h-5 w-5" />
+                                  Claimed Today!
+                                </>
+                              )}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Stats */}
+                      <div className="rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50 p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="rounded-lg bg-purple-500 p-2">
+                              <Target className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900">
+                                Total Rewards
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                Since you started
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-purple-600">
+                              {dailyRewardsData.stats?.totalDiamondsEarned || 0}{" "}
+                              {settings.currencySymbol}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              Total Earned
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="py-8 text-center">
+                      <div className="text-gray-500">
+                        <Gift className="mx-auto mb-2 h-12 w-12" />
+                        <p>Unable to load rewards data</p>
+                        <button
+                          onClick={loadDailyRewardsData}
+                          className="mt-4 text-sm text-blue-600 hover:text-blue-700"
+                        >
+                          Try Again
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          </Portal>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
