@@ -93,6 +93,34 @@ export default function PythonTipWidget({
   const [copied, setCopied] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
 
+  // Early return if no tip provided
+  if (!tip) {
+    return (
+      <div
+        className={`rounded-lg border border-gray-300 bg-gray-50 p-4 ${className}`}
+      >
+        <div className="text-center text-gray-500">
+          <Terminal className="mx-auto mb-2 h-8 w-8" />
+          <p>No Python tip available today</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Ensure required tip properties exist with fallbacks
+  const safeTip = {
+    id: tip.id || "",
+    title: tip.title || "Python Tip",
+    content: tip.content || "Learn something new about Python today!",
+    codeExample: tip.codeExample || "",
+    difficulty: tip.difficulty || ("beginner" as const),
+    category: tip.category || { name: "General", color: "blue", icon: "🐍" },
+    xpReward: tip.xpReward || 10,
+    viewCount: tip.viewCount || 0,
+    likeCount: tip.likeCount || 0,
+    estimatedMinutes: tip.estimatedMinutes || 5,
+  };
+
   // Track time spent
   useEffect(() => {
     const interval = setInterval(() => {
@@ -104,11 +132,14 @@ export default function PythonTipWidget({
 
   // Auto-mark as viewed after 3 seconds
   useEffect(() => {
-    if (!userProgress?.hasViewed) {
+    if (!userProgress?.hasViewed && onInteraction) {
       const timer = setTimeout(() => {
         onInteraction("view", {
           timeSpent: Math.floor((Date.now() - startTime) / 1000),
-          deviceType: window.innerWidth < 768 ? "mobile" : "desktop",
+          deviceType:
+            typeof window !== "undefined" && window.innerWidth < 768
+              ? "mobile"
+              : "desktop",
           sourceType: "daily",
         });
       }, 3000);
@@ -123,24 +154,30 @@ export default function PythonTipWidget({
   };
 
   const handleShare = () => {
-    if (navigator.share) {
+    if (typeof navigator !== "undefined" && navigator.share) {
       navigator.share({
-        title: `Python Tip: ${tip.title}`,
-        text: tip.content,
-        url: window.location.href,
+        title: `Python Tip: ${safeTip.title}`,
+        text: safeTip.content,
+        url: typeof window !== "undefined" ? window.location.href : "",
       });
-    } else {
+    } else if (typeof navigator !== "undefined" && navigator.clipboard) {
       // Fallback to clipboard
       navigator.clipboard.writeText(
-        `Check out this Python tip: ${tip.title}\n${tip.content}\n\n${window.location.href}`
+        `Check out this Python tip: ${safeTip.title}\n${safeTip.content}\n\n${typeof window !== "undefined" ? window.location.href : ""}`
       );
     }
-    onInteraction("share");
+    if (onInteraction) {
+      onInteraction("share");
+    }
   };
 
   const handleCopyCode = () => {
-    if (tip.codeExample) {
-      navigator.clipboard.writeText(tip.codeExample);
+    if (
+      safeTip.codeExample &&
+      typeof navigator !== "undefined" &&
+      navigator.clipboard
+    ) {
+      navigator.clipboard.writeText(safeTip.codeExample);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -148,10 +185,12 @@ export default function PythonTipWidget({
 
   const handleComplete = () => {
     setIsCompleting(true);
-    onInteraction("complete", {
-      timeSpent: Math.floor((Date.now() - startTime) / 1000),
-      completionScore: 100,
-    });
+    if (onInteraction) {
+      onInteraction("complete", {
+        timeSpent: Math.floor((Date.now() - startTime) / 1000),
+        completionScore: 100,
+      });
+    }
 
     setTimeout(() => {
       setIsCompleting(false);
@@ -180,9 +219,9 @@ export default function PythonTipWidget({
               Daily Python Tip
             </span>
             <span
-              className={`rounded-full px-2 py-1 text-xs text-white ${difficultyColors[tip.difficulty]}`}
+              className={`rounded-full px-2 py-1 text-xs text-white ${difficultyColors[safeTip.difficulty]}`}
             >
-              {tip.difficulty}
+              {safeTip.difficulty}
             </span>
           </div>
           <button
@@ -196,10 +235,10 @@ export default function PythonTipWidget({
         {/* Compact Content */}
         <div className="p-3">
           <h3 className="mb-2 line-clamp-1 text-sm font-medium text-white">
-            {tip.title}
+            {safeTip.title}
           </h3>
           <p className="mb-3 line-clamp-2 text-xs text-gray-300">
-            {tip.content}
+            {safeTip.content}
           </p>
 
           {/* Action Buttons */}
@@ -217,7 +256,7 @@ export default function PythonTipWidget({
                   className="h-3 w-3"
                   fill={userProgress?.hasLiked ? "currentColor" : "none"}
                 />
-                <span>{tip.likeCount}</span>
+                <span>{safeTip.likeCount}</span>
               </button>
 
               <button
@@ -230,7 +269,7 @@ export default function PythonTipWidget({
 
             <div className="flex items-center space-x-1 text-xs text-gray-400">
               <Zap className="h-3 w-3 text-yellow-400" />
-              <span>+{tip.xpReward} XP</span>
+              <span>+{safeTip.xpReward} XP</span>
             </div>
           </div>
         </div>
@@ -254,7 +293,7 @@ export default function PythonTipWidget({
                   onClick={(e) => e.stopPropagation()}
                 >
                   <FullTipContent
-                    tip={tip}
+                    tip={safeTip}
                     userProgress={userProgress}
                     streak={streak}
                     timeSpent={timeSpent}
@@ -278,7 +317,7 @@ export default function PythonTipWidget({
       transition={{ duration: 0.3 }}
     >
       <FullTipContent
-        tip={tip}
+        tip={safeTip}
         userProgress={userProgress}
         streak={streak}
         timeSpent={timeSpent}
@@ -315,22 +354,28 @@ function FullTipContent({
   };
 
   const handleShare = () => {
-    if (navigator.share) {
+    if (typeof navigator !== "undefined" && navigator.share) {
       navigator.share({
         title: `Python Tip: ${tip.title}`,
         text: tip.content,
-        url: window.location.href,
+        url: typeof window !== "undefined" ? window.location.href : "",
       });
-    } else {
+    } else if (typeof navigator !== "undefined" && navigator.clipboard) {
       navigator.clipboard.writeText(
-        `Check out this Python tip: ${tip.title}\n${tip.content}\n\n${window.location.href}`
+        `Check out this Python tip: ${tip.title}\n${tip.content}\n\n${typeof window !== "undefined" ? window.location.href : ""}`
       );
     }
-    onInteraction("share");
+    if (onInteraction) {
+      onInteraction("share");
+    }
   };
 
   const handleCopyCode = () => {
-    if (tip.codeExample) {
+    if (
+      tip.codeExample &&
+      typeof navigator !== "undefined" &&
+      navigator.clipboard
+    ) {
       navigator.clipboard.writeText(tip.codeExample);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -339,10 +384,12 @@ function FullTipContent({
 
   const handleComplete = () => {
     setIsCompleting(true);
-    onInteraction("complete", {
-      timeSpent: Math.floor((Date.now() - startTime) / 1000),
-      completionScore: 100,
-    });
+    if (onInteraction) {
+      onInteraction("complete", {
+        timeSpent: Math.floor((Date.now() - startTime) / 1000),
+        completionScore: 100,
+      });
+    }
 
     setTimeout(() => {
       setIsCompleting(false);
@@ -407,12 +454,13 @@ function FullTipContent({
         <div className="mb-6 flex items-start justify-between">
           <div className="flex-1">
             <div className="mb-2 flex items-center space-x-3">
-              <span className="text-2xl">{tip.category.icon}</span>
+              <span className="text-2xl">{tip.category?.icon || "🐍"}</span>
               <h2 className="text-xl font-bold text-white">{tip.title}</h2>
               <span
-                className={`rounded-full px-2 py-1 text-xs font-medium text-white ${difficultyColors[tip.difficulty]}`}
+                className={`rounded-full px-2 py-1 text-xs font-medium text-white ${difficultyColors[tip.difficulty || "beginner"]}`}
               >
-                {difficultyIcons[tip.difficulty]} {tip.difficulty}
+                {difficultyIcons[tip.difficulty || "beginner"]}{" "}
+                {tip.difficulty || "beginner"}
               </span>
             </div>
 
@@ -423,22 +471,22 @@ function FullTipContent({
             <div className="flex items-center space-x-4 text-sm text-gray-400">
               <div className="flex items-center space-x-1">
                 <BookOpen className="h-4 w-4" />
-                <span>{tip.category.name}</span>
+                <span>{tip.category?.name || "General"}</span>
               </div>
               <div className="flex items-center space-x-1">
                 <Clock className="h-4 w-4" />
-                <span>{tip.estimatedMinutes} min read</span>
+                <span>{tip.estimatedMinutes || 5} min read</span>
               </div>
               <div className="flex items-center space-x-1">
                 <Eye className="h-4 w-4" />
-                <span>{tip.viewCount} views</span>
+                <span>{tip.viewCount || 0} views</span>
               </div>
             </div>
           </div>
 
           <div className="flex items-center space-x-1 rounded-lg bg-purple-600/20 px-3 py-2 text-purple-400">
             <Zap className="h-4 w-4" />
-            <span className="font-bold">+{tip.xpReward} XP</span>
+            <span className="font-bold">+{tip.xpReward || 10} XP</span>
           </div>
         </div>
 
@@ -558,7 +606,7 @@ function FullTipContent({
                 className="h-4 w-4"
                 fill={userProgress?.hasLiked ? "currentColor" : "none"}
               />
-              <span className="text-sm">{tip.likeCount}</span>
+              <span className="text-sm">{tip.likeCount || 0}</span>
             </button>
 
             <button
@@ -583,7 +631,7 @@ function FullTipContent({
               {isCompleting ? (
                 <>
                   <CheckCircle className="h-4 w-4" />
-                  <span>Completed! +{tip.xpReward} XP</span>
+                  <span>Completed! +{tip.xpReward || 10} XP</span>
                 </>
               ) : (
                 <>

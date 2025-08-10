@@ -1,29 +1,29 @@
-import { NextAuthOptions } from "next-auth"
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import GoogleProvider from "next-auth/providers/google"
-import CredentialsProvider from "next-auth/providers/credentials"
-import { getServerSession } from "next-auth/next"
-import { prisma } from "./prisma"
-import bcrypt from "bcryptjs"
-import { pbkdf2Sync } from "crypto"
+import { NextAuthOptions } from "next-auth";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { getServerSession } from "next-auth/next";
+import { prisma } from "./prisma";
+import bcrypt from "bcryptjs";
+import { pbkdf2Sync } from "crypto";
 
 // Dynamic URL detection for production compatibility
 const getBaseUrl = () => {
+  // For production, always use the production domain
+  if (process.env.NODE_ENV === "production") {
+    return "https://zumenzu.com";
+  }
+
   if (process.env.NEXTAUTH_URL) {
-    return process.env.NEXTAUTH_URL
+    return process.env.NEXTAUTH_URL;
   }
-  
+
   if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`
+    return `https://${process.env.VERCEL_URL}`;
   }
-  
-  if (process.env.NODE_ENV === 'production') {
-    // Production domain - zumenzu.com
-    return 'https://zumenzu.com'
-  }
-  
-  return 'http://localhost:3000'
-}
+
+  return "http://localhost:3000";
+};
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
@@ -35,25 +35,25 @@ export const authOptions: NextAuthOptions = {
         params: {
           prompt: "consent",
           access_type: "offline",
-          response_type: "code"
-        }
-      }
+          response_type: "code",
+        },
+      },
     }),
     CredentialsProvider({
       name: "credentials",
       credentials: {
-        usernameOrEmail: { 
-          label: "Username or Email", 
-          type: "text" 
+        usernameOrEmail: {
+          label: "Username or Email",
+          type: "text",
         },
-        password: { 
-          label: "Password", 
-          type: "password" 
-        }
+        password: {
+          label: "Password",
+          type: "password",
+        },
       },
       async authorize(credentials) {
         if (!credentials?.usernameOrEmail || !credentials?.password) {
-          return null
+          return null;
         }
 
         // Find user by username or email
@@ -61,61 +61,61 @@ export const authOptions: NextAuthOptions = {
           where: {
             OR: [
               { username: credentials.usernameOrEmail },
-              { email: credentials.usernameOrEmail }
+              { email: credentials.usernameOrEmail },
             ],
           },
-        })
+        });
 
         if (!user || !user.passwordHash) {
-          return null
+          return null;
         }
 
         // Check password - support both bcrypt and crypto hashing
-        let isPasswordValid = false
+        let isPasswordValid = false;
 
         if (user.passwordHash.includes(":")) {
           // Node.js crypto format: hash:salt
-          const [hash, salt] = user.passwordHash.split(":")
+          const [hash, salt] = user.passwordHash.split(":");
           const computedHash = pbkdf2Sync(
             credentials.password,
             salt,
             1000,
             64,
             "sha512"
-          ).toString("hex")
-          isPasswordValid = computedHash === hash
+          ).toString("hex");
+          isPasswordValid = computedHash === hash;
         } else {
           // bcrypt format
           isPasswordValid = await bcrypt.compare(
-            credentials.password, 
+            credentials.password,
             user.passwordHash
-          )
+          );
         }
 
         if (!isPasswordValid || !user.isActive) {
-          return null
+          return null;
         }
 
         // Update login streak and last login date
-        const now = new Date()
-        const lastLogin = user.lastLoginDate
-        let newLoginStreak = user.loginStreak
+        const now = new Date();
+        const lastLogin = user.lastLoginDate;
+        let newLoginStreak = user.loginStreak;
 
         if (lastLogin) {
           const daysDiff = Math.floor(
             (now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60 * 24)
-          )
+          );
 
           if (daysDiff === 1) {
-            newLoginStreak += 1
+            newLoginStreak += 1;
           } else if (daysDiff > 1) {
-            newLoginStreak = 1
+            newLoginStreak = 1;
           }
         } else {
-          newLoginStreak = 1
+          newLoginStreak = 1;
         }
 
-        const newMaxStreak = Math.max(user.maxLoginStreak, newLoginStreak)
+        const newMaxStreak = Math.max(user.maxLoginStreak, newLoginStreak);
 
         // Update user login data
         await prisma.user.update({
@@ -125,7 +125,7 @@ export const authOptions: NextAuthOptions = {
             loginStreak: newLoginStreak,
             maxLoginStreak: newMaxStreak,
           },
-        })
+        });
 
         return {
           id: user.id,
@@ -139,9 +139,9 @@ export const authOptions: NextAuthOptions = {
           loginStreak: newLoginStreak,
           maxLoginStreak: newMaxStreak,
           isPremium: user.isPremium,
-        }
-      }
-    })
+        };
+      },
+    }),
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
@@ -150,15 +150,17 @@ export const authOptions: NextAuthOptions = {
           // Check if user already exists with this email
           const existingUser = await prisma.user.findUnique({
             where: { email: user.email! },
-            include: { accounts: true }
-          })
+            include: { accounts: true },
+          });
 
           if (existingUser) {
             // Check if this Google account is already linked
             const googleAccount = existingUser.accounts.find(
-              acc => acc.provider === "google" && acc.providerAccountId === account.providerAccountId
-            )
-            
+              (acc) =>
+                acc.provider === "google" &&
+                acc.providerAccountId === account.providerAccountId
+            );
+
             if (!googleAccount) {
               // Link the Google account to existing user
               await prisma.account.create({
@@ -174,20 +176,24 @@ export const authOptions: NextAuthOptions = {
                   scope: account.scope,
                   id_token: account.id_token,
                   session_state: account.session_state,
-                }
-              })
+                },
+              });
             }
-            return true
+            return true;
           } else {
             // Create new user manually to ensure it works
-            const username = user.email!.split('@')[0]
-            
+            const username = user.email!.split("@")[0];
+
             // Ensure username is unique
-            let finalUsername = username
-            let counter = 1
-            while (await prisma.user.findUnique({ where: { username: finalUsername } })) {
-              finalUsername = `${username}_${counter}`
-              counter++
+            let finalUsername = username;
+            let counter = 1;
+            while (
+              await prisma.user.findUnique({
+                where: { username: finalUsername },
+              })
+            ) {
+              finalUsername = `${username}_${counter}`;
+              counter++;
             }
 
             // Create new user
@@ -205,8 +211,8 @@ export const authOptions: NextAuthOptions = {
                 level: 1,
                 experience: 0,
                 isPremium: false,
-              }
-            })
+              },
+            });
 
             // Create account record
             await prisma.account.create({
@@ -222,17 +228,17 @@ export const authOptions: NextAuthOptions = {
                 scope: account.scope,
                 id_token: account.id_token,
                 session_state: account.session_state,
-              }
-            })
+              },
+            });
 
-            return true
+            return true;
           }
         } catch (error) {
-          console.error("Error during Google sign in:", error)
-          return false
+          console.error("Error during Google sign in:", error);
+          return false;
         }
       }
-      return true
+      return true;
     },
     async session({ session, token }) {
       if (session.user?.email) {
@@ -252,8 +258,8 @@ export const authOptions: NextAuthOptions = {
               maxLoginStreak: true,
               isPremium: true,
               isActive: true,
-            }
-          })
+            },
+          });
 
           if (dbUser) {
             session.user = {
@@ -268,75 +274,107 @@ export const authOptions: NextAuthOptions = {
               loginStreak: dbUser.loginStreak,
               maxLoginStreak: dbUser.maxLoginStreak,
               isPremium: dbUser.isPremium,
-            }
+            };
           }
         } catch (error) {
-          console.error("Error in session callback:", error)
+          console.error("Error in session callback:", error);
         }
       }
-      
-      return session
+
+      return session;
     },
     async jwt({ token, user, account }) {
       if (user) {
-        token.role = user.role
-        token.username = user.username
+        token.role = user.role;
+        token.username = user.username;
       }
-      
+
       // If token doesn't have role but has email, fetch from database
       if (!token.role && token.email) {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { email: token.email },
-            select: { role: true, username: true }
-          })
-          
+            select: { role: true, username: true },
+          });
+
           if (dbUser) {
-            token.role = dbUser.role
-            token.username = dbUser.username
+            token.role = dbUser.role;
+            token.username = dbUser.username;
           }
         } catch (error) {
-          console.error("Error fetching user role in JWT callback:", error)
+          console.error("Error fetching user role in JWT callback:", error);
         }
       }
-      
-      return token
-    }
+
+      return token;
+    },
   },
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
     signIn: "/login",
     error: "/login",
   },
-  // Add dynamic URL handling
-  ...(process.env.NODE_ENV === 'production' && {
-    useSecureCookies: true,
-    cookies: {
-      sessionToken: {
-        name: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
-        options: {
-          httpOnly: true,
-          sameSite: 'lax',
-          path: '/',
-          secure: process.env.NODE_ENV === 'production',
-        },
+  useSecureCookies: process.env.NODE_ENV === "production",
+  cookies: {
+    sessionToken: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-next-auth.session-token"
+          : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain:
+          process.env.NODE_ENV === "production" ? ".zumenzu.com" : undefined,
       },
     },
-  }),
+    callbackUrl: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-next-auth.callback-url"
+          : "next-auth.callback-url",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain:
+          process.env.NODE_ENV === "production" ? ".zumenzu.com" : undefined,
+      },
+    },
+    csrfToken: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Host-next-auth.csrf-token"
+          : "next-auth.csrf-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
+  debug: process.env.NODE_ENV === "development",
   events: {
     async createUser({ user }) {
       // When a new user is created via Google OAuth
       if (user.email && !user.username) {
-        const username = user.email.split('@')[0]
-        
+        const username = user.email.split("@")[0];
+
         // Ensure username is unique
-        let finalUsername = username
-        let counter = 1
-        while (await prisma.user.findUnique({ where: { username: finalUsername } })) {
-          finalUsername = `${username}_${counter}`
-          counter++
+        let finalUsername = username;
+        let counter = 1;
+        while (
+          await prisma.user.findUnique({ where: { username: finalUsername } })
+        ) {
+          finalUsername = `${username}_${counter}`;
+          counter++;
         }
 
         await prisma.user.update({
@@ -348,24 +386,24 @@ export const authOptions: NextAuthOptions = {
             loginStreak: 1,
             maxLoginStreak: 1,
             lastLoginDate: new Date(),
-          }
-        })
+          },
+        });
       }
-    }
-  }
-}
+    },
+  },
+};
 
 // Helper function for API route authentication (backward compatibility)
 export async function verifyAuth(request: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    
+    const session = await getServerSession(authOptions);
+
     if (!session || !session.user) {
       return {
         success: false,
         error: "Not authenticated",
-        user: null
-      }
+        user: null,
+      };
     }
 
     return {
@@ -381,15 +419,15 @@ export async function verifyAuth(request: Request) {
         totalDiamonds: session.user.totalDiamonds,
         loginStreak: session.user.loginStreak,
         maxLoginStreak: session.user.maxLoginStreak,
-        isPremium: session.user.isPremium
-      }
-    }
+        isPremium: session.user.isPremium,
+      },
+    };
   } catch (error) {
-    console.error("Auth verification error:", error)
+    console.error("Auth verification error:", error);
     return {
       success: false,
       error: "Authentication failed",
-      user: null
-    }
+      user: null,
+    };
   }
 }

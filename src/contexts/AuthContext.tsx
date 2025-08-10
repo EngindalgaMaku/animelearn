@@ -70,20 +70,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   const { data: session, status } = useSession();
 
-  // Handle hydration
+  // Handle hydration properly
   useEffect(() => {
-    setMounted(true);
+    setIsHydrated(true);
   }, []);
 
   useEffect(() => {
-    // Don't process auth state until component is mounted (client-side)
-    if (!mounted) return;
+    // Only process auth state after hydration is complete
+    if (!isHydrated) {
+      return;
+    }
 
-    // NextAuth session'ına göre auth durumunu güncelle
     if (status === "loading") {
       setLoading(true);
       return;
@@ -91,12 +92,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (status === "authenticated" && session?.user) {
       setIsAuthenticated(true);
-      // NextAuth'tan gelen user verisini local User tipine dönüştür
+      // Convert NextAuth user data to local User type
       setUser({
-        id: session.user.id || '',
-        username: session.user.username || session.user.email?.split('@')[0] || 'User',
-        email: session.user.email || '',
-        role: session.user.role || 'user',
+        id: session.user.id || "",
+        username:
+          session.user.username || session.user.email?.split("@")[0] || "User",
+        email: session.user.email || "",
+        role: session.user.role || "user",
         level: session.user.level || 1,
         experience: session.user.experience || 0,
         currentDiamonds: session.user.currentDiamonds || 100,
@@ -119,9 +121,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsAuthenticated(false);
       setUser(null);
     }
-    
+
     setLoading(false);
-  }, [session, status, mounted]);
+  }, [session, status, isHydrated]);
 
   const refreshUser = async () => {
     try {
