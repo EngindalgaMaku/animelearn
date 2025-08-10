@@ -148,7 +148,10 @@ interface CardDetailModalProps {
   onExpandImage: (imageUrl: string) => void;
   getRarityData: (rarityName: string | null) => any;
   getCategoryDisplayName: (categorySlug: string | null) => string | null;
-  getCharacterDisplayName: (cardTitle: string | null, character: string | null) => string | null;
+  getCharacterDisplayName: (
+    cardTitle: string | null,
+    character: string | null
+  ) => string | null;
   getElementColor: (element: string) => string;
   getRarityColor: (rarity: string) => string;
   formatDate: (date: Date) => string;
@@ -173,7 +176,7 @@ function CardDetailModal({
   formatDiamonds,
 }: CardDetailModalProps) {
   const rarityData = getRarityData(selectedCard.rarity);
-  
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
       <div className="max-h-[95vh] w-full max-w-4xl overflow-auto rounded-xl bg-white shadow-2xl">
@@ -198,9 +201,13 @@ function CardDetailModal({
                     ? `ring-4 ring-opacity-50`
                     : "ring-2 ring-gray-200"
                 }`}
-                style={rarityData?.color ? {
-                  '--tw-ring-color': `${rarityData.color}80`
-                } as React.CSSProperties : undefined}
+                style={
+                  rarityData?.color
+                    ? ({
+                        "--tw-ring-color": `${rarityData.color}80`,
+                      } as React.CSSProperties)
+                    : undefined
+                }
               >
                 <img
                   src={selectedCard.imageUrl}
@@ -208,7 +215,7 @@ function CardDetailModal({
                   className="h-auto w-full cursor-pointer object-cover transition-transform hover:scale-105"
                   onClick={() => onExpandImage(selectedCard.imageUrl)}
                 />
-                
+
                 {/* Rarity Badge */}
                 {selectedCard.rarity && (
                   <div
@@ -236,7 +243,9 @@ function CardDetailModal({
               {/* Card Title */}
               <div>
                 <h3 className="text-2xl font-bold text-gray-900">
-                  {selectedCard.cardTitle || selectedCard.name || "Unnamed Card"}
+                  {selectedCard.cardTitle ||
+                    selectedCard.name ||
+                    "Unnamed Card"}
                 </h3>
                 {selectedCard.series && (
                   <p className="text-lg text-gray-600">
@@ -248,39 +257,50 @@ function CardDetailModal({
               {/* Basic Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500">Character</h4>
+                  <h4 className="text-sm font-medium text-gray-500">
+                    Character
+                  </h4>
                   <p className="text-base text-gray-900">
-                    {getCharacterDisplayName(selectedCard.cardTitle, selectedCard.character) || "Unknown"}
+                    {getCharacterDisplayName(
+                      selectedCard.cardTitle,
+                      selectedCard.character
+                    ) || "Unknown"}
                   </p>
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500">Category</h4>
+                  <h4 className="text-sm font-medium text-gray-500">
+                    Category
+                  </h4>
                   <p className="text-base text-gray-900">
-                    {getCategoryDisplayName(selectedCard.category) || "Not categorized"}
+                    {getCategoryDisplayName(selectedCard.category) ||
+                      "Not categorized"}
                   </p>
                 </div>
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">Rarity</h4>
-                  {selectedCard.rarity ? (() => {
-                    const rarityData = getRarityData(selectedCard.rarity);
-                    return rarityData ? (
-                      <span
-                        className="inline-flex items-center space-x-2 rounded-full px-3 py-1 text-sm font-medium"
-                        style={{
-                          backgroundColor: rarityData.bgColor || rarityData.color + '20',
-                          color: rarityData.textColor || rarityData.color,
-                          border: `2px solid ${rarityData.borderColor || rarityData.color}`
-                        }}
-                      >
-                        <span className="text-base">{rarityData.icon}</span>
-                        <span>{rarityData.name}</span>
-                      </span>
-                    ) : (
-                      <span className="inline-block rounded-full px-3 py-1 text-sm font-medium bg-gray-200 text-gray-800">
-                        {selectedCard.rarity}
-                      </span>
-                    );
-                  })() : (
+                  {selectedCard.rarity ? (
+                    (() => {
+                      const rarityData = getRarityData(selectedCard.rarity);
+                      return rarityData ? (
+                        <span
+                          className="inline-flex items-center space-x-2 rounded-full px-3 py-1 text-sm font-medium"
+                          style={{
+                            backgroundColor:
+                              rarityData.bgColor || rarityData.color + "20",
+                            color: rarityData.textColor || rarityData.color,
+                            border: `2px solid ${rarityData.borderColor || rarityData.color}`,
+                          }}
+                        >
+                          <span className="text-base">{rarityData.icon}</span>
+                          <span>{rarityData.name}</span>
+                        </span>
+                      ) : (
+                        <span className="inline-block rounded-full bg-gray-200 px-3 py-1 text-sm font-medium text-gray-800">
+                          {selectedCard.rarity}
+                        </span>
+                      );
+                    })()
+                  ) : (
                     <p className="text-base text-gray-900">Unknown</p>
                   )}
                 </div>
@@ -289,17 +309,27 @@ function CardDetailModal({
                   {selectedCard.element ? (
                     <div className="flex items-center space-x-2">
                       <span className="text-lg">
-                        {selectedCard.element === 'fire' ? '🔥' :
-                         selectedCard.element === 'water' ? '💧' :
-                         selectedCard.element === 'earth' ? '🌍' :
-                         selectedCard.element === 'air' ? '💨' :
-                         selectedCard.element === 'lightning' ? '⚡' :
-                         selectedCard.element === 'ice' ? '❄️' :
-                         selectedCard.element === 'dark' ? '🌑' :
-                         selectedCard.element === 'light' ? '☀️' :
-                         selectedCard.element === 'metal' ? '⚔️' :
-                         selectedCard.element === 'wood' ? '🌳' :
-                         '🔮'}
+                        {selectedCard.element === "fire"
+                          ? "🔥"
+                          : selectedCard.element === "water"
+                            ? "💧"
+                            : selectedCard.element === "earth"
+                              ? "🌍"
+                              : selectedCard.element === "air"
+                                ? "💨"
+                                : selectedCard.element === "lightning"
+                                  ? "⚡"
+                                  : selectedCard.element === "ice"
+                                    ? "❄️"
+                                    : selectedCard.element === "dark"
+                                      ? "🌑"
+                                      : selectedCard.element === "light"
+                                        ? "☀️"
+                                        : selectedCard.element === "metal"
+                                          ? "⚔️"
+                                          : selectedCard.element === "wood"
+                                            ? "🌳"
+                                            : "🔮"}
                       </span>
                       <span
                         className={`inline-block rounded-full px-2 py-1 text-sm ${getElementColor(
@@ -314,7 +344,9 @@ function CardDetailModal({
                   )}
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500">Upload Date</h4>
+                  <h4 className="text-sm font-medium text-gray-500">
+                    Upload Date
+                  </h4>
                   <p className="text-base text-gray-900">
                     {formatDate(new Date(selectedCard.uploadDate))}
                   </p>
@@ -322,45 +354,51 @@ function CardDetailModal({
               </div>
 
               {/* Power Stats */}
-              {selectedCard.attackPower && selectedCard.defense && selectedCard.speed && (
-                <div>
-                  <h4 className="mb-3 text-sm font-medium text-gray-500">Power Statistics</h4>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="flex items-center justify-center space-x-1">
-                        <Zap className="h-4 w-4 text-red-500" />
-                        <span className="text-xs text-gray-600">Attack</span>
+              {selectedCard.attackPower &&
+                selectedCard.defense &&
+                selectedCard.speed && (
+                  <div>
+                    <h4 className="mb-3 text-sm font-medium text-gray-500">
+                      Power Statistics
+                    </h4>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center space-x-1">
+                          <Zap className="h-4 w-4 text-red-500" />
+                          <span className="text-xs text-gray-600">Attack</span>
+                        </div>
+                        <div className="text-lg font-bold text-gray-900">
+                          {selectedCard.attackPower}
+                        </div>
                       </div>
-                      <div className="text-lg font-bold text-gray-900">
-                        {selectedCard.attackPower}
+                      <div className="text-center">
+                        <div className="flex items-center justify-center space-x-1">
+                          <Shield className="h-4 w-4 text-blue-500" />
+                          <span className="text-xs text-gray-600">Defense</span>
+                        </div>
+                        <div className="text-lg font-bold text-gray-900">
+                          {selectedCard.defense}
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center space-x-1">
-                        <Shield className="h-4 w-4 text-blue-500" />
-                        <span className="text-xs text-gray-600">Defense</span>
-                      </div>
-                      <div className="text-lg font-bold text-gray-900">
-                        {selectedCard.defense}
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center space-x-1">
-                        <Wind className="h-4 w-4 text-green-500" />
-                        <span className="text-xs text-gray-600">Speed</span>
-                      </div>
-                      <div className="text-lg font-bold text-gray-900">
-                        {selectedCard.speed}
+                      <div className="text-center">
+                        <div className="flex items-center justify-center space-x-1">
+                          <Wind className="h-4 w-4 text-green-500" />
+                          <span className="text-xs text-gray-600">Speed</span>
+                        </div>
+                        <div className="text-lg font-bold text-gray-900">
+                          {selectedCard.speed}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Special Ability */}
               {selectedCard.specialAbility && (
                 <div>
-                  <h4 className="mb-2 text-sm font-medium text-gray-500">Special Ability</h4>
+                  <h4 className="mb-2 text-sm font-medium text-gray-500">
+                    Special Ability
+                  </h4>
                   <p className="rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
                     {selectedCard.specialAbility}
                   </p>
@@ -369,15 +407,21 @@ function CardDetailModal({
 
               {/* Pricing */}
               <div>
-                <h4 className="text-sm font-medium text-gray-500">Diamond Price</h4>
+                <h4 className="text-sm font-medium text-gray-500">
+                  Diamond Price
+                </h4>
                 <p className="text-lg font-bold text-purple-600">
-                  {selectedCard.diamondPrice && selectedCard.diamondPrice > 0 ? `💎 ${selectedCard.diamondPrice}` : "Not priced"}
+                  {selectedCard.diamondPrice && selectedCard.diamondPrice > 0
+                    ? `💎 ${selectedCard.diamondPrice}`
+                    : "Not priced"}
                 </p>
               </div>
 
               {/* Analysis Status */}
               <div>
-                <h4 className="mb-2 text-sm font-medium text-gray-500">Analysis Status</h4>
+                <h4 className="mb-2 text-sm font-medium text-gray-500">
+                  Analysis Status
+                </h4>
                 <div className="flex items-center">
                   {selectedCard.isAnalyzed ? (
                     <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
@@ -406,7 +450,7 @@ function CardDetailModal({
                 <span>Analyze Card</span>
               </button>
             )}
-            
+
             <button
               onClick={onEditCategory}
               className="flex items-center space-x-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 px-4 py-2 text-white transition-all hover:from-green-600 hover:to-emerald-600"
@@ -414,7 +458,7 @@ function CardDetailModal({
               <span>🏷️</span>
               <span>Edit Category</span>
             </button>
-            
+
             <button
               onClick={onEditRarity}
               className="flex items-center space-x-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 px-4 py-2 text-white transition-all hover:from-purple-600 hover:to-indigo-600"
@@ -422,7 +466,7 @@ function CardDetailModal({
               <Star className="h-4 w-4" />
               <span>Adjust Rarity</span>
             </button>
-            
+
             <button
               onClick={onDelete}
               className="flex items-center space-x-2 rounded-lg bg-gradient-to-r from-red-500 to-rose-500 px-4 py-2 text-white transition-all hover:from-red-600 hover:to-rose-600"
@@ -483,9 +527,20 @@ export default function AdminCardsPage() {
   const [rarities, setRarities] = useState<any[]>([]);
   const [elements, setElements] = useState<any[]>([]);
 
+  // Scan functionality states
+  const [showScanModal, setShowScanModal] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [scanResults, setScanResults] = useState<any>(null);
+  const [importing, setImporting] = useState(false);
+  const [selectedFilesToImport, setSelectedFilesToImport] = useState<
+    Set<string>
+  >(new Set());
+
   // Bulk selection states - Gelişmiş seçim sistemi
   const [selectedCards, setSelectedCards] = useState<Set<string>>(new Set());
-  const [selectedCardDetails, setSelectedCardDetails] = useState<Map<string, Card>>(new Map());
+  const [selectedCardDetails, setSelectedCardDetails] = useState<
+    Map<string, Card>
+  >(new Map());
   const [bulkActionsVisible, setBulkActionsVisible] = useState(false);
   const [showBulkSuccessModal, setShowBulkSuccessModal] = useState(false);
   const [bulkSuccessMessage, setBulkSuccessMessage] = useState("");
@@ -493,10 +548,12 @@ export default function AdminCardsPage() {
   const [showBulkCategoryModal, setShowBulkCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [updatingCategory, setUpdatingCategory] = useState(false);
-  
+
   // Single card category editing
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [editingCardCategory, setEditingCardCategory] = useState<Card | null>(null);
+  const [editingCardCategory, setEditingCardCategory] = useState<Card | null>(
+    null
+  );
   const [newCategory, setNewCategory] = useState<string>("");
 
   // Available categories
@@ -538,7 +595,10 @@ export default function AdminCardsPage() {
   };
 
   // Get character display name
-  const getCharacterDisplayName = (cardTitle: string | null, character: string | null) => {
+  const getCharacterDisplayName = (
+    cardTitle: string | null,
+    character: string | null
+  ) => {
     // Önce cardTitle'ı kontrol et, yoksa character'ı kullan
     return cardTitle || character || null;
   };
@@ -555,7 +615,7 @@ export default function AdminCardsPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setCurrentPage(1);
-      console.log('Filters changed, clearing selections');
+      console.log("Filters changed, clearing selections");
       setSelectedCards(new Set());
       setSelectedCardDetails(new Map()); // Detay bilgilerini de temizle
       fetchCards(1, false);
@@ -567,8 +627,10 @@ export default function AdminCardsPage() {
   const fetchCards = async (page = currentPage, preserveSelection = false) => {
     try {
       setLoading(true);
-      console.log(`Fetching cards for page ${page}, preserveSelection: ${preserveSelection}, current selections: ${selectedCards.size}`);
-      
+      console.log(
+        `Fetching cards for page ${page}, preserveSelection: ${preserveSelection}, current selections: ${selectedCards.size}`
+      );
+
       const params = new URLSearchParams({
         page: page.toString(),
         limit: "10",
@@ -582,26 +644,35 @@ export default function AdminCardsPage() {
       const response = await fetch(`/api/upload?${params}`);
       if (response.ok) {
         const data = await response.json();
-        console.log('Fetched cards:', data.cards?.length, 'total pages:', data.pagination?.totalPages);
+        console.log(
+          "Fetched cards:",
+          data.cards?.length,
+          "total pages:",
+          data.pagination?.totalPages
+        );
         setCards(data.cards || []);
         setPagination(data.pagination || {});
-        
+
         // Sayfa geçişlerinde seçimleri koru - mevcut sayfadaki kartları selectedCardDetails'e ekle
         if (preserveSelection && selectedCards.size > 0) {
-          console.log(`Preserving ${selectedCards.size} selections across page change`);
+          console.log(
+            `Preserving ${selectedCards.size} selections across page change`
+          );
           const newDetails = new Map(selectedCardDetails);
-          
+
           // Mevcut sayfadaki seçili kartların detaylarını ekle
           data.cards?.forEach((card: Card) => {
             if (selectedCards.has(card.id)) {
               newDetails.set(card.id, card);
             }
           });
-          
+
           setSelectedCardDetails(newDetails);
-          console.log(`Updated selectedCardDetails, now has ${newDetails.size} entries`);
+          console.log(
+            `Updated selectedCardDetails, now has ${newDetails.size} entries`
+          );
         } else if (!preserveSelection) {
-          console.log('Not preserving selections - filters/search changed');
+          console.log("Not preserving selections - filters/search changed");
         }
       }
     } catch (error) {
@@ -654,7 +725,7 @@ export default function AdminCardsPage() {
   const fetchCategories = async () => {
     try {
       const response = await fetch("/api/admin/categories");
-      
+
       if (response.ok) {
         const data = await response.json();
         const categories = data.categories.map((cat: any) => ({
@@ -667,28 +738,131 @@ export default function AdminCardsPage() {
       } else {
         // Fallback to default categories
         const defaultCategories = [
-          { value: "star-collection", label: "Star Collection", color: "#4ECDC4", icon: "⭐" },
-          { value: "car-collection", label: "Car Collection", color: "#45B7D1", icon: "🚗" },
-          { value: "anime-collection", label: "Anime Collection", color: "#FF6B6B", icon: "🎌" },
+          {
+            value: "star-collection",
+            label: "Star Collection",
+            color: "#4ECDC4",
+            icon: "⭐",
+          },
+          {
+            value: "car-collection",
+            label: "Car Collection",
+            color: "#45B7D1",
+            icon: "🚗",
+          },
+          {
+            value: "anime-collection",
+            label: "Anime Collection",
+            color: "#FF6B6B",
+            icon: "🎌",
+          },
         ];
         setAvailableCategories(defaultCategories);
       }
     } catch (error) {
       console.error("Failed to fetch categories:", error);
       const defaultCategories = [
-        { value: "star-collection", label: "Star Collection", color: "#4ECDC4", icon: "⭐" },
-        { value: "car-collection", label: "Car Collection", color: "#45B7D1", icon: "🚗" },
-        { value: "anime-collection", label: "Anime Collection", color: "#FF6B6B", icon: "🎌" },
+        {
+          value: "star-collection",
+          label: "Star Collection",
+          color: "#4ECDC4",
+          icon: "⭐",
+        },
+        {
+          value: "car-collection",
+          label: "Car Collection",
+          color: "#45B7D1",
+          icon: "🚗",
+        },
+        {
+          value: "anime-collection",
+          label: "Anime Collection",
+          color: "#FF6B6B",
+          icon: "🎌",
+        },
       ];
       setAvailableCategories(defaultCategories);
     }
+  };
+
+  // Scan functionality handlers
+  const handleScanDirectory = async () => {
+    setScanning(true);
+    setScanResults(null);
+    try {
+      const response = await fetch("/api/admin/cards/scan");
+      if (response.ok) {
+        const responseData = await response.json();
+        setScanResults(responseData.data); // Access the nested data property
+      } else {
+        const errorData = await response.json();
+        alert(`Scan failed: ${errorData.error || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Scan failed:", error);
+      alert("Failed to scan directory");
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const handleImportSelectedCards = async () => {
+    if (selectedFilesToImport.size === 0) {
+      alert("Please select files to import");
+      return;
+    }
+
+    setImporting(true);
+    try {
+      const filesToImport = Array.from(selectedFilesToImport)
+        .map((fileName) =>
+          scanResults.missingCards.find((f: any) => f.fileName === fileName)
+        )
+        .filter(Boolean);
+
+      const response = await fetch("/api/admin/cards/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ files: filesToImport }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(
+          `Successfully imported ${result.data.imported.length} cards! ${result.data.skipped.length} files were skipped (duplicates or errors).`
+        );
+        setShowScanModal(false);
+        setScanResults(null);
+        setSelectedFilesToImport(new Set());
+        fetchCards(); // Refresh the cards list
+        fetchGlobalStats();
+      } else {
+        const errorData = await response.json();
+        alert(`Import failed: ${errorData.error || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Import failed:", error);
+      alert("Failed to import cards");
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const toggleFileSelection = (fileName: string) => {
+    const newSelection = new Set(selectedFilesToImport);
+    if (newSelection.has(fileName)) {
+      newSelection.delete(fileName);
+    } else {
+      newSelection.add(fileName);
+    }
+    setSelectedFilesToImport(newSelection);
   };
 
   // Gelişmiş bulk selection handlers
   const toggleCardSelection = (cardId: string, cardData?: Card) => {
     const newSelection = new Set(selectedCards);
     const newDetails = new Map(selectedCardDetails);
-    
+
     if (newSelection.has(cardId)) {
       newSelection.delete(cardId);
       newDetails.delete(cardId);
@@ -697,40 +871,52 @@ export default function AdminCardsPage() {
       newSelection.add(cardId);
       if (cardData) {
         newDetails.set(cardId, cardData);
-        console.log(`✅ Selected card: ${cardId} - ${cardData.name || 'Unknown'}`);
+        console.log(
+          `✅ Selected card: ${cardId} - ${cardData.name || "Unknown"}`
+        );
       }
     }
-    
+
     setSelectedCards(newSelection);
     setSelectedCardDetails(newDetails);
-    console.log(`📊 Total selected cards: ${newSelection.size}, IDs: [${Array.from(newSelection).join(', ')}]`);
+    console.log(
+      `📊 Total selected cards: ${newSelection.size}, IDs: [${Array.from(newSelection).join(", ")}]`
+    );
   };
 
   const selectAllCards = () => {
-    console.log('🎯 BEFORE selectAllCards:');
-    console.log('🎯 Current selectedCards.size:', selectedCards.size);
-    console.log('🎯 Current selectedCards:', Array.from(selectedCards));
-    console.log('🎯 Cards on this page:', cards.map(c => c.id));
-    
-    const newSelection = new Set([...selectedCards, ...cards.map(card => card.id)]);
+    console.log("🎯 BEFORE selectAllCards:");
+    console.log("🎯 Current selectedCards.size:", selectedCards.size);
+    console.log("🎯 Current selectedCards:", Array.from(selectedCards));
+    console.log(
+      "🎯 Cards on this page:",
+      cards.map((c) => c.id)
+    );
+
+    const newSelection = new Set([
+      ...selectedCards,
+      ...cards.map((card) => card.id),
+    ]);
     const newDetails = new Map(selectedCardDetails);
-    cards.forEach(card => {
+    cards.forEach((card) => {
       newDetails.set(card.id, card);
     });
-    
-    console.log('🎯 AFTER selectAllCards:');
-    console.log('🎯 New selection size:', newSelection.size);
-    console.log('🎯 New selection IDs:', Array.from(newSelection));
-    
+
+    console.log("🎯 AFTER selectAllCards:");
+    console.log("🎯 New selection size:", newSelection.size);
+    console.log("🎯 New selection IDs:", Array.from(newSelection));
+
     setSelectedCards(newSelection);
     setSelectedCardDetails(newDetails);
-    console.log(`✅ Selected all ${cards.length} cards on current page. Total selections: ${newSelection.size}`);
+    console.log(
+      `✅ Selected all ${cards.length} cards on current page. Total selections: ${newSelection.size}`
+    );
   };
 
   const clearSelection = () => {
     setSelectedCards(new Set());
     setSelectedCardDetails(new Map());
-    console.log('Cleared all selections');
+    console.log("Cleared all selections");
   };
 
   // Bulk operations
@@ -738,15 +924,18 @@ export default function AdminCardsPage() {
     if (selectedCards.size === 0) return;
 
     const cardIds = Array.from(selectedCards);
-    
+
     // Analysis başlangıç durumu - modal göster
     setAnalyzingBulkCards(true);
     setAnalyzingMessage(`${cardIds.length} kartın analizi başlatılıyor...`);
     setShowAnalyzingModal(true);
 
     try {
-      console.log(`🔍 Starting bulk analyze for ${cardIds.length} cards:`, cardIds);
-      
+      console.log(
+        `🔍 Starting bulk analyze for ${cardIds.length} cards:`,
+        cardIds
+      );
+
       const response = await fetch("/api/admin/bulk-reanalyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -755,25 +944,33 @@ export default function AdminCardsPage() {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('✅ Bulk analyze successful:', result);
-        
+        console.log("✅ Bulk analyze successful:", result);
+
         // Success durumu - analyzing modal'ı kapat, success modal'ı aç
         setShowAnalyzingModal(false);
-        setBulkSuccessMessage(`${cardIds.length} kart başarıyla analiz edildi ve güç istatistikleri güncellendi.`);
+        setBulkSuccessMessage(
+          `${cardIds.length} kart başarıyla analiz edildi ve güç istatistikleri güncellendi.`
+        );
         setShowBulkSuccessModal(true);
         clearSelection();
         fetchCards(currentPage, false); // Analiz sonrası fresh data al
         fetchGlobalStats();
       } else {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('❌ Bulk analyze failed:', errorData);
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
+        console.error("❌ Bulk analyze failed:", errorData);
         setShowAnalyzingModal(false);
-        alert(`Kartlar analiz edilirken hata oluştu: ${errorData.error || 'Bilinmeyen hata'}`);
+        alert(
+          `Kartlar analiz edilirken hata oluştu: ${errorData.error || "Bilinmeyen hata"}`
+        );
       }
     } catch (error) {
       console.error("💥 Bulk analyze failed:", error);
       setShowAnalyzingModal(false);
-      alert(`Kartlar analiz edilirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
+      alert(
+        `Kartlar analiz edilirken hata oluştu: ${error instanceof Error ? error.message : "Bilinmeyen hata"}`
+      );
     } finally {
       setAnalyzingBulkCards(false);
     }
@@ -782,8 +979,11 @@ export default function AdminCardsPage() {
   const handleBulkDelete = async () => {
     try {
       const cardIds = Array.from(selectedCards);
-      console.log(`🗑️ Starting bulk delete for ${cardIds.length} cards:`, cardIds);
-      
+      console.log(
+        `🗑️ Starting bulk delete for ${cardIds.length} cards:`,
+        cardIds
+      );
+
       const response = await fetch("/api/upload", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -792,20 +992,26 @@ export default function AdminCardsPage() {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('✅ Bulk delete successful:', result);
+        console.log("✅ Bulk delete successful:", result);
         setBulkSuccessMessage(`${cardIds.length} kart başarıyla silindi.`);
         setShowBulkSuccessModal(true);
         clearSelection();
         fetchCards(currentPage, false); // Silme sonrası fresh data al
         fetchGlobalStats();
       } else {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('❌ Bulk delete failed:', errorData);
-        alert(`Kartlar silinirken hata oluştu: ${errorData.error || 'Bilinmeyen hata'}`);
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
+        console.error("❌ Bulk delete failed:", errorData);
+        alert(
+          `Kartlar silinirken hata oluştu: ${errorData.error || "Bilinmeyen hata"}`
+        );
       }
     } catch (error) {
       console.error("💥 Bulk delete failed:", error);
-      alert(`Kartlar silinirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
+      alert(
+        `Kartlar silinirken hata oluştu: ${error instanceof Error ? error.message : "Bilinmeyen hata"}`
+      );
     }
     setShowBulkDeleteModal(false);
   };
@@ -814,82 +1020,124 @@ export default function AdminCardsPage() {
     if (!selectedCategory || selectedCards.size === 0) return;
 
     setUpdatingCategory(true);
-    
+
     // Detaylı debug bilgileri
     const allSelectedIds = Array.from(selectedCards);
-    console.log('🔍 BULK CATEGORY UPDATE DEBUG:');
-    console.log('📊 selectedCards.size:', selectedCards.size);
-    console.log('📋 selectedCards Set:', selectedCards);
-    console.log('🎯 All selected IDs:', allSelectedIds);
-    console.log('🏷️ Target category:', selectedCategory);
-    console.log('📋 selectedCardDetails.size:', selectedCardDetails.size);
-    console.log('📋 selectedCardDetails keys:', Array.from(selectedCardDetails.keys()));
-    
+    console.log("🔍 BULK CATEGORY UPDATE DEBUG:");
+    console.log("📊 selectedCards.size:", selectedCards.size);
+    console.log("📋 selectedCards Set:", selectedCards);
+    console.log("🎯 All selected IDs:", allSelectedIds);
+    console.log("🏷️ Target category:", selectedCategory);
+    console.log("📋 selectedCardDetails.size:", selectedCardDetails.size);
+    console.log(
+      "📋 selectedCardDetails keys:",
+      Array.from(selectedCardDetails.keys())
+    );
+
     try {
       const cardIds = Array.from(selectedCards);
-      
+
       // Critical debugging
-      console.log('🚨 CRITICAL DEBUG - BEFORE API CALLS:');
-      console.log('🎯 cardIds array length:', cardIds.length);
-      console.log('🎯 cardIds array:', cardIds);
-      console.log('🎯 typeof cardIds:', typeof cardIds);
-      console.log('🎯 Array.isArray(cardIds):', Array.isArray(cardIds));
-      
+      console.log("🚨 CRITICAL DEBUG - BEFORE API CALLS:");
+      console.log("🎯 cardIds array length:", cardIds.length);
+      console.log("🎯 cardIds array:", cardIds);
+      console.log("🎯 typeof cardIds:", typeof cardIds);
+      console.log("🎯 Array.isArray(cardIds):", Array.isArray(cardIds));
+
       let successCount = 0;
-      let failedCards: Array<{ cardId: string; success: false; error: string; httpStatus?: number }> = [];
-      
+      let failedCards: Array<{
+        cardId: string;
+        success: false;
+        error: string;
+        httpStatus?: number;
+      }> = [];
+
       type UpdateResult =
         | { cardId: string; success: true; data: any }
-        | { cardId: string; success: false; error: string; httpStatus?: number };
-      
+        | {
+            cardId: string;
+            success: false;
+            error: string;
+            httpStatus?: number;
+          };
+
       // Paralel olarak tüm kartları güncelle - daha hızlı
       const updatePromises = cardIds.map(async (cardId, index) => {
         try {
-          console.log(`⏳ [${index + 1}/${cardIds.length}] Updating card ${cardId}...`);
-          
+          console.log(
+            `⏳ [${index + 1}/${cardIds.length}] Updating card ${cardId}...`
+          );
+
           const requestBody = {
             category: selectedCategory,
             series: selectedCategory, // Seri bilgisini de aynı değerle güncelle
           };
-          
+
           console.log(`📤 Request for ${cardId}:`, requestBody);
-          
+
           const response = await fetch(`/api/cards/${cardId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(requestBody),
           });
-          
+
           console.log(`📥 Response status for ${cardId}:`, response.status);
-          
+
           if (response.ok) {
             const responseData = await response.json().catch(() => ({}));
-            console.log(`✅ Card ${cardId} updated successfully:`, responseData);
+            console.log(
+              `✅ Card ${cardId} updated successfully:`,
+              responseData
+            );
             return { cardId, success: true, data: responseData };
           } else {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-            console.error(`❌ Failed to update card ${cardId}:`, response.status, errorData);
-            return { cardId, success: false, error: errorData.error || `HTTP ${response.status}`, httpStatus: response.status };
+            const errorData = await response
+              .json()
+              .catch(() => ({ error: "Unknown error" }));
+            console.error(
+              `❌ Failed to update card ${cardId}:`,
+              response.status,
+              errorData
+            );
+            return {
+              cardId,
+              success: false,
+              error: errorData.error || `HTTP ${response.status}`,
+              httpStatus: response.status,
+            };
           }
         } catch (error) {
           console.error(`💥 Exception updating card ${cardId}:`, error);
-          return { cardId, success: false, error: error instanceof Error ? error.message : 'Unknown exception' };
+          return {
+            cardId,
+            success: false,
+            error: error instanceof Error ? error.message : "Unknown exception",
+          };
         }
       });
 
       // Tüm promise'ları bekle
-      console.log(`⏳ Waiting for ${updatePromises.length} promises to complete...`);
+      console.log(
+        `⏳ Waiting for ${updatePromises.length} promises to complete...`
+      );
       const results = await Promise.all(updatePromises);
-      
-      console.log('🎯 ALL RESULTS:', results);
-      
+
+      console.log("🎯 ALL RESULTS:", results);
+
       // Sonuçları analiz et
       results.forEach((result, index) => {
         console.log(`📋 Result ${index + 1}:`, result);
         if (result.success) {
           successCount++;
         } else {
-          failedCards.push(result as { cardId: string; success: false; error: string; httpStatus?: number });
+          failedCards.push(
+            result as {
+              cardId: string;
+              success: false;
+              error: string;
+              httpStatus?: number;
+            }
+          );
         }
       });
 
@@ -897,30 +1145,39 @@ export default function AdminCardsPage() {
       console.log(`📊 Total attempted: ${cardIds.length}`);
       console.log(`📊 Successful: ${successCount}`);
       console.log(`📊 Failed: ${failedCards.length}`);
-      console.log(`📊 Success rate: ${((successCount / cardIds.length) * 100).toFixed(1)}%`);
-      
+      console.log(
+        `📊 Success rate: ${((successCount / cardIds.length) * 100).toFixed(1)}%`
+      );
+
       if (failedCards.length > 0) {
-        console.error('❌ Failed cards:', failedCards);
+        console.error("❌ Failed cards:", failedCards);
       }
 
       if (successCount > 0) {
-        const message = failedCards.length > 0
-          ? `${successCount} kartın kategorisi güncellendi. ${failedCards.length} kart güncellenemedi.`
-          : `${successCount} kartın kategorisi başarıyla güncellendi.`;
-        
+        const message =
+          failedCards.length > 0
+            ? `${successCount} kartın kategorisi güncellendi. ${failedCards.length} kart güncellenemedi.`
+            : `${successCount} kartın kategorisi başarıyla güncellendi.`;
+
         setBulkSuccessMessage(message);
         setShowBulkSuccessModal(true);
         clearSelection();
-        console.log('🔄 Refetching cards after bulk category update...');
+        console.log("🔄 Refetching cards after bulk category update...");
         await fetchCards(currentPage, false); // Güncellemeden sonra fresh data al
       } else {
-        const failureReasons = failedCards.map(f => `${f.cardId}: ${f.error}`).join('\n');
-        console.error('💥 All cards failed to update:', failureReasons);
-        alert(`Hiçbir kartın kategorisi güncellenemedi.\n\nHata detayları:\n${failureReasons}`);
+        const failureReasons = failedCards
+          .map((f) => `${f.cardId}: ${f.error}`)
+          .join("\n");
+        console.error("💥 All cards failed to update:", failureReasons);
+        alert(
+          `Hiçbir kartın kategorisi güncellenemedi.\n\nHata detayları:\n${failureReasons}`
+        );
       }
     } catch (error) {
       console.error("💥 Bulk category update failed:", error);
-      alert(`Kategori güncellenirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
+      alert(
+        `Kategori güncellenirken hata oluştu: ${error instanceof Error ? error.message : "Bilinmeyen hata"}`
+      );
     } finally {
       setUpdatingCategory(false);
       setShowBulkCategoryModal(false);
@@ -944,17 +1201,22 @@ export default function AdminCardsPage() {
       });
 
       const responseData = await response.json();
-      console.log('Single category update response:', responseData);
+      console.log("Single category update response:", responseData);
 
       if (response.ok) {
-        console.log('Category updated successfully. New value:', responseData.card?.category);
+        console.log(
+          "Category updated successfully. New value:",
+          responseData.card?.category
+        );
         setBulkSuccessMessage("Kartın kategorisi güncellendi.");
         setShowBulkSuccessModal(true);
-        console.log('Refetching cards after single category update...');
+        console.log("Refetching cards after single category update...");
         await fetchCards(currentPage, true); // Kategori güncelleme sonrası seçimleri koru
       } else {
-        console.error('Category update failed:', responseData);
-        alert(`Kategori güncellenirken hata: ${responseData.error || 'Bilinmeyen hata'}`);
+        console.error("Category update failed:", responseData);
+        alert(
+          `Kategori güncellenirken hata: ${responseData.error || "Bilinmeyen hata"}`
+        );
       }
     } catch (error) {
       console.error("Category update failed:", error);
@@ -1235,7 +1497,9 @@ export default function AdminCardsPage() {
 
   // Sayfa değiştirme fonksiyonları - seçimleri koru
   const handlePageChange = (newPage: number) => {
-    console.log(`Changing to page ${newPage}, preserving ${selectedCards.size} selections`);
+    console.log(
+      `Changing to page ${newPage}, preserving ${selectedCards.size} selections`
+    );
     setCurrentPage(newPage);
     fetchCards(newPage, true); // Sayfa geçişinde seçimleri koru
   };
@@ -1374,6 +1638,26 @@ export default function AdminCardsPage() {
                     </div>
                   </div>
                 </button>
+
+                <button
+                  onClick={() => {
+                    setShowScanModal(true);
+                    setShowActionsDropdown(false);
+                  }}
+                  className="flex w-full items-center space-x-3 px-4 py-3 text-left transition-colors hover:bg-purple-50"
+                >
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-purple-600 to-pink-600">
+                    <Search className="h-3 w-3 text-white" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      Scan Uploads Directory
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      Find and import uploaded cards
+                    </div>
+                  </div>
+                </button>
               </div>
             </div>
           )}
@@ -1390,7 +1674,7 @@ export default function AdminCardsPage() {
 
       {/* Bulk Actions Bar */}
       {bulkActionsVisible && (
-        <div className="mb-6 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 p-4 shadow-lg">
+        <div className="mb-6 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 p-4 shadow-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-purple-600">
@@ -1399,15 +1683,16 @@ export default function AdminCardsPage() {
               <div>
                 <span className="text-sm font-bold text-gray-900">
                   {selectedCards.size} kart seçildi
-                  {selectedCards.size > cards.filter(card => selectedCards.has(card.id)).length &&
-                    ` (${cards.filter(card => selectedCards.has(card.id)).length} bu sayfada)`
-                  }
+                  {selectedCards.size >
+                    cards.filter((card) => selectedCards.has(card.id)).length &&
+                    ` (${cards.filter((card) => selectedCards.has(card.id)).length} bu sayfada)`}
                 </span>
                 <p className="text-xs text-gray-600">
-                  Toplu işlemler için seçenekleri kullanın • Sayfa geçişlerinde seçimler korunur
-                  {selectedCards.size > cards.filter(card => selectedCards.has(card.id)).length &&
-                    ` • ${selectedCards.size - cards.filter(card => selectedCards.has(card.id)).length} kart diğer sayfalarda seçili`
-                  }
+                  Toplu işlemler için seçenekleri kullanın • Sayfa geçişlerinde
+                  seçimler korunur
+                  {selectedCards.size >
+                    cards.filter((card) => selectedCards.has(card.id)).length &&
+                    ` • ${selectedCards.size - cards.filter((card) => selectedCards.has(card.id)).length} kart diğer sayfalarda seçili`}
                 </p>
               </div>
             </div>
@@ -1419,7 +1704,7 @@ export default function AdminCardsPage() {
               >
                 Bu Sayfayı Seç
               </button>
-              
+
               <button
                 onClick={clearSelection}
                 className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200"
@@ -1432,7 +1717,7 @@ export default function AdminCardsPage() {
                 disabled={analyzingBulkCards}
                 className={`rounded-md px-3 py-1.5 text-xs font-medium text-white ${
                   analyzingBulkCards
-                    ? "bg-gray-400 cursor-not-allowed"
+                    ? "cursor-not-allowed bg-gray-400"
                     : "bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
                 }`}
               >
@@ -1445,14 +1730,14 @@ export default function AdminCardsPage() {
                   "🔍 Analyze"
                 )}
               </button>
-              
+
               <button
                 onClick={() => setShowBulkCategoryModal(true)}
                 className="rounded-md bg-gradient-to-r from-green-500 to-emerald-500 px-3 py-1.5 text-xs font-medium text-white hover:from-green-600 hover:to-emerald-600"
               >
                 🏷️ Category
               </button>
-              
+
               <button
                 onClick={() => setShowBulkDeleteModal(true)}
                 className="rounded-md bg-gradient-to-r from-red-500 to-rose-500 px-3 py-1.5 text-xs font-medium text-white hover:from-red-600 hover:to-rose-600"
@@ -1494,11 +1779,16 @@ export default function AdminCardsPage() {
                   {category.label}
                 </option>
               ))}
-              {uniqueCategories.filter(category => !availableCategories.some(cat => cat.value === category)).map((category) => (
-                <option key={category} value={category}>
-                  {getCategoryDisplayName(category) || category}
-                </option>
-              ))}
+              {uniqueCategories
+                .filter(
+                  (category) =>
+                    !availableCategories.some((cat) => cat.value === category)
+                )
+                .map((category) => (
+                  <option key={category} value={category}>
+                    {getCategoryDisplayName(category) || category}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -1510,20 +1800,18 @@ export default function AdminCardsPage() {
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
             >
               <option value="">All Rarity Levels</option>
-              {rarities.length > 0 ? (
-                rarities.map((rarity) => (
-                  <option key={rarity.slug} value={rarity.slug}>
-                    {rarity.icon} {rarity.name}
-                  </option>
-                ))
-              ) : (
-                // Fallback to unique rarities from current cards if rarities not loaded
-                uniqueRarities.map((rarity) => (
-                  <option key={rarity} value={rarity}>
-                    {rarity}
-                  </option>
-                ))
-              )}
+              {rarities.length > 0
+                ? rarities.map((rarity) => (
+                    <option key={rarity.slug} value={rarity.slug}>
+                      {rarity.icon} {rarity.name}
+                    </option>
+                  ))
+                : // Fallback to unique rarities from current cards if rarities not loaded
+                  uniqueRarities.map((rarity) => (
+                    <option key={rarity} value={rarity}>
+                      {rarity}
+                    </option>
+                  ))}
             </select>
           </div>
 
@@ -1638,52 +1926,58 @@ export default function AdminCardsPage() {
                       />
 
                       {/* Rarity Icon Overlay */}
-                      {card.rarity && (() => {
-                        const rarityData = getRarityData(card.rarity);
-                        return rarityData?.icon ? (
-                          <div
-                            className="absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-full shadow-lg backdrop-blur-sm"
-                            style={{ backgroundColor: `${rarityData.color}CC` }}
-                            title={`${rarityData.name} Rarity`}
-                          >
-                            <span className="text-lg">
-                              {rarityData.iconUrl ? (
-                                <img
-                                  src={rarityData.iconUrl}
-                                  alt={rarityData.name}
-                                  className="h-5 w-5"
-                                />
-                              ) : (
-                                rarityData.icon
-                              )}
-                            </span>
-                          </div>
-                        ) : null;
-                      })()}
+                      {card.rarity &&
+                        (() => {
+                          const rarityData = getRarityData(card.rarity);
+                          return rarityData?.icon ? (
+                            <div
+                              className="absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-full shadow-lg backdrop-blur-sm"
+                              style={{
+                                backgroundColor: `${rarityData.color}CC`,
+                              }}
+                              title={`${rarityData.name} Rarity`}
+                            >
+                              <span className="text-lg">
+                                {rarityData.iconUrl ? (
+                                  <img
+                                    src={rarityData.iconUrl}
+                                    alt={rarityData.name}
+                                    className="h-5 w-5"
+                                  />
+                                ) : (
+                                  rarityData.icon
+                                )}
+                              </span>
+                            </div>
+                          ) : null;
+                        })()}
 
                       {/* Element Icon Overlay */}
-                      {card.element && (() => {
-                        const elementData = getElementData(card.element);
-                        return elementData?.icon ? (
-                          <div
-                            className="absolute right-2 bottom-2 flex h-7 w-7 items-center justify-center rounded-full shadow-lg backdrop-blur-sm"
-                            style={{ backgroundColor: `${elementData.color}CC` }}
-                            title={`${elementData.name} Element`}
-                          >
-                            <span className="text-sm">
-                              {elementData.iconUrl ? (
-                                <img
-                                  src={elementData.iconUrl}
-                                  alt={elementData.name}
-                                  className="h-4 w-4"
-                                />
-                              ) : (
-                                elementData.icon
-                              )}
-                            </span>
-                          </div>
-                        ) : null;
-                      })()}
+                      {card.element &&
+                        (() => {
+                          const elementData = getElementData(card.element);
+                          return elementData?.icon ? (
+                            <div
+                              className="absolute bottom-2 right-2 flex h-7 w-7 items-center justify-center rounded-full shadow-lg backdrop-blur-sm"
+                              style={{
+                                backgroundColor: `${elementData.color}CC`,
+                              }}
+                              title={`${elementData.name} Element`}
+                            >
+                              <span className="text-sm">
+                                {elementData.iconUrl ? (
+                                  <img
+                                    src={elementData.iconUrl}
+                                    alt={elementData.name}
+                                    className="h-4 w-4"
+                                  />
+                                ) : (
+                                  elementData.icon
+                                )}
+                              </span>
+                            </div>
+                          ) : null;
+                        })()}
 
                       {/* Delete button - shows on hover */}
                       <button
@@ -1700,12 +1994,16 @@ export default function AdminCardsPage() {
                       <button
                         onClick={() => analyzeCard(card.id)}
                         disabled={analyzingCards.has(card.id)}
-                        className={`absolute right-2 bottom-2 rounded-full p-1 text-white opacity-0 transition-opacity group-hover:opacity-100 ${
+                        className={`absolute bottom-2 right-2 rounded-full p-1 text-white opacity-0 transition-opacity group-hover:opacity-100 ${
                           analyzingCards.has(card.id)
-                            ? "bg-blue-400 cursor-not-allowed"
+                            ? "cursor-not-allowed bg-blue-400"
                             : "bg-yellow-500 hover:bg-yellow-600"
                         }`}
-                        title={analyzingCards.has(card.id) ? "Analyzing..." : "Re-analyze Card"}
+                        title={
+                          analyzingCards.has(card.id)
+                            ? "Analyzing..."
+                            : "Re-analyze Card"
+                        }
                       >
                         {analyzingCards.has(card.id) ? (
                           <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-white"></div>
@@ -1730,37 +2028,46 @@ export default function AdminCardsPage() {
                       )}
 
                       {/* Rarity Badge for Grid View */}
-                      {card.rarity && (() => {
-                        const rarityData = getRarityData(card.rarity);
-                        return (
-                          <div className="flex items-center justify-center">
-                            <span
-                              className="inline-flex items-center space-x-1 rounded-full px-2 py-1 text-xs font-medium shadow-sm"
-                              style={{
-                                backgroundColor: rarityData?.bgColor || (rarityData?.color + '20') || '#f3f4f6',
-                                color: rarityData?.textColor || rarityData?.color || '#374151',
-                                border: `1px solid ${rarityData?.borderColor || rarityData?.color || '#d1d5db'}`
-                              }}
-                              title={`${rarityData?.name || card.rarity} Rarity`}
-                            >
-                              {rarityData?.icon && (
-                                <span className="text-sm">
-                                  {rarityData.iconUrl ? (
-                                    <img
-                                      src={rarityData.iconUrl}
-                                      alt={rarityData.name}
-                                      className="h-3 w-3"
-                                    />
-                                  ) : (
-                                    rarityData.icon
-                                  )}
+                      {card.rarity &&
+                        (() => {
+                          const rarityData = getRarityData(card.rarity);
+                          return (
+                            <div className="flex items-center justify-center">
+                              <span
+                                className="inline-flex items-center space-x-1 rounded-full px-2 py-1 text-xs font-medium shadow-sm"
+                                style={{
+                                  backgroundColor:
+                                    rarityData?.bgColor ||
+                                    rarityData?.color + "20" ||
+                                    "#f3f4f6",
+                                  color:
+                                    rarityData?.textColor ||
+                                    rarityData?.color ||
+                                    "#374151",
+                                  border: `1px solid ${rarityData?.borderColor || rarityData?.color || "#d1d5db"}`,
+                                }}
+                                title={`${rarityData?.name || card.rarity} Rarity`}
+                              >
+                                {rarityData?.icon && (
+                                  <span className="text-sm">
+                                    {rarityData.iconUrl ? (
+                                      <img
+                                        src={rarityData.iconUrl}
+                                        alt={rarityData.name}
+                                        className="h-3 w-3"
+                                      />
+                                    ) : (
+                                      rarityData.icon
+                                    )}
+                                  </span>
+                                )}
+                                <span className="max-w-16 truncate">
+                                  {rarityData?.name || card.rarity}
                                 </span>
-                              )}
-                              <span className="truncate max-w-16">{rarityData?.name || card.rarity}</span>
-                            </span>
-                          </div>
-                        );
-                      })()}
+                              </span>
+                            </div>
+                          );
+                        })()}
 
                       <div className="flex items-center justify-between">
                         {card.diamondPrice ? (
@@ -1799,7 +2106,7 @@ export default function AdminCardsPage() {
                   // List View
                   <>
                     {/* Selection Checkbox for List View */}
-                    <div className="flex-shrink-0 flex items-center">
+                    <div className="flex flex-shrink-0 items-center">
                       <input
                         type="checkbox"
                         checked={selectedCards.has(card.id)}
@@ -1819,8 +2126,21 @@ export default function AdminCardsPage() {
                         {card.cardTitle || card.name || "İsimsiz Kart"}
                       </h3>
                       <div className="space-y-1 text-sm text-gray-600">
-                        {card.category && <p>Series: {getCategoryDisplayName(card.category)}</p>}
-                        {getCharacterDisplayName(card.cardTitle, card.character) && <p>Character: {getCharacterDisplayName(card.cardTitle, card.character)}</p>}
+                        {card.category && (
+                          <p>Series: {getCategoryDisplayName(card.category)}</p>
+                        )}
+                        {getCharacterDisplayName(
+                          card.cardTitle,
+                          card.character
+                        ) && (
+                          <p>
+                            Character:{" "}
+                            {getCharacterDisplayName(
+                              card.cardTitle,
+                              card.character
+                            )}
+                          </p>
+                        )}
                         {card.element && (
                           <p className="flex items-center space-x-2">
                             <span>Element:</span>
@@ -1882,7 +2202,6 @@ export default function AdminCardsPage() {
                             </div>
                           </div>
                         )}
-
 
                         <p>Yükleme: {formatDate(new Date(card.uploadDate))}</p>
                       </div>
@@ -1963,32 +2282,32 @@ export default function AdminCardsPage() {
               } else {
                 // Akıllı pagination: 1, 2, ..., current-1, current, current+1, ..., total-1, total
                 pages.push(1);
-                
+
                 if (currentPage > 3) {
-                  pages.push('...');
+                  pages.push("...");
                 }
-                
+
                 // Mevcut sayfanın etrafındaki sayfalar
                 const start = Math.max(2, currentPage - 1);
                 const end = Math.min(totalPages - 1, currentPage + 1);
-                
+
                 for (let i = start; i <= end; i++) {
                   if (!pages.includes(i)) {
                     pages.push(i);
                   }
                 }
-                
+
                 if (currentPage < totalPages - 2) {
-                  pages.push('...');
+                  pages.push("...");
                 }
-                
+
                 if (totalPages > 1) {
                   pages.push(totalPages);
                 }
               }
 
               return pages.map((page, index) => {
-                if (page === '...') {
+                if (page === "...") {
                   return (
                     <span
                       key={`ellipsis-${index}`}
@@ -2077,7 +2396,9 @@ export default function AdminCardsPage() {
           getElementColor={getElementColor}
           getRarityColor={(rarity: string) => {
             const rarityData = getRarityData(rarity);
-            return rarityData?.color ? `bg-${rarityData.color.replace('#', '')}-100 text-${rarityData.color.replace('#', '')}-800` : "bg-gray-100 text-gray-800";
+            return rarityData?.color
+              ? `bg-${rarityData.color.replace("#", "")}-100 text-${rarityData.color.replace("#", "")}-800`
+              : "bg-gray-100 text-gray-800";
           }}
           formatDate={formatDate}
           formatDiamonds={formatDiamonds}
@@ -2233,7 +2554,7 @@ export default function AdminCardsPage() {
               <p className="mb-4 text-gray-600">{analyzingMessage}</p>
               <div className="rounded-lg bg-gradient-to-r from-yellow-50 to-orange-50 p-4">
                 <div className="space-y-2 text-sm">
-                  <p className="text-yellow-800 font-medium">
+                  <p className="font-medium text-yellow-800">
                     🤖 AI şu işlemleri gerçekleştiriyor:
                   </p>
                   <div className="grid grid-cols-2 gap-2 text-xs text-yellow-700">
@@ -2284,8 +2605,12 @@ export default function AdminCardsPage() {
                 <Trash2 className="h-6 w-6 text-red-600" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Delete Cards</h3>
-                <p className="text-sm text-gray-600">This action cannot be undone</p>
+                <h3 className="text-lg font-bold text-gray-900">
+                  Delete Cards
+                </h3>
+                <p className="text-sm text-gray-600">
+                  This action cannot be undone
+                </p>
               </div>
             </div>
             <p className="mb-6 text-gray-700">
@@ -2318,11 +2643,15 @@ export default function AdminCardsPage() {
                 <span className="text-2xl">🏷️</span>
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Assign Category</h3>
-                <p className="text-sm text-gray-600">Select category for {selectedCards.size} cards</p>
+                <h3 className="text-lg font-bold text-gray-900">
+                  Assign Category
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Select category for {selectedCards.size} cards
+                </p>
               </div>
             </div>
-            
+
             <div className="mb-6">
               <label className="mb-2 block text-sm font-medium text-gray-700">
                 Select Category
@@ -2373,11 +2702,15 @@ export default function AdminCardsPage() {
                 <span className="text-2xl">🏷️</span>
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Change Category</h3>
-                <p className="text-sm text-gray-600">{editingCardCategory.cardTitle || editingCardCategory.name}</p>
+                <h3 className="text-lg font-bold text-gray-900">
+                  Change Category
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {editingCardCategory.cardTitle || editingCardCategory.name}
+                </p>
               </div>
             </div>
-            
+
             <div className="mb-6">
               <label className="mb-2 block text-sm font-medium text-gray-700">
                 New Category
@@ -2674,6 +3007,274 @@ export default function AdminCardsPage() {
                   "Update Rarity"
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Scan Cards Directory Modal */}
+      {showScanModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="max-h-[90vh] w-full max-w-6xl overflow-auto rounded-xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b p-6">
+              <h2 className="text-xl font-bold text-gray-900">
+                Scan Uploads Directory
+              </h2>
+              <button
+                onClick={() => {
+                  setShowScanModal(false);
+                  setScanResults(null);
+                  setSelectedFilesToImport(new Set());
+                }}
+                className="rounded-full p-2 transition-colors hover:bg-gray-100"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {!scanResults ? (
+                /* Initial Scan View */
+                <div className="text-center">
+                  <div className="mb-6">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500">
+                      {scanning ? (
+                        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-white"></div>
+                      ) : (
+                        <Search className="h-8 w-8 text-white" />
+                      )}
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      {scanning
+                        ? "Scanning Directory..."
+                        : "Scan Cards Directory"}
+                    </h3>
+                    <p className="mt-2 text-gray-600">
+                      {scanning
+                        ? "Please wait while we scan the /public/uploads directory for new files..."
+                        : "Find and import cards from the /public/uploads directory that are not yet in the database."}
+                    </p>
+                  </div>
+
+                  {!scanning && (
+                    <div className="space-y-4">
+                      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                        <h4 className="mb-2 font-medium text-blue-900">
+                          What will be scanned:
+                        </h4>
+                        <ul className="space-y-1 text-sm text-blue-800">
+                          <li>
+                            • /public/cards/ directory and all subdirectories
+                          </li>
+                          <li>
+                            • Supported formats: .jpg, .jpeg, .png, .gif, .webp
+                          </li>
+                          <li>• Files not already in the database</li>
+                          <li>
+                            • Automatic metadata generation from file paths
+                          </li>
+                        </ul>
+                      </div>
+
+                      <button
+                        onClick={handleScanDirectory}
+                        disabled={scanning}
+                        className="rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-3 text-white transition-all hover:from-purple-700 hover:to-pink-700 disabled:opacity-50"
+                      >
+                        Start Scanning
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Scan Results View */
+                <div className="space-y-6">
+                  {/* Results Summary */}
+                  <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="h-6 w-6 text-green-600" />
+                      <div>
+                        <h3 className="font-bold text-green-900">
+                          Scan Complete!
+                        </h3>
+                        <p className="text-sm text-green-800">
+                          Found {scanResults.missingCards?.length || 0} new
+                          files ready for import
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Statistics */}
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-center">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {scanResults.totalFiles || 0}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Total Files Found
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-center">
+                      <div className="text-2xl font-bold text-green-600">
+                        {scanResults.missingCards?.length || 0}
+                      </div>
+                      <div className="text-sm text-gray-600">New Files</div>
+                    </div>
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-center">
+                      <div className="text-2xl font-bold text-yellow-600">
+                        {scanResults.existingFiles?.length || 0}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Already in Database
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* File Selection */}
+                  {scanResults.missingCards &&
+                    scanResults.missingCards.length > 0 && (
+                      <div>
+                        <div className="mb-4 flex items-center justify-between">
+                          <h4 className="text-lg font-bold text-gray-900">
+                            Select Files to Import ({selectedFilesToImport.size}{" "}
+                            selected)
+                          </h4>
+                          <div className="space-x-2">
+                            <button
+                              onClick={() => {
+                                const fileNames: string[] =
+                                  scanResults.missingCards.map(
+                                    (f: any) => f.fileName as string
+                                  );
+                                const allFiles = new Set<string>(fileNames);
+                                setSelectedFilesToImport(allFiles);
+                              }}
+                              className="rounded-md bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 hover:bg-blue-200"
+                            >
+                              Select All
+                            </button>
+                            <button
+                              onClick={() =>
+                                setSelectedFilesToImport(new Set())
+                              }
+                              className="rounded-md bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200"
+                            >
+                              Clear All
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="max-h-96 overflow-y-auto rounded-lg border border-gray-200">
+                          <div className="grid grid-cols-1 gap-2 p-4 md:grid-cols-2 lg:grid-cols-3">
+                            {scanResults.missingCards.map((file: any) => (
+                              <div
+                                key={file.fileName}
+                                className={`relative rounded-lg border-2 p-3 transition-all ${
+                                  selectedFilesToImport.has(file.fileName)
+                                    ? "border-blue-500 bg-blue-50"
+                                    : "border-gray-200 bg-white hover:border-gray-300"
+                                }`}
+                              >
+                                <label className="flex cursor-pointer items-start space-x-3">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedFilesToImport.has(
+                                      file.fileName
+                                    )}
+                                    onChange={() =>
+                                      toggleFileSelection(file.fileName)
+                                    }
+                                    className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                  />
+                                  <div className="min-w-0 flex-1">
+                                    <div className="mb-2">
+                                      <img
+                                        src={file.imageUrl}
+                                        alt={file.fileName}
+                                        className="h-24 w-full rounded object-cover"
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <p className="truncate text-sm font-medium text-gray-900">
+                                        {file.generatedName || file.fileName}
+                                      </p>
+                                      <div className="space-y-1 text-xs text-gray-600">
+                                        <p>Element: {file.element}</p>
+                                        <p>Rarity: {file.rarity}</p>
+                                        <p>Price: 💎{file.diamondPrice}</p>
+                                      </div>
+                                      <p className="truncate text-xs text-gray-500">
+                                        {file.relativePath}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                  {/* No New Files */}
+                  {scanResults.missingCards &&
+                    scanResults.missingCards.length === 0 && (
+                      <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-6 text-center">
+                        <div className="mb-3 text-4xl">📂</div>
+                        <h3 className="mb-2 text-lg font-bold text-yellow-900">
+                          No New Files Found
+                        </h3>
+                        <p className="text-yellow-800">
+                          All files in the cards directory are already in the
+                          database.
+                        </p>
+                      </div>
+                    )}
+
+                  {/* Action Buttons */}
+                  <div className="flex space-x-3 border-t pt-6">
+                    <button
+                      onClick={() => {
+                        setShowScanModal(false);
+                        setScanResults(null);
+                        setSelectedFilesToImport(new Set());
+                      }}
+                      className="flex-1 rounded-lg border border-gray-300 px-4 py-3 font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                      Close
+                    </button>
+                    {scanResults.missingCards &&
+                      scanResults.missingCards.length > 0 && (
+                        <button
+                          onClick={handleImportSelectedCards}
+                          disabled={
+                            selectedFilesToImport.size === 0 || importing
+                          }
+                          className="flex-1 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-3 font-medium text-white hover:from-green-700 hover:to-emerald-700 disabled:opacity-50"
+                        >
+                          {importing ? (
+                            <div className="flex items-center justify-center">
+                              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+                              Importing...
+                            </div>
+                          ) : (
+                            `Import ${selectedFilesToImport.size} Cards`
+                          )}
+                        </button>
+                      )}
+                    <button
+                      onClick={() => {
+                        setScanResults(null);
+                        setSelectedFilesToImport(new Set());
+                      }}
+                      className="rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-3 font-medium text-white hover:from-purple-700 hover:to-pink-700"
+                    >
+                      Scan Again
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
