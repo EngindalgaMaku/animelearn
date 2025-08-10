@@ -1,40 +1,52 @@
-import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-export default withAuth(
-  function middleware(req) {
-    const isProduction = process.env.NODE_ENV === "production";
+export async function middleware(request: NextRequest) {
+  const isProduction = process.env.NODE_ENV === "production";
 
-    if (!isProduction) {
-      console.log("🔍 Middleware Debug:");
-      console.log("📍 Path:", req.nextUrl.pathname);
-      console.log("🔑 Token exists:", !!req.nextauth.token);
-      console.log("👤 Email:", req.nextauth.token?.email);
-      console.log("🎭 Role:", req.nextauth.token?.role);
+  // Get session token for database strategy
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  if (!isProduction) {
+    console.log("🔍 Middleware Debug (Database Strategy):");
+    console.log("📍 Path:", request.nextUrl.pathname);
+    console.log("🔑 Token exists:", !!token);
+    console.log("👤 Email:", token?.email);
+    console.log("🎭 Role:", token?.role);
+  }
+
+  // Check if user is trying to access protected routes
+  const isProtectedRoute =
+    request.nextUrl.pathname.startsWith("/admin") ||
+    request.nextUrl.pathname.startsWith("/dashboard") ||
+    request.nextUrl.pathname.startsWith("/battle") ||
+    request.nextUrl.pathname.startsWith("/tournaments");
+
+  if (isProtectedRoute) {
+    if (!token) {
+      if (!isProduction) {
+        console.log("❌ No token - redirecting to login");
+      }
+      return NextResponse.redirect(new URL("/login", request.url));
     }
 
     // Check if user is trying to access admin routes
-    if (req.nextUrl.pathname.startsWith("/admin")) {
-      const token = req.nextauth.token;
-
+    if (request.nextUrl.pathname.startsWith("/admin")) {
       if (!isProduction) {
         console.log("🚨 Admin route access attempt");
-        console.log("Token exists:", !!token);
-
-        if (token) {
-          console.log("Token details:", {
-            email: token.email,
-            role: token.role,
-            id: token.id,
-            isActive: token.isActive,
-          });
-        }
+        console.log("Token details:", {
+          email: token.email,
+          role: token.role,
+          sub: token.sub,
+        });
       }
 
       // Enhanced admin role checking
       const isAdmin =
         token &&
-        token.isActive !== false &&
         (token.role === "admin" ||
           token.role === "ADMIN" ||
           token.email === "admin@zumenzu.com");
@@ -47,25 +59,17 @@ export default withAuth(
         if (!isProduction) {
           console.log("❌ Access denied - redirecting to dashboard");
         }
-        return NextResponse.redirect(new URL("/dashboard", req.url));
+        return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
       if (!isProduction) {
         console.log("✅ Admin access granted");
       }
     }
-
-    return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        // Allow access if token exists and user is active
-        return !!token && token.isActive !== false;
-      },
-    },
   }
-);
+
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [

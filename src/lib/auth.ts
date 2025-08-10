@@ -240,7 +240,11 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async session({ session, token }) {
+    async session({ session, user }) {
+      console.log("🔄 Session callback called (database strategy)");
+      console.log("📧 Session email:", session.user?.email);
+      console.log("👤 User from DB:", JSON.stringify(user, null, 2));
+
       if (session.user?.email) {
         try {
           const dbUser = await prisma.user.findUnique({
@@ -281,59 +285,15 @@ export const authOptions: NextAuthOptions = {
         }
       }
 
+      console.log(
+        "✅ Final session user:",
+        JSON.stringify(session.user, null, 2)
+      );
       return session;
-    },
-    async jwt({ token, user, account }) {
-      // First time JWT created (user login)
-      if (user) {
-        token.role = user.role;
-        token.username = user.username;
-        token.id = user.id;
-      }
-
-      // Always ensure we have user data in token for consistent access
-      if (token.email && (!token.role || !token.username)) {
-        try {
-          const dbUser = await prisma.user.findUnique({
-            where: { email: token.email },
-            select: {
-              id: true,
-              role: true,
-              username: true,
-              level: true,
-              experience: true,
-              currentDiamonds: true,
-              totalDiamonds: true,
-              loginStreak: true,
-              maxLoginStreak: true,
-              isPremium: true,
-              isActive: true,
-            },
-          });
-
-          if (dbUser) {
-            token.id = dbUser.id;
-            token.role = dbUser.role;
-            token.username = dbUser.username;
-            token.level = dbUser.level;
-            token.experience = dbUser.experience;
-            token.currentDiamonds = dbUser.currentDiamonds;
-            token.totalDiamonds = dbUser.totalDiamonds;
-            token.loginStreak = dbUser.loginStreak;
-            token.maxLoginStreak = dbUser.maxLoginStreak;
-            token.isPremium = dbUser.isPremium;
-            token.isActive = dbUser.isActive;
-          }
-        } catch (error) {
-          console.error("Error fetching user data in JWT callback:", error);
-        }
-      }
-
-      return token;
     },
   },
   session: {
-    strategy: "jwt",
+    strategy: "database",
     maxAge: 7 * 24 * 60 * 60, // 7 days for better security
     updateAge: 24 * 60 * 60, // Update session every 24 hours
   },
