@@ -19,11 +19,24 @@ import "@/lib/automation-init";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
+  fallback: [
+    "system-ui",
+    "-apple-system",
+    "BlinkMacSystemFont",
+    "Segoe UI",
+    "Roboto",
+    "sans-serif",
+  ],
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+  fallback: ["Monaco", "Menlo", "Consolas", "Courier New", "monospace"],
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -238,6 +251,7 @@ export default function RootLayout({
         {/* SEO Meta Tags */}
         <link rel="canonical" href="https://zumenzu.com" />
         <meta name="theme-color" content="#3b82f6" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Zumenzu" />
