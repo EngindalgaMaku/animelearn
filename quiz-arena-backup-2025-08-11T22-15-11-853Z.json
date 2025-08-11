@@ -1,0 +1,4303 @@
+{
+  "metadata": {
+    "exportDate": "2025-08-11T22:15:11.853Z",
+    "source": "quiz-arena-export",
+    "totalRecords": 245,
+    "tables": {
+      "quizCategories": 22,
+      "quizQuestions": 223,
+      "quizzes": 0,
+      "quizAttempts": 0,
+      "dailyMiniQuizzes": 0,
+      "dailyMiniQuizAttempts": 0
+    }
+  },
+  "data": {
+    "quizCategories": [
+      {
+        "id": "cme7ncqa40000wcss7opnp3eu",
+        "name": "Python Basics",
+        "description": "Variables, basic data types (string, integer, float, boolean), operators, and basic I/O operations.",
+        "color": "#4A90E2",
+        "icon": "📚",
+        "questionCount": 100,
+        "isActive": true,
+        "sortOrder": 1,
+        "createdAt": "2025-08-11T21:50:51.148Z",
+        "updatedAt": "2025-08-11T21:51:17.748Z"
+      },
+      {
+        "id": "cme7ncqfg0001wcsshj6co6oj",
+        "name": "Control Flow",
+        "description": "Managing program flow with conditional statements (if, elif, else) and loops (for, while).",
+        "color": "#50E3C2",
+        "icon": "🔄",
+        "questionCount": 103,
+        "isActive": true,
+        "sortOrder": 2,
+        "createdAt": "2025-08-11T21:50:51.340Z",
+        "updatedAt": "2025-08-11T21:51:18.026Z"
+      },
+      {
+        "id": "cme7ncqhz0002wcssqot1va1i",
+        "name": "Basic Data Structures",
+        "description": "TODO: Add description for Basic Data Structures",
+        "color": "#fdc30f",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 3,
+        "createdAt": "2025-08-11T21:50:51.431Z",
+        "updatedAt": "2025-08-11T21:51:18.212Z"
+      },
+      {
+        "id": "cme7ncqkl0003wcssyig0imwf",
+        "name": "Functions and Scope",
+        "description": "TODO: Add description for Functions and Scope",
+        "color": "#893318",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 4,
+        "createdAt": "2025-08-11T21:50:51.525Z",
+        "updatedAt": "2025-08-11T21:51:18.430Z"
+      },
+      {
+        "id": "cme7ncqn70004wcsskicfjv3q",
+        "name": "Object-Oriented Programming - Fundamentals",
+        "description": "TODO: Add description for Object-Oriented Programming - Fundamentals",
+        "color": "#7b7cb5",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 5,
+        "createdAt": "2025-08-11T21:50:51.620Z",
+        "updatedAt": "2025-08-11T21:51:18.634Z"
+      },
+      {
+        "id": "cme7ncqpu0005wcssr8lz8sey",
+        "name": "File Handling & Serialization",
+        "description": "TODO: Add description for File Handling & Serialization",
+        "color": "#714ff6",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 6,
+        "createdAt": "2025-08-11T21:50:51.714Z",
+        "updatedAt": "2025-08-11T21:51:18.849Z"
+      },
+      {
+        "id": "cme7ncqsh0006wcssmqyg4f9i",
+        "name": "Error & Exception Handling",
+        "description": "TODO: Add description for Error & Exception Handling",
+        "color": "#926798",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 7,
+        "createdAt": "2025-08-11T21:50:51.809Z",
+        "updatedAt": "2025-08-11T21:51:19.118Z"
+      },
+      {
+        "id": "cme7ncqv90007wcss5u0jrt5d",
+        "name": "Modules, Packages & Virtual Environments",
+        "description": "TODO: Add description for Modules, Packages & Virtual Environments",
+        "color": "#871b30",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 8,
+        "createdAt": "2025-08-11T21:50:51.910Z",
+        "updatedAt": "2025-08-11T21:51:19.302Z"
+      },
+      {
+        "id": "cme7ncqyq0008wcss7xe1g68a",
+        "name": "Advanced Data Structures",
+        "description": "TODO: Add description for Advanced Data Structures",
+        "color": "#7049ae",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 9,
+        "createdAt": "2025-08-11T21:50:52.034Z",
+        "updatedAt": "2025-08-11T21:51:19.486Z"
+      },
+      {
+        "id": "cme7ncr2f0009wcss9dc6jru4",
+        "name": "Functional Programming Tools",
+        "description": "TODO: Add description for Functional Programming Tools",
+        "color": "#5c691e",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 10,
+        "createdAt": "2025-08-11T21:50:52.167Z",
+        "updatedAt": "2025-08-11T21:51:19.670Z"
+      },
+      {
+        "id": "cme7ncr6p000awcssv8uigj7z",
+        "name": "Generators & Decorators",
+        "description": "TODO: Add description for Generators & Decorators",
+        "color": "#d87595",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 11,
+        "createdAt": "2025-08-11T21:50:52.321Z",
+        "updatedAt": "2025-08-11T21:51:19.854Z"
+      },
+      {
+        "id": "cme7ncr9h000bwcss6t8ukxvf",
+        "name": "Object-Oriented Programming - Advanced",
+        "description": "TODO: Add description for Object-Oriented Programming - Advanced",
+        "color": "#042052",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 12,
+        "createdAt": "2025-08-11T21:50:52.421Z",
+        "updatedAt": "2025-08-11T21:51:20.049Z"
+      },
+      {
+        "id": "cme7ncrcu000cwcssghkc0kvu",
+        "name": "Test Automation",
+        "description": "TODO: Add description for Test Automation",
+        "color": "#16a0bb",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 13,
+        "createdAt": "2025-08-11T21:50:52.542Z",
+        "updatedAt": "2025-08-11T21:51:20.291Z"
+      },
+      {
+        "id": "cme7ncrfg000dwcssgabw4hx2",
+        "name": "Concurrency & Async Programming",
+        "description": "TODO: Add description for Concurrency & Async Programming",
+        "color": "#229d0a",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 14,
+        "createdAt": "2025-08-11T21:50:52.636Z",
+        "updatedAt": "2025-08-11T21:51:20.480Z"
+      },
+      {
+        "id": "cme7ncrit000ewcssne4bz1np",
+        "name": "Database Interaction",
+        "description": "TODO: Add description for Database Interaction",
+        "color": "#64cd4a",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 15,
+        "createdAt": "2025-08-11T21:50:52.758Z",
+        "updatedAt": "2025-08-11T21:51:20.669Z"
+      },
+      {
+        "id": "cme7ncrnn000fwcsszd5vcdji",
+        "name": "Web Frameworks (Flask & Django)",
+        "description": "TODO: Add description for Web Frameworks (Flask & Django)",
+        "color": "#762cbb",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 16,
+        "createdAt": "2025-08-11T21:50:52.932Z",
+        "updatedAt": "2025-08-11T21:51:20.858Z"
+      },
+      {
+        "id": "cme7ncrq5000gwcssfvgr840l",
+        "name": "APIs & Web Scraping",
+        "description": "TODO: Add description for APIs & Web Scraping",
+        "color": "#e6797d",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 17,
+        "createdAt": "2025-08-11T21:50:53.022Z",
+        "updatedAt": "2025-08-11T21:51:21.037Z"
+      },
+      {
+        "id": "cme7ncrsw000hwcsssmld3150",
+        "name": "Data Analysis with Pandas",
+        "description": "TODO: Add description for Data Analysis with Pandas",
+        "color": "#3b74dd",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 18,
+        "createdAt": "2025-08-11T21:50:53.120Z",
+        "updatedAt": "2025-08-11T21:51:21.225Z"
+      },
+      {
+        "id": "cme7ncrvf000iwcss6bxajcmd",
+        "name": "Numerical Computing with NumPy",
+        "description": "TODO: Add description for Numerical Computing with NumPy",
+        "color": "#be3b8e",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 19,
+        "createdAt": "2025-08-11T21:50:53.212Z",
+        "updatedAt": "2025-08-11T21:51:21.412Z"
+      },
+      {
+        "id": "cme7ncryz000jwcsss0aimqah",
+        "name": "Data Visualization",
+        "description": "TODO: Add description for Data Visualization",
+        "color": "#fecff1",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 20,
+        "createdAt": "2025-08-11T21:50:53.339Z",
+        "updatedAt": "2025-08-11T21:51:21.683Z"
+      },
+      {
+        "id": "cme7ncs2g000kwcssea19unbq",
+        "name": "Machine Learning with Scikit-Learn",
+        "description": "TODO: Add description for Machine Learning with Scikit-Learn",
+        "color": "#44ea5b",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 21,
+        "createdAt": "2025-08-11T21:50:53.465Z",
+        "updatedAt": "2025-08-11T21:51:21.868Z"
+      },
+      {
+        "id": "cme7ncs50000lwcssn0k5hz3c",
+        "name": "System Automation & Scripting",
+        "description": "TODO: Add description for System Automation & Scripting",
+        "color": "#d2fe23",
+        "icon": "📚",
+        "questionCount": 1,
+        "isActive": true,
+        "sortOrder": 22,
+        "createdAt": "2025-08-11T21:50:53.556Z",
+        "updatedAt": "2025-08-11T21:51:22.051Z"
+      }
+    ],
+    "quizQuestions": [
+      {
+        "id": "cme7ncsdl000mwcssmrsdxcyq",
+        "question": "Which symbol is used to start a single-line comment in Python?",
+        "options": [
+          "//",
+          "/*",
+          "#",
+          "---"
+        ],
+        "correctAnswer": 2,
+        "explanation": "Python uses the hash symbol (#) for single-line comments. Anything after the # on the same line is ignored by the interpreter.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:53.866Z",
+        "updatedAt": "2025-08-11T21:50:53.866Z"
+      },
+      {
+        "id": "cme7ncsmk000nwcsspwfkiw2s",
+        "question": "What will be the output of `print(type(15))`?",
+        "options": [
+          "<class 'int'>",
+          "<class 'str'>",
+          "<class 'float'>",
+          "<class 'bool'>"
+        ],
+        "correctAnswer": 0,
+        "explanation": "The number 15 is a whole number, so its data type is an integer, which is represented as 'int' in Python.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:54.189Z",
+        "updatedAt": "2025-08-11T21:50:54.189Z"
+      },
+      {
+        "id": "cme7ncsp4000owcssbtkvkjvv",
+        "question": "Which of the following is the correct way to assign the string 'hello' to a variable named 'greeting'?",
+        "options": [
+          "greeting = 'hello'",
+          "string greeting = 'hello'",
+          "greeting := 'hello'",
+          "'hello' -> greeting"
+        ],
+        "correctAnswer": 0,
+        "explanation": "Python uses the equals sign (=) for variable assignment. You don't need to declare the data type.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:54.280Z",
+        "updatedAt": "2025-08-11T21:50:54.280Z"
+      },
+      {
+        "id": "cme7ncsrp000pwcss703s4udf",
+        "question": "What is the result of the expression `2 ** 3`?",
+        "options": [
+          "6",
+          "5",
+          "8",
+          "1"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The double asterisk (**) operator in Python is used for exponentiation. So, `2 ** 3` means 2 to the power of 3, which is 8.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:54.373Z",
+        "updatedAt": "2025-08-11T21:50:54.373Z"
+      },
+      {
+        "id": "cme7ncsua000qwcss6275b7qf",
+        "question": "How do you get user input from the console in Python?",
+        "options": [
+          "cin()",
+          "read_input()",
+          "get_input()",
+          "input()"
+        ],
+        "correctAnswer": 3,
+        "explanation": "The `input()` function is used to read a line of text from the user as a string.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:54.466Z",
+        "updatedAt": "2025-08-11T21:50:54.466Z"
+      },
+      {
+        "id": "cme7ncswv000rwcss3rkdm18i",
+        "question": "What will be the output of `print('Py' + 'thon')`?",
+        "options": [
+          "Py thon",
+          "Python",
+          "Py+thon",
+          "An error will occur"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The plus (+) operator is used for string concatenation, joining two strings together without any space.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:54.560Z",
+        "updatedAt": "2025-08-11T21:50:54.560Z"
+      },
+      {
+        "id": "cme7ncszi000swcsskz2d5av9",
+        "question": "Which data type is used to store a True or False value?",
+        "options": [
+          "int",
+          "bool",
+          "boolean",
+          "str"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The boolean data type, represented as 'bool' in Python, can hold one of two values: True or False.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:54.654Z",
+        "updatedAt": "2025-08-11T21:50:54.654Z"
+      },
+      {
+        "id": "cme7nct2j000twcss8pg7gfks",
+        "question": "What is the result of `10 % 3`?",
+        "options": [
+          "3",
+          "1",
+          "0",
+          "3.33"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The percent (%) operator is the modulo operator, which returns the remainder of a division. 10 divided by 3 is 3 with a remainder of 1.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:54.764Z",
+        "updatedAt": "2025-08-11T21:50:54.764Z"
+      },
+      {
+        "id": "cme7nct58000uwcssz6alw6hk",
+        "question": "Which function is used to get the length of a string?",
+        "options": [
+          "length()",
+          "size()",
+          "count()",
+          "len()"
+        ],
+        "correctAnswer": 3,
+        "explanation": "The built-in `len()` function returns the number of items in an object, including the number of characters in a string.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:54.860Z",
+        "updatedAt": "2025-08-11T21:50:54.860Z"
+      },
+      {
+        "id": "cme7nct7v000vwcss08jq5ekk",
+        "question": "What will `print(int('123'))` output?",
+        "options": [
+          "'123'",
+          "123",
+          "An error will occur",
+          "None"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `int()` function can be used to convert a string of digits into an integer.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:54.956Z",
+        "updatedAt": "2025-08-11T21:50:54.956Z"
+      },
+      {
+        "id": "cme7nctak000wwcssj4s2flla",
+        "question": "What is the output of `print(3 * 'A')`?",
+        "options": [
+          "AAA",
+          "3A",
+          "A3",
+          "An error will occur"
+        ],
+        "correctAnswer": 0,
+        "explanation": "The multiplication operator (*) can be used to repeat a string a specified number of times.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:55.052Z",
+        "updatedAt": "2025-08-11T21:50:55.052Z"
+      },
+      {
+        "id": "cme7nctd3000xwcss65b9h6at",
+        "question": "What is the value of the boolean expression `5 > 3 and 2 < 1`?",
+        "options": [
+          "True",
+          "False",
+          "None",
+          "An error will occur"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The 'and' operator returns True only if both conditions are true. Since `2 < 1` is false, the entire expression evaluates to False.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:55.144Z",
+        "updatedAt": "2025-08-11T21:50:55.144Z"
+      },
+      {
+        "id": "cme7nctfm000ywcssr825e2nr",
+        "question": "Which of the following is a reserved keyword in Python and cannot be used as a variable name?",
+        "options": [
+          "string",
+          "variable",
+          "print",
+          "class"
+        ],
+        "correctAnswer": 3,
+        "explanation": "`class` is a keyword used to define a new class. Keywords are reserved and cannot be used for identifiers like variable or function names.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:55.235Z",
+        "updatedAt": "2025-08-11T21:50:55.235Z"
+      },
+      {
+        "id": "cme7ncti7000zwcssotyczjmy",
+        "question": "What does the `//` operator do?",
+        "options": [
+          "Regular division",
+          "Floor division",
+          "Creates a comment",
+          "Logical OR"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The double slash (//) operator performs floor division, which divides and then rounds the result down to the nearest whole number.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:55.327Z",
+        "updatedAt": "2025-08-11T21:50:55.327Z"
+      },
+      {
+        "id": "cme7nctks0010wcss1cdmj13u",
+        "question": "What will be the output of `print(float(5))`?",
+        "options": [
+          "5",
+          "5.0",
+          "An error will occur",
+          "int"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `float()` function converts an integer into a floating-point number by adding a decimal point and a zero.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:55.420Z",
+        "updatedAt": "2025-08-11T21:50:55.420Z"
+      },
+      {
+        "id": "cme7nctnd0011wcssehetdbpb",
+        "question": "In Python, variable names are case-sensitive. What does this mean?",
+        "options": [
+          "You can use both uppercase and lowercase letters.",
+          "Variable names must be in lowercase.",
+          "Variable names must be in uppercase.",
+          "The variables 'myVar' and 'myvar' are considered different."
+        ],
+        "correctAnswer": 3,
+        "explanation": "Case sensitivity means that the case of the letters matters. 'myVar', 'MyVar', and 'myvar' would be three distinct variables.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:55.514Z",
+        "updatedAt": "2025-08-11T21:50:55.514Z"
+      },
+      {
+        "id": "cme7nctpx0012wcssdgcy6yji",
+        "question": "What is the output of `print('Hello'[1:4])`?",
+        "options": [
+          "ell",
+          "Hel",
+          "ello",
+          "H"
+        ],
+        "correctAnswer": 0,
+        "explanation": "This is string slicing. It extracts characters starting from index 1 up to (but not including) index 4.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:55.605Z",
+        "updatedAt": "2025-08-11T21:50:55.605Z"
+      },
+      {
+        "id": "cme7nctsi0013wcssw4iw3rl8",
+        "question": "Which of the following is NOT a built-in function in Python?",
+        "options": [
+          "print()",
+          "len()",
+          "main()",
+          "type()"
+        ],
+        "correctAnswer": 2,
+        "explanation": "While `main` is a common name for a primary function in many languages and Python scripts, it is not a built-in function like `print`, `len`, or `type`.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:55.698Z",
+        "updatedAt": "2025-08-11T21:50:55.698Z"
+      },
+      {
+        "id": "cme7nctv40014wcssrvz5j2uk",
+        "question": "What is the primary difference between the `is` and `==` operators?",
+        "options": [
+          "They are identical.",
+          "`==` checks for value equality, while `is` checks for object identity.",
+          "`is` checks for value equality, while `==` checks for object identity.",
+          "`is` is used for numbers, `==` is used for strings."
+        ],
+        "correctAnswer": 1,
+        "explanation": "`==` compares the values of two variables to see if they are equal. `is` checks if two variables point to the exact same object in memory.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:55.792Z",
+        "updatedAt": "2025-08-11T21:50:55.792Z"
+      },
+      {
+        "id": "cme7nctxu0015wcssjhgrkwhk",
+        "question": "What will be the output of the following code? `x = 10; y = 10; print(x is y)`",
+        "options": [
+          "True",
+          "False",
+          "Maybe",
+          "An error will occur"
+        ],
+        "correctAnswer": 0,
+        "explanation": "For small integers (usually from -5 to 256), Python pre-allocates them in memory. This means that variables `x` and `y` will point to the exact same integer object, so `is` returns True.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:55.890Z",
+        "updatedAt": "2025-08-11T21:50:55.890Z"
+      },
+      {
+        "id": "cme7ncu0f0016wcss8k5ucit8",
+        "question": "What is the output of `print(bool(''))`?",
+        "options": [
+          "True",
+          "False",
+          "None",
+          "An error will occur"
+        ],
+        "correctAnswer": 1,
+        "explanation": "In a boolean context, empty sequences (like an empty string '', empty list [], etc.) and zero numeric values evaluate to False. All other values evaluate to True.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:55.983Z",
+        "updatedAt": "2025-08-11T21:50:55.983Z"
+      },
+      {
+        "id": "cme7ncu2z0017wcss5yzwjdi3",
+        "question": "What is the function of the `id()` function in Python?",
+        "options": [
+          "It returns the data type of an object.",
+          "It returns a unique identifier (memory address) for an object.",
+          "It returns the number of elements in an object.",
+          "It checks if a variable name is a Python keyword."
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `id()` function returns a unique integer that represents the identity of an object for its lifetime. This is typically the object's memory address.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:56.075Z",
+        "updatedAt": "2025-08-11T21:50:56.075Z"
+      },
+      {
+        "id": "cme7ncu5k0018wcsst774h7yp",
+        "question": "Which of the following creates a variable with a numeric value?",
+        "options": [
+          "x = '5'",
+          "x = 5",
+          "x = five",
+          "x = (5)"
+        ],
+        "correctAnswer": 1,
+        "explanation": "To create a numeric variable (an integer), you assign the number directly without quotes. '5' would be a string.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:56.168Z",
+        "updatedAt": "2025-08-11T21:50:56.168Z"
+      },
+      {
+        "id": "cme7ncu9f0019wcss3vnpzc9j",
+        "question": "What is the correct way to get the data type of a variable `x`?",
+        "options": [
+          "datatype(x)",
+          "x.type()",
+          "typeof(x)",
+          "type(x)"
+        ],
+        "correctAnswer": 3,
+        "explanation": "The built-in `type()` function is used to get the type of an object in Python.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:56.308Z",
+        "updatedAt": "2025-08-11T21:50:56.308Z"
+      },
+      {
+        "id": "cme7ncuc0001awcssu0j0qjou",
+        "question": "Which of the following is an illegal variable name in Python?",
+        "options": [
+          "my_variable",
+          "my-variable",
+          "myVariable",
+          "_my_variable"
+        ],
+        "correctAnswer": 1,
+        "explanation": "Variable names in Python cannot contain hyphens (-). They can contain letters, numbers (but not start with one), and underscores (_).",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:56.401Z",
+        "updatedAt": "2025-08-11T21:50:56.401Z"
+      },
+      {
+        "id": "cme7ncueo001bwcssgdq6vtfo",
+        "question": "How can you convert a floating-point number `x = 7.8` to an integer?",
+        "options": [
+          "integer(x)",
+          "x.to_int()",
+          "int(x)",
+          "x.as_integer()"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The `int()` function is used for type casting to an integer. It will truncate the decimal part, so `int(7.8)` results in 7.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:56.497Z",
+        "updatedAt": "2025-08-11T21:50:56.497Z"
+      },
+      {
+        "id": "cme7ncuhp001cwcssu46ytatj",
+        "question": "What does the `print()` function do?",
+        "options": [
+          "It reads input from the user.",
+          "It deletes a variable.",
+          "It outputs data to the standard output device (screen).",
+          "It calculates mathematical expressions."
+        ],
+        "correctAnswer": 2,
+        "explanation": "The `print()` function is a fundamental built-in function that displays text or other data on the console.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:56.605Z",
+        "updatedAt": "2025-08-11T21:50:56.605Z"
+      },
+      {
+        "id": "cme7ncukb001dwcsshiu0anwf",
+        "question": "What will the expression `True or False` evaluate to?",
+        "options": [
+          "True",
+          "False",
+          "None",
+          "Error"
+        ],
+        "correctAnswer": 0,
+        "explanation": "The `or` logical operator returns True if at least one of the conditions is true.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:56.699Z",
+        "updatedAt": "2025-08-11T21:50:56.699Z"
+      },
+      {
+        "id": "cme7ncuno001ewcsswz3v7t2w",
+        "question": "Which string method converts all characters to uppercase?",
+        "options": [
+          "uppercase()",
+          "toUpper()",
+          "upper()",
+          "capitalize()"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The `.upper()` method returns a copy of the string with all its characters converted to uppercase.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:56.820Z",
+        "updatedAt": "2025-08-11T21:50:56.820Z"
+      },
+      {
+        "id": "cme7ncur9001fwcssx0q7apri",
+        "question": "What is the output of `print(10 // 3)`?",
+        "options": [
+          "3.33",
+          "3.0",
+          "4",
+          "3"
+        ],
+        "correctAnswer": 3,
+        "explanation": "The `//` operator performs floor division, which divides and rounds down to the nearest integer. 10 divided by 3 is 3.33..., which rounds down to 3.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:56.950Z",
+        "updatedAt": "2025-08-11T21:50:56.950Z"
+      },
+      {
+        "id": "cme7ncuts001gwcsshwsxmi8p",
+        "question": "Which of the following correctly demonstrates an f-string for formatting?",
+        "options": [
+          "f'My name is {name}'",
+          "'My name is %s' % name",
+          "'My name is {}'.format(name)",
+          "All of the above are valid formatting methods"
+        ],
+        "correctAnswer": 0,
+        "explanation": "An f-string, prefixed with 'f', allows you to embed expressions inside string literals directly, which is a modern and readable way of formatting strings.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:57.041Z",
+        "updatedAt": "2025-08-11T21:50:57.041Z"
+      },
+      {
+        "id": "cme7ncuwd001hwcssw6vjvhof",
+        "question": "What is the result of `bool(0)`?",
+        "options": [
+          "True",
+          "False",
+          "0",
+          "Error"
+        ],
+        "correctAnswer": 1,
+        "explanation": "In Python's boolean context, the number 0 (integer or float) is considered False. All other numbers are considered True.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:57.134Z",
+        "updatedAt": "2025-08-11T21:50:57.134Z"
+      },
+      {
+        "id": "cme7ncuz3001iwcss8obe85sz",
+        "question": "What is the data type of the special value `None`?",
+        "options": [
+          "None",
+          "null",
+          "object",
+          "NoneType"
+        ],
+        "correctAnswer": 3,
+        "explanation": "`None` is a special constant in Python that represents the absence of a value. Its data type is `NoneType`.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:57.232Z",
+        "updatedAt": "2025-08-11T21:50:57.232Z"
+      },
+      {
+        "id": "cme7ncv1q001jwcsslskmb8tj",
+        "question": "What will happen if you try to run `int('hello')`?",
+        "options": [
+          "It will return 0.",
+          "It will return -1.",
+          "It will raise a ValueError.",
+          "It will return None."
+        ],
+        "correctAnswer": 2,
+        "explanation": "The `int()` function can only convert strings that represent a valid integer. 'hello' is not a valid integer, so a ValueError is raised.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:57.326Z",
+        "updatedAt": "2025-08-11T21:50:57.326Z"
+      },
+      {
+        "id": "cme7ncv4b001kwcssttz4y7ui",
+        "question": "Which comparison operator means 'Not Equal To'?",
+        "options": [
+          "<>",
+          "!=",
+          "!==",
+          "~="
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `!=` operator is used to check if two values are not equal. While `<>` was used in older Python 2 versions, `!=` is the standard in modern Python.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:57.419Z",
+        "updatedAt": "2025-08-11T21:50:57.419Z"
+      },
+      {
+        "id": "cme7ncv7m001lwcsszz8bp53i",
+        "question": "What is the output of `'   Hello   '.strip()`?",
+        "options": [
+          "'   Hello   '",
+          "'Hello'",
+          "'Hello   '",
+          "'   Hello'"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `.strip()` string method removes any leading and trailing whitespace (spaces, tabs, newlines) from a string.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:57.538Z",
+        "updatedAt": "2025-08-11T21:50:57.538Z"
+      },
+      {
+        "id": "cme7ncva5001mwcssztgwqvys",
+        "question": "What is the result of `print(0.1 + 0.2 == 0.3)`?",
+        "options": [
+          "True",
+          "False",
+          "Sometimes True",
+          "SyntaxError"
+        ],
+        "correctAnswer": 1,
+        "explanation": "This evaluates to False due to floating-point precision issues. The internal binary representation of 0.1 and 0.2 doesn't sum up to exactly 0.3. The result is very close, but not equal.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:57.630Z",
+        "updatedAt": "2025-08-11T21:50:57.630Z"
+      },
+      {
+        "id": "cme7ncvdb001nwcss2cw6hpju",
+        "question": "What is the order of operations for `and`, `or`, and `not`?",
+        "options": [
+          "and, or, not",
+          "or, and, not",
+          "not, and, or",
+          "They have the same precedence."
+        ],
+        "correctAnswer": 2,
+        "explanation": "The order of precedence for logical operators is `not` (highest), followed by `and`, and then `or` (lowest).",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:57.743Z",
+        "updatedAt": "2025-08-11T21:50:57.743Z"
+      },
+      {
+        "id": "cme7ncvfv001owcss14s9sce2",
+        "question": "How can you assign the same value to three variables (a, b, c) in a single line?",
+        "options": [
+          "a, b, c = 10",
+          "a = 10 and b = 10 and c = 10",
+          "a = b = c = 10",
+          "a=10; b=10; c=10;"
+        ],
+        "correctAnswer": 2,
+        "explanation": "Python allows for chained assignment. `a = b = c = 10` makes all three variables point to the same value (10).",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:57.836Z",
+        "updatedAt": "2025-08-11T21:50:57.836Z"
+      },
+      {
+        "id": "cme7ncvj1001pwcss16ve1nri",
+        "question": "What is string interning in Python?",
+        "options": [
+          "A way to encrypt strings.",
+          "The process of storing only one copy of each distinct string value.",
+          "A method for internationalizing strings.",
+          "A way to embed variables in a string."
+        ],
+        "correctAnswer": 1,
+        "explanation": "String interning is a memory optimization where Python stores only one copy of each unique string. This is why `x = 'hello'; y = 'hello'; x is y` can be True.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:57.950Z",
+        "updatedAt": "2025-08-11T21:50:57.950Z"
+      },
+      {
+        "id": "cme7ncvlp001qwcsspcozksy6",
+        "question": "What is the result of `5 + 2 * 3`?",
+        "options": [
+          "21",
+          "11",
+          "13",
+          "Error"
+        ],
+        "correctAnswer": 1,
+        "explanation": "Python follows the order of operations (PEMDAS/BODMAS). Multiplication (*) is performed before addition (+), so 2 * 3 is 6, and then 5 + 6 is 11.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:58.046Z",
+        "updatedAt": "2025-08-11T21:50:58.046Z"
+      },
+      {
+        "id": "cme7ncvon001rwcssgccwwno9",
+        "question": "How do you get the character 'e' from the string `s = 'hello'`?",
+        "options": [
+          "s[0]",
+          "s.get(1)",
+          "s(1)",
+          "s[1]"
+        ],
+        "correctAnswer": 3,
+        "explanation": "String indexing starts at 0. The first character 'h' is at index 0, and the second character 'e' is at index 1.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:58.152Z",
+        "updatedAt": "2025-08-11T21:50:58.152Z"
+      },
+      {
+        "id": "cme7ncvs0001swcsst1ek3oxv",
+        "question": "Which string method would you use to replace 'world' with 'Python' in `s = 'hello world'`?",
+        "options": [
+          "s.change('world', 'Python')",
+          "s.replace('world', 'Python')",
+          "s.substitute('world', 'Python')",
+          "s.switch('world', 'Python')"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `.replace()` method returns a new string where specified values have been replaced with other specified values.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:58.272Z",
+        "updatedAt": "2025-08-11T21:50:58.272Z"
+      },
+      {
+        "id": "cme7ncvup001twcss4x9b82d3",
+        "question": "What is the output of `print('hello\\nworld')`?",
+        "options": [
+          "hello\\nworld",
+          "helloworld",
+          "hello\nworld (with a newline)",
+          "An error"
+        ],
+        "correctAnswer": 2,
+        "explanation": "`\\n` is an escape sequence that represents a newline character, causing the output to be split into two lines.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:58.369Z",
+        "updatedAt": "2025-08-11T21:50:58.369Z"
+      },
+      {
+        "id": "cme7ncvy7001uwcssca8tvllo",
+        "question": "Which is the correct way to get an integer input from the user?",
+        "options": [
+          "age = input(int())",
+          "age = int.input()",
+          "age = int(input('Enter age: '))",
+          "age = input('Enter age: ')"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The `input()` function reads data as a string. You must then pass that string to the `int()` function to convert it to an integer.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:58.495Z",
+        "updatedAt": "2025-08-11T21:50:58.495Z"
+      },
+      {
+        "id": "cme7ncw0u001vwcssv6s5ztz0",
+        "question": "How do you create a multi-line string in Python?",
+        "options": [
+          "Using single quotes ''",
+          "Using double quotes \"\"",
+          "Using triple quotes ''' or \"\"\"",
+          "Using the # symbol"
+        ],
+        "correctAnswer": 2,
+        "explanation": "Triple quotes (either single or double) are used to create multi-line strings, which can span multiple lines of text.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:58.590Z",
+        "updatedAt": "2025-08-11T21:50:58.590Z"
+      },
+      {
+        "id": "cme7ncw49001wwcssfticddf0",
+        "question": "What will `name = 'PYTHON'; print(name[1:4])` output?",
+        "options": [
+          "YTH",
+          "PYT",
+          "YTHO",
+          "PYTH"
+        ],
+        "correctAnswer": 0,
+        "explanation": "String slicing `[start:end]` extracts a portion of the string from the start index up to (but not including) the end index.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:58.714Z",
+        "updatedAt": "2025-08-11T21:50:58.714Z"
+      },
+      {
+        "id": "cme7ncw6v001xwcss25l1ghvh",
+        "question": "Which of these expressions is guaranteed to be `True` if `x = 10`?",
+        "options": [
+          "x == 10.0",
+          "x is 10.0",
+          "x > 10 and x < 10",
+          "x != 10"
+        ],
+        "correctAnswer": 0,
+        "explanation": "`==` checks for value equality. The integer 10 has the same value as the float 10.0. `is` checks for identity, and an int and float are different objects.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:58.807Z",
+        "updatedAt": "2025-08-11T21:50:58.807Z"
+      },
+      {
+        "id": "cme7ncw9g001ywcsszkgmxqyj",
+        "question": "What is the result of `'alpha' + str(10)`?",
+        "options": [
+          "An error will occur",
+          "'alpha10'",
+          "'alpha 10'",
+          "alpha10"
+        ],
+        "correctAnswer": 1,
+        "explanation": "You cannot concatenate a string and an integer directly. You must first convert the integer to a string using `str()`.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:58.900Z",
+        "updatedAt": "2025-08-11T21:50:58.900Z"
+      },
+      {
+        "id": "cme7ncwcz001zwcssjeapqf34",
+        "question": "What is the concept of 'truthiness' in Python?",
+        "options": [
+          "All values are either True or False.",
+          "Every object can be evaluated in a boolean context (like in an if statement).",
+          "Only boolean variables can be used in `if` statements.",
+          "A special method for string validation."
+        ],
+        "correctAnswer": 1,
+        "explanation": "In Python, any object can be tested for truth value. Non-zero numbers and non-empty collections (strings, lists) are 'truthy', while 0, None, and empty collections are 'falsy'.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:59.027Z",
+        "updatedAt": "2025-08-11T21:50:59.027Z"
+      },
+      {
+        "id": "cme7ncwgi0020wcssuktckuid",
+        "question": "What is the output of `x = 5; x += 3; print(x)`?",
+        "options": [
+          "5",
+          "3",
+          "8",
+          "An error"
+        ],
+        "correctAnswer": 2,
+        "explanation": "`x += 3` is an augmented assignment operator, which is shorthand for `x = x + 3`. It adds 3 to the current value of x.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:59.155Z",
+        "updatedAt": "2025-08-11T21:50:59.155Z"
+      },
+      {
+        "id": "cme7ncwj40021wcsswhuhy5hw",
+        "question": "What does this line of code do? `x, y = 10, 20`",
+        "options": [
+          "It creates a list `[10, 20]`.",
+          "It assigns `10` to `x` and `20` to `y` in a single statement.",
+          "It's a syntax error.",
+          "It assigns the tuple `(10, 20)` to `x` and raises an error for `y`."
+        ],
+        "correctAnswer": 1,
+        "explanation": "This is called tuple unpacking or multiple assignment. Python allows you to assign multiple variables from a sequence of values in one line.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:59.248Z",
+        "updatedAt": "2025-08-11T21:50:59.248Z"
+      },
+      {
+        "id": "cme7ncwln0022wcsspzk88jdf",
+        "question": "What is the value of `z` after this code runs? `x = 10; y = 20; x, y = y, x; z = x`",
+        "options": [
+          "10",
+          "20",
+          "None",
+          "A tuple (10, 20)"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The line `x, y = y, x` is a Pythonic way to swap the values of two variables without a temporary variable. `x` becomes 20 and `y` becomes 10. Therefore, `z` is assigned the new value of `x`, which is 20.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:59.340Z",
+        "updatedAt": "2025-08-11T21:50:59.340Z"
+      },
+      {
+        "id": "cme7ncwo90023wcssrxfo2ejj",
+        "question": "What does `print()` function return?",
+        "options": [
+          "The string that was printed.",
+          "True",
+          "0",
+          "None"
+        ],
+        "correctAnswer": 3,
+        "explanation": "Functions that perform an action but don't have an explicit value to return are said to have a side effect. The `print()` function's side effect is displaying text, but its return value is `None`.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:59.434Z",
+        "updatedAt": "2025-08-11T21:50:59.434Z"
+      },
+      {
+        "id": "cme7ncwqt0024wcsswo9xike9",
+        "question": "Which function returns the absolute value of a number?",
+        "options": [
+          "absolute()",
+          "abs()",
+          "val()",
+          "positive()"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `abs()` built-in function returns the absolute value of a number (e.g., `abs(-5)` is 5).",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:59.526Z",
+        "updatedAt": "2025-08-11T21:50:59.526Z"
+      },
+      {
+        "id": "cme7ncwu70025wcss3x5l5hcs",
+        "question": "How do you get the last character of a string `s = 'python'`?",
+        "options": [
+          "s[last]",
+          "s[len(s)]",
+          "s[-1]",
+          "s[len(s)-1]"
+        ],
+        "correctAnswer": 2,
+        "explanation": "Python supports negative indexing. -1 refers to the last element, -2 to the second to last, and so on. Both `s[-1]` and `s[len(s)-1]` work, but negative indexing is more common and concise for this.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:59.647Z",
+        "updatedAt": "2025-08-11T21:50:59.647Z"
+      },
+      {
+        "id": "cme7ncwwx0026wcssap9u2sbs",
+        "question": "What is the result of `round(3.7)`?",
+        "options": [
+          "3",
+          "3.0",
+          "4",
+          "4.0"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The `round()` function rounds a number to the nearest integer. Since 3.7 is closer to 4, it rounds up.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:59.746Z",
+        "updatedAt": "2025-08-11T21:50:59.746Z"
+      },
+      {
+        "id": "cme7ncx1w0027wcsseuzbu7u9",
+        "question": "What is the output of `bool(1)`?",
+        "options": [
+          "1",
+          "True",
+          "False",
+          "Error"
+        ],
+        "correctAnswer": 1,
+        "explanation": "In a boolean context, any non-zero number evaluates to True.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:50:59.925Z",
+        "updatedAt": "2025-08-11T21:50:59.925Z"
+      },
+      {
+        "id": "cme7ncx4f0028wcssaa5mwwy7",
+        "question": "Which string method checks if a string ends with a specific substring?",
+        "options": [
+          "endswith()",
+          "finisheswith()",
+          "last()",
+          "tail()"
+        ],
+        "correctAnswer": 0,
+        "explanation": "The `.endswith()` method returns True if the string ends with the specified value, otherwise it returns False.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:00.016Z",
+        "updatedAt": "2025-08-11T21:51:00.016Z"
+      },
+      {
+        "id": "cme7ncx6z0029wcss3nsns700",
+        "question": "What is Python's stance on data types for variables?",
+        "options": [
+          "Statically Typed: You must declare the variable's type.",
+          "Dynamically Typed: The type is determined at runtime based on the assigned value.",
+          "Untyped: Variables have no type.",
+          "Strongly Typed: You cannot change a variable's type after assignment."
+        ],
+        "correctAnswer": 1,
+        "explanation": "Python is dynamically typed, meaning you don't have to declare the data type of a variable. The interpreter figures it out when the code is executed.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:00.108Z",
+        "updatedAt": "2025-08-11T21:51:00.108Z"
+      },
+      {
+        "id": "cme7ncx9k002awcssw0kcy7y5",
+        "question": "What will `print('A', 'B', 'C', sep='-')` output?",
+        "options": [
+          "A B C",
+          "ABC",
+          "A-B-C",
+          "['A', 'B', 'C']"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The `sep` parameter of the `print` function specifies the separator to be used between the arguments. By default, it's a space.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:00.200Z",
+        "updatedAt": "2025-08-11T21:51:00.200Z"
+      },
+      {
+        "id": "cme7ncxcf002bwcss2ta4r4tx",
+        "question": "What is the output of `print('Python'[::-1])`?",
+        "options": [
+          "Python",
+          "nohtyP",
+          "P",
+          "n"
+        ],
+        "correctAnswer": 1,
+        "explanation": "This is slice notation with a step of -1. It's a common and concise idiom for reversing a string in Python.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:00.303Z",
+        "updatedAt": "2025-08-11T21:51:00.303Z"
+      },
+      {
+        "id": "cme7ncxf1002cwcssqquvwluy",
+        "question": "Which expression checks if 'app' is a substring of 'applepie'?",
+        "options": [
+          "'app' in 'applepie'",
+          "'applepie'.contains('app')",
+          "'applepie'.find('app') != -1",
+          "Both A and C are correct ways"
+        ],
+        "correctAnswer": 3,
+        "explanation": "The `in` operator is the most Pythonic way to check for substring existence. The `.find()` method is another way; it returns -1 if the substring is not found.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:00.397Z",
+        "updatedAt": "2025-08-11T21:51:00.397Z"
+      },
+      {
+        "id": "cme7ncxi3002dwcssqr0cu5ip",
+        "question": "What is the difference between `round(2.5)` and `round(3.5)` in Python 3?",
+        "options": [
+          "Both round to 3.",
+          "They round to 2 and 4 respectively.",
+          "They round to 3 and 3 respectively.",
+          "Both round to the nearest even number (2 and 4)."
+        ],
+        "correctAnswer": 3,
+        "explanation": "Python 3 uses 'round half to even' (also known as banker's rounding). Numbers ending in .5 are rounded to the nearest even integer. Thus, 2.5 rounds to 2, and 3.5 rounds to 4.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:00.507Z",
+        "updatedAt": "2025-08-11T21:51:00.507Z"
+      },
+      {
+        "id": "cme7ncxla002ewcss8klgqtlm",
+        "question": "Why might `a = 257; b = 257; print(a is b)` output `False`?",
+        "options": [
+          "Because 257 is not a valid integer.",
+          "It will always be True.",
+          "Because Python only caches small integers (usually -5 to 256).",
+          "Because `is` cannot be used on integers."
+        ],
+        "correctAnswer": 2,
+        "explanation": "For memory optimization, Python pre-allocates and reuses small integer objects. 257 is typically outside this cached range, so Python may create two separate objects in memory for `a` and `b`.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:00.623Z",
+        "updatedAt": "2025-08-11T21:51:00.623Z"
+      },
+      {
+        "id": "cme7ncxnv002fwcss9og9vigg",
+        "question": "What is the primary purpose of using underscores in numeric literals, like `1_000_000`?",
+        "options": [
+          "It converts the number to a string.",
+          "It's a syntax error.",
+          "It improves readability for large numbers.",
+          "It creates a special type of number."
+        ],
+        "correctAnswer": 2,
+        "explanation": "Introduced in Python 3.6, underscores can be used as visual separators in numeric literals to improve readability. The interpreter simply ignores them.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:00.715Z",
+        "updatedAt": "2025-08-11T21:51:00.715Z"
+      },
+      {
+        "id": "cme7ncxvg002gwcss02lq1q59",
+        "question": "What is the output of `not 'Hello'`?",
+        "options": [
+          "True",
+          "False",
+          "Error",
+          "None"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The string 'Hello' is a non-empty sequence, so its truthiness value is True. The `not` operator negates this, resulting in False.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:00.988Z",
+        "updatedAt": "2025-08-11T21:51:00.988Z"
+      },
+      {
+        "id": "cme7ncxy0002hwcss3a6w6zu1",
+        "question": "What is the output of `print('hello', end='')` followed by `print('world')`?",
+        "options": [
+          "helloworld",
+          "hello world",
+          "hello\nworld",
+          "hello"
+        ],
+        "correctAnswer": 0,
+        "explanation": "The `end` parameter of the `print` function specifies what to print at the end. By default, it's a newline (`\\n`). Setting it to an empty string `''` prevents the cursor from moving to the next line, so the next print statement continues on the same line.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:01.081Z",
+        "updatedAt": "2025-08-11T21:51:01.081Z"
+      },
+      {
+        "id": "cme7ncy0k002iwcssbcf2k3xx",
+        "question": "Which of the following variable names is invalid in Python?",
+        "options": [
+          "_age",
+          "Age",
+          "age1",
+          "1age"
+        ],
+        "correctAnswer": 3,
+        "explanation": "Variable names in Python cannot begin with a number. They must start with a letter (a-z, A-Z) or an underscore (_).",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:01.173Z",
+        "updatedAt": "2025-08-11T21:51:01.173Z"
+      },
+      {
+        "id": "cme7ncy34002jwcsstlk3v160",
+        "question": "What does the `isinstance()` function do?",
+        "options": [
+          "Checks if two variables are the same instance.",
+          "Checks if an object is an instance of a specific class or type.",
+          "Creates a new instance of a class.",
+          "Returns the memory address of an instance."
+        ],
+        "correctAnswer": 1,
+        "explanation": "`isinstance(object, classinfo)` returns True if the object argument is an instance of the classinfo argument, or of a (direct, indirect, or virtual) subclass thereof.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:01.264Z",
+        "updatedAt": "2025-08-11T21:51:01.264Z"
+      },
+      {
+        "id": "cme7ncy5t002kwcssds2chqf4",
+        "question": "What does it mean for a data type, like a string, to be 'immutable'?",
+        "options": [
+          "It cannot be used in calculations.",
+          "It cannot be deleted once created.",
+          "Its value cannot be changed after it is created.",
+          "It must be defined with a constant keyword."
+        ],
+        "correctAnswer": 2,
+        "explanation": "Immutability means that once an object is created, its state cannot be modified. For a string, you cannot change a character within it; you must create a new string instead.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:01.362Z",
+        "updatedAt": "2025-08-11T21:51:01.362Z"
+      },
+      {
+        "id": "cme7ncy8d002lwcssfs7r9tkq",
+        "question": "What is the output of `print('Py' * -2)`?",
+        "options": [
+          "yP",
+          "PyPy",
+          "An empty string",
+          "A ValueError or TypeError"
+        ],
+        "correctAnswer": 2,
+        "explanation": "When you multiply a sequence (like a string or list) by 0 or a negative number, the result is an empty sequence of the same type.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:01.453Z",
+        "updatedAt": "2025-08-11T21:51:01.453Z"
+      },
+      {
+        "id": "cme7ncybp002mwcss6gmwwtgw",
+        "question": "How can you write a single logical line of code that spans multiple physical lines?",
+        "options": [
+          "Using a semicolon (;)",
+          "Using an ampersand (&)",
+          "Using a backslash (\\) at the end of the line",
+          "It's not possible."
+        ],
+        "correctAnswer": 2,
+        "explanation": "A backslash `\\` at the end of a line acts as a line continuation character, telling the Python interpreter that the statement continues on the next line.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:01.574Z",
+        "updatedAt": "2025-08-11T21:51:01.574Z"
+      },
+      {
+        "id": "cme7ncyeb002nwcssf6p25pr8",
+        "question": "What is the result of `'abc' < 'abd'`?",
+        "options": [
+          "True",
+          "False",
+          "TypeError",
+          "It depends on the system."
+        ],
+        "correctAnswer": 0,
+        "explanation": "Strings are compared lexicographically (like in a dictionary). Python compares characters one by one. 'a' is the same, 'b' is the same, but 'c' comes before 'd', so the expression is True.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:01.668Z",
+        "updatedAt": "2025-08-11T21:51:01.668Z"
+      },
+      {
+        "id": "cme7ncygu002owcss5njtac7a",
+        "question": "What is the output of `message = 'hi'; message = message + ' there'; print(message)`?",
+        "options": [
+          "'hi'",
+          "'hi there'",
+          "An error because strings are immutable",
+          "None"
+        ],
+        "correctAnswer": 1,
+        "explanation": "While strings are immutable, this code doesn't modify the original 'hi' string. Instead, it creates a new string 'hi there' and reassigns the `message` variable to point to this new string.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:01.758Z",
+        "updatedAt": "2025-08-11T21:51:01.758Z"
+      },
+      {
+        "id": "cme7ncyje002pwcssseja64l7",
+        "question": "What is a Python 'expression'?",
+        "options": [
+          "Any line of code.",
+          "A piece of code that produces a value.",
+          "A piece of code that performs an action.",
+          "Only mathematical formulas."
+        ],
+        "correctAnswer": 1,
+        "explanation": "An expression is a combination of values, variables, and operators that evaluates to a single value (e.g., `2 + 2` or `x > 5`). A statement performs an action (e.g., `x = 5` or `print(x)`).",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:01.850Z",
+        "updatedAt": "2025-08-11T21:51:01.850Z"
+      },
+      {
+        "id": "cme7ncyly002qwcssourfb3ht",
+        "question": "What will `x = 5; print(1 < x < 10)` output?",
+        "options": [
+          "True",
+          "False",
+          "SyntaxError",
+          "It will only evaluate `1 < x`."
+        ],
+        "correctAnswer": 0,
+        "explanation": "Python supports chained comparisons. This expression is a more readable shorthand for `(1 < x) and (x < 10)`. Since both conditions are true for x=5, the result is True.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:01.943Z",
+        "updatedAt": "2025-08-11T21:51:01.943Z"
+      },
+      {
+        "id": "cme7ncyoi002rwcssbgvwyglk",
+        "question": "What happens when you execute `print('a' * 'b')`?",
+        "options": [
+          "'ab'",
+          "'ba'",
+          "An empty string",
+          "A TypeError"
+        ],
+        "correctAnswer": 3,
+        "explanation": "The multiplication operator for strings requires an integer as the multiplier to specify the number of repetitions. You cannot multiply a string by another string, which results in a TypeError.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:02.034Z",
+        "updatedAt": "2025-08-11T21:51:02.034Z"
+      },
+      {
+        "id": "cme7ncyr5002swcss7gj77zj7",
+        "question": "If `s = 'abcde'`, which slice produces `'ace'`?",
+        "options": [
+          "s[1:5:2]",
+          "s[0:5:2]",
+          "s[0:4:2]",
+          "s[1:4:2]"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The slice notation `[start:stop:step]` allows a third argument for the step. `s[0:5:2]` means start at index 0, go up to (but not including) index 5, and take every 2nd character.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:02.129Z",
+        "updatedAt": "2025-08-11T21:51:02.129Z"
+      },
+      {
+        "id": "cme7ncytq002twcss6zjog3pt",
+        "question": "Which function takes two numbers as arguments and returns a tuple containing their quotient and remainder?",
+        "options": [
+          "quotient_remainder()",
+          "qr()",
+          "math.divide()",
+          "divmod()"
+        ],
+        "correctAnswer": 3,
+        "explanation": "`divmod(a, b)` is a built-in function that is equivalent to `(a // b, a % b)`, returning both the floor division result and the modulo result in a tuple.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:02.222Z",
+        "updatedAt": "2025-08-11T21:51:02.222Z"
+      },
+      {
+        "id": "cme7ncyw8002uwcssj8x14jt4",
+        "question": "In the expression `True or some_function()`, what can be said about `some_function()`?",
+        "options": [
+          "It will always be executed.",
+          "It will never be executed.",
+          "It will be executed only if it returns False.",
+          "It will raise a syntax error."
+        ],
+        "correctAnswer": 1,
+        "explanation": "This demonstrates 'short-circuiting'. The `or` operator stops evaluating as soon as it finds a True value. Since the first operand is `True`, the second operand (`some_function()`) is never reached or executed.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:02.313Z",
+        "updatedAt": "2025-08-11T21:51:02.313Z"
+      },
+      {
+        "id": "cme7ncz0b002vwcss3wutbn9z",
+        "question": "What is the key difference between the string methods `.find()` and `.index()`?",
+        "options": [
+          "There is no difference.",
+          "`.find()` is faster than `.index()`.",
+          "`.index()` raises a ValueError if the substring is not found, while `.find()` returns -1.",
+          "`.find()` raises a ValueError if the substring is not found, while `.index()` returns -1."
+        ],
+        "correctAnswer": 2,
+        "explanation": "Both methods search for a substring, but they handle failure differently. `.find()` is 'safer' if you're not sure the substring exists, whereas `.index()` is used when you expect the substring to be present.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:02.459Z",
+        "updatedAt": "2025-08-11T21:51:02.459Z"
+      },
+      {
+        "id": "cme7ncz2v002wwcsseaupk42z",
+        "question": "How do you represent the number 10 as a hexadecimal literal in Python?",
+        "options": [
+          "10h",
+          "hex(10)",
+          "0x0A",
+          "&H10"
+        ],
+        "correctAnswer": 2,
+        "explanation": "Hexadecimal literals in Python are prefixed with `0x`. The hexadecimal value for the decimal number 10 is A.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:02.552Z",
+        "updatedAt": "2025-08-11T21:51:02.552Z"
+      },
+      {
+        "id": "cme7ncz5f002xwcssybljucja",
+        "question": "What is the output of `x = 5; y = x; y = 10; print(x)`?",
+        "options": [
+          "10",
+          "5",
+          "None",
+          "A memory address"
+        ],
+        "correctAnswer": 1,
+        "explanation": "This demonstrates that integers are immutable. When `y = 10` is executed, `y` is pointed to a new integer object (10). The original variable `x` is unaffected and still points to the integer object 5.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:02.643Z",
+        "updatedAt": "2025-08-11T21:51:02.643Z"
+      },
+      {
+        "id": "cme7ncz7y002ywcsszzu0k2oz",
+        "question": "What does the string method `.isdigit()` check for?",
+        "options": [
+          "If the string contains only numbers.",
+          "If the string contains only digits (0-9).",
+          "If the string can be converted to any number type, including float.",
+          "If the string is a valid variable name."
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `.isdigit()` method returns True if all characters in the string are digits and there is at least one character, False otherwise. It does not handle decimals or negative signs.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:02.735Z",
+        "updatedAt": "2025-08-11T21:51:02.735Z"
+      },
+      {
+        "id": "cme7nczal002zwcss8w0d75pv",
+        "question": "Which of these is the PEP 8 recommended way to check if a variable `my_var` is None?",
+        "options": [
+          "if my_var == None:",
+          "if my_var is None:",
+          "if not my_var:",
+          "if my_var.is_none():"
+        ],
+        "correctAnswer": 1,
+        "explanation": "PEP 8 style guide recommends using `is` or `is not` for identity checks with singletons like `None`, `True`, and `False`. `is` is faster and safer for this purpose.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:02.830Z",
+        "updatedAt": "2025-08-11T21:51:02.830Z"
+      },
+      {
+        "id": "cme7nczd60030wcsssg7iim80",
+        "question": "What will `print(f'{10/3:.2f}')` output?",
+        "options": [
+          "3.333",
+          "3.3",
+          "3.33",
+          "3"
+        ],
+        "correctAnswer": 2,
+        "explanation": "This is an f-string with format specification. `:.2f` tells Python to format the number as a floating-point number with exactly two digits after the decimal point.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:02.923Z",
+        "updatedAt": "2025-08-11T21:51:02.923Z"
+      },
+      {
+        "id": "cme7nczfp0031wcssw8oo5851",
+        "question": "What happens when you run this code? `my_string = \"hello\"; my_string[0] = \"H\"`",
+        "options": [
+          "The string becomes \"Hello\".",
+          "It does nothing.",
+          "It raises an IndexError.",
+          "It raises a TypeError."
+        ],
+        "correctAnswer": 3,
+        "explanation": "This demonstrates that strings are immutable. You cannot change a part of a string in-place (item assignment). This action results in a TypeError.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:03.014Z",
+        "updatedAt": "2025-08-11T21:51:03.014Z"
+      },
+      {
+        "id": "cme7nczib0032wcssxwc8y2o6",
+        "question": "What is the value of `bool([])`?",
+        "options": [
+          "True",
+          "False",
+          "None",
+          "Error"
+        ],
+        "correctAnswer": 1,
+        "explanation": "In a boolean context, any empty collection or sequence (empty list, tuple, string, dictionary, etc.) evaluates to False.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:03.107Z",
+        "updatedAt": "2025-08-11T21:51:03.107Z"
+      },
+      {
+        "id": "cme7nczku0033wcsszbuazi5t",
+        "question": "What is the purpose of the underscore `_` in `x, _ = (10, 20)`?",
+        "options": [
+          "It's a syntax error.",
+          "It's a convention for a 'throwaway' variable whose value we don't care about.",
+          "It makes the variable `_` private.",
+          "It converts the value to an integer."
+        ],
+        "correctAnswer": 1,
+        "explanation": "By convention, `_` is used as a variable name when you need to unpack a value but have no intention of using it later in the code.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:03.199Z",
+        "updatedAt": "2025-08-11T21:51:03.199Z"
+      },
+      {
+        "id": "cme7nczoq0034wcssyy7jqrjc",
+        "question": "How do you represent the number 5 as a binary literal in Python?",
+        "options": [
+          "0b101",
+          "bin(5)",
+          "0x5",
+          "5b"
+        ],
+        "correctAnswer": 0,
+        "explanation": "Binary literals in Python are prefixed with `0b`. The binary representation of the decimal number 5 is 101.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:03.339Z",
+        "updatedAt": "2025-08-11T21:51:03.339Z"
+      },
+      {
+        "id": "cme7nczrg0035wcss655tqcye",
+        "question": "Which of the following expressions is False?",
+        "options": [
+          "`'test'.isalpha()`",
+          "`'123'.isdigit()`",
+          "`'Test1'.isalnum()`",
+          "`'Test 1'.isalnum()`"
+        ],
+        "correctAnswer": 3,
+        "explanation": "`.isalnum()` returns True only if all characters are alphanumeric (letters or numbers). Since 'Test 1' contains a space, it is not purely alphanumeric.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:03.436Z",
+        "updatedAt": "2025-08-11T21:51:03.436Z"
+      },
+      {
+        "id": "cme7nczuz0036wcss9tatff9z",
+        "question": "What is the `pow(2, 3)` function equivalent to?",
+        "options": [
+          "2 * 3",
+          "2 + 3",
+          "2 / 3",
+          "2 ** 3"
+        ],
+        "correctAnswer": 3,
+        "explanation": "The built-in `pow(base, exp)` function is an alternative way to perform exponentiation, equivalent to the `**` operator.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:03.564Z",
+        "updatedAt": "2025-08-11T21:51:03.564Z"
+      },
+      {
+        "id": "cme7nczxi0037wcssc0s55l9i",
+        "question": "What does it mean that Python is a 'strongly typed' language?",
+        "options": [
+          "You must declare a variable's type before use.",
+          "An object's type cannot be changed.",
+          "Operations are strict about types; you can't add a string to an integer without explicit conversion.",
+          "Variables are stored in a very secure way."
+        ],
+        "correctAnswer": 2,
+        "explanation": "Strong typing means that the type of an object matters, and Python won't implicitly convert between unrelated types in operations (e.g., `5 + 'a'` will raise a TypeError).",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:03.655Z",
+        "updatedAt": "2025-08-11T21:51:03.655Z"
+      },
+      {
+        "id": "cme7nd00d0038wcssd9pu39n2",
+        "question": "What is the primary role of the `.capitalize()` string method?",
+        "options": [
+          "It makes the entire string uppercase.",
+          "It makes the first character of the string uppercase and the rest lowercase.",
+          "It makes the first character of every word uppercase.",
+          "It makes the entire string lowercase."
+        ],
+        "correctAnswer": 1,
+        "explanation": "`.capitalize()` is useful for formatting sentences, as it ensures the string starts with a capital letter and the remaining characters are lowercase.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:03.757Z",
+        "updatedAt": "2025-08-11T21:51:03.757Z"
+      },
+      {
+        "id": "cme7nd0310039wcssd43epj5g",
+        "question": "What is the output of `id('hello') == id('hello')`?",
+        "options": [
+          "True",
+          "False",
+          "SyntaxError",
+          "It varies."
+        ],
+        "correctAnswer": 0,
+        "explanation": "Due to string interning, Python often stores only one copy of a literal string. The `id()` function gets the memory address of this single object, so calling it on the same literal string twice will yield the same ID.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:03.853Z",
+        "updatedAt": "2025-08-11T21:51:03.853Z"
+      },
+      {
+        "id": "cme7nd05k003awcssyvaynuhy",
+        "question": "What does the `.isspace()` method check?",
+        "options": [
+          "If the string contains any whitespace characters.",
+          "If the string contains only whitespace characters.",
+          "If the string is empty.",
+          "If the string contains a space character."
+        ],
+        "correctAnswer": 1,
+        "explanation": "`.isspace()` returns True only if all characters in the string are whitespace (e.g., space, tab, newline) and the string is not empty.",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:03.945Z",
+        "updatedAt": "2025-08-11T21:51:03.945Z"
+      },
+      {
+        "id": "cme7nd086003bwcssr6cdqlk2",
+        "question": "Which of the following is an 'expression' and not a 'statement'?",
+        "options": [
+          "`x = 5`",
+          "`print('hello')`",
+          "`5 + x`",
+          "`if x == 5: pass`"
+        ],
+        "correctAnswer": 2,
+        "explanation": "An expression is a piece of code that evaluates to a value. `5 + x` produces a value. The others are statements that perform an action (assignment, printing, conditional logic).",
+        "difficulty": "intermediate",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:04.038Z",
+        "updatedAt": "2025-08-11T21:51:04.038Z"
+      },
+      {
+        "id": "cme7nd0aq003cwcssfsy1mdhk",
+        "question": "What will `print(1, 2, 3, sep='-')` output?",
+        "options": [
+          "1 2 3 -",
+          "1-2-3",
+          "1, 2, 3, sep='-'",
+          "Error"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `sep` argument in the `print` function defines the separator to be placed between the items. Here, it separates the numbers 1, 2, and 3 with a hyphen.",
+        "difficulty": "beginner",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:04.130Z",
+        "updatedAt": "2025-08-11T21:51:04.130Z"
+      },
+      {
+        "id": "cme7nd0db003dwcss141cgjmr",
+        "question": "In `False and some_function()`, the function `some_function()`...",
+        "options": [
+          "Will always be executed.",
+          "Will never be executed.",
+          "Will be executed only if it returns True.",
+          "Will raise a syntax error."
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `and` operator also uses short-circuiting. It stops evaluating as soon as it finds a False value. Since the first operand is `False`, the result must be False, and the second operand is never executed.",
+        "difficulty": "advanced",
+        "category": "Python Basics",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:04.223Z",
+        "updatedAt": "2025-08-11T21:51:04.223Z"
+      },
+      {
+        "id": "cme7nd0fu003ewcssajxft06n",
+        "question": "Which keyword is used to create a conditional statement in Python?",
+        "options": [
+          "condition",
+          "if",
+          "check",
+          "when"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The 'if' keyword is used to create conditional statements in Python.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:04.314Z",
+        "updatedAt": "2025-08-11T21:51:04.314Z"
+      },
+      {
+        "id": "cme7nd0if003fwcsswy0ogfaw",
+        "question": "What keyword is used to handle the case when the 'if' condition is false?",
+        "options": [
+          "otherwise",
+          "else",
+          "then",
+          "except"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The 'else' keyword is used to execute code when the 'if' condition evaluates to False.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:04.408Z",
+        "updatedAt": "2025-08-11T21:51:04.408Z"
+      },
+      {
+        "id": "cme7nd0kz003gwcssr6vm6ju3",
+        "question": "Which loop is used to iterate over a sequence in Python?",
+        "options": [
+          "while loop",
+          "for loop",
+          "do-while loop",
+          "repeat loop"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The 'for' loop is used to iterate over sequences like lists, strings, or ranges.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:04.500Z",
+        "updatedAt": "2025-08-11T21:51:04.500Z"
+      },
+      {
+        "id": "cme7nd0no003hwcssnq01ypvk",
+        "question": "Which keyword is used to start a conditional statement in Python?",
+        "options": [
+          "when",
+          "check",
+          "if",
+          "case"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The `if` keyword is used to start a conditional block. It checks if a condition is true and executes the code inside if it is.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:04.596Z",
+        "updatedAt": "2025-08-11T21:51:04.596Z"
+      },
+      {
+        "id": "cme7nd0qd003iwcssmuzodyx4",
+        "question": "What is the purpose of the `else` keyword in an `if` statement?",
+        "options": [
+          "To provide an alternative block of code to execute if the `if` condition is false.",
+          "To end the `if` statement.",
+          "To check for another condition.",
+          "To repeat the `if` block."
+        ],
+        "correctAnswer": 0,
+        "explanation": "The `else` block contains code that is executed only when the preceding `if` (and any `elif`) conditions are not met (evaluate to False).",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:04.693Z",
+        "updatedAt": "2025-08-11T21:51:04.693Z"
+      },
+      {
+        "id": "cme7nd0ty003jwcssfh27n6fy",
+        "question": "Which loop is used for iterating over a sequence (like a list or a string)?",
+        "options": [
+          "while",
+          "if",
+          "for",
+          "repeat"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The `for` loop is ideal for iterating through the items of any sequence, such as a list, tuple, or string, one by one.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:04.823Z",
+        "updatedAt": "2025-08-11T21:51:04.823Z"
+      },
+      {
+        "id": "cme7nd0zt003kwcsscjvwxii3",
+        "question": "What does the `range(5)` function generate?",
+        "options": [
+          "Numbers from 1 to 5.",
+          "Numbers from 0 to 4.",
+          "The single number 5.",
+          "Numbers from 0 to 5."
+        ],
+        "correctAnswer": 1,
+        "explanation": "`range(n)` generates a sequence of numbers starting from 0 up to (but not including) `n`.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:05.033Z",
+        "updatedAt": "2025-08-11T21:51:05.033Z"
+      },
+      {
+        "id": "cme7nd12e003lwcss8nw6pq32",
+        "question": "Which statement is used to exit a loop completely?",
+        "options": [
+          "exit",
+          "stop",
+          "continue",
+          "break"
+        ],
+        "correctAnswer": 3,
+        "explanation": "The `break` statement immediately terminates the innermost loop it is in, and the program continues execution at the statement following the loop.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:05.126Z",
+        "updatedAt": "2025-08-11T21:51:05.126Z"
+      },
+      {
+        "id": "cme7nd14v003mwcsswi41scq5",
+        "question": "What does the `continue` statement do inside a loop?",
+        "options": [
+          "It stops the loop entirely.",
+          "It skips the rest of the current iteration and moves to the next one.",
+          "It pauses the loop indefinitely.",
+          "It deletes the current item."
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `continue` statement rejects all the remaining statements in the current iteration of the loop and moves the control back to the top of the loop for the next iteration.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:05.216Z",
+        "updatedAt": "2025-08-11T21:51:05.216Z"
+      },
+      {
+        "id": "cme7nd17h003nwcss7vq6ryf5",
+        "question": "Why is indentation important in Python?",
+        "options": [
+          "It is not important; it only makes code look good.",
+          "It is used to define blocks of code, such as what is inside a loop or an `if` statement.",
+          "It is used for comments.",
+          "It indicates the data type of a variable."
+        ],
+        "correctAnswer": 1,
+        "explanation": "Unlike other languages that use brackets or keywords, Python uses indentation to determine the grouping of statements. Incorrect indentation will cause errors.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:05.309Z",
+        "updatedAt": "2025-08-11T21:51:05.309Z"
+      },
+      {
+        "id": "cme7nd1ac003owcsscqwgpo42",
+        "question": "What will be the output of this code? `x = 5; if x > 2: print('A'); if x > 4: print('B')`",
+        "options": [
+          "A",
+          "B",
+          "A\nB",
+          "No output"
+        ],
+        "correctAnswer": 2,
+        "explanation": "Both `if` conditions are true (5 is greater than 2, and 5 is greater than 4), so the code inside both blocks is executed sequentially.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:05.413Z",
+        "updatedAt": "2025-08-11T21:51:05.413Z"
+      },
+      {
+        "id": "cme7nd1cz003pwcsscrbsixb9",
+        "question": "How do you write a `for` loop that counts from 10 down to 1?",
+        "options": [
+          "`for i in range(10, 0):`",
+          "`for i in range(10, 1, -1):`",
+          "`for i in range(10, 0, -1):`",
+          "`for i in range(1, 10):`"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The `range()` function can take a third argument for the step. A negative step, like -1, is used for counting down. The stop value (0) is not included in the output.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:05.507Z",
+        "updatedAt": "2025-08-11T21:51:05.507Z"
+      },
+      {
+        "id": "cme7nd1fk003qwcssf3ogyi4y",
+        "question": "What is a `while True` loop?",
+        "options": [
+          "A loop that runs exactly once.",
+          "A loop that never runs.",
+          "An infinite loop that will run forever unless explicitly exited with a `break` statement.",
+          "A syntax error."
+        ],
+        "correctAnswer": 2,
+        "explanation": "Since the condition `True` is always true, a `while True` loop will never terminate on its own. It's a common pattern for loops that wait for a specific event, which then triggers a `break`.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:05.600Z",
+        "updatedAt": "2025-08-11T21:51:05.600Z"
+      },
+      {
+        "id": "cme7nd1io003rwcsscwahtu70",
+        "question": "What is the purpose of the `pass` statement?",
+        "options": [
+          "To skip an iteration.",
+          "To act as a placeholder where code is syntactically required but you have nothing to write yet.",
+          "To exit a function.",
+          "To pass a variable to a function."
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `pass` statement is a null operation; nothing happens when it executes. It's useful as a placeholder in `if` blocks, function definitions, or classes that you plan to implement later.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:05.713Z",
+        "updatedAt": "2025-08-11T21:51:05.713Z"
+      },
+      {
+        "id": "cme7nd1la003swcssexuxo34w",
+        "question": "What is the output? `for char in 'Hi': print(char)`",
+        "options": [
+          "H\ni",
+          "Hi",
+          "char",
+          "Error"
+        ],
+        "correctAnswer": 0,
+        "explanation": "A `for` loop can iterate directly over a string. In each iteration, the loop variable (`char`) takes the value of the next character. The `print()` function adds a newline by default.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:05.807Z",
+        "updatedAt": "2025-08-11T21:51:05.807Z"
+      },
+      {
+        "id": "cme7nd1nu003twcss6ohef294",
+        "question": "What will this code print? `count = 3; while count > 0: print(count); count -= 1`",
+        "options": [
+          "3\n2\n1\n0",
+          "3\n2\n1",
+          "2\n1\n0",
+          "An infinite loop"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `while` loop continues as long as `count` is greater than 0. It prints the value of `count` and then decrements it, stopping after it prints 1 and `count` becomes 0.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:05.898Z",
+        "updatedAt": "2025-08-11T21:51:05.898Z"
+      },
+      {
+        "id": "cme7nd1qe003uwcssiqg2fw7l",
+        "question": "What is the Pythonic way to write a simple if-else assignment, known as the ternary operator?",
+        "options": [
+          "`x = (condition ? value_if_true : value_if_false)`",
+          "`x = if condition then value_if_true else value_if_false`",
+          "`x = value_if_true if condition else value_if_false`",
+          "Python does not have a ternary operator."
+        ],
+        "correctAnswer": 2,
+        "explanation": "Python's conditional expression (ternary operator) allows for a compact one-line if-else assignment with the syntax `value_if_true if condition else value_if_false`.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:05.990Z",
+        "updatedAt": "2025-08-11T21:51:05.990Z"
+      },
+      {
+        "id": "cme7nd1un003vwcssbd9f71h3",
+        "question": "What is a nested loop?",
+        "options": [
+          "A loop that never ends.",
+          "Two loops written one after the other.",
+          "A loop inside another loop.",
+          "A loop that iterates over a dictionary."
+        ],
+        "correctAnswer": 2,
+        "explanation": "A nested loop is a control flow structure where one loop is placed inside the body of another loop. The inner loop is executed fully for each iteration of the outer loop.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:06.143Z",
+        "updatedAt": "2025-08-11T21:51:06.143Z"
+      },
+      {
+        "id": "cme7nd1zv003wwcssvuxz90yx",
+        "question": "What is the output of this code? `for i in range(2): print('A'); for j in range(2): print('B')`",
+        "options": [
+          "A\nB\nA\nB",
+          "A\nB\nB\nA\nB\nB",
+          "A\nB\nA\nB\nA\nB",
+          "A\nA\nB\nB"
+        ],
+        "correctAnswer": 1,
+        "explanation": "This is a nested loop. The outer loop runs twice. For each run of the outer loop, the inner loop runs twice, printing 'B' each time. So, 'A' is printed, then 'B' twice. Then 'A' is printed again, and 'B' twice again.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:06.234Z",
+        "updatedAt": "2025-08-11T21:51:06.234Z"
+      },
+      {
+        "id": "cme7nd22i003xwcssmstladws",
+        "question": "When does the `else` block of a `for` loop execute?",
+        "options": [
+          "Always after the loop finishes.",
+          "Only when the loop is terminated by a `break` statement.",
+          "Only if the loop finishes its full iteration without being terminated by a `break` statement.",
+          "It executes in every iteration."
+        ],
+        "correctAnswer": 2,
+        "explanation": "The `for...else` construct is a unique feature. The `else` block is executed only if the loop completes normally, meaning it iterates through all its items and is not exited prematurely by a `break`.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:06.426Z",
+        "updatedAt": "2025-08-11T21:51:06.426Z"
+      },
+      {
+        "id": "cme7nd252003ywcsszg2rkuq9",
+        "question": "What will this `while...else` code output? `i = 5; while i > 0: i -= 1; if i == 2: break; else: print('Done')`",
+        "options": [
+          "Done",
+          "No output",
+          "5\n4\n3\nDone",
+          "An error"
+        ],
+        "correctAnswer": 1,
+        "explanation": "Similar to a `for...else` loop, the `else` block of a `while` loop only executes if the loop's condition becomes false. If the loop is exited by a `break`, the `else` block is skipped. Here, the loop breaks when `i` becomes 2.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:06.518Z",
+        "updatedAt": "2025-08-11T21:51:06.518Z"
+      },
+      {
+        "id": "cme7nd27n003zwcss2y0tbdyh",
+        "question": "What is printed by this code? `for i in range(5): if i == 2: continue; print(i)`",
+        "options": [
+          "0\n1\n3\n4",
+          "0\n1\n2\n3\n4",
+          "0\n1",
+          "0\n1\n2"
+        ],
+        "correctAnswer": 0,
+        "explanation": "The `continue` statement skips the rest of the current iteration. When `i` is 2, the condition is met, `continue` is executed, and the `print(i)` statement is skipped for that iteration only.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:06.611Z",
+        "updatedAt": "2025-08-11T21:51:06.611Z"
+      },
+      {
+        "id": "cme7nd2bu0040wcssp9x5bwpz",
+        "question": "What is the value of `result`? `age = 15; result = 'kid' if age < 13 else 'teenager'`",
+        "options": [
+          "'kid'",
+          "'teenager'",
+          "True",
+          "An error"
+        ],
+        "correctAnswer": 1,
+        "explanation": "This is a ternary conditional expression. Since the condition `age < 13` (15 < 13) is false, the value after the `else` keyword is assigned to the `result` variable.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:06.762Z",
+        "updatedAt": "2025-08-11T21:51:06.762Z"
+      },
+      {
+        "id": "cme7nd2hb0041wcssjgmjn5t9",
+        "question": "What is the scope of a variable declared inside a `for` loop in Python?",
+        "options": [
+          "It is only accessible inside the `for` loop.",
+          "It is accessible inside the loop and in the `else` block.",
+          "It 'leaks' and is accessible in the surrounding scope after the loop finishes.",
+          "It is only accessible in the final iteration."
+        ],
+        "correctAnswer": 2,
+        "explanation": "Unlike some other languages, Python does not have a separate block scope for loops. A variable assigned in a `for` loop will exist in the parent scope and hold the value from the last iteration after the loop completes.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:06.960Z",
+        "updatedAt": "2025-08-11T21:51:06.960Z"
+      },
+      {
+        "id": "cme7nd2jx0042wcssniyseq7c",
+        "question": "Which of the following is equivalent to `if x and y:`?",
+        "options": [
+          "`if x: if y:`",
+          "`if x or y:`",
+          "`if x: else: if y:`",
+          "`if not x: if not y:`"
+        ],
+        "correctAnswer": 0,
+        "explanation": "The `and` operator requires both operands to be truthy. This is logically equivalent to a nested `if` statement, where the inner block is only reachable if the outer condition is met.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:07.053Z",
+        "updatedAt": "2025-08-11T21:51:07.053Z"
+      },
+      {
+        "id": "cme7nd2mk0043wcss0jcrjf6y",
+        "question": "What's the output? `for x in []: print('A'); else: print('B')`",
+        "options": [
+          "A",
+          "B",
+          "No output",
+          "A\nB"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `for` loop iterates over an empty list, so it completes its 'full iteration' (of zero items) immediately without ever running the loop body. Therefore, the `else` block is executed.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:07.149Z",
+        "updatedAt": "2025-08-11T21:51:07.149Z"
+      },
+      {
+        "id": "cme7nd2p80044wcssaudx65t7",
+        "question": "What is the primary difference between a `for` loop and a `while` loop?",
+        "options": [
+          "There is no difference.",
+          "A `for` loop is used for definite iteration (over a known sequence), while a `while` loop is for indefinite iteration (until a condition becomes false).",
+          "A `while` loop is always faster.",
+          "A `for` loop can't be infinite, but a `while` loop can."
+        ],
+        "correctAnswer": 1,
+        "explanation": "This is the fundamental conceptual difference. Use a `for` loop when you know how many times you want to loop or have a sequence to iterate over. Use a `while` loop when you need to loop as long as a certain condition holds true.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:07.244Z",
+        "updatedAt": "2025-08-11T21:51:07.244Z"
+      },
+      {
+        "id": "cme7nd2sj0045wcssil56gjxz",
+        "question": "What does the following expression evaluate to? `x = 'A' if 0 else 'B'`",
+        "options": [
+          "'A'",
+          "'B'",
+          "True",
+          "False"
+        ],
+        "correctAnswer": 1,
+        "explanation": "This uses the ternary operator with Python's 'truthiness' rules. The number 0 evaluates to False in a boolean context. Therefore, the expression after `else` is chosen.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:07.363Z",
+        "updatedAt": "2025-08-11T21:51:07.363Z"
+      },
+      {
+        "id": "cme7nd2v40046wcss7244lek1",
+        "question": "What is the output of `for i in range(2, 5): print(i)`?",
+        "options": [
+          "2\n3\n4\n5",
+          "2\n3\n4",
+          "3\n4\n5",
+          "2\n5"
+        ],
+        "correctAnswer": 1,
+        "explanation": "`range(start, stop)` generates numbers from `start` up to (but not including) `stop`. So, it produces 2, 3, and 4.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:07.456Z",
+        "updatedAt": "2025-08-11T21:51:07.456Z"
+      },
+      {
+        "id": "cme7nd2xp0047wcssrwoco4iq",
+        "question": "Which expression checks if `x` is either less than 5 or greater than 10?",
+        "options": [
+          "`x < 5 and x > 10`",
+          "`x < 5 or x > 10`",
+          "`5 > x > 10`",
+          "`if x < 5 or > 10:`"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `or` logical operator is used to check if at least one of multiple conditions is true.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:07.549Z",
+        "updatedAt": "2025-08-11T21:51:07.549Z"
+      },
+      {
+        "id": "cme7nd3070048wcssdyeg2sf5",
+        "question": "What is the output of this code? `if 'a' in 'team': print('Found') else: print('Not Found')`",
+        "options": [
+          "Found",
+          "Not Found",
+          "True",
+          "Error"
+        ],
+        "correctAnswer": 0,
+        "explanation": "The `in` operator can be used to check for membership. Since the character 'a' is present in the string 'team', the `if` block is executed.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:07.640Z",
+        "updatedAt": "2025-08-11T21:51:07.640Z"
+      },
+      {
+        "id": "cme7nd32q0049wcsscdnerbye",
+        "question": "What will this `while` loop do? `x = 5; while x > 5: print('Looping')`",
+        "options": [
+          "Print 'Looping' once.",
+          "Print 'Looping' five times.",
+          "Result in an infinite loop.",
+          "Nothing will be printed."
+        ],
+        "correctAnswer": 3,
+        "explanation": "The loop's condition `x > 5` is false from the beginning (since 5 is not greater than 5). Therefore, the code inside the loop will never be executed.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:07.731Z",
+        "updatedAt": "2025-08-11T21:51:07.731Z"
+      },
+      {
+        "id": "cme7nd35b004awcss73p2rqv4",
+        "question": "How do you loop through a list and get both the index and the value of each item?",
+        "options": [
+          "Using `for index, value in list:`",
+          "Using `for item in index(list):`",
+          "Using `for index, value in enumerate(list):`",
+          "Using `for item in list.items():`"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The built-in `enumerate()` function is the Pythonic way to get both the index and the value of an item when iterating over a sequence.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:07.824Z",
+        "updatedAt": "2025-08-11T21:51:07.824Z"
+      },
+      {
+        "id": "cme7nd37v004bwcss7317z4dy",
+        "question": "What is the output of `for k, v in {'a': 1, 'b': 2}.items(): print(k, v)`?",
+        "options": [
+          "'a' 1\n'b' 2",
+          "a 1\nb 2",
+          "{'a': 1}\n{'b': 2}",
+          "Error"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `.items()` method of a dictionary returns view objects containing key-value pairs (as tuples), which can be unpacked into two variables in a `for` loop.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:07.915Z",
+        "updatedAt": "2025-08-11T21:51:07.915Z"
+      },
+      {
+        "id": "cme7nd3ai004cwcssrws8vs5i",
+        "question": "What does this code do? `numbers = [1, 2, 3]; while numbers: print(numbers.pop())`",
+        "options": [
+          "Prints 1, 2, 3",
+          "Prints 3, 2, 1",
+          "Results in an infinite loop.",
+          "Raises an error."
+        ],
+        "correctAnswer": 1,
+        "explanation": "An empty list evaluates to False. The loop continues as long as the list is not empty. `pop()` removes and returns the last item, so it prints the items from last to first until the list is empty and the loop terminates.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:08.010Z",
+        "updatedAt": "2025-08-11T21:51:08.010Z"
+      },
+      {
+        "id": "cme7nd3da004dwcsst7mwyiwk",
+        "question": "How can you iterate through a list in reverse order?",
+        "options": [
+          "Using `for item in list.reverse():`",
+          "Using `for item in reversed(list):`",
+          "Using `for item in list[::-1]:`",
+          "Both B and C are correct."
+        ],
+        "correctAnswer": 3,
+        "explanation": "The `reversed()` function returns a reverse iterator, which is memory-efficient. Slicing with `[::-1]` creates a reversed copy of the list. Both are valid ways to achieve this.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:08.111Z",
+        "updatedAt": "2025-08-11T21:51:08.111Z"
+      },
+      {
+        "id": "cme7nd3fv004ewcss2o2wwz92",
+        "question": "What is a common use for a boolean 'flag' in a `while` loop?",
+        "options": [
+          "To count the number of iterations.",
+          "To store the items from the loop.",
+          "To control when the loop should stop running based on an event inside the loop.",
+          "To format the output of the loop."
+        ],
+        "correctAnswer": 2,
+        "explanation": "A flag (e.g., `is_running = True`) can be set to `False` inside the loop when a certain condition is met, providing a clean way to terminate a `while` loop.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:08.204Z",
+        "updatedAt": "2025-08-11T21:51:08.204Z"
+      },
+      {
+        "id": "cme7nd3l4004fwcsstc9e6l4l",
+        "question": "What does the `if [False]:` statement do?",
+        "options": [
+          "The code inside the `if` block will not execute.",
+          "It will raise a TypeError.",
+          "The code inside the `if` block will execute.",
+          "It will raise a ValueError."
+        ],
+        "correctAnswer": 2,
+        "explanation": "This checks the 'truthiness' of the list `[False]`. Since the list is not empty, it evaluates to True in a boolean context, and the code inside the `if` block is executed. The value of the items inside does not matter.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:08.392Z",
+        "updatedAt": "2025-08-11T21:51:08.392Z"
+      },
+      {
+        "id": "cme7nd3nk004gwcssp8cttm0m",
+        "question": "What is the output of `for key in {'a': 1, 'b': 2}: print(key)`?",
+        "options": [
+          "1\n2",
+          "('a', 1)\n('b', 2)",
+          "a\nb",
+          "Error"
+        ],
+        "correctAnswer": 2,
+        "explanation": "When you iterate directly over a dictionary, the loop variable is assigned the keys of the dictionary one by one.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:08.481Z",
+        "updatedAt": "2025-08-11T21:51:08.481Z"
+      },
+      {
+        "id": "cme7nd3q3004hwcss3wgehn5w",
+        "question": "What is the output? `x = 'B'; result = 'A' or x`",
+        "options": [
+          "'A'",
+          "'B'",
+          "True",
+          "False"
+        ],
+        "correctAnswer": 0,
+        "explanation": "The `or` operator exhibits short-circuit behavior. It evaluates the first operand ('A'), finds that it is 'truthy' (a non-empty string), and returns its value immediately without checking the second operand.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:08.572Z",
+        "updatedAt": "2025-08-11T21:51:08.572Z"
+      },
+      {
+        "id": "cme7nd3tv004iwcsslfy3k5w6",
+        "question": "What is the output of this nested loop with a `break`? `for i in range(2): for j in range(2): if i == j: break; print(i, j)`",
+        "options": [
+          "0 1\n1 0",
+          "1 0",
+          "0 1",
+          "No output"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `break` only exits the inner loop. When i=0, j=0, it breaks. When i=0, j=1, it prints '0 1'. When i=1, j=0, it prints '1 0'. When i=1, j=1, it breaks. The final output is '1 0' because '0 1' was overwritten by the last print.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:08.707Z",
+        "updatedAt": "2025-08-11T21:51:08.707Z"
+      },
+      {
+        "id": "cme7nd3wi004jwcss04od82dl",
+        "question": "What is the output? `result = 'A' and 'B' and 'C'`",
+        "options": [
+          "True",
+          "'A'",
+          "'C'",
+          "False"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The `and` operator evaluates each operand. If all are truthy, it returns the value of the *last* operand. Since 'A' and 'B' are truthy, it evaluates 'C', finds it truthy, and returns it.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:08.802Z",
+        "updatedAt": "2025-08-11T21:51:08.802Z"
+      },
+      {
+        "id": "cme7nd3z4004kwcssquc1p10h",
+        "question": "What does this code print? `i = 0; while i < 5: print(i); i += 1; if i == 3: break; else: print('Done')`",
+        "options": [
+          "0\n1\n2\nDone",
+          "0\n1\n2",
+          "0\n1\n2\n3",
+          "0\n1\n2\n3\nDone"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `else` block of a `while` loop is skipped if the loop is terminated by a `break` statement. The loop prints 0, 1, 2, then `i` becomes 3, and the `break` is triggered, exiting the loop before 'Done' can be printed.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:08.896Z",
+        "updatedAt": "2025-08-11T21:51:08.896Z"
+      },
+      {
+        "id": "cme7nd41r004lwcssri4zo02r",
+        "question": "How can you simulate a `do-while` loop in Python?",
+        "options": [
+          "Using `do-while:` syntax.",
+          "Using `for item in list.do_while():`",
+          "Using a `while True:` loop with a `break` at the end of the block.",
+          "It is not possible to simulate."
+        ],
+        "correctAnswer": 2,
+        "explanation": "Python doesn't have a built-in `do-while` loop. The common pattern to ensure the loop body runs at least once is to use an infinite `while True` loop and place the conditional `break` at the end.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:08.991Z",
+        "updatedAt": "2025-08-11T21:51:08.991Z"
+      },
+      {
+        "id": "cme7nd44b004mwcssqs7cmq51",
+        "question": "What is the result of `x = 0 or '' or []`?",
+        "options": [
+          "0",
+          "''",
+          "[]",
+          "False"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The `or` operator returns the first truthy value it finds. If all values are falsy (like 0, empty string, and empty list), it returns the value of the *last* falsy operand.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:09.083Z",
+        "updatedAt": "2025-08-11T21:51:09.083Z"
+      },
+      {
+        "id": "cme7nd47c004nwcss1jxve4ch",
+        "question": "What is printed by this code? `my_list = [1, 2]; for i in range(len(my_list)): my_list.append(i)`",
+        "options": [
+          "It prints nothing and runs without error.",
+          "It runs for a very long time (infinite loop).",
+          "It raises an IndexError.",
+          "It prints 1, 2, 0, 1"
+        ],
+        "correctAnswer": 1,
+        "explanation": "This is a classic error. Modifying a list while iterating over it (especially using an index based on its initial length) leads to unexpected behavior. `range(len(my_list))` is fixed at `range(2)`, but `my_list.append()` keeps extending the list, so the loop continues indefinitely.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:09.192Z",
+        "updatedAt": "2025-08-11T21:51:09.192Z"
+      },
+      {
+        "id": "cme7nd49y004owcss9fqlo2v1",
+        "question": "Which statement is true about the `elif` keyword?",
+        "options": [
+          "It is a combination of `else` and `if`, and it checks a new condition if the previous `if` was false.",
+          "It must be used at the end of an `if-else` block.",
+          "It is an alternative way to write a `for` loop.",
+          "It can only be used once in an `if` block."
+        ],
+        "correctAnswer": 0,
+        "explanation": "`elif` allows you to check multiple expressions for `True` and execute a block of code as soon as one of the conditions is met.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:09.287Z",
+        "updatedAt": "2025-08-11T21:51:09.287Z"
+      },
+      {
+        "id": "cme7nd4ck004pwcsse6msu26e",
+        "question": "What will `if None:` do?",
+        "options": [
+          "Execute the code block inside.",
+          "Skip the code block inside.",
+          "Raise a TypeError.",
+          "Raise a SyntaxError."
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `None` object evaluates to `False` in a boolean context. Therefore, the code inside this `if` statement will not be executed.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:09.380Z",
+        "updatedAt": "2025-08-11T21:51:09.380Z"
+      },
+      {
+        "id": "cme7nd4f1004qwcsst88247aa",
+        "question": "How would you find all numbers in `list_a` that are also in `list_b` using a loop?",
+        "options": [
+          "for i in list_a: if i in list_b: print(i)",
+          "for i in list_a and list_b: print(i)",
+          "for i in list_a: for j in list_b: if i != j: print(i)",
+          "for i in list_a: if i.equals(list_b): print(i)"
+        ],
+        "correctAnswer": 0,
+        "explanation": "This uses a `for` loop to iterate through the first list and a simple `if` statement with the `in` operator to check for membership in the second list, which is an efficient way to find common elements.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:09.470Z",
+        "updatedAt": "2025-08-11T21:51:09.470Z"
+      },
+      {
+        "id": "cme7nd4ht004rwcss8mrb8t4z",
+        "question": "What's the output? `n = 0; while n < 2: print('A'); n += 1 else: print('B')`",
+        "options": [
+          "A\nA",
+          "A\nA\nB",
+          "A\nB\nA",
+          "A"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `else` block of a `while` loop executes when the loop's condition becomes false. The loop prints 'A' for n=0 and n=1. When n becomes 2, the condition `n < 2` is false, the loop terminates normally, and the `else` block is executed, printing 'B'.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:09.569Z",
+        "updatedAt": "2025-08-11T21:51:09.569Z"
+      },
+      {
+        "id": "cme7nd4kc004swcssm2kcmid8",
+        "question": "In Python, a `for` loop is best described as a...",
+        "options": [
+          "Conditional loop",
+          "Counter-controlled loop",
+          "Collection-controlled loop",
+          "Pre-test loop"
+        ],
+        "correctAnswer": 2,
+        "explanation": "Python's `for` loop is designed to iterate directly over the items of a collection/sequence (like a list, tuple, dictionary, or string), which is why it's called collection-controlled. This is different from C-style loops that manually manage a counter.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:09.661Z",
+        "updatedAt": "2025-08-11T21:51:09.661Z"
+      },
+      {
+        "id": "cme7nd4mu004twcssn593sc7x",
+        "question": "What is the output? `if 1 and 0: print('A') else: print('B')`",
+        "options": [
+          "'A'",
+          "'B'",
+          "True",
+          "False"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The expression `1 and 0` is evaluated. `1` is truthy, so the expression proceeds. `0` is falsy. The `and` operator requires both to be true, so the overall expression is falsy (specifically, it returns 0). This causes the `else` block to execute.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:09.751Z",
+        "updatedAt": "2025-08-11T21:51:09.751Z"
+      },
+      {
+        "id": "cme7nd4qw004uwcsshjjdtsc8",
+        "question": "Which of the following creates an infinite loop?",
+        "options": [
+          "`for i in range(10): pass`",
+          "`i = 0; while i < 10: i += 1`",
+          "`i = 0; while i < 10: print(i)`",
+          "`while []: pass`"
+        ],
+        "correctAnswer": 2,
+        "explanation": "In option C, the value of `i` is never changed inside the loop. Therefore, the condition `i < 10` will always be true, and the loop will run forever. Option D will not run at all as an empty list is falsy.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:09.896Z",
+        "updatedAt": "2025-08-11T21:51:09.896Z"
+      },
+      {
+        "id": "cme7nd4te004vwcssf4pro2jh",
+        "question": "What is the output of this code? `if 'cat' not in 'category': print('Missing') else: print('Found')`",
+        "options": [
+          "Missing",
+          "Found",
+          "True",
+          "False"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `not in` operator checks for the absence of a substring. Since 'cat' is present in 'category', the condition is false, and the `else` block is executed.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:09.987Z",
+        "updatedAt": "2025-08-11T21:51:09.987Z"
+      },
+      {
+        "id": "cme7nd4vz004wwcssc1r1qxsl",
+        "question": "How many times will 'X' be printed? `for i in range(10, 20, 2): print('X')`",
+        "options": [
+          "10",
+          "6",
+          "5",
+          "4"
+        ],
+        "correctAnswer": 2,
+        "explanation": "`range(10, 20, 2)` generates numbers starting from 10, with a step of 2, up to 20. The sequence is 10, 12, 14, 16, 18. This is a total of 5 numbers, so the loop runs 5 times.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:10.080Z",
+        "updatedAt": "2025-08-11T21:51:10.080Z"
+      },
+      {
+        "id": "cme7nd4yo004xwcssoux3dmfs",
+        "question": "Which code block correctly prints 'Even' if a number `n` is even?",
+        "options": [
+          "`if n / 2 == 0: print('Even')`",
+          "`if n % 2 == 0: print('Even')`",
+          "`if n // 2 == 1: print('Even')`",
+          "`if n ** 2 == 0: print('Even')`"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The modulo operator (`%`) gives the remainder of a division. A number is even if it can be divided by 2 with no remainder.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:10.176Z",
+        "updatedAt": "2025-08-11T21:51:10.176Z"
+      },
+      {
+        "id": "cme7nd51h004ywcsssl6dus7o",
+        "question": "What does the `range(5, 2)` produce?",
+        "options": [
+          "5, 4, 3, 2",
+          "5, 2",
+          "An empty sequence",
+          "A ValueError"
+        ],
+        "correctAnswer": 2,
+        "explanation": "When the `start` value in `range()` is greater than the `stop` value and the step is positive (default is 1), it produces an empty sequence. The loop will not execute.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:10.277Z",
+        "updatedAt": "2025-08-11T21:51:10.277Z"
+      },
+      {
+        "id": "cme7nd53y004zwcssk251xuvq",
+        "question": "What is the result of this ternary expression? `x = 10; y = 'A' if x == 10 else 'B'`",
+        "options": [
+          "'A'",
+          "'B'",
+          "True",
+          "An error"
+        ],
+        "correctAnswer": 0,
+        "explanation": "The condition `x == 10` is true, so the value before the `if` keyword, which is 'A', is assigned to `y`.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:10.366Z",
+        "updatedAt": "2025-08-11T21:51:10.366Z"
+      },
+      {
+        "id": "cme7nd58v0050wcss1cw0h8hz",
+        "question": "What is printed? `for item in ('a', 'b'): print(item)`",
+        "options": [
+          "item\nitem",
+          "a b",
+          "a\nb",
+          "('a', 'b')"
+        ],
+        "correctAnswer": 2,
+        "explanation": "A `for` loop can iterate over any sequence, including tuples. It will print each item of the tuple on a new line.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:10.544Z",
+        "updatedAt": "2025-08-11T21:51:10.544Z"
+      },
+      {
+        "id": "cme7nd5bk0051wcssufpfd6b2",
+        "question": "What happens if you use `break` or `continue` outside of a loop?",
+        "options": [
+          "The script exits.",
+          "It acts like a `pass` statement.",
+          "It raises a SyntaxError.",
+          "It raises a TypeError."
+        ],
+        "correctAnswer": 2,
+        "explanation": "`break` and `continue` are syntactically only allowed inside `for` or `while` loops. Using them anywhere else will result in a SyntaxError.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:10.640Z",
+        "updatedAt": "2025-08-11T21:51:10.640Z"
+      },
+      {
+        "id": "cme7nd5ec0052wcssu432a13v",
+        "question": "What is the output? `result = 'C'; if result == 'A': result = 'X'; elif result == 'B': result = 'Y'; print(result)`",
+        "options": [
+          "'X'",
+          "'Y'",
+          "'C'",
+          "No output"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The code flows sequentially. The `if` condition is false. The `elif` condition is false. No new assignment happens inside the conditional block, so the original value of `result`, which is 'C', is printed.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:10.740Z",
+        "updatedAt": "2025-08-11T21:51:10.740Z"
+      },
+      {
+        "id": "cme7nd5j50053wcsss8e0pz26",
+        "question": "What will this code snippet print? `for i in range(2): pass; print(i)`",
+        "options": [
+          "0",
+          "1",
+          "2",
+          "It will raise a NameError."
+        ],
+        "correctAnswer": 1,
+        "explanation": "Variables used in a `for` loop 'leak' into the surrounding scope. After the loop `for i in range(2)` (which iterates through 0 and 1) finishes, `i` will hold the last value it was assigned, which is 1.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:10.913Z",
+        "updatedAt": "2025-08-11T21:51:10.913Z"
+      },
+      {
+        "id": "cme7nd5lq0054wcssgm2iz88t",
+        "question": "What is a key feature of the assignment expression `:=` (walrus operator)?",
+        "options": [
+          "It allows assigning and checking a value in the same expression, like `while (chunk := file.read(256)):`",
+          "It creates a constant that cannot be changed.",
+          "It is a more efficient way to perform `==`.",
+          "It reverses the order of assignment."
+        ],
+        "correctAnswer": 0,
+        "explanation": "Introduced in Python 3.8, the walrus operator is useful for simplifying code where you need to get a value and then check its truthiness in a condition, common in `while` loops.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:11.007Z",
+        "updatedAt": "2025-08-11T21:51:11.007Z"
+      },
+      {
+        "id": "cme7nd5o80055wcssp0xrudk0",
+        "question": "What is the output of this complex ternary expression? `x = 5; 'A' if x > 10 else 'B' if x > 3 else 'C'`",
+        "options": [
+          "'A'",
+          "'B'",
+          "'C'",
+          "An error"
+        ],
+        "correctAnswer": 1,
+        "explanation": "This is evaluated from left to right. `x > 10` is false. The expression then evaluates the `else` part, which is another ternary: `'B' if x > 3 else 'C'`. Since `x > 3` is true, the result is 'B'.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:11.096Z",
+        "updatedAt": "2025-08-11T21:51:11.096Z"
+      },
+      {
+        "id": "cme7nd5qs0056wcssmli9e10z",
+        "question": "What makes an object 'iterable' in the context of a `for` loop?",
+        "options": [
+          "It must be a list.",
+          "It must have a `length` property.",
+          "It must have an `__iter__()` method that returns an iterator.",
+          "It must contain only numbers or strings."
+        ],
+        "correctAnswer": 2,
+        "explanation": "For an object to be used in a `for` loop, it must be iterable. Python's definition of iterable is any object that implements the `__iter__()` method.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:11.188Z",
+        "updatedAt": "2025-08-11T21:51:11.188Z"
+      },
+      {
+        "id": "cme7nd5yl0057wcssn7jp72ef",
+        "question": "What is the output of this nested loop with `continue`? `for i in range(2): for j in range(2): if i == j: continue; print(i, j)`",
+        "options": [
+          "0 1\n1 0",
+          "1 0",
+          "0 1",
+          "1 1"
+        ],
+        "correctAnswer": 0,
+        "explanation": "`continue` skips the print statement only when `i == j`. So, it skips for (0,0) and (1,1). It prints for (0,1) and (1,0).",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:11.469Z",
+        "updatedAt": "2025-08-11T21:51:11.469Z"
+      },
+      {
+        "id": "cme7nd6190058wcss6bq8asll",
+        "question": "What is a potential risk of this code? `numbers = [1, 2, 3]; for n in numbers: numbers.insert(0, n)`",
+        "options": [
+          "It will raise an IndexError.",
+          "It will raise a TypeError.",
+          "It will result in an infinite loop.",
+          "It will run successfully and terminate."
+        ],
+        "correctAnswer": 2,
+        "explanation": "Modifying a list while iterating over it can lead to unexpected behavior. In this case, you are adding new items to the front of the list, so the iterator never reaches the end, causing an infinite loop.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:11.565Z",
+        "updatedAt": "2025-08-11T21:51:11.565Z"
+      },
+      {
+        "id": "cme7nd63t0059wcsscbcskxgx",
+        "question": "What is the output? `result = '' and 'B'`",
+        "options": [
+          "True",
+          "False",
+          "'' (empty string)",
+          "'B'"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The `and` operator short-circuits. It evaluates the first operand (`''`), finds that it is 'falsy', and returns its value immediately without checking the second operand.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:11.658Z",
+        "updatedAt": "2025-08-11T21:51:11.658Z"
+      },
+      {
+        "id": "cme7nd66e005awcsstgg1pojf",
+        "question": "What does this code do? `if x:` where `x` is `0`.",
+        "options": [
+          "Executes the `if` block.",
+          "Skips the `if` block and executes `else` or `elif` if present.",
+          "Raises a TypeError because `x` is not a boolean.",
+          "Raises a ValueError."
+        ],
+        "correctAnswer": 1,
+        "explanation": "This checks the 'truthiness' of `x`. The integer `0` is considered a 'falsy' value in Python, so the condition is false.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:11.751Z",
+        "updatedAt": "2025-08-11T21:51:11.751Z"
+      },
+      {
+        "id": "cme7nd68x005bwcss0y0799ya",
+        "question": "How can you loop from 0 to 100, including 100?",
+        "options": [
+          "`for i in range(100):`",
+          "`for i in range(1, 100):`",
+          "`for i in range(101):`",
+          "`for i in range(0, 100, 1):`"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The `range(stop)` function goes up to, but does not include, the `stop` value. To include 100, the stop value must be 101.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:11.841Z",
+        "updatedAt": "2025-08-11T21:51:11.841Z"
+      },
+      {
+        "id": "cme7nd6bh005cwcssmo24yrs0",
+        "question": "What is the output? `i = 1; while i < 3: print('A'); i += 1`",
+        "options": [
+          "A",
+          "A\nA",
+          "A\nA\nA",
+          "Infinite loop"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The loop runs for `i=1` and `i=2`. When `i` becomes 3, the condition `i < 3` is no longer true, and the loop terminates. 'A' is printed twice.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:11.934Z",
+        "updatedAt": "2025-08-11T21:51:11.934Z"
+      },
+      {
+        "id": "cme7nd6e1005dwcssi1xv20xc",
+        "question": "What is the output? `while False: print('A'); else: print('B')`",
+        "options": [
+          "A",
+          "B",
+          "No output",
+          "A\nB"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `while` loop's condition is immediately false, so the loop body is never entered. The loop terminates 'normally' (not via a `break`), so the `else` block is executed.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:12.025Z",
+        "updatedAt": "2025-08-11T21:51:12.025Z"
+      },
+      {
+        "id": "cme7nd6gk005ewcssp8q9r2ia",
+        "question": "What is a 'dead loop'?",
+        "options": [
+          "A loop that has a `break` statement.",
+          "A loop whose condition is false from the very beginning, so it never executes.",
+          "Another name for an infinite loop.",
+          "A loop that contains only a `pass` statement."
+        ],
+        "correctAnswer": 1,
+        "explanation": "A 'dead loop' or 'dead code' refers to code that is unreachable. For a loop, this means its controlling condition is initially false, so its body is never executed.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:12.117Z",
+        "updatedAt": "2025-08-11T21:51:12.117Z"
+      },
+      {
+        "id": "cme7nd6j2005fwcssw1s6r7y1",
+        "question": "Which of the following is NOT a valid conditional operator in an `if` statement?",
+        "options": [
+          "`==`",
+          "`is`",
+          "`=`",
+          "`!=`"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The single equals sign `=` is the assignment operator, used for assigning values to variables. The double equals sign `==` is the equality comparison operator.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:12.206Z",
+        "updatedAt": "2025-08-11T21:51:12.206Z"
+      },
+      {
+        "id": "cme7nd6lp005gwcssioldk0o6",
+        "question": "What does the code print? `for i in range(3): for j in range(i): print(j)`",
+        "options": [
+          "0\n0\n1",
+          "1\n2",
+          "0\n1\n2",
+          "0\n1"
+        ],
+        "correctAnswer": 3,
+        "explanation": "When i=0, `range(0)` is empty. When i=1, `range(1)` produces 0, so '0' is printed. When i=2, `range(2)` produces 0 and 1, so '0' and '1' are printed.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:12.302Z",
+        "updatedAt": "2025-08-11T21:51:12.302Z"
+      },
+      {
+        "id": "cme7nd6oh005hwcsspvhokdlw",
+        "question": "What's a common way to loop a specific number of times without needing a counter variable?",
+        "options": [
+          "`for _ in range(5):`",
+          "`for i in 5:`",
+          "`while 5:`",
+          "`if 5:`"
+        ],
+        "correctAnswer": 0,
+        "explanation": "When you need to repeat an action a set number of times but don't need to use the iteration number, it's a common convention to use an underscore `_` as the loop variable to indicate it's intentionally unused.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:12.401Z",
+        "updatedAt": "2025-08-11T21:51:12.401Z"
+      },
+      {
+        "id": "cme7nd6r2005iwcsse1ib3uul",
+        "question": "What's the output? `if 'a' > 'B': print('Yes') else: print('No')`",
+        "options": [
+          "Yes",
+          "No",
+          "TypeError",
+          "It depends on the system."
+        ],
+        "correctAnswer": 0,
+        "explanation": "String comparison is done based on their ordinal (ASCII/Unicode) values. Lowercase letters have higher ordinal values than uppercase letters, so 'a' is considered greater than 'B'.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:12.494Z",
+        "updatedAt": "2025-08-11T21:51:12.494Z"
+      },
+      {
+        "id": "cme7nd6ug005jwcssb2qu1qtn",
+        "question": "In `if condition1 or condition2:`, if `condition1` is `True`...",
+        "options": [
+          "`condition2` is always checked.",
+          "`condition2` is never checked.",
+          "`condition2` is only checked if it's a boolean.",
+          "The program raises an error."
+        ],
+        "correctAnswer": 1,
+        "explanation": "This is known as short-circuit evaluation. The `or` operator only needs one condition to be true. Once it finds one (`condition1`), it knows the whole expression is `True` and doesn't bother evaluating `condition2`.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:12.616Z",
+        "updatedAt": "2025-08-11T21:51:12.616Z"
+      },
+      {
+        "id": "cme7nd6xj005kwcss3mqftc0r",
+        "question": "What is the primary feature of the `match-case` statement introduced in Python 3.10?",
+        "options": [
+          "It is a more efficient way to write `for` loops.",
+          "It provides a way to perform structural pattern matching, similar to a `switch` statement but more powerful.",
+          "It is a new way to handle errors.",
+          "It is used for multi-threading control."
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `match-case` statement allows for complex pattern matching against values and data structures, offering a more readable and powerful alternative to complex `if-elif-else` chains.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:12.728Z",
+        "updatedAt": "2025-08-11T21:51:12.728Z"
+      },
+      {
+        "id": "cme7nd70o005lwcssqdrtv1lj",
+        "question": "What happens when a `return` statement is executed inside a loop within a function?",
+        "options": [
+          "Only the current iteration of the loop is terminated.",
+          "Only the loop is terminated, and the function continues.",
+          "The entire function is terminated immediately, and a value is returned.",
+          "It causes a SyntaxError."
+        ],
+        "correctAnswer": 2,
+        "explanation": "`return` is a function-level statement. When executed, it exits the entire function immediately, regardless of how many loops it is nested inside.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:12.840Z",
+        "updatedAt": "2025-08-11T21:51:12.840Z"
+      },
+      {
+        "id": "cme7nd75b005mwcssu6tsknz5",
+        "question": "What is the output? `my_iterator = iter([1, 2]); for i in my_iterator: pass; for i in my_iterator: print('A')`",
+        "options": [
+          "A",
+          "A\nA",
+          "No output",
+          "An error"
+        ],
+        "correctAnswer": 2,
+        "explanation": "Iterators can only be consumed once. The first `for` loop exhausts the iterator. The second `for` loop has no items left to iterate over, so its body never executes.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:13.007Z",
+        "updatedAt": "2025-08-11T21:51:13.007Z"
+      },
+      {
+        "id": "cme7nd78a005nwcssq0filr23",
+        "question": "In a `match-case` block, what does the wildcard pattern `case _:` do?",
+        "options": [
+          "It matches only the underscore character.",
+          "It is a catch-all case that matches any subject if no other case has matched.",
+          "It matches any empty sequence.",
+          "It is a syntax error."
+        ],
+        "correctAnswer": 1,
+        "explanation": "The underscore `_` in a `match-case` statement acts as a wildcard, similar to the `else` block in an `if-elif` chain. It ensures that there is always a block to execute.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:13.114Z",
+        "updatedAt": "2025-08-11T21:51:13.114Z"
+      },
+      {
+        "id": "cme7nd7aw005owcsscehoyu9k",
+        "question": "What is a classic 'FizzBuzz' test designed to evaluate?",
+        "options": [
+          "A programmer's ability to handle complex data structures.",
+          "A programmer's understanding of basic loop and conditional logic (`for`, `if`, `elif`, `else`, `%`).",
+          "A programmer's knowledge of object-oriented programming.",
+          "A programmer's skill in writing fast algorithms."
+        ],
+        "correctAnswer": 1,
+        "explanation": "FizzBuzz is a common screening problem that tests for fundamental programming skills, specifically the ability to use loops and conditional logic to solve a simple problem.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:13.208Z",
+        "updatedAt": "2025-08-11T21:51:13.208Z"
+      },
+      {
+        "id": "cme7nd7dl005pwcsse2jd3fpt",
+        "question": "What will this code print? `for i in range(-2, -5, -1): print(i)`",
+        "options": [
+          "-2\n-3\n-4",
+          "-2\n-1\n0",
+          "-5\n-4\n-3",
+          "No output"
+        ],
+        "correctAnswer": 0,
+        "explanation": "`range()` works with negative numbers. It starts at -2 and counts down by 1 (`step=-1`) until it reaches the stop value of -5 (which is not included).",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:13.305Z",
+        "updatedAt": "2025-08-11T21:51:13.305Z"
+      },
+      {
+        "id": "cme7nd7g5005qwcssyvhx6dfm",
+        "question": "What is the output? `x = 5; if 1 < x < 4: print('A') else: print('B')`",
+        "options": [
+          "A",
+          "B",
+          "True",
+          "Error"
+        ],
+        "correctAnswer": 1,
+        "explanation": "Chained comparisons are equivalent to `(1 < x) and (x < 4)`. While `1 < 5` is true, `5 < 4` is false. Since `and` requires both to be true, the overall condition is false, executing the `else` block.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:13.397Z",
+        "updatedAt": "2025-08-11T21:51:13.397Z"
+      },
+      {
+        "id": "cme7nd7k3005rwcssj6u0zzlw",
+        "question": "What is the output? `data = [1, 2]; if (val := len(data)) > 1: print(val)`",
+        "options": [
+          "True",
+          "1",
+          "2",
+          "An error"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The walrus operator `:=` assigns the result of `len(data)` (which is 2) to the variable `val` AND allows the value to be used in the comparison `val > 1`. Since 2 > 1 is true, the `print(val)` statement is executed.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:13.539Z",
+        "updatedAt": "2025-08-11T21:51:13.539Z"
+      },
+      {
+        "id": "cme7nd7mr005swcssawllng1j",
+        "question": "What's the output? `i=0; while i<5: i+=1; if i==2: continue; print(i, end='')`",
+        "options": [
+          "1345",
+          "12345",
+          "01234",
+          "134"
+        ],
+        "correctAnswer": 0,
+        "explanation": "The loop prints 1. When i becomes 2, `continue` skips the print. Then it prints 3, 4, and 5. `end=''` keeps them on the same line.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:13.635Z",
+        "updatedAt": "2025-08-11T21:51:13.635Z"
+      },
+      {
+        "id": "cme7nd7pl005twcsszmdi574i",
+        "question": "A `for` loop in Python is best suited for which situation?",
+        "options": [
+          "When you want a loop to run indefinitely until a user provides input.",
+          "When you want to iterate over a finite sequence of items.",
+          "When you need to check a complex boolean condition.",
+          "When you want a loop to run at least once."
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `for` loop is designed for definite iteration, meaning it runs for a predictable number of times based on the length of the sequence (list, string, range, etc.) it is iterating over.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:13.738Z",
+        "updatedAt": "2025-08-11T21:51:13.738Z"
+      },
+      {
+        "id": "cme7nd7ss005uwcsst7q5b82i",
+        "question": "What is the output? `if []: print('A') elif [1]: print('B') else: print('C')`",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "No output"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The first condition `if []` is false because an empty list is falsy. The program then checks the `elif [1]:`. A non-empty list is truthy, so this condition is true, and 'B' is printed.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:13.853Z",
+        "updatedAt": "2025-08-11T21:51:13.853Z"
+      },
+      {
+        "id": "cme7nd7vf005vwcss243az7ug",
+        "question": "What is the state of `x` and `y` after this loop? `x=0;y=0; for i in range(5): if i%2==0: x+=1; else: y+=1`",
+        "options": [
+          "x is 2, y is 3",
+          "x is 3, y is 2",
+          "x is 5, y is 0",
+          "x is 2, y is 2"
+        ],
+        "correctAnswer": 1,
+        "explanation": "The loop iterates for i = 0, 1, 2, 3, 4. The `if` block (for even numbers) runs for 0, 2, 4 (3 times). The `else` block (for odd numbers) runs for 1, 3 (2 times). So `x` becomes 3 and `y` becomes 2.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:13.948Z",
+        "updatedAt": "2025-08-11T21:51:13.948Z"
+      },
+      {
+        "id": "cme7nd7y0005wwcss7e24lqzg",
+        "question": "What is the most accurate description of a 'jump statement'?",
+        "options": [
+          "A statement that performs a calculation.",
+          "A statement that unconditionally transfers control to another point in the program.",
+          "A statement that defines a function.",
+          "A statement that creates a variable."
+        ],
+        "correctAnswer": 1,
+        "explanation": "`break`, `continue`, and `return` are considered jump statements because they interrupt the normal sequential flow of execution and jump control to a new location.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:14.041Z",
+        "updatedAt": "2025-08-11T21:51:14.041Z"
+      },
+      {
+        "id": "cme7nd80m005xwcssjky8e4h3",
+        "question": "What is printed? `x=True; y=False; if x or y and not x: print('A') else: print('B')`",
+        "options": [
+          "A",
+          "B",
+          "True",
+          "An error"
+        ],
+        "correctAnswer": 0,
+        "explanation": "Operator precedence is `not`, then `and`, then `or`. `not x` is `False`. `y and False` is `False`. `x or False` (which is `True or False`) is `True`. So, the `if` block executes.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:14.134Z",
+        "updatedAt": "2025-08-11T21:51:14.134Z"
+      },
+      {
+        "id": "cme7nd83b005ywcsszrsu6kdo",
+        "question": "How is a multi-way `if-elif-else` statement different from a series of simple `if` statements?",
+        "options": [
+          "There is no difference.",
+          "An `if-elif-else` chain is guaranteed to execute exactly one block of code.",
+          "A series of `if` statements can execute multiple blocks of code.",
+          "Both B and C are correct."
+        ],
+        "correctAnswer": 3,
+        "explanation": "In an `if-elif-else` structure, only the first true condition's block is executed. In a series of separate `if` statements, each condition is checked independently, and multiple blocks could potentially run.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:14.231Z",
+        "updatedAt": "2025-08-11T21:51:14.231Z"
+      },
+      {
+        "id": "cme7nd85y005zwcsssleopy2y",
+        "question": "What is the output? `for i in range(1, 1): print(i)`",
+        "options": [
+          "1",
+          "0",
+          "No output",
+          "Error"
+        ],
+        "correctAnswer": 2,
+        "explanation": "`range(1, 1)` tries to generate numbers starting at 1 and stopping before 1. Since it's already at the stop value, the sequence is empty, and the loop body never runs.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:14.326Z",
+        "updatedAt": "2025-08-11T21:51:14.326Z"
+      },
+      {
+        "id": "cme7nd88z0060wcssxfk5vgbz",
+        "question": "A `while` loop is best suited for which situation?",
+        "options": [
+          "When you need to iterate over a fixed set of items.",
+          "When you want a loop to run until a condition is no longer true, and you don't know how many iterations that will take.",
+          "When you need to get an index along with a value.",
+          "When you want to loop in reverse."
+        ],
+        "correctAnswer": 1,
+        "explanation": "The `while` loop's strength is indefinite iteration. It's perfect for scenarios like waiting for user input, processing a data stream, or running a simulation until a goal is met.",
+        "difficulty": "beginner",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:14.435Z",
+        "updatedAt": "2025-08-11T21:51:14.435Z"
+      },
+      {
+        "id": "cme7nd8d80061wcssnjvpt1kz",
+        "question": "What does this code print? `x='C'; y = 'A' if x=='B' else 'B' if x=='C' else 'D'`",
+        "options": [
+          "'A'",
+          "'B'",
+          "'C'",
+          "'D'"
+        ],
+        "correctAnswer": 1,
+        "explanation": "This is a chained ternary expression. `x=='B'` is false, so it evaluates the first `else`. This leads to the second ternary: `'B' if x=='C' else 'D'`. Since `x=='C'` is true, the result is 'B'.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:14.589Z",
+        "updatedAt": "2025-08-11T21:51:14.589Z"
+      },
+      {
+        "id": "cme7nd8fu0062wcssf51g8q84",
+        "question": "What is printed? `x = 10; while x > 5: x -= 2; print(x)`",
+        "options": [
+          "8\n6\n4",
+          "8\n6",
+          "10\n8\n6",
+          "8, 6, 4"
+        ],
+        "correctAnswer": 0,
+        "explanation": "The loop starts with x=10. First iteration: x becomes 8, prints 8. Second: x becomes 6, prints 6. Third: x becomes 4, prints 4. Now `x > 5` is false, so the loop terminates.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:14.683Z",
+        "updatedAt": "2025-08-11T21:51:14.683Z"
+      },
+      {
+        "id": "cme7nd8if0063wcssulu9j8tw",
+        "question": "What is the output? `if 'a' in {'a':1}: print('Yes') else: print('No')`",
+        "options": [
+          "Yes",
+          "No",
+          "Error",
+          "1"
+        ],
+        "correctAnswer": 0,
+        "explanation": "The `in` operator, when used on a dictionary, checks for the presence of a key. Since 'a' is a key in the dictionary, the condition is true.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:14.775Z",
+        "updatedAt": "2025-08-11T21:51:14.775Z"
+      },
+      {
+        "id": "cme7nd8nh0064wcsshfrveamo",
+        "question": "How many lines will this code print? `for i in range(2): for j in range(3): print(i, j)`",
+        "options": [
+          "2",
+          "3",
+          "5",
+          "6"
+        ],
+        "correctAnswer": 3,
+        "explanation": "This is a nested loop. The outer loop runs 2 times. The inner loop runs 3 times for each outer iteration. The total number of `print` executions is 2 * 3 = 6.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:14.958Z",
+        "updatedAt": "2025-08-11T21:51:14.958Z"
+      },
+      {
+        "id": "cme7nd8q80065wcss6jswza6o",
+        "question": "What is the value of `count`? `count = 0; for i in 'abc': for j in 'xyz': count += 1`",
+        "options": [
+          "3",
+          "6",
+          "9",
+          "12"
+        ],
+        "correctAnswer": 2,
+        "explanation": "The outer loop runs 3 times. The inner loop runs 3 times for each of those outer iterations. The total number of times `count += 1` is executed is 3 * 3 = 9.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:15.056Z",
+        "updatedAt": "2025-08-11T21:51:15.056Z"
+      },
+      {
+        "id": "cme7nd8ta0066wcssq2l6u6h0",
+        "question": "What is the output? `if -1: print('A') else: print('B')`",
+        "options": [
+          "A",
+          "B",
+          "Error",
+          "No output"
+        ],
+        "correctAnswer": 0,
+        "explanation": "In Python's truthiness rules, the only number that is 'falsy' is 0. All other numbers, including negative numbers like -1, are 'truthy'. Therefore, the `if` block is executed.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:15.167Z",
+        "updatedAt": "2025-08-11T21:51:15.167Z"
+      },
+      {
+        "id": "cme7nd8vv0067wcsspoq46t42",
+        "question": "Which of these will cause a SyntaxError?",
+        "options": [
+          "`if x == 5: pass`",
+          "`if x == 5 else: pass`",
+          "`x = 5 if True else 10`",
+          "`for _ in range(5):`"
+        ],
+        "correctAnswer": 1,
+        "explanation": "An `else` statement must be preceded by an `if` (or `elif`) block. An `if` block cannot be empty before an `else`, it needs at least one statement, even if it's just `pass`.",
+        "difficulty": "advanced",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:15.260Z",
+        "updatedAt": "2025-08-11T21:51:15.260Z"
+      },
+      {
+        "id": "cme7nd8yg0068wcssz2u3w5hp",
+        "question": "What's the output? `s=''; for i in range(3): s += str(i); print(s)`",
+        "options": [
+          "012",
+          "6",
+          "3",
+          "0\n01\n012"
+        ],
+        "correctAnswer": 3,
+        "explanation": "The `print(s)` is inside the loop. After the first iteration, s='0' and is printed. After the second, s='01' and is printed. After the third, s='012' and is printed.",
+        "difficulty": "intermediate",
+        "category": "Control Flow",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:15.352Z",
+        "updatedAt": "2025-08-11T21:51:15.352Z"
+      },
+      {
+        "id": "cme7nd9110069wcss8wd8632w",
+        "question": "Sample question for Basic Data Structures?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "Basic Data Structures",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:15.446Z",
+        "updatedAt": "2025-08-11T21:51:15.446Z"
+      },
+      {
+        "id": "cme7nd93q006awcsseennt6n2",
+        "question": "Sample question for Functions and Scope?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "Functions and Scope",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:15.542Z",
+        "updatedAt": "2025-08-11T21:51:15.542Z"
+      },
+      {
+        "id": "cme7nd96a006bwcssylb94hp7",
+        "question": "Sample question for Object-Oriented Programming - Fundamentals?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "Object-Oriented Programming - Fundamentals",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:15.635Z",
+        "updatedAt": "2025-08-11T21:51:15.635Z"
+      },
+      {
+        "id": "cme7nd98v006cwcssemnmeeef",
+        "question": "Sample question for File Handling & Serialization?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "File Handling & Serialization",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:15.728Z",
+        "updatedAt": "2025-08-11T21:51:15.728Z"
+      },
+      {
+        "id": "cme7nd9bh006dwcssgvhkqfrw",
+        "question": "Sample question for Error & Exception Handling?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "Error & Exception Handling",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:15.821Z",
+        "updatedAt": "2025-08-11T21:51:15.821Z"
+      },
+      {
+        "id": "cme7nd9e0006ewcss3efdwdfk",
+        "question": "Sample question for Modules, Packages & Virtual Environments?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "Modules, Packages & Virtual Environments",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:15.913Z",
+        "updatedAt": "2025-08-11T21:51:15.913Z"
+      },
+      {
+        "id": "cme7nd9gn006fwcss7ojmj2ac",
+        "question": "Sample question for Advanced Data Structures?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "Advanced Data Structures",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:16.008Z",
+        "updatedAt": "2025-08-11T21:51:16.008Z"
+      },
+      {
+        "id": "cme7nd9mf006gwcss6abqeei0",
+        "question": "Sample question for Functional Programming Tools?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "Functional Programming Tools",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:16.216Z",
+        "updatedAt": "2025-08-11T21:51:16.216Z"
+      },
+      {
+        "id": "cme7nd9p1006hwcssfty8n6y8",
+        "question": "Sample question for Generators & Decorators?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "Generators & Decorators",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:16.309Z",
+        "updatedAt": "2025-08-11T21:51:16.309Z"
+      },
+      {
+        "id": "cme7nd9sb006iwcssw48yyb9c",
+        "question": "Sample question for Object-Oriented Programming - Advanced?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "Object-Oriented Programming - Advanced",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:16.428Z",
+        "updatedAt": "2025-08-11T21:51:16.428Z"
+      },
+      {
+        "id": "cme7nd9uu006jwcss2t9dg69u",
+        "question": "Sample question for Test Automation?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "Test Automation",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:16.518Z",
+        "updatedAt": "2025-08-11T21:51:16.518Z"
+      },
+      {
+        "id": "cme7nd9xf006kwcss3fypbkks",
+        "question": "Sample question for Concurrency & Async Programming?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "Concurrency & Async Programming",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:16.612Z",
+        "updatedAt": "2025-08-11T21:51:16.612Z"
+      },
+      {
+        "id": "cme7nda03006lwcssf075xo97",
+        "question": "Sample question for Database Interaction?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "Database Interaction",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:16.708Z",
+        "updatedAt": "2025-08-11T21:51:16.708Z"
+      },
+      {
+        "id": "cme7nda2o006mwcssjqjd2lc3",
+        "question": "Sample question for Web Frameworks (Flask & Django)?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "Web Frameworks (Flask & Django)",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:16.800Z",
+        "updatedAt": "2025-08-11T21:51:16.800Z"
+      },
+      {
+        "id": "cme7nda5a006nwcss9o5yzfx6",
+        "question": "Sample question for APIs & Web Scraping?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "APIs & Web Scraping",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:16.895Z",
+        "updatedAt": "2025-08-11T21:51:16.895Z"
+      },
+      {
+        "id": "cme7nda89006owcssyjqj9mgh",
+        "question": "Sample question for Data Analysis with Pandas?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "Data Analysis with Pandas",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:17.001Z",
+        "updatedAt": "2025-08-11T21:51:17.001Z"
+      },
+      {
+        "id": "cme7ndaau006pwcsszs9h16t8",
+        "question": "Sample question for Numerical Computing with NumPy?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "Numerical Computing with NumPy",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:17.094Z",
+        "updatedAt": "2025-08-11T21:51:17.094Z"
+      },
+      {
+        "id": "cme7ndael006qwcssb6pgbs6t",
+        "question": "Sample question for Data Visualization?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "Data Visualization",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:17.230Z",
+        "updatedAt": "2025-08-11T21:51:17.230Z"
+      },
+      {
+        "id": "cme7ndah8006rwcss4381bgg1",
+        "question": "Sample question for Machine Learning with Scikit-Learn?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "Machine Learning with Scikit-Learn",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:17.324Z",
+        "updatedAt": "2025-08-11T21:51:17.324Z"
+      },
+      {
+        "id": "cme7ndakc006swcssq93hpkh7",
+        "question": "Sample question for System Automation & Scripting?",
+        "options": [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        "correctAnswer": 0,
+        "explanation": "TODO: Add explanation for this question.",
+        "difficulty": "beginner",
+        "category": "System Automation & Scripting",
+        "isActive": true,
+        "createdBy": null,
+        "createdAt": "2025-08-11T21:51:17.437Z",
+        "updatedAt": "2025-08-11T21:51:17.437Z"
+      }
+    ],
+    "quizzes": [],
+    "quizAttempts": [],
+    "dailyMiniQuizzes": [],
+    "dailyMiniQuizAttempts": []
+  }
+}

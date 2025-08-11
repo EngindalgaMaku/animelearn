@@ -1,40 +1,30 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Code,
-  Plus,
-  X,
-  Check,
-  Clock,
-  Trophy,
-  ArrowUp,
-  ArrowDown,
-  Play,
-  RotateCcw,
-} from "lucide-react";
+import { CheckCircle, Code, Play, RotateCcw, Trophy } from "lucide-react";
 
-interface CodeBlock {
-  id: string;
+interface Module {
+  name: string;
   code: string;
-  type: "variable" | "condition" | "loop" | "function" | "operation" | "return";
-  category?: string;
-  description?: string;
+  explanation: string;
+}
+
+interface CodeBuilderContent {
+  project: string;
+  description: string;
+  modules: Module[];
+  testGraph?: { [key: string]: string[] };
+}
+
+interface LearningActivity {
+  id: string;
+  title: string;
+  description: string;
+  content: CodeBuilderContent;
 }
 
 interface CodeBuilderActivityProps {
-  activity: {
-    content: {
-      instructions?: string;
-      targetOutput: string;
-      availableBlocks: CodeBlock[];
-      timeLimit?: number;
-      language: string;
-      hints?: string[];
-      solution?: string[];
-    };
-  };
+  activity: LearningActivity;
   onComplete: (score: number, maxScore: number, success: boolean) => void;
 }
 
@@ -42,525 +32,335 @@ export default function CodeBuilderActivity({
   activity,
   onComplete,
 }: CodeBuilderActivityProps) {
-  // Validate activity data
-  if (!activity?.content) {
-    return (
-      <div className="py-16 text-center">
-        <div className="mb-4 text-lg font-semibold text-red-500">
-          Invalid Activity Data
-        </div>
-        <p className="text-gray-600">
-          This code builder activity doesn't have the required content
-          configuration.
-        </p>
-      </div>
-    );
-  }
+  const [currentModule, setCurrentModule] = useState(0);
+  const [completedModules, setCompletedModules] = useState<Set<number>>(
+    new Set()
+  );
+  const [builtCode, setBuiltCode] = useState<string[]>([]);
+  const [showOutput, setShowOutput] = useState(false);
+  const [projectCompleted, setProjectCompleted] = useState(false);
 
-  const contentData = activity.content;
-  const contentBlocks = contentData.availableBlocks || [];
-  const targetOutput = contentData.targetOutput || "";
-
-  if (contentBlocks.length === 0) {
-    return (
-      <div className="py-16 text-center">
-        <div className="mb-4 text-lg font-semibold text-red-500">
-          No Code Blocks Available
-        </div>
-        <p className="text-gray-600">
-          This activity doesn't have any code blocks to work with.
-        </p>
-      </div>
-    );
-  }
-
-  const [selectedBlocks, setSelectedBlocks] = useState<CodeBlock[]>([]);
-  const [availableBlocks, setAvailableBlocks] =
-    useState<CodeBlock[]>(contentBlocks);
-  const [output, setOutput] = useState<string>("");
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [timeLeft, setTimeLeft] = useState(contentData.timeLimit || 600);
-  const [isCompleted, setIsCompleted] = useState(false);
-  const [score, setScore] = useState(0);
-  const [showHints, setShowHints] = useState(false);
-  const [currentHint, setCurrentHint] = useState(0);
+  const { project, description, modules, testGraph } = activity.content;
 
   useEffect(() => {
-    if (timeLeft > 0 && !isCompleted) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && !isCompleted) {
-      handleComplete();
+    // Auto-complete when all modules are built
+    if (completedModules.size === modules.length && !projectCompleted) {
+      setProjectCompleted(true);
+      const score = 90 + completedModules.size * 2; // High score for completing all modules
+      onComplete(Math.min(100, score), 100, true);
     }
-  }, [timeLeft, isCompleted]);
+  }, [completedModules, modules.length, projectCompleted, onComplete]);
 
-  const addBlock = (block: CodeBlock) => {
-    setSelectedBlocks([
-      ...selectedBlocks,
-      { ...block, id: `${block.id}_${Date.now()}` },
-    ]);
-    setIsCorrect(null);
-    setOutput("");
+  const addModule = (moduleIndex: number) => {
+    const module = modules[moduleIndex];
+    setBuiltCode((prev) => [...prev, module.code]);
+    setCompletedModules((prev) => new Set([...prev, moduleIndex]));
+
+    // Move to next module if available
+    if (moduleIndex < modules.length - 1) {
+      setCurrentModule(moduleIndex + 1);
+    }
   };
 
-  const removeBlock = (index: number) => {
-    setSelectedBlocks(selectedBlocks.filter((_, i) => i !== index));
-    setIsCorrect(null);
-    setOutput("");
+  const removeModule = (codeIndex: number) => {
+    setBuiltCode((prev) => prev.filter((_, index) => index !== codeIndex));
+    // Reset completed modules that come after this one
+    const moduleIndex = codeIndex;
+    const newCompleted = new Set([...completedModules]);
+    for (let i = moduleIndex; i < modules.length; i++) {
+      newCompleted.delete(i);
+    }
+    setCompletedModules(newCompleted);
   };
 
-  const moveBlock = (index: number, direction: "up" | "down") => {
-    const newBlocks = [...selectedBlocks];
-    if (direction === "up" && index > 0) {
-      [newBlocks[index], newBlocks[index - 1]] = [
-        newBlocks[index - 1],
-        newBlocks[index],
-      ];
-    } else if (direction === "down" && index < selectedBlocks.length - 1) {
-      [newBlocks[index], newBlocks[index + 1]] = [
-        newBlocks[index + 1],
-        newBlocks[index],
-      ];
-    }
-    setSelectedBlocks(newBlocks);
-    setIsCorrect(null);
-    setOutput("");
-  };
-
-  const runCode = () => {
-    if (selectedBlocks.length === 0) {
-      setOutput("No code to run!");
-      return;
-    }
-
-    // Simulate code execution
-    const codeString = selectedBlocks.map((block) => block.code).join("\n");
-
-    try {
-      // Simple simulation - in reality this would execute the code
-      let simulatedOutput = "";
-
-      // Basic pattern matching for common outputs
-      if (codeString.includes("print") || codeString.includes("console.log")) {
-        // Extract print statements
-        const printMatches = codeString.match(
-          /(print|console\.log)\s*\(\s*['"`]([^'"`]*)['"`]\s*\)/g
-        );
-        if (printMatches) {
-          simulatedOutput = printMatches
-            .map((match) => {
-              const content = match.match(/['"`]([^'"`]*)['"`]/);
-              return content ? content[1] : "";
-            })
-            .join("\n");
-        } else {
-          simulatedOutput = "Hello, World!"; // Default output
-        }
-      } else if (codeString.includes("return")) {
-        simulatedOutput = "Function completed successfully";
-      } else {
-        simulatedOutput = "Code executed";
+  const testCode = () => {
+    setShowOutput(true);
+    // Simulate testing the built project
+    setTimeout(() => {
+      // Mark as completed if all modules are included
+      if (builtCode.length === modules.length) {
+        setCompletedModules(new Set(modules.map((_, index) => index)));
       }
+    }, 1000);
+  };
 
-      setOutput(simulatedOutput);
+  const resetProject = () => {
+    setCurrentModule(0);
+    setCompletedModules(new Set());
+    setBuiltCode([]);
+    setShowOutput(false);
+    setProjectCompleted(false);
+  };
 
-      // Check if output matches target
-      const isMatch = simulatedOutput.trim() === targetOutput.trim();
-      setIsCorrect(isMatch);
+  const simulateOutput = () => {
+    if (testGraph) {
+      return `Graph Traversal Results:
+DFS from A: A B D E F C
+BFS from A: A B C D E F
 
-      if (isMatch && !isCompleted) {
-        setTimeout(() => handleComplete(true), 1000);
-      }
-    } catch (error) {
-      setOutput(`Error: ${error}`);
-      setIsCorrect(false);
+Graph structure loaded successfully!
+All nodes visited: ${Object.keys(testGraph).join(", ")}`;
     }
+
+    return `Project built successfully!
+All modules integrated correctly.
+Code is ready for execution.`;
   };
 
-  const handleComplete = (success: boolean = false) => {
-    try {
-      setIsCompleted(true);
+  return (
+    <div className="mx-auto max-w-6xl p-6">
+      {/* Header */}
+      <div className="mb-8">
+        <h2 className="mb-4 text-3xl font-bold text-gray-900">
+          {activity.title}
+        </h2>
+        <p className="mb-6 text-lg text-gray-600">{activity.description}</p>
 
-      let finalScore = 0;
-      if (success) {
-        // Base score for correctness
-        finalScore = 70;
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <h3 className="mb-2 font-semibold text-blue-900">
+            Project: {project}
+          </h3>
+          <p className="text-blue-800">{description}</p>
+        </div>
+      </div>
 
-        // Time bonus (30% max)
-        const timeBonus = Math.round(
-          (timeLeft / (contentData.timeLimit || 600)) * 30
-        );
-        finalScore += timeBonus;
-      } else {
-        // Partial credit for effort
-        const totalBlocks = contentBlocks.length || 1;
-        finalScore = Math.min(50, (selectedBlocks.length / totalBlocks) * 50);
-      }
-
-      setScore(finalScore);
-      onComplete(finalScore, 100, success);
-    } catch (error) {
-      console.error("Error completing code builder activity:", error);
-      onComplete(0, 100, false);
-    }
-  };
-
-  const resetActivity = () => {
-    try {
-      setSelectedBlocks([]);
-      setOutput("");
-      setIsCorrect(null);
-      setIsCompleted(false);
-      setScore(0);
-      setTimeLeft(contentData.timeLimit || 600);
-      setShowHints(false);
-      setCurrentHint(0);
-    } catch (error) {
-      console.error("Error resetting activity:", error);
-    }
-  };
-
-  const getBlockColor = (type: string) => {
-    const colors = {
-      variable: "bg-blue-100 border-blue-300 text-blue-800",
-      condition: "bg-green-100 border-green-300 text-green-800",
-      loop: "bg-purple-100 border-purple-300 text-purple-800",
-      function: "bg-orange-100 border-orange-300 text-orange-800",
-      operation: "bg-yellow-100 border-yellow-300 text-yellow-800",
-      return: "bg-red-100 border-red-300 text-red-800",
-    };
-    return (
-      colors[type as keyof typeof colors] ||
-      "bg-gray-100 border-gray-300 text-gray-800"
-    );
-  };
-
-  if (isCompleted) {
-    return (
-      <div className="mx-auto max-w-4xl p-6 text-center">
-        <div className="mb-6">
-          <Trophy className="mx-auto mb-4 h-16 w-16 text-yellow-500" />
-          <h2 className="mb-2 text-3xl font-bold text-gray-900">
-            Code Building Complete!
-          </h2>
-          <div className="mb-4 text-lg text-gray-600">You scored {score}%</div>
-
+      {/* Progress */}
+      <div className="mb-8">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-700">
+            Project Progress
+          </span>
+          <span className="text-sm text-gray-500">
+            {completedModules.size}/{modules.length} modules built
+          </span>
+        </div>
+        <div className="h-2 w-full rounded-full bg-gray-200">
           <div
-            className={`mb-6 rounded-lg p-4 font-medium ${
-              score >= 70
-                ? "bg-green-100 text-green-800"
-                : "bg-orange-100 text-orange-800"
-            }`}
-          >
-            {score >= 70
-              ? "🎉 Excellent! Your code produces the correct output!"
-              : "💪 Good effort! Keep practicing to improve your coding logic."}
+            className="h-2 rounded-full bg-green-600 transition-all duration-300"
+            style={{
+              width: `${(completedModules.size / modules.length) * 100}%`,
+            }}
+          ></div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        {/* Left Panel - Module Selection */}
+        <div className="space-y-6">
+          <div className="rounded-lg border border-gray-200 bg-white p-6">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">
+              Available Modules
+            </h3>
+
+            <div className="space-y-4">
+              {modules.map((module, index) => (
+                <div
+                  key={index}
+                  className={`rounded-lg border-2 p-4 transition-all ${
+                    completedModules.has(index)
+                      ? "border-green-500 bg-green-50"
+                      : index === currentModule
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 bg-white hover:border-gray-300"
+                  }`}
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <h4 className="font-semibold text-gray-900">
+                      {module.name}
+                    </h4>
+                    {completedModules.has(index) ? (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <button
+                        onClick={() => addModule(index)}
+                        disabled={index > currentModule}
+                        className="rounded bg-blue-600 px-3 py-1 text-sm text-white transition-colors hover:bg-blue-700 disabled:bg-gray-400"
+                      >
+                        Add Module
+                      </button>
+                    )}
+                  </div>
+
+                  <p className="mb-3 text-sm text-gray-600">
+                    {module.explanation}
+                  </p>
+
+                  <div className="rounded bg-gray-900 p-3">
+                    <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-xs text-green-300">
+                      {module.code}
+                    </pre>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Panel - Built Project */}
+        <div className="space-y-6">
+          <div className="rounded-lg border border-gray-200 bg-white p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Built Project
+              </h3>
+              <div className="flex space-x-2">
+                {builtCode.length > 0 && (
+                  <button
+                    onClick={testCode}
+                    className="flex items-center space-x-2 rounded bg-green-600 px-4 py-2 text-sm text-white transition-colors hover:bg-green-700"
+                  >
+                    <Play className="h-4 w-4" />
+                    <span>Test Code</span>
+                  </button>
+                )}
+                <button
+                  onClick={resetProject}
+                  className="flex items-center space-x-2 rounded bg-gray-600 px-4 py-2 text-sm text-white transition-colors hover:bg-gray-700"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  <span>Reset</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Code Editor */}
+            <div className="min-h-96 overflow-hidden rounded-lg bg-gray-900">
+              <div className="flex items-center space-x-2 border-b border-gray-700 p-4">
+                <Code className="h-5 w-5 text-gray-400" />
+                <span className="text-sm font-medium text-gray-400">
+                  {project}.py
+                </span>
+              </div>
+
+              <div className="p-4">
+                {builtCode.length > 0 ? (
+                  <div className="space-y-4">
+                    {builtCode.map((code, index) => (
+                      <div key={index} className="group relative">
+                        <button
+                          onClick={() => removeModule(index)}
+                          className="absolute -right-2 -top-2 h-6 w-6 rounded-full bg-red-500 text-xs text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
+                        >
+                          ×
+                        </button>
+                        <pre className="whitespace-pre-wrap font-mono text-sm text-green-300">
+                          {code}
+                        </pre>
+                        {index < builtCode.length - 1 && (
+                          <div className="my-4 border-t border-gray-700"></div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-12 text-center">
+                    <Code className="mx-auto mb-4 h-12 w-12 text-gray-600" />
+                    <p className="text-gray-400">
+                      Add modules to build your project
+                    </p>
+                    <p className="mt-2 text-sm text-gray-500">
+                      Start with the first module and work your way down
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-          {contentData.solution && (
-            <div className="mb-6 rounded-lg bg-gray-50 p-6 text-left">
-              <h3 className="mb-4 text-lg font-semibold">Example Solution:</h3>
-              <pre className="overflow-x-auto rounded bg-gray-900 p-4 font-mono text-sm text-green-400">
-                {Array.isArray(contentData.solution)
-                  ? contentData.solution.join("\n")
-                  : contentData.solution}
+          {/* Output Panel */}
+          {showOutput && (
+            <div className="rounded-lg bg-black p-4">
+              <div className="mb-3 flex items-center space-x-2">
+                <div className="h-2 w-2 rounded-full bg-green-400"></div>
+                <span className="text-sm font-medium text-green-400">
+                  Output
+                </span>
+              </div>
+              <pre className="whitespace-pre-wrap font-mono text-sm text-green-300">
+                {simulateOutput()}
               </pre>
             </div>
           )}
         </div>
-
-        <button
-          onClick={resetActivity}
-          className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
-        >
-          Try Again
-        </button>
       </div>
-    );
-  }
 
-  return (
-    <div className="mx-auto max-w-7xl p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Code className="h-6 w-6 text-blue-600" />
-            <span className="text-lg font-semibold text-gray-900">
-              Code Builder - {contentData.language || "Code"}
-            </span>
-          </div>
-
-          <div className="flex items-center space-x-4 text-sm text-gray-600">
-            <div className="flex items-center space-x-1">
-              <Clock className="h-4 w-4" />
-              <span>
-                {Math.floor(timeLeft / 60)}:
-                {(timeLeft % 60).toString().padStart(2, "0")}
+      {/* Module Flow Diagram */}
+      <div className="mt-8 rounded-lg bg-gray-50 p-6">
+        <h3 className="mb-4 text-lg font-semibold text-gray-900">
+          Module Build Order
+        </h3>
+        <div className="flex items-center justify-center space-x-4">
+          {modules.map((module, index) => (
+            <div key={index} className="flex items-center space-x-2">
+              <div
+                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
+                  completedModules.has(index)
+                    ? "bg-green-500 text-white"
+                    : index === currentModule
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-300 text-gray-600"
+                }`}
+              >
+                {index + 1}
+              </div>
+              <span
+                className={`text-sm font-medium ${
+                  completedModules.has(index)
+                    ? "text-green-700"
+                    : "text-gray-600"
+                }`}
+              >
+                {module.name}
               </span>
-            </div>
-            <div className="text-sm">Blocks Used: {selectedBlocks.length}</div>
-          </div>
-        </div>
-
-        {contentData.instructions && (
-          <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
-            <p className="text-blue-800">{contentData.instructions}</p>
-          </div>
-        )}
-
-        {/* Target Output */}
-        <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-          <h3 className="mb-2 font-semibold text-green-900">
-            🎯 Target Output:
-          </h3>
-          <pre className="rounded border bg-white p-3 font-mono text-sm text-gray-800">
-            {targetOutput || "No target output specified"}
-          </pre>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Available Blocks */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Available Code Blocks
-          </h3>
-
-          {/* Block Categories */}
-          {Object.entries(
-            availableBlocks.reduce(
-              (acc, block) => {
-                const type = block.type;
-                if (!acc[type]) acc[type] = [];
-                acc[type].push(block);
-                return acc;
-              },
-              {} as Record<string, CodeBlock[]>
-            )
-          ).map(([type, blocks]) => (
-            <div key={type} className="space-y-2">
-              <h4 className="text-sm font-medium capitalize text-gray-700">
-                {type}s
-              </h4>
-              {blocks.map((block) => (
-                <motion.button
-                  key={block.id}
-                  onClick={() => addBlock(block)}
-                  className={`w-full rounded-lg border-2 p-3 text-left font-mono text-sm transition-all hover:shadow-md ${getBlockColor(block.type)}`}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="flex items-center justify-between">
-                    <span>{block.code}</span>
-                    <Plus className="h-4 w-4" />
-                  </div>
-                  {block.description && (
-                    <div className="mt-1 text-xs opacity-75">
-                      {block.description}
-                    </div>
-                  )}
-                </motion.button>
-              ))}
+              {index < modules.length - 1 && (
+                <div className="h-0.5 w-8 bg-gray-300"></div>
+              )}
             </div>
           ))}
-
-          {/* Hints */}
-          {contentData.hints && contentData.hints.length > 0 && (
-            <div className="mt-6">
-              <button
-                onClick={() => setShowHints(!showHints)}
-                className="w-full rounded-lg border border-yellow-300 bg-yellow-100 p-3 font-medium text-yellow-800 transition-colors hover:bg-yellow-200"
-              >
-                {showHints ? "Hide Hints" : "Show Hints"} 💡
-              </button>
-
-              <AnimatePresence>
-                {showHints && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mt-2 rounded-lg border border-yellow-200 bg-yellow-50 p-3"
-                  >
-                    <p className="text-sm text-yellow-800">
-                      {contentData.hints?.[currentHint] || "No hint available"}
-                    </p>
-                    {(contentData.hints?.length || 0) > 1 && (
-                      <div className="mt-2 flex items-center justify-between">
-                        <span className="text-xs text-yellow-700">
-                          Hint {currentHint + 1} of{" "}
-                          {contentData.hints?.length || 0}
-                        </span>
-                        <div className="space-x-1">
-                          <button
-                            onClick={() =>
-                              setCurrentHint(Math.max(0, currentHint - 1))
-                            }
-                            disabled={currentHint === 0}
-                            className="rounded bg-yellow-200 px-2 py-1 text-xs text-yellow-800 disabled:opacity-50"
-                          >
-                            Prev
-                          </button>
-                          <button
-                            onClick={() =>
-                              setCurrentHint(
-                                Math.min(
-                                  (contentData.hints?.length || 1) - 1,
-                                  currentHint + 1
-                                )
-                              )
-                            }
-                            disabled={
-                              currentHint ===
-                              (contentData.hints?.length || 1) - 1
-                            }
-                            className="rounded bg-yellow-200 px-2 py-1 text-xs text-yellow-800 disabled:opacity-50"
-                          >
-                            Next
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          )}
         </div>
+      </div>
 
-        {/* Code Builder Area */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Your Code</h3>
-            <button
-              onClick={resetActivity}
-              className="p-2 text-gray-600 transition-colors hover:text-gray-800"
-              title="Reset"
-            >
-              <RotateCcw className="h-4 w-4" />
-            </button>
+      {/* Completion Message */}
+      {projectCompleted && (
+        <div className="mt-8 rounded-lg border border-green-200 bg-green-50 p-6 text-center">
+          <div className="mb-4 flex items-center justify-center space-x-2">
+            <Trophy className="h-8 w-8 text-green-600" />
+            <span className="text-2xl font-bold text-green-900">
+              Project Complete!
+            </span>
           </div>
-
-          <div className="min-h-96 rounded-lg bg-gray-900 p-4">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex space-x-1">
-                <div className="h-3 w-3 rounded-full bg-red-500"></div>
-                <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
-                <div className="h-3 w-3 rounded-full bg-green-500"></div>
-              </div>
-              <span className="text-sm text-gray-400">
-                {contentData.language || "Code"}
-              </span>
-            </div>
-
-            <div className="space-y-2">
-              {selectedBlocks.length === 0 ? (
-                <div className="py-8 text-center text-sm text-gray-500">
-                  Drag code blocks here to build your program
-                </div>
-              ) : (
-                selectedBlocks.map((block, index) => (
-                  <motion.div
-                    key={block.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className={`flex items-center justify-between rounded border-2 p-3 font-mono text-sm ${getBlockColor(block.type)}`}
-                  >
-                    <span>{block.code}</span>
-                    <div className="flex items-center space-x-1">
-                      <button
-                        onClick={() => moveBlock(index, "up")}
-                        disabled={index === 0}
-                        className="p-1 text-gray-600 hover:text-gray-800 disabled:opacity-50"
-                      >
-                        <ArrowUp className="h-3 w-3" />
-                      </button>
-                      <button
-                        onClick={() => moveBlock(index, "down")}
-                        disabled={index === selectedBlocks.length - 1}
-                        className="p-1 text-gray-600 hover:text-gray-800 disabled:opacity-50"
-                      >
-                        <ArrowDown className="h-3 w-3" />
-                      </button>
-                      <button
-                        onClick={() => removeBlock(index)}
-                        className="p-1 text-red-600 hover:text-red-800"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </motion.div>
-                ))
-              )}
-            </div>
-
-            <div className="mt-4 border-t border-gray-700 pt-4">
-              <button
-                onClick={runCode}
-                disabled={selectedBlocks.length === 0}
-                className="inline-flex items-center space-x-2 rounded-lg bg-green-600 px-4 py-2 font-medium text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-              >
-                <Play className="h-4 w-4" />
-                <span>Run Code</span>
-              </button>
-            </div>
+          <p className="mb-4 text-green-800">
+            Congratulations! You've successfully built the {project} project by
+            assembling all the required modules.
+          </p>
+          <div className="rounded-lg border border-green-200 bg-white p-4">
+            <h4 className="mb-2 font-semibold text-green-900">
+              What you learned:
+            </h4>
+            <ul className="space-y-1 text-sm text-green-800">
+              <li>• How to structure complex code into modular components</li>
+              <li>• The importance of proper code organization</li>
+              <li>
+                • How different modules work together in a complete system
+              </li>
+              <li>
+                • Building projects step-by-step from individual components
+              </li>
+            </ul>
           </div>
         </div>
+      )}
 
-        {/* Output Area */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Output</h3>
-
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">
-                Console Output
-              </span>
-              {isCorrect !== null && (
-                <div
-                  className={`flex items-center space-x-1 text-sm ${
-                    isCorrect ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {isCorrect ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <X className="h-4 w-4" />
-                  )}
-                  <span>{isCorrect ? "Correct!" : "Incorrect"}</span>
-                </div>
-              )}
-            </div>
-
-            <pre className="min-h-24 whitespace-pre-wrap rounded bg-gray-900 p-3 font-mono text-sm text-green-400">
-              {output || "Run your code to see output..."}
-            </pre>
-          </div>
-
-          {/* Quick Reference */}
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <h4 className="mb-3 font-semibold text-gray-900">Block Types</h4>
-            <div className="space-y-2 text-xs">
-              <div className="flex items-center space-x-2">
-                <div className="h-4 w-4 rounded border border-blue-300 bg-blue-100"></div>
-                <span>Variables - Store data</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="h-4 w-4 rounded border border-green-300 bg-green-100"></div>
-                <span>Conditions - Decision making</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="h-4 w-4 rounded border border-purple-300 bg-purple-100"></div>
-                <span>Loops - Repeat actions</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="h-4 w-4 rounded border border-orange-300 bg-orange-100"></div>
-                <span>Functions - Reusable code</span>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Instructions */}
+      <div className="mt-8 rounded-lg border border-blue-200 bg-blue-50 p-4">
+        <h3 className="mb-2 font-semibold text-blue-900">🏗️ How to Build:</h3>
+        <ul className="space-y-1 text-sm text-blue-800">
+          <li>• Add modules in the recommended order for best results</li>
+          <li>• Read each module's explanation to understand its purpose</li>
+          <li>• Test your code after adding modules to see it in action</li>
+          <li>• Remove modules if you want to try a different approach</li>
+          <li>• Complete all modules to finish the project</li>
+        </ul>
       </div>
     </div>
   );

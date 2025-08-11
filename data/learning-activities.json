@@ -1,0 +1,1004 @@
+{
+  "activities": [
+    {
+      "title": "Python Variables & Data Types",
+      "description": "Learn the basics of Python variables and data types with interactive examples.",
+      "activityType": "interactive_demo",
+      "category": "Python Fundamentals",
+      "difficulty": 1,
+      "diamondReward": 15,
+      "experienceReward": 30,
+      "estimatedMinutes": 8,
+      "sortOrder": 1,
+      "topicOrder": 1,
+      "isLocked": false,
+      "tags": ["variables", "data-types", "beginner", "fundamentals"],
+      "content": {
+        "steps": [
+          {
+            "title": "Creating Variables",
+            "explanation": "In Python, you can create variables by simply assigning values to names.",
+            "code": "name = 'Alice'\nage = 25\nheight = 5.6\nis_student = True",
+            "interactive": true,
+            "hint": "Try changing the values and see what happens!"
+          },
+          {
+            "title": "Data Types",
+            "explanation": "Python has several built-in data types: strings, integers, floats, and booleans.",
+            "code": "print(type(name))    # <class 'str'>\nprint(type(age))     # <class 'int'>\nprint(type(height))  # <class 'float'>\nprint(type(is_student)) # <class 'bool'>",
+            "interactive": true,
+            "hint": "Use the type() function to check any variable's type!"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Python Built-in Functions Matching",
+      "description": "Match Python built-in functions with their correct outputs and learn their usage.",
+      "activityType": "matching",
+      "category": "Python Fundamentals",
+      "difficulty": 2,
+      "diamondReward": 20,
+      "experienceReward": 40,
+      "estimatedMinutes": 10,
+      "sortOrder": 2,
+      "topicOrder": 2,
+      "isLocked": true,
+      "tags": ["functions", "built-in", "matching"],
+      "content": {
+        "pairs": [
+          {
+            "left": "len('Hello')",
+            "right": "5",
+            "explanation": "len() returns the length of a string"
+          },
+          {
+            "left": "str(42)",
+            "right": "'42'",
+            "explanation": "str() converts numbers to strings"
+          },
+          {
+            "left": "int('10')",
+            "right": "10",
+            "explanation": "int() converts strings to integers"
+          },
+          {
+            "left": "max(1, 5, 3)",
+            "right": "5",
+            "explanation": "max() returns the largest value"
+          },
+          {
+            "left": "min(1, 5, 3)",
+            "right": "1",
+            "explanation": "min() returns the smallest value"
+          },
+          {
+            "left": "abs(-7)",
+            "right": "7",
+            "explanation": "abs() returns the absolute value"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Master Python For Loops",
+      "description": "Complete the missing parts in Python for loops to master iteration.",
+      "activityType": "fill_blanks",
+      "category": "Python Fundamentals",
+      "difficulty": 2,
+      "diamondReward": 25,
+      "experienceReward": 50,
+      "estimatedMinutes": 12,
+      "sortOrder": 3,
+      "topicOrder": 3,
+      "isLocked": true,
+      "tags": ["loops", "for-loop", "iteration"],
+      "content": {
+        "code": "# Loop through a list of numbers\nnumbers = [1, 2, 3, 4, 5]\n___ num ___ numbers:\n    print(f'Number: {num}')\n\n# Loop with range\n___ i ___ range(___,___):\n    print(f'Count: {i}')\n\n# Loop through a string\nword = 'Python'\n___ char ___ ___:\n    print(f'Letter: {char}')",
+        "blanks": [
+          { "position": 1, "answer": "for", "hint": "Use the loop keyword" },
+          {
+            "position": 2,
+            "answer": "in",
+            "hint": "Use the membership operator"
+          },
+          { "position": 3, "answer": "for", "hint": "Same loop keyword again" },
+          { "position": 4, "answer": "in", "hint": "Same membership operator" },
+          { "position": 5, "answer": "0", "hint": "Start from zero" },
+          { "position": 6, "answer": "5", "hint": "End at five" },
+          { "position": 7, "answer": "for", "hint": "Loop keyword once more" },
+          {
+            "position": 8,
+            "answer": "in",
+            "hint": "Membership operator again"
+          },
+          {
+            "position": 9,
+            "answer": "word",
+            "hint": "The variable name for the string"
+          }
+        ],
+        "explanation": "For loops are used to iterate over sequences like lists, strings, and ranges."
+      }
+    },
+    {
+      "title": "Python If-Else Statements",
+      "description": "Learn Python conditional logic with if-else statements and practice decision making.",
+      "activityType": "interactive_demo",
+      "category": "Python Fundamentals",
+      "difficulty": 2,
+      "diamondReward": 20,
+      "experienceReward": 40,
+      "estimatedMinutes": 10,
+      "sortOrder": 4,
+      "topicOrder": 4,
+      "isLocked": true,
+      "tags": ["conditionals", "if-else", "logic"],
+      "content": {
+        "steps": [
+          {
+            "title": "Basic If Statement",
+            "explanation": "Use if statements to execute code based on conditions.",
+            "code": "age = 18\nif age >= 18:\n    print('You can vote!')",
+            "interactive": true,
+            "hint": "Try changing the age value!"
+          },
+          {
+            "title": "If-Else Statement",
+            "explanation": "Add an else clause for alternative actions.",
+            "code": "score = 85\nif score >= 90:\n    print('A grade')\nelse:\n    print('Keep studying!')",
+            "interactive": true,
+            "hint": "What happens with different scores?"
+          },
+          {
+            "title": "If-Elif-Else Chain",
+            "explanation": "Use elif for multiple conditions.",
+            "code": "temperature = 25\nif temperature > 30:\n    print('Hot day!')\nelif temperature > 20:\n    print('Nice weather')\nelse:\n    print('Cold day')",
+            "interactive": true,
+            "hint": "Try different temperature values!"
+          }
+        ]
+      }
+    },
+    {
+      "title": "String Methods Explorer",
+      "description": "Explore Python string methods and see how they transform text data.",
+      "activityType": "data_exploration",
+      "category": "Python Fundamentals",
+      "difficulty": 2,
+      "diamondReward": 25,
+      "experienceReward": 45,
+      "estimatedMinutes": 15,
+      "sortOrder": 5,
+      "topicOrder": 5,
+      "isLocked": true,
+      "tags": ["strings", "methods", "exploration"],
+      "content": {
+        "dataset": "text = 'Hello World Python Programming'",
+        "explorations": [
+          {
+            "method": "upper()",
+            "code": "text.upper()",
+            "result": "HELLO WORLD PYTHON PROGRAMMING",
+            "explanation": "Converts all characters to uppercase"
+          },
+          {
+            "method": "lower()",
+            "code": "text.lower()",
+            "result": "hello world python programming",
+            "explanation": "Converts all characters to lowercase"
+          },
+          {
+            "method": "split()",
+            "code": "text.split()",
+            "result": "['Hello', 'World', 'Python', 'Programming']",
+            "explanation": "Splits string into a list of words"
+          },
+          {
+            "method": "replace()",
+            "code": "text.replace('Python', 'Java')",
+            "result": "Hello World Java Programming",
+            "explanation": "Replaces occurrences of a substring"
+          },
+          {
+            "method": "count()",
+            "code": "text.count('o')",
+            "result": "3",
+            "explanation": "Counts occurrences of a character"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Python Code Structure Builder",
+      "description": "Drag and drop Python code blocks to build a complete program structure.",
+      "activityType": "drag_drop",
+      "category": "Python Fundamentals",
+      "difficulty": 3,
+      "diamondReward": 30,
+      "experienceReward": 60,
+      "estimatedMinutes": 15,
+      "sortOrder": 6,
+      "topicOrder": 6,
+      "isLocked": true,
+      "tags": ["code-structure", "program-flow", "drag-drop"],
+      "content": {
+        "target": "Build a program that calculates the average of three numbers",
+        "blocks": [
+          {
+            "id": 1,
+            "code": "# Get three numbers from user",
+            "type": "comment"
+          },
+          {
+            "id": 2,
+            "code": "num1 = float(input('Enter first number: '))",
+            "type": "input"
+          },
+          {
+            "id": 3,
+            "code": "num2 = float(input('Enter second number: '))",
+            "type": "input"
+          },
+          {
+            "id": 4,
+            "code": "num3 = float(input('Enter third number: '))",
+            "type": "input"
+          },
+          { "id": 5, "code": "# Calculate average", "type": "comment" },
+          {
+            "id": 6,
+            "code": "average = (num1 + num2 + num3) / 3",
+            "type": "calculation"
+          },
+          { "id": 7, "code": "# Display result", "type": "comment" },
+          {
+            "id": 8,
+            "code": "print(f'The average is: {average:.2f}')",
+            "type": "output"
+          }
+        ],
+        "correctOrder": [1, 2, 3, 4, 5, 6, 7, 8],
+        "hints": [
+          "Start with comments to document your code",
+          "Get user input before calculating",
+          "Calculate after getting all inputs",
+          "Display the result at the end"
+        ]
+      }
+    },
+    {
+      "title": "List Fundamentals Lab",
+      "description": "Learn Python lists through hands-on coding exercises and experiments.",
+      "activityType": "interactive_coding",
+      "category": "Data Structures",
+      "difficulty": 2,
+      "diamondReward": 35,
+      "experienceReward": 70,
+      "estimatedMinutes": 20,
+      "sortOrder": 7,
+      "topicOrder": 1,
+      "isLocked": true,
+      "tags": ["lists", "data-structures", "coding"],
+      "content": {
+        "exercises": [
+          {
+            "title": "Creating and Accessing Lists",
+            "instruction": "Create a list of fruits and access the second item",
+            "starterCode": "# Create a list of fruits\nfruits = []\n\n# Access the second fruit\nsecond_fruit = ",
+            "solution": "fruits = ['apple', 'banana', 'orange', 'grape']\nsecond_fruit = fruits[1]",
+            "testCases": [
+              {
+                "input": "",
+                "expected": "banana",
+                "description": "Second fruit should be banana"
+              }
+            ]
+          },
+          {
+            "title": "List Methods",
+            "instruction": "Add a new fruit and remove the first one",
+            "starterCode": "fruits = ['apple', 'banana', 'orange']\n\n# Add 'grape' to the end\n\n# Remove 'apple' from the list\n",
+            "solution": "fruits = ['apple', 'banana', 'orange']\nfruits.append('grape')\nfruits.remove('apple')",
+            "testCases": [
+              {
+                "input": "",
+                "expected": "['banana', 'orange', 'grape']",
+                "description": "List should contain banana, orange, grape"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "title": "Dictionary Memory Challenge",
+      "description": "Test your memory of Python dictionary operations and key-value relationships.",
+      "activityType": "memory_game",
+      "category": "Data Structures",
+      "difficulty": 3,
+      "diamondReward": 30,
+      "experienceReward": 55,
+      "estimatedMinutes": 12,
+      "sortOrder": 8,
+      "topicOrder": 2,
+      "isLocked": true,
+      "tags": ["dictionaries", "memory", "key-value"],
+      "content": {
+        "cards": [
+          {
+            "id": 1,
+            "front": "dict.keys()",
+            "back": "Returns all dictionary keys"
+          },
+          {
+            "id": 2,
+            "front": "dict.values()",
+            "back": "Returns all dictionary values"
+          },
+          {
+            "id": 3,
+            "front": "dict.items()",
+            "back": "Returns key-value pairs as tuples"
+          },
+          {
+            "id": 4,
+            "front": "dict.get(key)",
+            "back": "Gets value safely with default None"
+          },
+          {
+            "id": 5,
+            "front": "dict.pop(key)",
+            "back": "Removes and returns value for key"
+          },
+          {
+            "id": 6,
+            "front": "dict.update(other)",
+            "back": "Updates dictionary with another dict"
+          },
+          {
+            "id": 7,
+            "front": "dict.clear()",
+            "back": "Removes all items from dictionary"
+          },
+          {
+            "id": 8,
+            "front": "len(dict)",
+            "back": "Returns number of key-value pairs"
+          }
+        ],
+        "rules": "Match dictionary methods with their descriptions. Find all pairs to complete the challenge!",
+        "timeLimit": 180
+      }
+    },
+    {
+      "title": "Tuple vs List Quiz",
+      "description": "Test your understanding of the differences between tuples and lists in Python.",
+      "activityType": "quiz",
+      "category": "Data Structures",
+      "difficulty": 2,
+      "diamondReward": 25,
+      "experienceReward": 45,
+      "estimatedMinutes": 8,
+      "sortOrder": 9,
+      "topicOrder": 3,
+      "isLocked": true,
+      "tags": ["tuples", "lists", "quiz", "comparison"],
+      "content": {
+        "questions": [
+          {
+            "question": "Which data structure is immutable in Python?",
+            "options": ["List", "Tuple", "Dictionary", "Set"],
+            "correct": 1,
+            "explanation": "Tuples are immutable, meaning their elements cannot be changed after creation."
+          },
+          {
+            "question": "What happens when you try to change a tuple element?",
+            "options": [
+              "It changes successfully",
+              "Python raises a TypeError",
+              "It creates a new tuple",
+              "Nothing happens"
+            ],
+            "correct": 1,
+            "explanation": "Attempting to modify a tuple raises a TypeError because tuples are immutable."
+          },
+          {
+            "question": "Which is faster for accessing elements?",
+            "options": [
+              "Lists are always faster",
+              "Tuples are slightly faster",
+              "They have the same speed",
+              "It depends on the size"
+            ],
+            "correct": 1,
+            "explanation": "Tuples are slightly faster for element access due to their immutable nature."
+          },
+          {
+            "question": "How do you create a tuple with one element?",
+            "options": ["(5)", "(5,)", "[5]", "{5}"],
+            "correct": 1,
+            "explanation": "A comma is required to create a single-element tuple: (5,)"
+          }
+        ],
+        "passingScore": 75,
+        "timeLimit": 300
+      }
+    },
+    {
+      "title": "Set Operations Visualizer",
+      "description": "Visualize and understand Python set operations through interactive demonstrations.",
+      "activityType": "algorithm_visualization",
+      "category": "Data Structures",
+      "difficulty": 3,
+      "diamondReward": 40,
+      "experienceReward": 75,
+      "estimatedMinutes": 18,
+      "sortOrder": 10,
+      "topicOrder": 4,
+      "isLocked": true,
+      "tags": ["sets", "operations", "visualization"],
+      "content": {
+        "visualizations": [
+          {
+            "operation": "Union",
+            "setA": [1, 2, 3, 4],
+            "setB": [3, 4, 5, 6],
+            "result": [1, 2, 3, 4, 5, 6],
+            "code": "set_a | set_b",
+            "explanation": "Union combines all unique elements from both sets",
+            "visual": "venn_diagram"
+          },
+          {
+            "operation": "Intersection",
+            "setA": [1, 2, 3, 4],
+            "setB": [3, 4, 5, 6],
+            "result": [3, 4],
+            "code": "set_a & set_b",
+            "explanation": "Intersection returns elements common to both sets",
+            "visual": "venn_diagram"
+          },
+          {
+            "operation": "Difference",
+            "setA": [1, 2, 3, 4],
+            "setB": [3, 4, 5, 6],
+            "result": [1, 2],
+            "code": "set_a - set_b",
+            "explanation": "Difference returns elements in first set but not in second",
+            "visual": "venn_diagram"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Binary Search Algorithm",
+      "description": "Understand how binary search works through step-by-step visualization.",
+      "activityType": "algorithm_visualization",
+      "category": "Algorithms",
+      "difficulty": 4,
+      "diamondReward": 50,
+      "experienceReward": 90,
+      "estimatedMinutes": 25,
+      "sortOrder": 11,
+      "topicOrder": 1,
+      "isLocked": true,
+      "tags": ["binary-search", "algorithms", "search"],
+      "content": {
+        "algorithm": "binary_search",
+        "array": [1, 3, 5, 7, 9, 11, 13, 15, 17, 19],
+        "target": 7,
+        "steps": [
+          {
+            "step": 1,
+            "left": 0,
+            "right": 9,
+            "mid": 4,
+            "value": 9,
+            "action": "Compare target 7 with mid value 9",
+            "decision": "Target is smaller, search left half"
+          },
+          {
+            "step": 2,
+            "left": 0,
+            "right": 3,
+            "mid": 1,
+            "value": 3,
+            "action": "Compare target 7 with mid value 3",
+            "decision": "Target is larger, search right half"
+          },
+          {
+            "step": 3,
+            "left": 2,
+            "right": 3,
+            "mid": 2,
+            "value": 5,
+            "action": "Compare target 7 with mid value 5",
+            "decision": "Target is larger, search right half"
+          },
+          {
+            "step": 4,
+            "left": 3,
+            "right": 3,
+            "mid": 3,
+            "value": 7,
+            "action": "Compare target 7 with mid value 7",
+            "decision": "Found target at index 3!"
+          }
+        ],
+        "code": "def binary_search(arr, target):\n    left, right = 0, len(arr) - 1\n    \n    while left <= right:\n        mid = (left + right) // 2\n        \n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n    \n    return -1"
+      }
+    },
+    {
+      "title": "Sorting Algorithms Comparison",
+      "description": "Compare different sorting algorithms and understand their performance characteristics.",
+      "activityType": "data_exploration",
+      "category": "Algorithms",
+      "difficulty": 4,
+      "diamondReward": 45,
+      "experienceReward": 85,
+      "estimatedMinutes": 22,
+      "sortOrder": 12,
+      "topicOrder": 2,
+      "isLocked": true,
+      "tags": ["sorting", "algorithms", "comparison", "performance"],
+      "content": {
+        "algorithms": [
+          {
+            "name": "Bubble Sort",
+            "timeComplexity": "O(n²)",
+            "spaceComplexity": "O(1)",
+            "stable": true,
+            "description": "Repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order.",
+            "code": "def bubble_sort(arr):\n    n = len(arr)\n    for i in range(n):\n        for j in range(0, n-i-1):\n            if arr[j] > arr[j+1]:\n                arr[j], arr[j+1] = arr[j+1], arr[j]"
+          },
+          {
+            "name": "Quick Sort",
+            "timeComplexity": "O(n log n)",
+            "spaceComplexity": "O(log n)",
+            "stable": false,
+            "description": "Divides the array into smaller sub-arrays around a pivot element.",
+            "code": "def quick_sort(arr):\n    if len(arr) <= 1:\n        return arr\n    pivot = arr[len(arr) // 2]\n    left = [x for x in arr if x < pivot]\n    middle = [x for x in arr if x == pivot]\n    right = [x for x in arr if x > pivot]\n    return quick_sort(left) + middle + quick_sort(right)"
+          },
+          {
+            "name": "Merge Sort",
+            "timeComplexity": "O(n log n)",
+            "spaceComplexity": "O(n)",
+            "stable": true,
+            "description": "Divides the array into halves, sorts them, and then merges them back together.",
+            "code": "def merge_sort(arr):\n    if len(arr) <= 1:\n        return arr\n    \n    mid = len(arr) // 2\n    left = merge_sort(arr[:mid])\n    right = merge_sort(arr[mid:])\n    \n    return merge(left, right)"
+          }
+        ],
+        "testArray": [64, 34, 25, 12, 22, 11, 90],
+        "interactiveComparison": true
+      }
+    },
+    {
+      "title": "Graph Traversal Builder",
+      "description": "Build graph traversal algorithms step by step and understand DFS vs BFS.",
+      "activityType": "code_builder",
+      "category": "Algorithms",
+      "difficulty": 5,
+      "diamondReward": 60,
+      "experienceReward": 110,
+      "estimatedMinutes": 30,
+      "sortOrder": 13,
+      "topicOrder": 3,
+      "isLocked": true,
+      "tags": ["graphs", "traversal", "dfs", "bfs", "advanced"],
+      "content": {
+        "project": "Graph Traversal Implementation",
+        "description": "Build both Depth-First Search (DFS) and Breadth-First Search (BFS) algorithms",
+        "modules": [
+          {
+            "name": "Graph Representation",
+            "code": "class Graph:\n    def __init__(self):\n        self.graph = {}\n    \n    def add_edge(self, u, v):\n        if u not in self.graph:\n            self.graph[u] = []\n        self.graph[u].append(v)",
+            "explanation": "First, create a graph data structure using adjacency lists"
+          },
+          {
+            "name": "DFS Implementation",
+            "code": "def dfs(self, start, visited=None):\n    if visited is None:\n        visited = set()\n    \n    visited.add(start)\n    print(start, end=' ')\n    \n    for neighbor in self.graph.get(start, []):\n        if neighbor not in visited:\n            self.dfs(neighbor, visited)",
+            "explanation": "Depth-First Search uses recursion to go as deep as possible"
+          },
+          {
+            "name": "BFS Implementation",
+            "code": "def bfs(self, start):\n    visited = set()\n    queue = [start]\n    visited.add(start)\n    \n    while queue:\n        vertex = queue.pop(0)\n        print(vertex, end=' ')\n        \n        for neighbor in self.graph.get(vertex, []):\n            if neighbor not in visited:\n                visited.add(neighbor)\n                queue.append(neighbor)",
+            "explanation": "Breadth-First Search uses a queue to visit all neighbors first"
+          }
+        ],
+        "testGraph": {
+          "A": ["B", "C"],
+          "B": ["A", "D", "E"],
+          "C": ["A", "F"],
+          "D": ["B"],
+          "E": ["B", "F"],
+          "F": ["C", "E"]
+        }
+      }
+    },
+    {
+      "title": "Function Fundamentals Lab",
+      "description": "Master Python functions through progressive coding exercises.",
+      "activityType": "interactive_coding",
+      "category": "Functions & OOP",
+      "difficulty": 3,
+      "diamondReward": 35,
+      "experienceReward": 65,
+      "estimatedMinutes": 18,
+      "sortOrder": 14,
+      "topicOrder": 1,
+      "isLocked": true,
+      "tags": ["functions", "parameters", "return-values"],
+      "content": {
+        "exercises": [
+          {
+            "title": "Basic Function Creation",
+            "instruction": "Create a function that calculates the area of a rectangle",
+            "starterCode": "def calculate_area(length, width):\n    # Calculate and return the area\n    pass",
+            "solution": "def calculate_area(length, width):\n    return length * width",
+            "testCases": [
+              {
+                "input": "(5, 3)",
+                "expected": "15",
+                "description": "Area of 5x3 rectangle"
+              },
+              {
+                "input": "(10, 2)",
+                "expected": "20",
+                "description": "Area of 10x2 rectangle"
+              }
+            ]
+          },
+          {
+            "title": "Default Parameters",
+            "instruction": "Create a function with default parameters for greeting",
+            "starterCode": "def greet(name, greeting='Hello'):\n    # Return a greeting message\n    pass",
+            "solution": "def greet(name, greeting='Hello'):\n    return f'{greeting}, {name}!'",
+            "testCases": [
+              {
+                "input": "('Alice',)",
+                "expected": "Hello, Alice!",
+                "description": "Default greeting"
+              },
+              {
+                "input": "('Bob', 'Hi')",
+                "expected": "Hi, Bob!",
+                "description": "Custom greeting"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "title": "Class Design Workshop",
+      "description": "Learn object-oriented programming by designing and building Python classes.",
+      "activityType": "class_builder",
+      "category": "Functions & OOP",
+      "difficulty": 4,
+      "diamondReward": 55,
+      "experienceReward": 100,
+      "estimatedMinutes": 25,
+      "sortOrder": 15,
+      "topicOrder": 2,
+      "isLocked": true,
+      "tags": ["classes", "oop", "objects", "methods"],
+      "content": {
+        "project": "Student Management System",
+        "description": "Build a complete Student class with attributes and methods",
+        "components": [
+          {
+            "name": "Class Definition",
+            "code": "class Student:\n    def __init__(self, name, age, student_id):\n        self.name = name\n        self.age = age\n        self.student_id = student_id\n        self.grades = []",
+            "explanation": "Define the Student class with constructor and attributes"
+          },
+          {
+            "name": "Add Methods",
+            "code": "    def add_grade(self, grade):\n        if 0 <= grade <= 100:\n            self.grades.append(grade)\n        else:\n            raise ValueError('Grade must be between 0 and 100')\n    \n    def get_average(self):\n        if not self.grades:\n            return 0\n        return sum(self.grades) / len(self.grades)",
+            "explanation": "Add methods to manipulate and calculate student data"
+          },
+          {
+            "name": "String Representation",
+            "code": "    def __str__(self):\n        avg = self.get_average()\n        return f'Student: {self.name} (ID: {self.student_id}), Average: {avg:.2f}'\n    \n    def __repr__(self):\n        return f'Student(\"{self.name}\", {self.age}, \"{self.student_id}\")'",
+            "explanation": "Implement string representations for better object display"
+          }
+        ],
+        "testScenarios": [
+          "Create a student object",
+          "Add grades to the student",
+          "Calculate average grade",
+          "Display student information"
+        ]
+      }
+    },
+    {
+      "title": "OOP Inheritance Challenge",
+      "description": "Master inheritance concepts by building a class hierarchy system.",
+      "activityType": "fill_blanks",
+      "category": "Functions & OOP",
+      "difficulty": 4,
+      "diamondReward": 45,
+      "experienceReward": 85,
+      "estimatedMinutes": 20,
+      "sortOrder": 16,
+      "topicOrder": 3,
+      "isLocked": true,
+      "tags": ["inheritance", "oop", "super", "polymorphism"],
+      "content": {
+        "code": "class Animal:\n    def __init__(self, name, species):\n        self.name = name\n        self.species = species\n    \n    def make_sound(self):\n        return 'Some generic animal sound'\n\nclass Dog(_____):\n    def __init__(self, name, breed):\n        _____()._______(name, 'Canine')\n        self.breed = breed\n    \n    def make_sound(self):\n        return 'Woof!'\n    \n    def fetch(self):\n        return f'{self.name} is fetching the ball!'\n\nclass Cat(_____):\n    def __init__(self, name, indoor=True):\n        _____()._______(name, 'Feline')\n        self.indoor = indoor\n    \n    def _____(self):\n        return 'Meow!'\n    \n    def purr(self):\n        return f'{self.name} is purring contentedly'\n\n# Usage\ndog = Dog('Buddy', 'Golden Retriever')\ncat = Cat('Whiskers')\nprint(dog._____())\nprint(cat._____())",
+        "blanks": [
+          {
+            "position": 1,
+            "answer": "Animal",
+            "hint": "The parent class name"
+          },
+          {
+            "position": 2,
+            "answer": "super",
+            "hint": "Function to call parent class"
+          },
+          {
+            "position": 3,
+            "answer": "__init__",
+            "hint": "Constructor method name"
+          },
+          {
+            "position": 4,
+            "answer": "Animal",
+            "hint": "Parent class name again"
+          },
+          {
+            "position": 5,
+            "answer": "super",
+            "hint": "Call parent constructor"
+          },
+          {
+            "position": 6,
+            "answer": "__init__",
+            "hint": "Parent constructor method"
+          },
+          {
+            "position": 7,
+            "answer": "make_sound",
+            "hint": "Method that makes animal sounds"
+          },
+          {
+            "position": 8,
+            "answer": "make_sound",
+            "hint": "Call the sound method"
+          },
+          {
+            "position": 9,
+            "answer": "make_sound",
+            "hint": "Call the sound method"
+          }
+        ],
+        "explanation": "Inheritance allows classes to inherit attributes and methods from parent classes."
+      }
+    },
+    {
+      "title": "Decorators Deep Dive",
+      "description": "Understand Python decorators through interactive examples and practical applications.",
+      "activityType": "interactive_demo",
+      "category": "Functions & OOP",
+      "difficulty": 5,
+      "diamondReward": 50,
+      "experienceReward": 95,
+      "estimatedMinutes": 22,
+      "sortOrder": 17,
+      "topicOrder": 4,
+      "isLocked": true,
+      "tags": ["decorators", "advanced", "functions", "closures"],
+      "content": {
+        "steps": [
+          {
+            "title": "Basic Decorator Concept",
+            "explanation": "Decorators are functions that modify or enhance other functions.",
+            "code": "def my_decorator(func):\n    def wrapper():\n        print('Before function call')\n        func()\n        print('After function call')\n    return wrapper\n\n@my_decorator\ndef say_hello():\n    print('Hello!')\n\nsay_hello()",
+            "interactive": true,
+            "hint": "The @ symbol is syntactic sugar for decoration"
+          },
+          {
+            "title": "Decorator with Arguments",
+            "explanation": "Decorators can accept arguments and work with any function.",
+            "code": "def timer_decorator(func):\n    import time\n    def wrapper(*args, **kwargs):\n        start = time.time()\n        result = func(*args, **kwargs)\n        end = time.time()\n        print(f'Function took {end - start:.4f} seconds')\n        return result\n    return wrapper\n\n@timer_decorator\ndef slow_function(n):\n    total = 0\n    for i in range(n):\n        total += i\n    return total\n\nresult = slow_function(1000000)",
+            "interactive": true,
+            "hint": "Use *args and **kwargs to handle any function signature"
+          },
+          {
+            "title": "Real-World Example: Caching",
+            "explanation": "Decorators are useful for caching expensive function calls.",
+            "code": "def memoize(func):\n    cache = {}\n    def wrapper(*args):\n        if args in cache:\n            print(f'Cache hit for {args}')\n            return cache[args]\n        result = func(*args)\n        cache[args] = result\n        print(f'Cache miss for {args}, computed result')\n        return result\n    return wrapper\n\n@memoize\ndef fibonacci(n):\n    if n < 2:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)\n\nprint(fibonacci(10))",
+            "interactive": true,
+            "hint": "Memoization dramatically improves recursive function performance"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Exception Handling Quiz",
+      "description": "Test your knowledge of Python exception handling and error management.",
+      "activityType": "quiz",
+      "category": "Functions & OOP",
+      "difficulty": 3,
+      "diamondReward": 30,
+      "experienceReward": 55,
+      "estimatedMinutes": 12,
+      "sortOrder": 18,
+      "topicOrder": 5,
+      "isLocked": true,
+      "tags": ["exceptions", "error-handling", "try-catch"],
+      "content": {
+        "questions": [
+          {
+            "question": "What is the correct syntax for handling multiple exceptions?",
+            "options": [
+              "except (ValueError, TypeError):",
+              "except ValueError, TypeError:",
+              "except ValueError or TypeError:",
+              "except ValueError and TypeError:"
+            ],
+            "correct": 0,
+            "explanation": "Multiple exceptions are handled using a tuple: except (ValueError, TypeError):"
+          },
+          {
+            "question": "What does the 'finally' block do?",
+            "options": [
+              "Runs only when an exception occurs",
+              "Runs only when no exception occurs",
+              "Runs regardless of whether an exception occurs",
+              "Runs before the try block"
+            ],
+            "correct": 2,
+            "explanation": "The finally block always executes, whether an exception occurs or not."
+          },
+          {
+            "question": "How do you raise a custom exception?",
+            "options": [
+              "throw Exception('message')",
+              "raise Exception('message')",
+              "error Exception('message')",
+              "exception Exception('message')"
+            ],
+            "correct": 1,
+            "explanation": "Use the 'raise' keyword to throw exceptions in Python."
+          },
+          {
+            "question": "What happens when an exception is not handled?",
+            "options": [
+              "The program continues normally",
+              "The program terminates with an error",
+              "The exception is ignored",
+              "Python automatically fixes the error"
+            ],
+            "correct": 1,
+            "explanation": "Unhandled exceptions cause the program to terminate and display a traceback."
+          }
+        ],
+        "passingScore": 75,
+        "timeLimit": 300
+      }
+    },
+    {
+      "title": "Python Basics Memory Game",
+      "description": "Match Python concepts with their definitions in this comprehensive memory challenge.",
+      "activityType": "memory_game",
+      "category": "Python Fundamentals",
+      "difficulty": 2,
+      "diamondReward": 25,
+      "experienceReward": 40,
+      "estimatedMinutes": 10,
+      "sortOrder": 19,
+      "topicOrder": 7,
+      "isLocked": true,
+      "tags": ["memory", "fundamentals", "concepts"],
+      "content": {
+        "cards": [
+          {
+            "id": 1,
+            "front": "Variable",
+            "back": "A named storage location that holds data"
+          },
+          {
+            "id": 2,
+            "front": "Function",
+            "back": "A reusable block of code that performs a specific task"
+          },
+          {
+            "id": 3,
+            "front": "Loop",
+            "back": "A control structure that repeats code execution"
+          },
+          {
+            "id": 4,
+            "front": "Conditional",
+            "back": "A statement that executes code based on a condition"
+          },
+          {
+            "id": 5,
+            "front": "List",
+            "back": "An ordered, mutable collection of items"
+          },
+          {
+            "id": 6,
+            "front": "String",
+            "back": "A sequence of characters enclosed in quotes"
+          },
+          {
+            "id": 7,
+            "front": "Integer",
+            "back": "A whole number without decimal points"
+          },
+          {
+            "id": 8,
+            "front": "Boolean",
+            "back": "A data type that represents True or False"
+          },
+          {
+            "id": 9,
+            "front": "Dictionary",
+            "back": "A collection of key-value pairs"
+          },
+          {
+            "id": 10,
+            "front": "Module",
+            "back": "A file containing Python code that can be imported"
+          }
+        ],
+        "rules": "Match Python terms with their correct definitions. Find all pairs to master the fundamentals!",
+        "timeLimit": 240
+      }
+    },
+    {
+      "title": "Advanced Data Structures Explorer",
+      "description": "Explore advanced Python data structures like deque, defaultdict, and Counter.",
+      "activityType": "data_exploration",
+      "category": "Data Structures",
+      "difficulty": 4,
+      "diamondReward": 40,
+      "experienceReward": 75,
+      "estimatedMinutes": 20,
+      "sortOrder": 20,
+      "topicOrder": 5,
+      "isLocked": true,
+      "tags": ["advanced", "collections", "data-structures"],
+      "content": {
+        "structures": [
+          {
+            "name": "deque (Double-ended queue)",
+            "module": "from collections import deque",
+            "usage": "d = deque([1, 2, 3])\nd.appendleft(0)\nd.append(4)\nprint(d)  # deque([0, 1, 2, 3, 4])",
+            "advantages": "Efficient insertion/deletion at both ends",
+            "complexity": "O(1) for append/pop operations at both ends"
+          },
+          {
+            "name": "defaultdict",
+            "module": "from collections import defaultdict",
+            "usage": "dd = defaultdict(list)\ndd['key1'].append('value1')\nprint(dd)  # defaultdict(<class 'list'>, {'key1': ['value1']})",
+            "advantages": "Automatically creates missing keys with default values",
+            "complexity": "Same as regular dict, but prevents KeyError"
+          },
+          {
+            "name": "Counter",
+            "module": "from collections import Counter",
+            "usage": "c = Counter('hello world')\nprint(c)  # Counter({'l': 3, 'o': 2, 'h': 1, 'e': 1, ' ': 1, 'w': 1, 'r': 1, 'd': 1})",
+            "advantages": "Counts hashable objects automatically",
+            "complexity": "O(n) for counting, O(1) for access"
+          },
+          {
+            "name": "namedtuple",
+            "module": "from collections import namedtuple",
+            "usage": "Point = namedtuple('Point', ['x', 'y'])\np = Point(1, 2)\nprint(p.x, p.y)  # 1 2",
+            "advantages": "Immutable objects with named fields",
+            "complexity": "Memory efficient, faster than regular classes"
+          }
+        ],
+        "interactiveExamples": true,
+        "practiceExercises": [
+          "Implement a text analyzer using Counter",
+          "Create a graph using defaultdict",
+          "Build a browser history using deque"
+        ]
+      }
+    }
+  ]
+}

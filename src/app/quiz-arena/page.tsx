@@ -101,9 +101,9 @@ export default function QuizArenaPage() {
 
   // Load user stats and categories on mount
   useEffect(() => {
+    loadCategories(); // Always load categories for anonymous users too
     if (isAuthenticated && user) {
       loadUserStats();
-      loadCategories();
     }
   }, [isAuthenticated, user]);
 
@@ -150,6 +150,12 @@ export default function QuizArenaPage() {
       }
     } catch (error) {
       console.error("Failed to load categories:", error);
+      // For anonymous users, provide default categories
+      setCategories([
+        { name: "Python Basics", questionCount: 50 },
+        { name: "Data Structures", questionCount: 30 },
+        { name: "Algorithms", questionCount: 25 },
+      ]);
     }
   };
 
@@ -176,6 +182,40 @@ export default function QuizArenaPage() {
         setSelectedAnswer(null);
         setIsAnswerRevealed(false);
         playSound("game_start");
+      } else if (response.status === 401 && !isAuthenticated) {
+        // Anonymous user - show login incentive but allow to continue
+        console.log(
+          "Anonymous user starting quiz with potential rewards preview"
+        );
+        // For now, continue with a demo quiz
+        const demoQuestion = {
+          id: "demo_1",
+          question:
+            "Welcome to Python Quiz Arena! This is a demo question. Which operator is used to concatenate strings in Python?",
+          options: ["&", "+", ".", "*"],
+          correctAnswer: 1,
+          explanation:
+            "The + operator is used to concatenate strings in Python. Example: 'Hello' + ' World' = 'Hello World'",
+          difficulty: 1,
+          category: selectedCategory,
+          tags: [],
+        };
+
+        setQuizSession({
+          id: "demo_session",
+          currentStreak: 0,
+          questions: [demoQuestion],
+          currentQuestionIndex: 0,
+          startTime: new Date(),
+          totalTime: 0,
+          isActive: true,
+        });
+        setCurrentQuestion(demoQuestion);
+        setGameState("playing");
+        setTimeLeft(30);
+        setSelectedAnswer(null);
+        setIsAnswerRevealed(false);
+        playSound("game_start");
       }
     } catch (error) {
       console.error("Failed to start quiz:", error);
@@ -197,6 +237,21 @@ export default function QuizArenaPage() {
       playSound("correct");
     } else {
       playSound("wrong");
+    }
+
+    // For anonymous users, handle demo quiz locally
+    if (!isAuthenticated && quizSession.id === "demo_session") {
+      setTimeout(() => {
+        setGameState("gameOver");
+        // Show potential rewards for anonymous users
+        setRewardData({
+          diamonds: currentStreak * 2,
+          experience: currentStreak * 5,
+          cards: [],
+          loginMessage: "Login to earn real rewards!",
+        });
+      }, 2000);
+      return;
     }
 
     try {
@@ -241,9 +296,32 @@ export default function QuizArenaPage() {
             }
           }, 2000);
         }
+      } else if (response.status === 401 && !isAuthenticated) {
+        // Anonymous user completed demo - show login incentive
+        setTimeout(() => {
+          setGameState("gameOver");
+          setRewardData({
+            diamonds: Math.max(1, currentStreak * 2),
+            experience: Math.max(5, currentStreak * 5),
+            cards: [],
+            loginMessage: `🎯 ${currentStreak} correct answers! Login to earn ${currentStreak * 2} diamonds and ${currentStreak * 5} XP!`,
+          });
+        }, 2000);
       }
     } catch (error) {
       console.error("Failed to submit answer:", error);
+      // For anonymous users, show demo completion
+      if (!isAuthenticated) {
+        setTimeout(() => {
+          setGameState("gameOver");
+          setRewardData({
+            diamonds: Math.max(1, currentStreak * 2),
+            experience: Math.max(5, currentStreak * 5),
+            cards: [],
+            loginMessage: "Login to earn real rewards and track your progress!",
+          });
+        }, 2000);
+      }
     }
   };
 
@@ -393,27 +471,7 @@ export default function QuizArenaPage() {
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
-        <div className="mx-auto max-w-md rounded-2xl border border-white/20 bg-white/10 p-8 text-center backdrop-blur-sm">
-          <Brain className="mx-auto mb-4 h-16 w-16 text-yellow-400" />
-          <h1 className="mb-4 text-2xl font-bold text-white">
-            Quiz Arena Access
-          </h1>
-          <p className="mb-6 text-gray-300">
-            You need to be logged in to challenge yourself with Python quizzes.
-          </p>
-          <Link
-            href="/login"
-            className="inline-flex items-center rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-3 font-semibold text-white transition-all hover:from-yellow-600 hover:to-orange-600"
-          >
-            Login to Play
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // Anonymous users can now access Quiz Arena with incentive messaging
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
@@ -904,26 +962,61 @@ export default function QuizArenaPage() {
 
               {rewardData && (
                 <div className="mb-8 rounded-xl border border-purple-500/30 bg-gradient-to-r from-purple-500/20 to-pink-500/20 p-6">
-                  <h3 className="mb-4 text-xl font-bold text-white">
-                    🎁 Rewards Earned:
-                  </h3>
-                  <div className="flex justify-center space-x-6 text-lg">
-                    {rewardData.diamonds > 0 && (
-                      <span className="font-bold text-yellow-400">
-                        💎 {rewardData.diamonds} Diamonds
-                      </span>
-                    )}
-                    {rewardData.experience > 0 && (
-                      <span className="font-bold text-blue-400">
-                        ⚡ {rewardData.experience} XP
-                      </span>
-                    )}
-                    {rewardData.cards && rewardData.cards.length > 0 && (
-                      <span className="font-bold text-purple-400">
-                        🎴 {rewardData.cards.length} Cards
-                      </span>
-                    )}
-                  </div>
+                  {isAuthenticated ? (
+                    <>
+                      <h3 className="mb-4 text-xl font-bold text-white">
+                        🎁 Rewards Earned:
+                      </h3>
+                      <div className="flex justify-center space-x-6 text-lg">
+                        {rewardData.diamonds > 0 && (
+                          <span className="font-bold text-yellow-400">
+                            💎 {rewardData.diamonds} Diamonds
+                          </span>
+                        )}
+                        {rewardData.experience > 0 && (
+                          <span className="font-bold text-blue-400">
+                            ⚡ {rewardData.experience} XP
+                          </span>
+                        )}
+                        {rewardData.cards && rewardData.cards.length > 0 && (
+                          <span className="font-bold text-purple-400">
+                            🎴 {rewardData.cards.length} Cards
+                          </span>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="mb-4 text-xl font-bold text-white">
+                        🎁 Your Potential Rewards:
+                      </h3>
+                      <div className="mb-4 flex justify-center space-x-6 text-lg">
+                        {rewardData.diamonds > 0 && (
+                          <span className="font-bold text-yellow-400">
+                            💎 {rewardData.diamonds} Diamonds
+                          </span>
+                        )}
+                        {rewardData.experience > 0 && (
+                          <span className="font-bold text-blue-400">
+                            ⚡ {rewardData.experience} XP
+                          </span>
+                        )}
+                      </div>
+                      {rewardData.loginMessage && (
+                        <div className="rounded-lg border border-orange-500/30 bg-orange-500/20 p-4 text-center">
+                          <p className="mb-3 text-orange-200">
+                            {rewardData.loginMessage}
+                          </p>
+                          <Link
+                            href="/login"
+                            className="inline-flex items-center rounded-lg bg-gradient-to-r from-orange-500 to-red-500 px-6 py-2 font-medium text-white transition-all hover:from-orange-600 hover:to-red-600"
+                          >
+                            Login and Earn Rewards
+                          </Link>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
 

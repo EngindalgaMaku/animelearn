@@ -24,6 +24,7 @@ import {
   Gamepad2,
   ChevronDown,
   Sparkles,
+  Brain,
 } from "lucide-react";
 
 const navigation = [
@@ -39,7 +40,8 @@ const navigation = [
     href: "/blog",
     icon: Book,
     requireAuth: false,
-    hideForAuth: true, // Hide when user is logged in
+    hideForAuth: false,
+    moveToMore: true, // Move to More dropdown
     color: "text-blue-600",
   },
   {
@@ -53,8 +55,16 @@ const navigation = [
     name: "Code Arena",
     href: "/code-arena",
     icon: Book,
-    requireAuth: true,
+    requireAuth: false,
     color: "text-blue-600",
+  },
+  {
+    name: "Quiz Arena",
+    href: "/quiz-arena",
+    icon: Brain,
+    requireAuth: false,
+    moveToMore: true, // Move to More dropdown
+    color: "text-purple-600",
   },
   {
     name: "Shop",
@@ -69,7 +79,8 @@ const navigation = [
     href: "/store",
     icon: Diamond,
     requireAuth: false,
-    hideForAuth: true, // Hide when user is logged in - moved to More dropdown
+    hideForAuth: false,
+    moveToMore: true, // Move to More dropdown
     color: "text-yellow-600",
     special: true, // Special styling for store
   },
@@ -98,11 +109,11 @@ export default function MainNavigation() {
   }, []);
 
   // Admin kontrolü - role ve email üzerinden
-  const isAdmin = user && (
-    user.role === "admin" ||
-    user.role === "ADMIN" ||
-    user.email === "admin@zumenzu.com"
-  );
+  const isAdmin =
+    user &&
+    (user.role === "admin" ||
+      user.role === "ADMIN" ||
+      user.email === "admin@zumenzu.com");
   const router = useRouter();
   const pathname = usePathname();
 
@@ -170,28 +181,28 @@ export default function MainNavigation() {
                   className="relative flex items-center space-x-2 rounded-lg px-3 py-2 font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                 >
                   <Home className="h-4 w-4" />
-                  <span className="text-sm lg:block hidden">Home</span>
+                  <span className="hidden text-sm lg:block">Home</span>
                 </Link>
                 <Link
                   href="/blog"
                   className="relative flex items-center space-x-2 rounded-lg px-3 py-2 font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                 >
                   <Book className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm lg:block hidden">Blog</span>
+                  <span className="hidden text-sm lg:block">Blog</span>
                 </Link>
                 <Link
                   href="/shop"
                   className="relative flex items-center space-x-2 rounded-lg px-3 py-2 font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                 >
                   <Sparkles className="h-4 w-4 text-purple-600" />
-                  <span className="text-sm lg:block hidden">Shop</span>
+                  <span className="hidden text-sm lg:block">Shop</span>
                 </Link>
               </div>
             </div>
 
             {/* Loading skeleton */}
             <div className="flex items-center space-x-3">
-              <div className="h-8 w-20 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-8 w-20 animate-pulse rounded bg-gray-200"></div>
             </div>
           </div>
         </div>
@@ -220,183 +231,152 @@ export default function MainNavigation() {
           <div className="hidden items-center space-x-1 md:flex">
             {/* Primary Navigation - Always visible on tablet+ */}
             <div className="flex items-center space-x-1">
-              {navigation.filter(item => {
-                if (item.requireAuth && !isAuthenticated) return false;
-                if (item.hideForAuth && isAuthenticated) return false;
-                // Show primary items on tablet: Dashboard, Code Arena, Shop for authenticated users
-                // Show Home, Blog, Shop for non-authenticated users
-                if (isAuthenticated) {
-                  return ['Dashboard', 'Code Arena', 'Shop'].includes(item.name);
-                } else {
-                  return ['Home', 'Blog', 'Shop'].includes(item.name);
-                }
-              }).map((item) => {
-                const isActive = pathname === item.href;
-                const IconComponent = item.icon;
+              {navigation
+                .filter((item) => {
+                  if (item.requireAuth && !isAuthenticated) return false;
+                  if (item.hideForAuth && isAuthenticated) return false;
+                  // Show primary items on tablet: Dashboard, Code Arena, Shop for authenticated users
+                  // Show Home, Code Arena, Shop for non-authenticated users (Blog moved to More)
+                  if (item.moveToMore) return false; // Exclude items marked for More dropdown
+                  if (isAuthenticated) {
+                    return ["Dashboard", "Code Arena", "Shop"].includes(
+                      item.name
+                    );
+                  } else {
+                    return ["Home", "Code Arena", "Shop"].includes(item.name);
+                  }
+                })
+                .map((item) => {
+                  const isActive = pathname === item.href;
+                  const IconComponent = item.icon;
 
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`relative flex items-center space-x-2 rounded-lg px-3 py-2 font-medium transition-all duration-200 ${
-                      isActive
-                        ? "bg-blue-600 text-white shadow-md"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                    }`}
-                  >
-                    <IconComponent
-                      className={`h-4 w-4 ${
-                        isActive ? "text-white" : item.color || "text-current"
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={`relative flex items-center space-x-2 rounded-lg px-3 py-2 font-medium transition-all duration-200 ${
+                        isActive
+                          ? "bg-blue-600 text-white shadow-md"
+                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                       }`}
-                    />
-                    <span className="text-sm lg:block hidden">{item.name}</span>
-                    <span className="text-xs lg:hidden block">{item.name}</span>
-                  </Link>
-                );
-              })}
+                    >
+                      <IconComponent
+                        className={`h-4 w-4 ${
+                          isActive ? "text-white" : item.color || "text-current"
+                        }`}
+                      />
+                      <span className="hidden text-sm lg:block">
+                        {item.name}
+                      </span>
+                      <span className="block text-xs lg:hidden">
+                        {item.name}
+                      </span>
+                    </Link>
+                  );
+                })}
             </div>
 
             {/* Secondary Navigation - Dropdown for smaller screens */}
             <div className="relative">
               {/* Large screens - show remaining items but exclude hidden ones for authenticated users */}
               {!isAuthenticated && (
-                <div className="lg:flex lg:items-center lg:space-x-1 hidden">
+                <div className="hidden lg:flex lg:items-center lg:space-x-1">
                   {/* Show remaining items normally on large screens for non-authenticated users only */}
-                  {navigation.filter(item => {
-                    if (item.requireAuth && !isAuthenticated) return false;
-                    if (item.hideForAuth && isAuthenticated) return false;
-                    // For non-authenticated users
-                    const isPrimaryNav = ['Home', 'Blog', 'Shop'].includes(item.name);
-                    return !isPrimaryNav;
-                  }).map((item) => {
-                    const isActive = pathname === item.href;
-                    const IconComponent = item.icon;
+                  {navigation
+                    .filter((item) => {
+                      if (item.requireAuth && !isAuthenticated) return false;
+                      if (item.hideForAuth && isAuthenticated) return false;
+                      // For non-authenticated users
+                      const isPrimaryNav = [
+                        "Home",
+                        "Code Arena",
+                        "Shop",
+                      ].includes(item.name);
+                      return !isPrimaryNav && !item.moveToMore;
+                    })
+                    .map((item) => {
+                      const isActive = pathname === item.href;
+                      const IconComponent = item.icon;
 
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className={`relative flex items-center space-x-2 rounded-lg px-3 py-2 font-medium transition-all duration-200 ${
-                          isActive
-                            ? "bg-blue-600 text-white shadow-md"
-                            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                        }`}
-                      >
-                        <IconComponent
-                          className={`h-4 w-4 ${
-                            isActive ? "text-white" : item.color || "text-current"
+                      return (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className={`relative flex items-center space-x-2 rounded-lg px-3 py-2 font-medium transition-all duration-200 ${
+                            isActive
+                              ? "bg-blue-600 text-white shadow-md"
+                              : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                           }`}
-                        />
-                        <span className="text-sm">{item.name}</span>
-                      </Link>
-                    );
-                  })}
+                        >
+                          <IconComponent
+                            className={`h-4 w-4 ${
+                              isActive
+                                ? "text-white"
+                                : item.color || "text-current"
+                            }`}
+                          />
+                          <span className="text-sm">{item.name}</span>
+                        </Link>
+                      );
+                    })}
                 </div>
               )}
 
-              {/* More dropdown for authenticated users */}
-              {isAuthenticated && (() => {
-                const hiddenItems = navigation.filter(item => {
-                  return item.hideForAuth === true && item.name !== "Home";
-                });
+              {/* More dropdown - simplified logic */}
+              <div className="relative" ref={moreDropdownRef}>
+                <button
+                  onClick={() => setMoreDropdownOpen(!moreDropdownOpen)}
+                  className="flex items-center space-x-1 rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                >
+                  <Menu className="h-4 w-4" />
+                  <span className="text-sm">More</span>
+                  <ChevronDown className="h-3 w-3" />
+                </button>
 
-                if (hiddenItems.length === 0) return null;
+                {moreDropdownOpen && (
+                  <div className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                    {navigation
+                      .filter((item) => {
+                        // Always include items marked for More dropdown
+                        if (item.moveToMore) return true;
+                        // Include items hidden for authenticated users (except Home) - only for authenticated users
+                        if (
+                          isAuthenticated &&
+                          item.hideForAuth === true &&
+                          item.name !== "Home"
+                        )
+                          return true;
+                        return false;
+                      })
+                      .map((item) => {
+                        const isActive = pathname === item.href;
+                        const IconComponent = item.icon;
 
-                return (
-                  <div className="relative" ref={moreDropdownRef}>
-                    <button
-                      onClick={() => setMoreDropdownOpen(!moreDropdownOpen)}
-                      className="flex items-center space-x-1 rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                    >
-                      <Menu className="h-4 w-4" />
-                      <span className="text-sm">More</span>
-                      <ChevronDown className="h-3 w-3" />
-                    </button>
-
-                    {moreDropdownOpen && (
-                      <div className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
-                        {hiddenItems.map((item) => {
-                          const isActive = pathname === item.href;
-                          const IconComponent = item.icon;
-
-                          return (
-                            <Link
-                              key={item.name}
-                              href={item.href}
-                              onClick={() => setMoreDropdownOpen(false)}
-                              className={`flex items-center space-x-3 px-4 py-2 text-sm transition-colors ${
+                        return (
+                          <Link
+                            key={item.name}
+                            href={item.href}
+                            onClick={() => setMoreDropdownOpen(false)}
+                            className={`flex items-center space-x-3 px-4 py-2 text-sm transition-colors ${
+                              isActive
+                                ? "bg-blue-50 text-blue-600"
+                                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                            }`}
+                          >
+                            <IconComponent
+                              className={`h-4 w-4 ${
                                 isActive
-                                  ? "bg-blue-50 text-blue-600"
-                                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                  ? "text-blue-600"
+                                  : item.color || "text-current"
                               }`}
-                            >
-                              <IconComponent
-                                className={`h-4 w-4 ${
-                                  isActive ? "text-blue-600" : item.color || "text-current"
-                                }`}
-                              />
-                              <span>{item.name}</span>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    )}
+                            />
+                            <span>{item.name}</span>
+                          </Link>
+                        );
+                      })}
                   </div>
-                );
-              })()}
-
-              {/* More dropdown for non-authenticated users (tablet screens only) */}
-              {!isAuthenticated && (() => {
-                const secondaryItems = navigation.filter(item => {
-                  if (item.requireAuth && !isAuthenticated) return false;
-                  if (item.hideForAuth) return false;
-                  return !['Home', 'Blog', 'Shop'].includes(item.name);
-                });
-
-                if (secondaryItems.length === 0) return null;
-
-                return (
-                  <div className="lg:hidden relative" ref={moreDropdownRef}>
-                    <button
-                      onClick={() => setMoreDropdownOpen(!moreDropdownOpen)}
-                      className="flex items-center space-x-1 rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                    >
-                      <Menu className="h-4 w-4" />
-                      <span className="text-sm">More</span>
-                      <ChevronDown className="h-3 w-3" />
-                    </button>
-
-                    {moreDropdownOpen && (
-                      <div className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
-                        {secondaryItems.map((item) => {
-                          const isActive = pathname === item.href;
-                          const IconComponent = item.icon;
-
-                          return (
-                            <Link
-                              key={item.name}
-                              href={item.href}
-                              onClick={() => setMoreDropdownOpen(false)}
-                              className={`flex items-center space-x-3 px-4 py-2 text-sm transition-colors ${
-                                isActive
-                                  ? "bg-blue-50 text-blue-600"
-                                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                              }`}
-                            >
-                              <IconComponent
-                                className={`h-4 w-4 ${
-                                  isActive ? "text-blue-600" : item.color || "text-current"
-                                }`}
-                              />
-                              <span>{item.name}</span>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
+                )}
+              </div>
             </div>
           </div>
 
@@ -606,96 +586,120 @@ export default function MainNavigation() {
 
               {/* Navigation Links - Mobile */}
               {/* Primary navigation items */}
-              {navigation.filter(item => {
-                if (item.requireAuth && !isAuthenticated) return false;
-                if (item.hideForAuth && isAuthenticated) return false;
-                
-                // Show main navigation items
-                if (isAuthenticated) {
-                  return ['Dashboard', 'Code Arena', 'Shop'].includes(item.name);
-                } else {
-                  return ['Home', 'Blog', 'Shop'].includes(item.name);
-                }
-              }).map((item) => {
-                const isActive = pathname === item.href;
-                const IconComponent = item.icon;
+              {navigation
+                .filter((item) => {
+                  if (item.requireAuth && !isAuthenticated) return false;
+                  if (item.hideForAuth && isAuthenticated) return false;
 
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center space-x-3 rounded-lg px-3 py-3 font-medium transition-colors ${
-                      isActive
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                    }`}
-                  >
-                    <IconComponent
-                      className={`h-5 w-5 ${
-                        isActive ? "text-white" : item.color || "text-current"
+                  // Show main navigation items (excluding moveToMore items in mobile)
+                  if (item.moveToMore) return false; // Exclude moveToMore items from primary mobile nav
+                  if (isAuthenticated) {
+                    return ["Dashboard", "Code Arena", "Shop"].includes(
+                      item.name
+                    );
+                  } else {
+                    return ["Home", "Code Arena", "Shop"].includes(item.name);
+                  }
+                })
+                .map((item) => {
+                  const isActive = pathname === item.href;
+                  const IconComponent = item.icon;
+
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center space-x-3 rounded-lg px-3 py-3 font-medium transition-colors ${
+                        isActive
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                       }`}
-                    />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
+                    >
+                      <IconComponent
+                        className={`h-5 w-5 ${
+                          isActive ? "text-white" : item.color || "text-current"
+                        }`}
+                      />
+                      <span>{item.name}</span>
+                    </Link>
+                  );
+                })}
 
-              {/* Hidden items for authenticated users - shown in mobile as regular links */}
-              {isAuthenticated && navigation.filter(item => item.hideForAuth === true && item.name !== "Home").map((item) => {
-                const isActive = pathname === item.href;
-                const IconComponent = item.icon;
+              {/* More items - shown in mobile as regular links */}
+              {navigation
+                .filter((item) => {
+                  // Include moveToMore items for all users
+                  if (item.moveToMore) return true;
+                  // Include hideForAuth items for authenticated users only (except Home)
+                  if (
+                    isAuthenticated &&
+                    item.hideForAuth === true &&
+                    item.name !== "Home"
+                  )
+                    return true;
+                  return false;
+                })
+                .map((item) => {
+                  const isActive = pathname === item.href;
+                  const IconComponent = item.icon;
 
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center space-x-3 rounded-lg px-3 py-3 font-medium transition-colors ${
-                      isActive
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                    }`}
-                  >
-                    <IconComponent
-                      className={`h-5 w-5 ${
-                        isActive ? "text-white" : item.color || "text-current"
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center space-x-3 rounded-lg px-3 py-3 font-medium transition-colors ${
+                        isActive
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                       }`}
-                    />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
+                    >
+                      <IconComponent
+                        className={`h-5 w-5 ${
+                          isActive ? "text-white" : item.color || "text-current"
+                        }`}
+                      />
+                      <span>{item.name}</span>
+                    </Link>
+                  );
+                })}
 
-              {/* Remaining items for non-authenticated users */}
-              {!isAuthenticated && navigation.filter(item => {
-                if (item.requireAuth && !isAuthenticated) return false;
-                if (item.hideForAuth) return false;
-                return !['Home', 'Blog', 'Shop'].includes(item.name);
-              }).map((item) => {
-                const isActive = pathname === item.href;
-                const IconComponent = item.icon;
+              {/* Remaining items for non-authenticated users (if any) */}
+              {!isAuthenticated &&
+                navigation
+                  .filter((item) => {
+                    if (item.requireAuth && !isAuthenticated) return false;
+                    if (item.hideForAuth) return false;
+                    if (item.moveToMore) return false; // Already handled above
+                    return !["Home", "Code Arena", "Shop"].includes(item.name);
+                  })
+                  .map((item) => {
+                    const isActive = pathname === item.href;
+                    const IconComponent = item.icon;
 
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center space-x-3 rounded-lg px-3 py-3 font-medium transition-colors ${
-                      isActive
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                    }`}
-                  >
-                    <IconComponent
-                      className={`h-5 w-5 ${
-                        isActive ? "text-white" : item.color || "text-current"
-                      }`}
-                    />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center space-x-3 rounded-lg px-3 py-3 font-medium transition-colors ${
+                          isActive
+                            ? "bg-blue-600 text-white"
+                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                        }`}
+                      >
+                        <IconComponent
+                          className={`h-5 w-5 ${
+                            isActive
+                              ? "text-white"
+                              : item.color || "text-current"
+                          }`}
+                        />
+                        <span>{item.name}</span>
+                      </Link>
+                    );
+                  })}
 
               {/* Mobile Auth Actions */}
               {loading ? (

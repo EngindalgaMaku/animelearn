@@ -1,27 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkAndAwardBadges } from "@/lib/badges";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 interface AuthUser {
   userId: string;
   username: string;
 }
 
-// Token'dan kullanıcı bilgilerini çıkart
-function getUserFromToken(request: NextRequest): AuthUser | null {
-  const token = request.cookies.get("auth-token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
+// Get user from NextAuth session
+async function getUserFromSession(): Promise<AuthUser | null> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return null;
+    }
+
+    return {
+      userId: session.user.id,
+      username: session.user.username || session.user.email || "Unknown",
+    };
   } catch (error) {
+    console.error("Error getting user from session:", error);
     return null;
   }
 }
@@ -31,39 +33,42 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const authUser = getUserFromToken(req);
-
-    if (!authUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const authUser = await getUserFromSession();
+    const isLoggedIn = !!authUser;
 
     const { slug } = await params;
 
-    // Get code arena with user progress and quizzes
+    // Get code arena with user progress and quizzes (if logged in)
     const codeArena = await prisma.codeArena.findUnique({
       where: {
         slug: slug,
         isPublished: true,
       },
       include: {
-        progress: {
-          where: {
-            userId: authUser.userId,
-          },
-        },
-        quizzes: {
-          include: {
-            attempts: {
-              where: {
-                userId: authUser.userId,
-              },
-              orderBy: {
-                startedAt: "desc",
-              },
-              take: 5,
-            },
-          },
-        },
+        progress:
+          isLoggedIn && authUser
+            ? {
+                where: {
+                  userId: authUser.userId,
+                },
+              }
+            : false,
+        quizzes:
+          isLoggedIn && authUser
+            ? {
+                include: {
+                  attempts: {
+                    where: {
+                      userId: authUser.userId,
+                    },
+                    orderBy: {
+                      startedAt: "desc",
+                    },
+                    take: 5,
+                  },
+                },
+              }
+            : true,
       },
     });
 
@@ -124,8 +129,9 @@ export async function GET(
       parsedPrerequisites = [];
     }
 
-    const progress = codeArena.progress[0];
-    const quiz = codeArena.quizzes[0];
+    const progress =
+      isLoggedIn && codeArena.progress ? codeArena.progress[0] : null;
+    const quiz = codeArena.quizzes ? codeArena.quizzes[0] : null;
 
     // Parse quiz from code arena data if available
     let parsedQuiz = null;
@@ -403,6 +409,21 @@ export async function GET(
     return NextResponse.json({
       success: true,
       codeArena: transformedCodeArena,
+      isLoggedIn,
+      loginPrompt: !isLoggedIn
+        ? {
+            title: "🚀 Track Your Progress!",
+            message:
+              "Login to save your progress, earn rewards, and unlock achievements!",
+            benefits: [
+              `💎 Earn ${codeArena.diamondReward} diamonds when you complete this challenge`,
+              `⭐ Gain ${codeArena.experienceReward} XP for leveling up`,
+              "🏆 Unlock achievement badges",
+              "📊 Save and track your code progress",
+              "🎯 Build up your coding streak",
+            ],
+          }
+        : undefined,
     });
   } catch (error) {
     console.error("Error fetching code arena:", error);
@@ -419,11 +440,8 @@ export async function POST(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const authUser = getUserFromToken(req);
-
-    if (!authUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const authUser = await getUserFromSession();
+    const isLoggedIn = !!authUser;
 
     const { slug } = await params;
     const body = await req.json();
@@ -441,187 +459,267 @@ export async function POST(
       );
     }
 
-    // Find or create progress
-    let progress = await prisma.codeArenaProgress.findUnique({
-      where: {
-        userId_codeArenaId: {
-          userId: authUser.userId,
-          codeArenaId: codeArena.id,
+    if (isLoggedIn && authUser) {
+      // Logged in user - full progress tracking
+      // Find or create progress
+      let progress = await prisma.codeArenaProgress.findUnique({
+        where: {
+          userId_codeArenaId: {
+            userId: authUser.userId,
+            codeArenaId: codeArena.id,
+          },
         },
-      },
-    });
+      });
 
-    switch (action) {
-      case "start":
-        if (!progress) {
-          progress = await prisma.codeArenaProgress.create({
-            data: {
-              userId: authUser.userId,
-              codeArenaId: codeArena.id,
-              isStarted: true,
-              startedAt: new Date(),
-              lastVisit: new Date(),
-            },
+      switch (action) {
+        case "start":
+          if (!progress) {
+            progress = await prisma.codeArenaProgress.create({
+              data: {
+                userId: authUser.userId,
+                codeArenaId: codeArena.id,
+                isStarted: true,
+                startedAt: new Date(),
+                lastVisit: new Date(),
+              },
+            });
+          } else {
+            progress = await prisma.codeArenaProgress.update({
+              where: { id: progress.id },
+              data: {
+                isStarted: true,
+                lastVisit: new Date(),
+                startedAt: progress.startedAt || new Date(),
+              },
+            });
+          }
+
+          return NextResponse.json({
+            success: true,
+            message: "Code Arena started",
+            progress,
+            isLoggedIn: true,
           });
-        } else {
+
+        case "save_code":
+          if (!progress) {
+            return NextResponse.json(
+              { error: "Code Arena not started" },
+              { status: 400 }
+            );
+          }
+
           progress = await prisma.codeArenaProgress.update({
             where: { id: progress.id },
             data: {
-              isStarted: true,
+              lastCode: code,
+              timeSpent: (progress.timeSpent || 0) + (timeSpent || 0),
               lastVisit: new Date(),
-              startedAt: progress.startedAt || new Date(),
-            },
-          });
-        }
-
-        return NextResponse.json({
-          success: true,
-          message: "Code Arena started",
-          progress,
-        });
-
-      case "save_code":
-        if (!progress) {
-          return NextResponse.json(
-            { error: "Code Arena not started" },
-            { status: 400 }
-          );
-        }
-
-        progress = await prisma.codeArenaProgress.update({
-          where: { id: progress.id },
-          data: {
-            lastCode: code,
-            timeSpent: (progress.timeSpent || 0) + (timeSpent || 0),
-            lastVisit: new Date(),
-            attempts: { increment: 1 },
-          },
-        });
-
-        return NextResponse.json({
-          success: true,
-          message: "Code saved",
-          progress,
-        });
-
-      case "complete":
-        if (!progress) {
-          return NextResponse.json(
-            { error: "Code Arena not started" },
-            { status: 400 }
-          );
-        }
-
-        // Check if code arena was already completed BEFORE updating
-        const wasAlreadyCompleted = progress.isCompleted;
-
-        const updateData: any = {
-          isCompleted: true,
-          completedAt: new Date(),
-          lastVisit: new Date(),
-          timeSpent: (progress.timeSpent || 0) + (timeSpent || 0),
-        };
-
-        if (code) {
-          updateData.lastCode = code;
-          updateData.bestCode = code;
-          updateData.isCodeCorrect = true;
-        }
-
-        progress = await prisma.codeArenaProgress.update({
-          where: { id: progress.id },
-          data: updateData,
-        });
-
-        // Award diamonds and experience if not already completed
-        let newBadges: any[] = [];
-        if (!wasAlreadyCompleted) {
-          await prisma.user.update({
-            where: { id: authUser.userId },
-            data: {
-              currentDiamonds: { increment: codeArena.diamondReward },
-              totalDiamonds: { increment: codeArena.diamondReward },
-              experience: { increment: codeArena.experienceReward },
-              codeArenasCompleted: { increment: 1 },
+              attempts: { increment: 1 },
             },
           });
 
-          // Create diamond transaction
-          await prisma.diamondTransaction.create({
-            data: {
-              userId: authUser.userId,
-              amount: codeArena.diamondReward,
-              type: "CODE_ARENA_COMPLETE",
-              description: `Code Arena completed: ${codeArena.title}`,
-              relatedType: "code_arena",
-              relatedId: codeArena.id,
-            },
+          return NextResponse.json({
+            success: true,
+            message: "Code saved",
+            progress,
+            isLoggedIn: true,
           });
 
-          // Check for new badges after code arena completion
-          try {
-            newBadges = await checkAndAwardBadges(authUser.userId);
-            console.log(
-              `🏆 Badge check completed. Found ${newBadges.length} new badges.`
+        case "complete":
+          if (!progress) {
+            return NextResponse.json(
+              { error: "Code Arena not started" },
+              { status: 400 }
             );
-          } catch (error) {
-            console.error("Error checking badges:", error);
           }
-        }
 
-        // Prepare reward animations
-        let rewardAnimations: any[] = [];
+          // Check if code arena was already completed BEFORE updating
+          const wasAlreadyCompleted = progress.isCompleted;
 
-        if (!wasAlreadyCompleted) {
-          rewardAnimations = [
-            {
-              type: "experience",
-              amount: codeArena.experienceReward,
-              icon: "⭐",
-              color: "#FFD700",
-              delay: 0,
-            },
-            {
-              type: "diamonds",
-              amount: codeArena.diamondReward,
-              icon: "💎",
-              color: "#00D4FF",
-              delay: 500,
-            },
-          ];
+          const updateData: any = {
+            isCompleted: true,
+            completedAt: new Date(),
+            lastVisit: new Date(),
+            timeSpent: (progress.timeSpent || 0) + (timeSpent || 0),
+          };
 
-          // Add badge animations if any new badges
-          if (newBadges.length > 0) {
-            newBadges.forEach((badge, index) => {
-              rewardAnimations.push({
-                type: "badge",
-                amount: 1,
-                icon: badge.icon || "🏆",
-                color: badge.color || "#FFD700",
-                delay: 1000 + index * 300,
-                badgeData: badge,
-              });
+          if (code) {
+            updateData.lastCode = code;
+            updateData.bestCode = code;
+            updateData.isCodeCorrect = true;
+          }
+
+          progress = await prisma.codeArenaProgress.update({
+            where: { id: progress.id },
+            data: updateData,
+          });
+
+          // Award diamonds and experience if not already completed
+          let newBadges: any[] = [];
+          if (!wasAlreadyCompleted) {
+            await prisma.user.update({
+              where: { id: authUser.userId },
+              data: {
+                currentDiamonds: { increment: codeArena.diamondReward },
+                totalDiamonds: { increment: codeArena.diamondReward },
+                experience: { increment: codeArena.experienceReward },
+                codeArenasCompleted: { increment: 1 },
+              },
             });
+
+            // Create diamond transaction
+            await prisma.diamondTransaction.create({
+              data: {
+                userId: authUser.userId,
+                amount: codeArena.diamondReward,
+                type: "CODE_ARENA_COMPLETE",
+                description: `Code Arena completed: ${codeArena.title}`,
+                relatedType: "code_arena",
+                relatedId: codeArena.id,
+              },
+            });
+
+            // Check for new badges after code arena completion
+            try {
+              newBadges = await checkAndAwardBadges(authUser.userId);
+              console.log(
+                `🏆 Badge check completed. Found ${newBadges.length} new badges.`
+              );
+            } catch (error) {
+              console.error("Error checking badges:", error);
+            }
           }
-        }
 
-        return NextResponse.json({
-          success: true,
-          message: "Code Arena completed",
-          progress,
-          rewards: !wasAlreadyCompleted
-            ? {
-                diamonds: codeArena.diamondReward,
-                experience: codeArena.experienceReward,
-              }
-            : null,
-          alreadyCompleted: wasAlreadyCompleted,
-          newBadges: newBadges.length > 0 ? newBadges : undefined,
-          animations: rewardAnimations,
-        });
+          // Prepare reward animations
+          let rewardAnimations: any[] = [];
 
-      default:
-        return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+          if (!wasAlreadyCompleted) {
+            rewardAnimations = [
+              {
+                type: "experience",
+                amount: codeArena.experienceReward,
+                icon: "⭐",
+                color: "#FFD700",
+                delay: 0,
+              },
+              {
+                type: "diamonds",
+                amount: codeArena.diamondReward,
+                icon: "💎",
+                color: "#00D4FF",
+                delay: 500,
+              },
+            ];
+
+            // Add badge animations if any new badges
+            if (newBadges.length > 0) {
+              newBadges.forEach((badge, index) => {
+                rewardAnimations.push({
+                  type: "badge",
+                  amount: 1,
+                  icon: badge.icon || "🏆",
+                  color: badge.color || "#FFD700",
+                  delay: 1000 + index * 300,
+                  badgeData: badge,
+                });
+              });
+            }
+          }
+
+          return NextResponse.json({
+            success: true,
+            message: "Code Arena completed",
+            progress,
+            rewards: !wasAlreadyCompleted
+              ? {
+                  diamonds: codeArena.diamondReward,
+                  experience: codeArena.experienceReward,
+                }
+              : null,
+            alreadyCompleted: wasAlreadyCompleted,
+            newBadges: newBadges.length > 0 ? newBadges : undefined,
+            animations: rewardAnimations,
+            isLoggedIn: true,
+          });
+
+        default:
+          return NextResponse.json(
+            { error: "Invalid action" },
+            { status: 400 }
+          );
+      }
+    } else {
+      // Anonymous user - allow starting but show login incentives
+      switch (action) {
+        case "start":
+          return NextResponse.json({
+            success: true,
+            message:
+              "🎯 Challenge started! Login to save your progress and earn rewards.",
+            isLoggedIn: false,
+            loginPrompt: {
+              title: "🚀 Save Your Progress!",
+              message:
+                "Login now to track your coding journey and earn rewards!",
+              benefits: [
+                `💎 Earn ${codeArena.diamondReward} diamonds when you complete this`,
+                `⭐ Gain ${codeArena.experienceReward} XP for leveling up`,
+                "🏆 Unlock achievement badges",
+                "📊 Save your code and track progress over time",
+                "🔥 Build up your coding streak",
+              ],
+            },
+          });
+
+        case "save_code":
+          return NextResponse.json({
+            success: true,
+            message: "🔓 Login to save your code progress permanently!",
+            isLoggedIn: false,
+            loginPrompt: {
+              title: "💾 Your Code Won't Be Saved!",
+              message:
+                "Login to save your progress and continue where you left off.",
+              benefits: [
+                "💾 Save your code automatically",
+                "📈 Track your coding improvement",
+                "🎯 Resume challenges anytime",
+                "🏆 Earn rewards for completed challenges",
+              ],
+            },
+          });
+
+        case "complete":
+          return NextResponse.json({
+            success: true,
+            message: `🎉 Challenge completed! 🔓 Login to earn ${codeArena.diamondReward} diamonds and ${codeArena.experienceReward} XP!`,
+            isLoggedIn: false,
+            potentialRewards: {
+              diamonds: codeArena.diamondReward,
+              experience: codeArena.experienceReward,
+              message: "🔓 Login now to claim these rewards!",
+            },
+            loginPrompt: {
+              title: "🏆 Claim Your Rewards!",
+              message:
+                "You've completed the challenge! Login to get your rewards and achievements.",
+              benefits: [
+                `💎 Claim ${codeArena.diamondReward} diamonds`,
+                `⭐ Gain ${codeArena.experienceReward} experience points`,
+                "🏆 Unlock achievement badges",
+                "📊 Add this completion to your profile",
+                "🎯 Continue your coding journey",
+              ],
+            },
+          });
+
+        default:
+          return NextResponse.json(
+            { error: "Invalid action" },
+            { status: 400 }
+          );
+      }
     }
   } catch (error) {
     console.error("Error updating code arena progress:", error);

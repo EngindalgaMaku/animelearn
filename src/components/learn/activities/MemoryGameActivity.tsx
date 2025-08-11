@@ -1,331 +1,411 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Clock, Target, RotateCcw, Zap } from "lucide-react";
+import { RotateCcw, Trophy, Clock, Star } from "lucide-react";
 
-interface MemoryPair {
+interface Card {
   id: number;
-  card1: string;
-  card2: string;
+  front: string;
+  back: string;
+}
+
+interface MemoryContent {
+  cards: Card[];
+  rules: string;
+  timeLimit: number;
+}
+
+interface LearningActivity {
+  id: string;
+  title: string;
+  description: string;
+  content: MemoryContent;
 }
 
 interface MemoryGameActivityProps {
-  activity: {
-    content: {
-      instructions?: string;
-      pairs: MemoryPair[];
-      timeLimit?: number;
-      shuffleCards?: boolean;
-    };
-    settings?: {
-      maxFlips?: number;
-      showTimer?: boolean;
-    };
-  };
+  activity: LearningActivity;
   onComplete: (score: number, maxScore: number, success: boolean) => void;
 }
 
-interface Card {
-  id: string;
-  content: string;
-  pairId: number;
+interface GameCard extends Card {
   isFlipped: boolean;
   isMatched: boolean;
+  gameId: string;
+  type: "front" | "back";
 }
 
 export default function MemoryGameActivity({
   activity,
   onComplete,
 }: MemoryGameActivityProps) {
-  const [cards, setCards] = useState<Card[]>([]);
-  const [flippedCards, setFlippedCards] = useState<string[]>([]);
-  const [matchedPairs, setMatchedPairs] = useState<number[]>([]);
-  const [moves, setMoves] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(activity?.content?.timeLimit || 180);
-  const [isCompleted, setIsCompleted] = useState(false);
-  const [score, setScore] = useState(0);
-  const [feedback, setFeedback] = useState("");
+  const [gameCards, setGameCards] = useState<GameCard[]>([]);
+  const [flippedCards, setFlippedCards] = useState<GameCard[]>([]);
+  const [matchedPairs, setMatchedPairs] = useState<number>(0);
+  const [moves, setMoves] = useState<number>(0);
+  const [timeLeft, setTimeLeft] = useState(activity.content.timeLimit);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [gameCompleted, setGameCompleted] = useState(false);
+  const [gameWon, setGameWon] = useState(false);
 
-  // Validate activity data
-  if (!activity?.content) {
-    return (
-      <div className="py-16 text-center">
-        <div className="mb-4 text-lg font-semibold text-red-500">
-          Invalid Activity Data
-        </div>
-        <p className="text-gray-600">
-          This memory game doesn't have the required content configuration.
-        </p>
-      </div>
-    );
-  }
+  const { cards, rules, timeLimit } = activity.content;
 
-  const contentPairs = activity.content.pairs || [];
-
-  if (contentPairs.length === 0) {
-    return (
-      <div className="py-16 text-center">
-        <div className="mb-4 text-lg font-semibold text-red-500">
-          No Memory Pairs Available
-        </div>
-        <p className="text-gray-600">
-          This memory game doesn't have any pairs to match.
-        </p>
-      </div>
-    );
-  }
-
+  // Initialize game
   useEffect(() => {
-    try {
-      initializeGame();
-    } catch (error) {
-      console.error("Error initializing memory game:", error);
-    }
-  }, [activity]);
+    initializeGame();
+  }, []);
 
+  // Timer effect
   useEffect(() => {
-    if (timeLeft > 0 && !isCompleted) {
+    if (gameStarted && timeLeft > 0 && !gameCompleted) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && !isCompleted) {
-      handleGameEnd();
+    } else if (timeLeft === 0 && !gameCompleted) {
+      endGame(false);
     }
-  }, [timeLeft, isCompleted]);
+  }, [timeLeft, gameStarted, gameCompleted]);
 
+  // Check for matches
   useEffect(() => {
-    if (
-      matchedPairs.length === contentPairs.length &&
-      matchedPairs.length > 0
-    ) {
-      handleGameEnd();
+    if (flippedCards.length === 2) {
+      setMoves(moves + 1);
+      const [card1, card2] = flippedCards;
+
+      // Check if cards form a matching pair
+      const isMatch =
+        (card1.type === "front" &&
+          card2.type === "back" &&
+          card1.id === card2.id) ||
+        (card1.type === "back" &&
+          card2.type === "front" &&
+          card1.id === card2.id);
+
+      if (isMatch) {
+        // Match found
+        setTimeout(() => {
+          setGameCards((prev) =>
+            prev.map((card) =>
+              card.gameId === card1.gameId || card.gameId === card2.gameId
+                ? { ...card, isMatched: true }
+                : card
+            )
+          );
+          setMatchedPairs((prev) => prev + 1);
+          setFlippedCards([]);
+        }, 1000);
+      } else {
+        // No match, flip cards back
+        setTimeout(() => {
+          setGameCards((prev) =>
+            prev.map((card) =>
+              card.gameId === card1.gameId || card.gameId === card2.gameId
+                ? { ...card, isFlipped: false }
+                : card
+            )
+          );
+          setFlippedCards([]);
+        }, 1500);
+      }
     }
-  }, [matchedPairs]);
+  }, [flippedCards, moves]);
+
+  // Check for game completion
+  useEffect(() => {
+    if (matchedPairs === cards.length && gameStarted) {
+      endGame(true);
+    }
+  }, [matchedPairs, cards.length, gameStarted]);
 
   const initializeGame = () => {
-    try {
-      const gameCards: Card[] = [];
+    // Create pairs of cards (front and back for each original card)
+    const gameCardPairs: GameCard[] = [];
 
-      contentPairs.forEach((pair) => {
-        if (pair?.id && pair?.card1 && pair?.card2) {
-          gameCards.push(
-            {
-              id: `${pair.id}-1`,
-              content: pair.card1,
-              pairId: pair.id,
-              isFlipped: false,
-              isMatched: false,
-            },
-            {
-              id: `${pair.id}-2`,
-              content: pair.card2,
-              pairId: pair.id,
-              isFlipped: false,
-              isMatched: false,
-            }
-          );
-        }
+    cards.forEach((card) => {
+      gameCardPairs.push({
+        ...card,
+        gameId: `${card.id}-front`,
+        type: "front",
+        isFlipped: false,
+        isMatched: false,
       });
+      gameCardPairs.push({
+        ...card,
+        gameId: `${card.id}-back`,
+        type: "back",
+        isFlipped: false,
+        isMatched: false,
+      });
+    });
 
-      if (activity?.content?.shuffleCards) {
-        gameCards.sort(() => Math.random() - 0.5);
-      }
-
-      setCards(gameCards);
-    } catch (error) {
-      console.error("Error initializing game cards:", error);
-    }
+    // Shuffle the cards
+    const shuffledCards = [...gameCardPairs].sort(() => Math.random() - 0.5);
+    setGameCards(shuffledCards);
   };
 
-  const handleCardClick = (cardId: string) => {
-    if (isCompleted || flippedCards.length >= 2) return;
+  const handleCardClick = (clickedCard: GameCard) => {
+    if (
+      !gameStarted ||
+      clickedCard.isFlipped ||
+      clickedCard.isMatched ||
+      flippedCards.length === 2
+    ) {
+      return;
+    }
 
-    const card = cards.find((c) => c.id === cardId);
-    if (!card || card.isFlipped || card.isMatched) return;
-
-    const newFlippedCards = [...flippedCards, cardId];
-    setFlippedCards(newFlippedCards);
-
-    setCards((prev) =>
-      prev.map((c) => (c.id === cardId ? { ...c, isFlipped: true } : c))
+    const updatedCards = gameCards.map((card) =>
+      card.gameId === clickedCard.gameId ? { ...card, isFlipped: true } : card
     );
 
-    if (newFlippedCards.length === 2) {
-      setMoves(moves + 1);
-      setTimeout(() => checkForMatch(newFlippedCards), 1000);
-    }
+    setGameCards(updatedCards);
+    setFlippedCards([...flippedCards, clickedCard]);
   };
 
-  const checkForMatch = (flippedCardIds: string[]) => {
-    const [card1Id, card2Id] = flippedCardIds;
-    const card1 = cards.find((c) => c.id === card1Id);
-    const card2 = cards.find((c) => c.id === card2Id);
+  const startGame = () => {
+    setGameStarted(true);
+  };
 
-    if (card1 && card2 && card1.pairId === card2.pairId) {
-      // Match found
-      setMatchedPairs((prev) => [...prev, card1.pairId]);
-      setCards((prev) =>
-        prev.map((c) =>
-          c.pairId === card1.pairId ? { ...c, isMatched: true } : c
-        )
-      );
+  const endGame = (won: boolean) => {
+    setGameCompleted(true);
+    setGameWon(won);
+
+    // Calculate score based on performance
+    let score = 0;
+    if (won) {
+      const timeBonus = Math.max(0, (timeLeft / timeLimit) * 30);
+      const movesPenalty = Math.max(0, (moves - cards.length * 1.5) * 2);
+      score = Math.min(100, Math.max(50, 70 + timeBonus - movesPenalty));
     } else {
-      // No match - flip cards back
-      setCards((prev) =>
-        prev.map((c) =>
-          flippedCardIds.includes(c.id) ? { ...c, isFlipped: false } : c
-        )
-      );
+      score = Math.min(49, (matchedPairs / cards.length) * 40);
     }
 
+    onComplete(Math.round(score), 100, won);
+  };
+
+  const restartGame = () => {
     setFlippedCards([]);
+    setMatchedPairs(0);
+    setMoves(0);
+    setTimeLeft(timeLimit);
+    setGameStarted(false);
+    setGameCompleted(false);
+    setGameWon(false);
+    initializeGame();
   };
 
-  const handleGameEnd = () => {
-    try {
-      setIsCompleted(true);
-      const allPairsMatched = matchedPairs.length === contentPairs.length;
-      const timeBonus = Math.max(0, timeLeft * 2);
-      const movesPenalty = Math.max(0, moves - contentPairs.length) * 5;
-      const finalScore = allPairsMatched
-        ? Math.max(0, 100 + timeBonus - movesPenalty)
-        : Math.round((matchedPairs.length / contentPairs.length) * 50);
-
-      setScore(finalScore);
-
-      if (allPairsMatched) {
-        setFeedback(`🎉 Perfect! All pairs matched in ${moves} moves!`);
-        onComplete(finalScore, 100, true);
-      } else {
-        setFeedback(
-          `Good effort! You matched ${matchedPairs.length}/${contentPairs.length} pairs.`
-        );
-        onComplete(finalScore, 100, false);
-      }
-    } catch (error) {
-      console.error("Error handling game end:", error);
-      onComplete(0, 100, false);
-    }
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const resetGame = () => {
-    try {
-      setFlippedCards([]);
-      setMatchedPairs([]);
-      setMoves(0);
-      setTimeLeft(activity?.content?.timeLimit || 180);
-      setIsCompleted(false);
-      setScore(0);
-      setFeedback("");
-      initializeGame();
-    } catch (error) {
-      console.error("Error resetting game:", error);
-    }
-  };
+  if (!gameStarted) {
+    return (
+      <div className="mx-auto max-w-4xl p-6">
+        <div className="text-center">
+          <h2 className="mb-4 text-3xl font-bold text-gray-900">
+            {activity.title}
+          </h2>
+          <p className="mb-8 text-lg text-gray-600">{activity.description}</p>
 
-  return (
-    <div className="mx-auto max-w-4xl p-6">
-      {/* Header */}
-      <div className="mb-6 text-center">
-        <h2 className="mb-2 text-2xl font-bold text-gray-900">
-          {activity?.content?.instructions || "Match the pairs!"}
-        </h2>
-        <div className="flex items-center justify-center space-x-6 text-sm text-gray-600">
-          <div className="flex items-center space-x-1">
-            <Clock className="h-4 w-4" />
-            <span>
-              {Math.floor(timeLeft / 60)}:
-              {(timeLeft % 60).toString().padStart(2, "0")}
-            </span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <Target className="h-4 w-4" />
-            <span>{moves} moves</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <Zap className="h-4 w-4" />
-            <span>
-              {matchedPairs.length}/{contentPairs.length} pairs
-            </span>
-          </div>
-          {score > 0 && (
-            <div className="flex items-center space-x-1">
-              <Trophy className="h-4 w-4 text-yellow-500" />
-              <span>Score: {score}</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {feedback && (
-        <div
-          className={`mb-6 rounded-lg p-4 text-center font-medium ${
-            matchedPairs.length === contentPairs.length
-              ? "bg-green-100 text-green-800"
-              : "bg-orange-100 text-orange-800"
-          }`}
-        >
-          {feedback}
-        </div>
-      )}
-
-      {/* Game Board */}
-      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
-        <AnimatePresence>
-          {cards.map((card) => (
-            <motion.div
-              key={card.id}
-              className={`perspective-1000 aspect-square cursor-pointer ${
-                isCompleted ? "cursor-default" : ""
-              }`}
-              onClick={() => handleCardClick(card.id)}
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              whileHover={!isCompleted ? { scale: 1.05 } : {}}
-              whileTap={!isCompleted ? { scale: 0.95 } : {}}
-            >
-              <div
-                className={`transform-style-3d relative h-full w-full transition-transform duration-500 ${
-                  card.isFlipped || card.isMatched ? "rotate-y-180" : ""
-                }`}
-              >
-                {/* Card Back */}
-                <div className="backface-hidden absolute inset-0 flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
-                  <div className="text-2xl text-white">?</div>
-                </div>
-
-                {/* Card Front */}
-                <div
-                  className={`backface-hidden rotate-y-180 absolute inset-0 flex items-center justify-center rounded-lg p-2 text-center text-sm font-medium ${
-                    card.isMatched
-                      ? "border-2 border-green-300 bg-green-100 text-green-800"
-                      : "border-2 border-gray-200 bg-white text-gray-900"
-                  }`}
-                >
-                  {card.content}
-                </div>
+          <div className="mb-8 rounded-lg bg-purple-50 p-6">
+            <h3 className="mb-4 text-xl font-semibold text-purple-900">
+              Game Rules
+            </h3>
+            <p className="mb-4 text-purple-800">{rules}</p>
+            <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
+              <div className="flex items-center justify-center space-x-2">
+                <Star className="h-5 w-5 text-purple-600" />
+                <span>{cards.length} Pairs to Match</span>
               </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+              <div className="flex items-center justify-center space-x-2">
+                <Clock className="h-5 w-5 text-purple-600" />
+                <span>{formatTime(timeLimit)} Time Limit</span>
+              </div>
+              <div className="flex items-center justify-center space-x-2">
+                <Trophy className="h-5 w-5 text-purple-600" />
+                <span>Score: Speed + Accuracy</span>
+              </div>
+            </div>
+          </div>
 
-      {/* Action Buttons */}
-      <div className="flex justify-center space-x-4">
-        {isCompleted ? (
           <button
-            onClick={resetGame}
-            className="flex items-center space-x-2 rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
+            onClick={startGame}
+            className="rounded-lg bg-purple-600 px-8 py-3 text-lg font-bold text-white transition-colors hover:bg-purple-700"
           >
-            <RotateCcw className="h-4 w-4" />
+            Start Memory Game
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (gameCompleted) {
+    const score = gameWon
+      ? Math.min(
+          100,
+          Math.max(
+            50,
+            70 +
+              (timeLeft / timeLimit) * 30 -
+              Math.max(0, (moves - cards.length * 1.5) * 2)
+          )
+        )
+      : Math.min(49, (matchedPairs / cards.length) * 40);
+
+    return (
+      <div className="mx-auto max-w-4xl p-6">
+        <div className="text-center">
+          <div
+            className={`mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full ${
+              gameWon
+                ? "bg-green-100 text-green-600"
+                : "bg-orange-100 text-orange-600"
+            }`}
+          >
+            <Trophy className="h-10 w-10" />
+          </div>
+
+          <h2 className="mb-2 text-3xl font-bold text-gray-900">
+            {gameWon ? "Excellent Memory!" : "Good Effort!"}
+          </h2>
+          <p className="mb-8 text-lg text-gray-600">
+            You matched {matchedPairs} out of {cards.length} pairs in {moves}{" "}
+            moves
+          </p>
+
+          <div className="mb-8 rounded-lg bg-gray-50 p-6">
+            <div className="mb-2 text-4xl font-bold text-gray-900">
+              {Math.round(score)}%
+            </div>
+            <div
+              className={`text-lg font-semibold ${gameWon ? "text-green-600" : "text-orange-600"}`}
+            >
+              {gameWon ? "Memory Master!" : "Keep Practicing!"}
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-4 text-sm">
+              <div>
+                <div className="font-semibold text-gray-900">
+                  {matchedPairs}
+                </div>
+                <div className="text-gray-600">Pairs Matched</div>
+              </div>
+              <div>
+                <div className="font-semibold text-gray-900">{moves}</div>
+                <div className="text-gray-600">Total Moves</div>
+              </div>
+              <div>
+                <div className="font-semibold text-gray-900">
+                  {formatTime(timeLimit - timeLeft)}
+                </div>
+                <div className="text-gray-600">Time Used</div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={restartGame}
+            className="inline-flex items-center space-x-2 rounded-lg bg-purple-600 px-6 py-3 font-bold text-white transition-colors hover:bg-purple-700"
+          >
+            <RotateCcw className="h-5 w-5" />
             <span>Play Again</span>
           </button>
-        ) : (
-          <div className="text-sm text-gray-500">
-            Click cards to flip them and find matching pairs!
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-6xl p-6">
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900">{activity.title}</h2>
+        <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-2 text-purple-600">
+            <Clock className="h-5 w-5" />
+            <span className="font-mono text-lg">{formatTime(timeLeft)}</span>
           </div>
-        )}
+          <div className="text-sm text-gray-600">
+            Moves: <span className="font-semibold">{moves}</span>
+          </div>
+          <div className="text-sm text-gray-600">
+            Matched:{" "}
+            <span className="font-semibold">
+              {matchedPairs}/{cards.length}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="mb-8">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-700">Progress</span>
+          <span className="text-sm text-gray-500">
+            {Math.round((matchedPairs / cards.length) * 100)}% Complete
+          </span>
+        </div>
+        <div className="h-2 w-full rounded-full bg-gray-200">
+          <div
+            className="h-2 rounded-full bg-purple-600 transition-all duration-300"
+            style={{ width: `${(matchedPairs / cards.length) * 100}%` }}
+          ></div>
+        </div>
+      </div>
+
+      {/* Game Board */}
+      <div
+        className={`grid gap-4 ${
+          gameCards.length <= 8
+            ? "grid-cols-4"
+            : gameCards.length <= 12
+              ? "grid-cols-4 md:grid-cols-6"
+              : "grid-cols-4 md:grid-cols-6 lg:grid-cols-8"
+        }`}
+      >
+        {gameCards.map((card) => (
+          <div
+            key={card.gameId}
+            onClick={() => handleCardClick(card)}
+            className={`relative h-24 transform cursor-pointer transition-all duration-300 hover:scale-105 ${
+              card.isMatched ? "opacity-50" : ""
+            }`}
+          >
+            <div
+              className={`h-full w-full transform-gpu rounded-lg border-2 transition-all duration-500 ${
+                card.isFlipped || card.isMatched
+                  ? "border-purple-300 bg-white shadow-md"
+                  : "border-purple-700 bg-purple-600 shadow-lg hover:bg-purple-700"
+              } ${card.isFlipped || card.isMatched ? "rotate-y-180" : ""}`}
+            >
+              {card.isFlipped || card.isMatched ? (
+                <div className="flex h-full w-full items-center justify-center p-2">
+                  <span className="text-center text-sm font-semibold leading-tight text-gray-900">
+                    {card.type === "front" ? card.front : card.back}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex h-full w-full items-center justify-center">
+                  <div className="h-8 w-8 rounded-full bg-purple-400 opacity-50"></div>
+                </div>
+              )}
+            </div>
+
+            {card.isMatched && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="rounded-full bg-green-500 p-1 text-white">
+                  <Trophy className="h-4 w-4" />
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Hint */}
+      <div className="mt-8 text-center">
+        <p className="text-sm text-gray-600">
+          💡 Tip: Remember the positions of cards you've seen to make matches
+          faster!
+        </p>
       </div>
     </div>
   );

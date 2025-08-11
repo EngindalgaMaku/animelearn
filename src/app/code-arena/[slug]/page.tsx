@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   BookOpen,
@@ -239,7 +239,7 @@ export default function CodeArenaDetailPage() {
   } | null>(null);
 
   // Gamification states
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [currentXP, setCurrentXP] = useState(user?.experience || 0);
   const [currentLevel, setCurrentLevel] = useState(() =>
     getCurrentLevel(user?.experience || 0)
@@ -324,7 +324,11 @@ export default function CodeArenaDetailPage() {
   // Time on content effect
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (activeSection === "introduction" || activeSection === "syntax" || activeSection === "examples") {
+    if (
+      activeSection === "introduction" ||
+      activeSection === "syntax" ||
+      activeSection === "examples"
+    ) {
       interval = setInterval(() => {
         setTimeOnContent((prev) => prev + 1);
       }, 1000);
@@ -351,13 +355,55 @@ export default function CodeArenaDetailPage() {
   };
 
   // Calculate level data using the functions defined at the top of the file
-  const levelData = getCurrentLevelData(currentXP);
-  const rankData = getRankData(levelData.level);
+  // Use safe fallbacks for anonymous users
+  const safeLevelData = useMemo(() => {
+    try {
+      return getCurrentLevelData(currentXP);
+    } catch (error) {
+      console.warn("Level calculation error for anonymous user:", error);
+      return {
+        level: 1,
+        currentLevelProgress: 0,
+        xpNeededForNext: 1000,
+        progressPercentage: 0,
+        totalXPForNextLevel: 1000,
+      };
+    }
+  }, [currentXP]);
+
+  const safeRankData = useMemo(() => {
+    try {
+      return getRankData(safeLevelData.level);
+    } catch (error) {
+      console.warn("Rank calculation error for anonymous user:", error);
+      return {
+        minLevel: 1,
+        maxLevel: 4,
+        name: "Code Rookie",
+        icon: "🌱",
+        color: "text-green-600",
+      };
+    }
+  }, [safeLevelData.level]);
+
+  const levelData = safeLevelData;
+  const rankData = safeRankData;
   const progressToNextLevel = levelData.progressPercentage;
 
   // Start code arena
   const startCodeArena = async () => {
-    if (!codeArena) return;
+    console.log("🚀 startCodeArena called for", {
+      isAuthenticated,
+      userExists: !!user,
+      codeArenaSlug: codeArena?.slug,
+    });
+
+    if (!codeArena) {
+      console.log("❌ No codeArena found");
+      return;
+    }
+
+    console.log("📡 Making API call to start arena...");
 
     try {
       const response = await fetch(`/api/code-arena/${codeArena.slug}`, {
@@ -368,10 +414,41 @@ export default function CodeArenaDetailPage() {
         body: JSON.stringify({ action: "start" }),
       });
 
+      console.log("📡 API Response:", {
+        ok: response.ok,
+        status: response.status,
+        statusText: response.statusText,
+      });
+
       if (response.ok) {
+        const data = await response.json();
+        console.log("✅ Start arena successful:", data);
+
         setArenaStarted(true);
         setCodeArena((prev) => (prev ? { ...prev, isStarted: true } : null));
-        showNotification("success", "Code Arena battle started! Prepare for victory! ⚔️");
+        showNotification(
+          "success",
+          "Code Arena battle started! Prepare for victory! ⚔️"
+        );
+      } else {
+        // Handle non-ok responses
+        const errorData = await response.text();
+        console.log("❌ API Error Response:", errorData);
+
+        if (response.status === 401) {
+          showNotification(
+            "warning",
+            "Please login to save your progress, but you can still start the challenge!"
+          );
+          // Allow anonymous users to start anyway
+          setArenaStarted(true);
+          setCodeArena((prev) => (prev ? { ...prev, isStarted: true } : null));
+        } else {
+          showNotification(
+            "error",
+            `Failed to start Code Arena: ${response.statusText}`
+          );
+        }
       }
     } catch (error) {
       console.error("Error starting Code Arena:", error);
@@ -402,7 +479,9 @@ export default function CodeArenaDetailPage() {
 
         if (response.ok) {
           const result = await response.json();
-          setCodeArena((prev) => (prev ? { ...prev, isCompleted: true } : null));
+          setCodeArena((prev) =>
+            prev ? { ...prev, isCompleted: true } : null
+          );
 
           // Close the completion modal
           setIsCompletionModalOpen(false);
@@ -587,12 +666,23 @@ export default function CodeArenaDetailPage() {
     return `${hours}h ${mins}m`;
   };
 
+  // Don't show loading for auth, but show for code arena data
+  const { loading: authLoading } = useAuth();
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
           <p className="text-gray-600">Loading Code Arena...</p>
+          <p className="mt-2 text-sm text-gray-500">
+            Auth:{" "}
+            {authLoading
+              ? "Loading..."
+              : isAuthenticated
+                ? "Authenticated"
+                : "Anonymous"}
+          </p>
         </div>
       </div>
     );
@@ -687,25 +777,28 @@ export default function CodeArenaDetailPage() {
 
             {/* Right side - Stats */}
             <div className="flex items-center gap-6">
+              {/* Show stats for both authenticated and anonymous users */}
               {/* Level & XP */}
               <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
                 <Star className="h-5 w-5 text-yellow-300" />
-                <span className="font-bold">LV.{levelData.level}</span>
+                <span className="font-bold">LV.{levelData?.level || 1}</span>
                 <div className="h-2 w-20 rounded-full bg-white/20">
                   <div
                     className="h-2 rounded-full bg-yellow-300 transition-all duration-300"
-                    style={{ width: `${progressToNextLevel}%` }}
+                    style={{ width: `${progressToNextLevel || 0}%` }}
                   ></div>
                 </div>
                 <span className="text-xs text-white/80">
-                  {levelData.xpNeededForNext} XP
+                  {levelData?.xpNeededForNext || 1000} XP
                 </span>
               </div>
 
               {/* Rank */}
               <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
-                <span className="text-lg">{rankData.icon}</span>
-                <span className="font-bold text-white">{rankData.name}</span>
+                <span className="text-lg">{rankData?.icon || "🌱"}</span>
+                <span className="font-bold text-white">
+                  {rankData?.name || "Code Rookie"}
+                </span>
               </div>
 
               {/* HP */}
@@ -720,10 +813,17 @@ export default function CodeArenaDetailPage() {
                 <span className="font-bold">{currentStreak} days</span>
               </div>
 
-              {/* Diamonds */}
+              {/* Diamonds - Show potential reward for anonymous users */}
               <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
                 <Diamond className="h-5 w-5 text-blue-300" />
-                <span className="font-bold">{codeArena.diamondReward}</span>
+                <span className="font-bold">
+                  {isAuthenticated
+                    ? user?.currentDiamonds || 0
+                    : `+${codeArena?.diamondReward || 0}`}
+                </span>
+                {!isAuthenticated && (
+                  <span className="text-xs text-white/60">potential</span>
+                )}
               </div>
 
               {/* Sound Toggle */}
@@ -915,11 +1015,9 @@ export default function CodeArenaDetailPage() {
                 >
                   <div className="text-center">
                     <section.icon className="mx-auto mb-2 h-6 w-6" />
-                    <span className="font-bold text-sm">{section.label}</span>
+                    <span className="text-sm font-bold">{section.label}</span>
                     {!section.unlocked && (
-                      <div className="mt-1 text-xs text-gray-500">
-                        🔒
-                      </div>
+                      <div className="mt-1 text-xs text-gray-500">🔒</div>
                     )}
                     {activeSection === section.key && (
                       <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400">
@@ -1062,8 +1160,8 @@ export default function CodeArenaDetailPage() {
               Claim Arena Victory?
             </h2>
             <p className="mb-6 text-gray-600">
-              To conquer the Code Arena, you must complete all battle phases: Learn,
-              Battle Practice, and Final Test.
+              To conquer the Code Arena, you must complete all battle phases:
+              Learn, Battle Practice, and Final Test.
             </p>
             <div className="space-y-4">
               <div

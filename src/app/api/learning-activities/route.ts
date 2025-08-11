@@ -1,25 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 interface AuthUser {
   userId: string;
   username: string;
 }
 
-function getUserFromToken(request: NextRequest): AuthUser | null {
-  const token = request.cookies.get("auth-token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
+// Get user from NextAuth session (consistent with completion API)
+async function getUserFromSession(): Promise<AuthUser | null> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return null;
+    }
+
+    return {
+      userId: session.user.id,
+      username: session.user.username || session.user.email || "Unknown",
+    };
   } catch (error) {
+    console.error("Error getting user from session:", error);
     return null;
   }
 }
@@ -37,15 +40,15 @@ export async function GET(request: NextRequest) {
     const where: any = {
       isActive: true,
     };
-    
+
     if (activityType) where.activityType = activityType;
     if (category) where.category = category;
     if (difficulty) where.difficulty = parseInt(difficulty);
 
     // Get user info for attempt data
-    const authUser = getUserFromToken(request);
+    const authUser = await getUserFromSession();
     let userAttempts: any[] = [];
-    
+
     if (authUser) {
       userAttempts = await prisma.activityAttempt.findMany({
         where: { userId: authUser.userId },
@@ -106,11 +109,11 @@ export async function GET(request: NextRequest) {
 
     // Check prerequisite completion for each activity
     const prerequisiteIds = activities
-      .map(a => a.prerequisiteId)
+      .map((a) => a.prerequisiteId)
       .filter(Boolean) as string[];
-    
-    let prerequisiteCompletions: {[key: string]: boolean} = {};
-    
+
+    let prerequisiteCompletions: { [key: string]: boolean } = {};
+
     if (authUser && prerequisiteIds.length > 0) {
       const prerequisiteAttempts = await prisma.activityAttempt.findMany({
         where: {
@@ -120,23 +123,29 @@ export async function GET(request: NextRequest) {
         },
         select: { activityId: true },
       });
-      
-      prerequisiteCompletions = prerequisiteAttempts.reduce((acc, attempt) => {
-        acc[attempt.activityId] = true;
-        return acc;
-      }, {} as {[key: string]: boolean});
+
+      prerequisiteCompletions = prerequisiteAttempts.reduce(
+        (acc, attempt) => {
+          acc[attempt.activityId] = true;
+          return acc;
+        },
+        {} as { [key: string]: boolean }
+      );
     }
 
     // Format activities with user progress and unlock status
-    const formattedActivities = activities.map(activity => {
-      const userAttempt = userAttempts.find(attempt => attempt.activityId === activity.id);
-      
+    const formattedActivities = activities.map((activity) => {
+      const userAttempt = userAttempts.find(
+        (attempt) => attempt.activityId === activity.id
+      );
+
       // Check if activity is unlocked
-      const isUnlocked = !activity.isLocked ||
+      const isUnlocked =
+        !activity.isLocked ||
         !activity.prerequisiteId ||
         prerequisiteCompletions[activity.prerequisiteId] ||
         false;
-      
+
       return {
         ...activity,
         content: activity.content ? JSON.parse(activity.content) : {},
@@ -144,14 +153,18 @@ export async function GET(request: NextRequest) {
         tags: activity.tags ? JSON.parse(activity.tags) : [],
         totalAttempts: activity._count.attempts,
         isUnlocked,
-        userProgress: userAttempt ? {
-          score: userAttempt.score,
-          maxScore: userAttempt.maxScore,
-          completed: userAttempt.completed,
-          timeSpent: userAttempt.timeSpent,
-          completedAt: userAttempt.completedAt,
-          percentage: Math.round((userAttempt.score / userAttempt.maxScore) * 100),
-        } : null,
+        userProgress: userAttempt
+          ? {
+              score: userAttempt.score,
+              maxScore: userAttempt.maxScore,
+              completed: userAttempt.completed,
+              timeSpent: userAttempt.timeSpent,
+              completedAt: userAttempt.completedAt,
+              percentage: Math.round(
+                (userAttempt.score / userAttempt.maxScore) * 100
+              ),
+            }
+          : null,
       };
     });
 
@@ -188,18 +201,20 @@ export async function GET(request: NextRequest) {
       },
       stats: {
         totalActivities: stats._count.id,
-        categories: categories.map(cat => ({
+        categories: categories.map((cat) => ({
           category: cat.category,
           count: cat._count.category,
         })),
-        activityTypes: activityTypes.map(type => ({
+        activityTypes: activityTypes.map((type) => ({
           type: type.activityType,
           count: type._count.activityType,
         })),
-        userProgress: authUser ? {
-          totalAttempted: userAttempts.length,
-          completed: userAttempts.filter(a => a.completed).length,
-        } : null,
+        userProgress: authUser
+          ? {
+              totalAttempted: userAttempts.length,
+              completed: userAttempts.filter((a) => a.completed).length,
+            }
+          : null,
       },
     });
   } catch (error) {

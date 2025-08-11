@@ -58,7 +58,9 @@
     "rebalance-cards": "tsx scripts/rebalance-existing-cards.ts",
     "update-card-powers": "tsx scripts/update-card-power-stats.ts",
     "fix-rarities": "tsx scripts/fix-rarity-inconsistencies.ts",
-    "full-rebalance": "npm run fix-rarities && npm run balance-drop-rates && npm run rebalance-cards && npm run update-card-powers"
+    "full-rebalance": "npm run fix-rarities && npm run balance-drop-rates && npm run rebalance-cards && npm run update-card-powers",
+    "seed-activities": "node scripts/seed-learning-activities.js",
+    "seed-all": "npm run db:seed && npm run seed-activities"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

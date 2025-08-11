@@ -15,6 +15,8 @@ import {
   addResourceHints,
 } from "@/lib/performance/core-web-vitals";
 import "@/lib/automation-init";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -140,11 +142,13 @@ export const metadata: Metadata = {
   category: "education",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Get session on server side to avoid hydration issues
+  const session = await getServerSession(authOptions);
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
@@ -308,7 +312,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} bg-white text-slate-900 antialiased transition-colors duration-300 dark:bg-slate-900 dark:text-slate-100`}
       >
-        <SessionProvider>
+        <SessionProvider session={session}>
           <ThemeProvider defaultTheme="system" enableSystem>
             <AuthProvider>
               <MainNavigation />

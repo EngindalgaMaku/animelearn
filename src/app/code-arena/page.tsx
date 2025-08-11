@@ -49,10 +49,7 @@ import {
   AnimatedProfileStats,
   useAnimatedStats,
 } from "@/components/gamification/animated-profile-stats";
-import {
-  RewardClaimButton,
-  useRewardClaim,
-} from "@/components/gamification/reward-claim-button";
+import { RewardClaimButton } from "@/components/gamification/reward-claim-button";
 
 interface ArenaConfig {
   difficultyConfigs: {
@@ -155,18 +152,26 @@ function CodeArenaContent() {
     useState<LearningActivity | null>(null);
 
   // UI states
+  const [viewMode, setViewMode] = useState<"path" | "grid" | "categories">(
+    "path"
+  );
   const [selectedTopic, setSelectedTopic] = useState("Python Fundamentals"); // Default to Python Fundamentals
   const [selectedDifficulty, setSelectedDifficulty] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   // Notification states
   const [showSuccessMessage, setShowSuccessMessage] = useState("");
 
+  // Reward claim states - direct implementation
+  const [showRewardButton, setShowRewardButton] = useState(false);
+  const [rewardClaimData, setRewardClaimData] = useState<any>(null);
+
   const { isAuthenticated, user } = useAuth();
   const { showCodeArenaComplete } = useRewardHelpers();
-  const { pendingRewards, showClaimButton, showRewardClaim, hideRewardClaim } =
-    useRewardClaim();
 
   // Profile stats management
   const [userStats, setUserStats] = useState({
@@ -450,10 +455,12 @@ function CodeArenaContent() {
   };
 
   const launchActivity = (activity: LearningActivity) => {
+    // Show login incentive for anonymous users but allow them to proceed
     if (!isAuthenticated) {
-      setShowSuccessMessage("🔐 Please sign in to start learning!");
-      setTimeout(() => setShowSuccessMessage(""), 3000);
-      return;
+      setShowSuccessMessage(
+        "🎯 Try this challenge! Sign in to save your progress and earn rewards!"
+      );
+      setTimeout(() => setShowSuccessMessage(""), 4000);
     }
 
     // Scroll to top before opening modal
@@ -542,49 +549,238 @@ function CodeArenaContent() {
         </div>
       )}
 
-      {/* Simple Topic Selector */}
-      <section className="relative border-b border-slate-200 bg-white py-6">
+      {/* View Mode Toggle Bar */}
+      <div className="sticky top-32 z-30 border-b border-indigo-200/50 bg-white/95 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900">Code Arena</h2>
-              <p className="text-slate-600">
-                Choose a topic and start learning
-              </p>
+          <div className="flex h-16 items-center justify-between">
+            {/* View Mode Toggle */}
+            <div className="flex items-center space-x-1 rounded-2xl bg-gradient-to-r from-slate-100 to-slate-200 p-1 shadow-inner">
+              <button
+                onClick={() => setViewMode("path")}
+                className={`flex items-center space-x-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
+                  viewMode === "path"
+                    ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg"
+                    : "text-slate-600 hover:bg-white hover:text-indigo-600 hover:shadow-md"
+                }`}
+              >
+                <Map className="h-4 w-4" />
+                <span className="hidden sm:inline">Learning Path</span>
+              </button>
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`flex items-center space-x-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
+                  viewMode === "grid"
+                    ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg"
+                    : "text-slate-600 hover:bg-white hover:text-indigo-600 hover:shadow-md"
+                }`}
+              >
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">All Activities</span>
+              </button>
+              <button
+                onClick={() => setViewMode("categories")}
+                className={`flex items-center space-x-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
+                  viewMode === "categories"
+                    ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg"
+                    : "text-slate-600 hover:bg-white hover:text-indigo-600 hover:shadow-md"
+                }`}
+              >
+                <BookOpen className="h-4 w-4" />
+                <span className="hidden sm:inline">Categories</span>
+              </button>
             </div>
 
-            {/* Topic Selector */}
+            {/* Topic Selector & Filter Button */}
             <div className="flex items-center space-x-4">
-              <label
-                htmlFor="topic-select"
-                className="text-sm font-medium text-slate-700"
-              >
-                Topic:
-              </label>
-              <select
-                id="topic-select"
-                value={selectedTopic}
-                onChange={(e) => setSelectedTopic(e.target.value)}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-              >
-                <option value="Python Fundamentals">
-                  🐍 Python Fundamentals
-                </option>
-                <option value="Data Structures">📊 Data Structures</option>
-                <option value="Algorithms">🧮 Algorithms</option>
-                <option value="Functions & OOP">🏗️ Functions & OOP</option>
-                <option value="Web Development">🌐 Web Development</option>
-                <option value="Data Science">📈 Data Science</option>
-              </select>
+              {/* Topic Selector */}
+              <div className="flex items-center space-x-3">
+                <label
+                  htmlFor="topic-select"
+                  className="text-sm font-medium text-slate-700"
+                >
+                  Topic:
+                </label>
+                <select
+                  id="topic-select"
+                  value={selectedTopic}
+                  onChange={(e) => setSelectedTopic(e.target.value)}
+                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <option value="Python Fundamentals">
+                    🐍 Python Fundamentals
+                  </option>
+                  <option value="Data Structures">📊 Data Structures</option>
+                  <option value="Algorithms">🧮 Algorithms</option>
+                  <option value="Functions & OOP">🏗️ Functions & OOP</option>
+                  <option value="Web Development">🌐 Web Development</option>
+                  <option value="Data Science">📈 Data Science</option>
+                </select>
 
-              {/* Activity count */}
-              <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
-                {activities.length} activities
-              </span>
+                {/* Activity count */}
+                <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
+                  {activities.length} activities
+                </span>
+              </div>
+
+              {/* Filter Button */}
+              {uiConfig.showFilters && (
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="rounded-xl bg-gradient-to-r from-slate-100 to-slate-200 p-3 text-slate-600 shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+                >
+                  <Filter className="h-5 w-5" />
+                </button>
+              )}
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Enhanced Hero Section */}
+      <section
+        className={`relative overflow-hidden bg-gradient-to-br ${uiConfig.headerGradient} py-20`}
+      >
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-30"></div>
+        {uiConfig.enableAnimations && (
+          <div className="absolute inset-0">
+            <div className="absolute left-1/4 top-1/4 h-96 w-96 animate-pulse rounded-full bg-cyan-400/30 blur-3xl"></div>
+            <div className="absolute bottom-1/4 right-1/4 h-96 w-96 animate-pulse rounded-full bg-pink-400/30 blur-3xl"></div>
+            <div className="absolute left-1/2 top-1/2 h-64 w-64 animate-bounce rounded-full bg-yellow-400/20 blur-2xl"></div>
+          </div>
+        )}
+
+        <div className="relative mx-auto max-w-7xl px-4 text-center text-white sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8 }}
+          >
+            <div className="mb-6 flex justify-center">
+              <div className="rounded-3xl bg-gradient-to-r from-yellow-400 to-orange-400 px-6 py-2 text-sm font-black text-purple-900 shadow-2xl">
+                🚀 INTERACTIVE CODING CHALLENGES
+              </div>
+            </div>
+            <h1 className="mb-8 text-5xl font-black md:text-7xl">
+              <span className="block bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent drop-shadow-2xl">
+                {uiConfig.heroTitle}
+              </span>
+              <span className="block bg-gradient-to-r from-yellow-300 via-orange-300 to-red-300 bg-clip-text text-transparent drop-shadow-2xl">
+                {uiConfig.heroSubtitle}
+              </span>
+            </h1>
+            <p className="mx-auto mb-10 max-w-3xl text-xl font-medium text-indigo-100">
+              {uiConfig.heroDescription.replace(
+                "{stats.total}",
+                stats.total.toString()
+              )}
+            </p>
+          </motion.div>
+
+          {/* Quick Stats */}
+          {uiConfig.showStats && (
+            <motion.div
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="mx-auto grid max-w-5xl grid-cols-2 gap-6 md:grid-cols-4"
+            >
+              <div className="rounded-3xl border border-white/30 bg-gradient-to-br from-white/20 to-white/5 p-6 shadow-2xl backdrop-blur-xl">
+                <div className="text-4xl font-black text-yellow-300">
+                  {stats.total}
+                </div>
+                <div className="text-sm font-bold text-cyan-200">
+                  Epic Challenges
+                </div>
+              </div>
+              <div className="rounded-3xl border border-white/30 bg-gradient-to-br from-white/20 to-white/5 p-6 shadow-2xl backdrop-blur-xl">
+                <div className="text-4xl font-black text-green-300">
+                  {isAuthenticated ? stats.completed : 0}
+                </div>
+                <div className="text-sm font-bold text-cyan-200">Conquered</div>
+              </div>
+              <div className="rounded-3xl border border-white/30 bg-gradient-to-br from-white/20 to-white/5 p-6 shadow-2xl backdrop-blur-xl">
+                <div className="text-4xl font-black text-orange-300">
+                  {stats.percentage}%
+                </div>
+                <div className="text-sm font-bold text-cyan-200">Mastery</div>
+              </div>
+              <div className="rounded-3xl border border-white/30 bg-gradient-to-br from-white/20 to-white/5 p-6 shadow-2xl backdrop-blur-xl">
+                <div className="text-4xl font-black text-pink-300">
+                  {Object.keys(groupedActivities).length}
+                </div>
+                <div className="text-sm font-bold text-cyan-200">Domains</div>
+              </div>
+            </motion.div>
+          )}
+        </div>
       </section>
+
+      {/* Filters Section */}
+      <AnimatePresence>
+        {showFilters && uiConfig.showFilters && (
+          <motion.section
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden border-b border-slate-200 bg-white"
+          >
+            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search activities..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 py-3 pl-10 pr-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  />
+                </div>
+
+                <select
+                  value={selectedTopic}
+                  onChange={(e) => setSelectedTopic(e.target.value)}
+                  className="rounded-xl border border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <option value="">All Categories</option>
+                  <option value="Python Fundamentals">
+                    🐍 Python Fundamentals
+                  </option>
+                  <option value="Data Structures">📊 Data Structures</option>
+                  <option value="Algorithms">🧮 Algorithms</option>
+                  <option value="Functions & OOP">🏗️ Functions & OOP</option>
+                  <option value="Web Development">🌐 Web Development</option>
+                  <option value="Data Science">📈 Data Science</option>
+                </select>
+
+                <select
+                  value={selectedDifficulty}
+                  onChange={(e) => setSelectedDifficulty(e.target.value)}
+                  className="rounded-xl border border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <option value="">All Difficulties</option>
+                  {Object.entries(difficultyConfigs).map(([level, config]) => (
+                    <option key={level} value={level}>
+                      {config.icon} {config.label}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSelectedTopic("Python Fundamentals");
+                    setSelectedDifficulty("");
+                  }}
+                  className="rounded-xl bg-slate-100 px-4 py-3 font-medium text-slate-700 transition-colors hover:bg-slate-200"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+          </motion.section>
+        )}
+      </AnimatePresence>
 
       {/* Success Message */}
       <AnimatePresence>
@@ -602,7 +798,7 @@ function CodeArenaContent() {
 
       {/* Reward Claim Button */}
       <AnimatePresence>
-        {showClaimButton && pendingRewards && (
+        {showRewardButton && rewardClaimData && (
           <motion.div
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -610,13 +806,15 @@ function CodeArenaContent() {
             className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform"
           >
             <RewardClaimButton
-              rewards={pendingRewards}
+              rewards={rewardClaimData}
               onClaimRewards={() => {
                 // Handle reward claiming with animations
                 const completionData = (window as any)._pendingCompletionData;
 
                 if (completionData) {
-                  // Update profile stats
+                  console.log("🎁 Claiming rewards with data:", completionData);
+
+                  // Update profile stats with correct property mapping
                   if (completionData.user) {
                     const newStats = {
                       level: completionData.user.level,
@@ -627,16 +825,26 @@ function CodeArenaContent() {
                       codeArenasCompleted: userStats.codeArenasCompleted + 1,
                       quizzesCompleted: userStats.quizzesCompleted,
                     };
+                    console.log("📊 Updating stats:", {
+                      old: userStats,
+                      new: newStats,
+                    });
                     setUserStats(newStats);
                     updateStats(newStats);
                   }
 
-                  // Show animated rewards
+                  // Show animated rewards using the API response
+                  console.log("🎭 Showing animated rewards...");
                   showCodeArenaComplete(completionData);
+                } else {
+                  console.warn(
+                    "⚠️ No completion data found for reward claiming"
+                  );
                 }
 
                 // Hide the claim button and success message
-                hideRewardClaim();
+                setShowRewardButton(false);
+                setRewardClaimData(null);
                 setShowSuccessMessage("");
 
                 // Clean up
@@ -650,156 +858,452 @@ function CodeArenaContent() {
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="space-y-6">
-          {/* Activities Grid */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {activities
-              .filter(
-                (activity) =>
-                  activity.title
-                    .toLowerCase()
-                    .includes(searchTerm.toLowerCase()) ||
-                  activity.description
-                    .toLowerCase()
-                    .includes(searchTerm.toLowerCase())
-              )
-              .map((activity, index) => {
-                const difficultyConfig =
-                  difficultyConfigs[activity.difficulty] ||
-                  difficultyConfigs[1];
-                const activityTypeConfig =
-                  activityTypeConfigs[activity.activityType] ||
-                  activityTypeConfigs.quiz;
-
-                return (
-                  <motion.div
-                    key={activity.id}
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="group rounded-3xl border-2 border-transparent bg-gradient-to-br from-white via-slate-50 to-indigo-50 p-6 transition-all duration-300 hover:scale-105 hover:border-indigo-300 hover:shadow-2xl"
-                  >
-                    {/* Activity Header */}
-                    <div className="mb-4 flex items-start justify-between">
-                      <div
-                        className={`h-16 w-16 rounded-2xl ${difficultyConfig.bgColor} flex items-center justify-center text-2xl shadow-xl transition-transform group-hover:scale-110`}
-                      >
-                        {difficultyConfig.icon}
-                      </div>
-                      {activity.userProgress?.completed && (
-                        <div className="rounded-full bg-gradient-to-r from-green-400 to-emerald-500 p-2 text-white shadow-lg">
-                          <CheckCircle className="h-5 w-5" />
-                        </div>
-                      )}
-                    </div>
-
-                    <h4 className="mb-3 text-xl font-black text-slate-900 transition-colors group-hover:text-indigo-600">
-                      {activity.title}
-                    </h4>
-
-                    <p className="mb-5 line-clamp-2 text-base font-medium text-slate-600">
-                      {activity.description}
-                    </p>
-
-                    {/* Activity Meta */}
-                    <div className="mb-5 flex items-center justify-between">
-                      <span
-                        className={`rounded-2xl px-4 py-2 text-sm font-bold ${activityTypeConfig.color} bg-gradient-to-r from-slate-100 to-slate-200 shadow-md`}
-                      >
-                        {activityTypeConfig.icon} {activityTypeConfig.name}
-                      </span>
-                      <span
-                        className={`rounded-2xl px-4 py-2 text-sm font-bold ${difficultyConfig.textColor} ${difficultyConfig.bgColor} ${difficultyConfig.borderColor} border-2 shadow-md`}
-                      >
-                        {difficultyConfig.label}
-                      </span>
-                    </div>
-
-                    {/* Rewards */}
-                    <div className="mb-5 grid grid-cols-3 gap-3 text-sm">
-                      <div className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-yellow-100 to-orange-100 p-2">
-                        <Diamond className="h-5 w-5 text-yellow-600" />
-                        <span className="font-black text-yellow-700">
-                          +{activity.diamondReward}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-purple-100 to-pink-100 p-2">
-                        <Star className="h-5 w-5 text-purple-600" />
-                        <span className="font-black text-purple-700">
-                          +{activity.experienceReward} XP
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-slate-100 to-slate-200 p-2">
-                        <Clock className="h-5 w-5 text-slate-600" />
-                        <span className="font-black text-slate-700">
-                          {activity.estimatedMinutes}m
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Progress Bar */}
-                    {activity.userProgress && (
-                      <div className="mb-5">
-                        <div className="h-3 rounded-full bg-slate-200 shadow-inner">
-                          <div
-                            className={`h-3 rounded-full shadow-lg transition-all duration-500 ${
-                              activity.userProgress.completed
-                                ? "bg-gradient-to-r from-green-400 to-emerald-500"
-                                : "bg-gradient-to-r from-blue-400 to-indigo-500"
-                            }`}
-                            style={{
-                              width: `${activity.userProgress.percentage}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Action Button */}
-                    <button
-                      onClick={() => launchActivity(activity)}
-                      className={`flex w-full transform items-center justify-center space-x-3 rounded-2xl py-4 text-lg font-black transition-all hover:scale-105 ${
-                        activity.userProgress?.completed
-                          ? "bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-xl hover:shadow-2xl"
-                          : "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-xl hover:shadow-2xl"
-                      }`}
-                    >
-                      {activity.userProgress?.completed ? (
-                        <>
-                          <Trophy className="h-5 w-5" />
-                          <span>🏆 REVIEW</span>
-                        </>
-                      ) : activity.userProgress ? (
-                        <>
-                          <Play className="h-5 w-5" />
-                          <span>⚡ CONTINUE</span>
-                        </>
-                      ) : (
-                        <>
-                          <Rocket className="h-5 w-5" />
-                          <span>🚀 START CHALLENGE</span>
-                        </>
-                      )}
-                    </button>
-                  </motion.div>
-                );
-              })}
-          </div>
-
-          {/* No activities message */}
-          {activities.length === 0 && !loading && (
-            <div className="py-16 text-center">
-              <div className="mb-4 text-6xl">🔍</div>
-              <h3 className="mb-2 text-2xl font-bold text-slate-900">
-                No Activities Found
-              </h3>
+        {/* Learning Path View */}
+        {viewMode === "path" && (
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="mb-2 text-3xl font-bold text-slate-900">
+                Your Learning Journey
+              </h2>
               <p className="text-lg text-slate-600">
-                No activities available for this topic yet. Try selecting a
-                different topic!
+                Follow the structured path to master programming concepts
               </p>
             </div>
-          )}
-        </div>
+
+            {Object.entries(groupedActivities).map(
+              ([category, categoryActivities], categoryIndex) => {
+                const progress = getCategoryProgress(category);
+                const configData = categoryConfigs[category] || {
+                  title: category,
+                  description: "Programming challenges",
+                  icon: "💻",
+                  gradient: "from-slate-500 to-slate-600",
+                  bgGradient: "from-slate-50 to-slate-50",
+                  iconBg: "bg-slate-500",
+                };
+
+                return (
+                  <motion.section
+                    key={category}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: categoryIndex * 0.1 }}
+                    className="rounded-3xl border border-indigo-100 bg-gradient-to-br from-white via-slate-50 to-indigo-50 p-8 shadow-2xl"
+                  >
+                    {/* Category Header */}
+                    <div
+                      className="group mb-6 flex cursor-pointer items-center justify-between"
+                      onClick={() =>
+                        setExpandedCategories((prev) => ({
+                          ...prev,
+                          [category]: !prev[category],
+                        }))
+                      }
+                    >
+                      <div className="flex items-center space-x-6">
+                        <div
+                          className={`h-20 w-20 rounded-3xl ${configData.iconBg} flex items-center justify-center text-3xl text-white shadow-2xl transition-transform duration-300 group-hover:scale-110`}
+                        >
+                          {configData.icon}
+                        </div>
+                        <div>
+                          <h3 className="text-3xl font-black text-slate-900 transition-colors group-hover:text-indigo-600">
+                            {configData.title}
+                          </h3>
+                          <p className="text-lg font-medium text-slate-600">
+                            {configData.description}
+                          </p>
+                          <div className="mt-3 flex items-center space-x-6">
+                            <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-bold text-slate-700">
+                              {progress.completed}/{progress.total} completed
+                            </span>
+                            <div className="h-3 w-40 rounded-full bg-slate-200 shadow-inner">
+                              <div
+                                className={`h-3 rounded-full bg-gradient-to-r ${configData.gradient} shadow-lg transition-all duration-500`}
+                                style={{ width: `${progress.percentage}%` }}
+                              />
+                            </div>
+                            <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-lg font-black text-slate-900 text-transparent">
+                              {progress.percentage}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 p-3">
+                        <ChevronDown
+                          className={`h-6 w-6 text-indigo-600 transition-transform ${expandedCategories[category] ? "rotate-180" : ""}`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Activities */}
+                    <AnimatePresence>
+                      {expandedCategories[category] && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+                        >
+                          {categoryActivities.map((activity, index) => {
+                            const difficultyConfig =
+                              difficultyConfigs[activity.difficulty] ||
+                              difficultyConfigs[1];
+                            const activityTypeConfig =
+                              activityTypeConfigs[activity.activityType] ||
+                              activityTypeConfigs.quiz;
+
+                            return (
+                              <motion.div
+                                key={activity.id}
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ delay: index * 0.05 }}
+                                className="group rounded-3xl border-2 border-transparent bg-gradient-to-br from-white via-slate-50 to-indigo-50 p-6 transition-all duration-300 hover:scale-105 hover:border-indigo-300 hover:shadow-2xl"
+                              >
+                                {/* Activity content - same as grid view */}
+                                <div className="mb-4 flex items-start justify-between">
+                                  <div
+                                    className={`h-16 w-16 rounded-2xl ${difficultyConfig.bgColor} flex items-center justify-center text-2xl shadow-xl transition-transform group-hover:scale-110`}
+                                  >
+                                    {difficultyConfig.icon}
+                                  </div>
+                                  {activity.userProgress?.completed && (
+                                    <div className="rounded-full bg-gradient-to-r from-green-400 to-emerald-500 p-2 text-white shadow-lg">
+                                      <CheckCircle className="h-5 w-5" />
+                                    </div>
+                                  )}
+                                </div>
+
+                                <h4 className="mb-3 text-xl font-black text-slate-900 transition-colors group-hover:text-indigo-600">
+                                  {activity.title}
+                                </h4>
+
+                                <p className="mb-5 line-clamp-2 text-base font-medium text-slate-600">
+                                  {activity.description}
+                                </p>
+
+                                <div className="mb-5 flex items-center justify-between">
+                                  <span
+                                    className={`rounded-2xl px-4 py-2 text-sm font-bold ${activityTypeConfig.color} bg-gradient-to-r from-slate-100 to-slate-200 shadow-md`}
+                                  >
+                                    {activityTypeConfig.icon}{" "}
+                                    {activityTypeConfig.name}
+                                  </span>
+                                  <span
+                                    className={`rounded-2xl px-4 py-2 text-sm font-bold ${difficultyConfig.textColor} ${difficultyConfig.bgColor} ${difficultyConfig.borderColor} border-2 shadow-md`}
+                                  >
+                                    {difficultyConfig.label}
+                                  </span>
+                                </div>
+
+                                <div className="mb-5 grid grid-cols-3 gap-3 text-sm">
+                                  <div className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-yellow-100 to-orange-100 p-2">
+                                    <Diamond className="h-5 w-5 text-yellow-600" />
+                                    <span className="font-black text-yellow-700">
+                                      +{activity.diamondReward}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-purple-100 to-pink-100 p-2">
+                                    <Star className="h-5 w-5 text-purple-600" />
+                                    <span className="font-black text-purple-700">
+                                      +{activity.experienceReward} XP
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-slate-100 to-slate-200 p-2">
+                                    <Clock className="h-5 w-5 text-slate-600" />
+                                    <span className="font-black text-slate-700">
+                                      {activity.estimatedMinutes}m
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {activity.userProgress && (
+                                  <div className="mb-5">
+                                    <div className="h-3 rounded-full bg-slate-200 shadow-inner">
+                                      <div
+                                        className={`h-3 rounded-full shadow-lg transition-all duration-500 ${
+                                          activity.userProgress.completed
+                                            ? "bg-gradient-to-r from-green-400 to-emerald-500"
+                                            : "bg-gradient-to-r from-blue-400 to-indigo-500"
+                                        }`}
+                                        style={{
+                                          width: `${activity.userProgress.percentage}%`,
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+
+                                <button
+                                  onClick={() => launchActivity(activity)}
+                                  className={`flex w-full transform items-center justify-center space-x-3 rounded-2xl py-4 text-lg font-black transition-all hover:scale-105 ${
+                                    activity.userProgress?.completed
+                                      ? "bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-xl hover:shadow-2xl"
+                                      : "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-xl hover:shadow-2xl"
+                                  }`}
+                                >
+                                  {activity.userProgress?.completed ? (
+                                    <>
+                                      <Trophy className="h-5 w-5" />
+                                      <span>🏆 REVIEW</span>
+                                    </>
+                                  ) : activity.userProgress ? (
+                                    <>
+                                      <Play className="h-5 w-5" />
+                                      <span>⚡ CONTINUE</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Rocket className="h-5 w-5" />
+                                      <span>🚀 START CHALLENGE</span>
+                                    </>
+                                  )}
+                                </button>
+                              </motion.div>
+                            );
+                          })}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.section>
+                );
+              }
+            )}
+          </div>
+        )}
+
+        {/* Grid View */}
+        {viewMode === "grid" && (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="mb-2 text-3xl font-bold text-slate-900">
+                All Activities
+              </h2>
+              <p className="text-lg text-slate-600">
+                Browse all available coding challenges
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {activities
+                .filter(
+                  (activity) =>
+                    activity.title
+                      .toLowerCase()
+                      .includes(searchTerm.toLowerCase()) ||
+                    activity.description
+                      .toLowerCase()
+                      .includes(searchTerm.toLowerCase())
+                )
+                .map((activity, index) => {
+                  const difficultyConfig =
+                    difficultyConfigs[activity.difficulty] ||
+                    difficultyConfigs[1];
+                  const activityTypeConfig =
+                    activityTypeConfigs[activity.activityType] ||
+                    activityTypeConfigs.quiz;
+
+                  return (
+                    <motion.div
+                      key={activity.id}
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="group rounded-3xl border-2 border-transparent bg-gradient-to-br from-white via-slate-50 to-indigo-50 p-6 transition-all duration-300 hover:scale-105 hover:border-indigo-300 hover:shadow-2xl"
+                    >
+                      {/* Enhanced activity card content */}
+                      <div className="mb-4 flex items-start justify-between">
+                        <div
+                          className={`h-16 w-16 rounded-2xl ${difficultyConfig.bgColor} flex items-center justify-center text-2xl shadow-xl transition-transform group-hover:scale-110`}
+                        >
+                          {difficultyConfig.icon}
+                        </div>
+                        {activity.userProgress?.completed && (
+                          <div className="rounded-full bg-gradient-to-r from-green-400 to-emerald-500 p-2 text-white shadow-lg">
+                            <CheckCircle className="h-5 w-5" />
+                          </div>
+                        )}
+                      </div>
+
+                      <h4 className="mb-3 text-xl font-black text-slate-900 transition-colors group-hover:text-indigo-600">
+                        {activity.title}
+                      </h4>
+
+                      <p className="mb-5 line-clamp-2 text-base font-medium text-slate-600">
+                        {activity.description}
+                      </p>
+
+                      <div className="mb-5 flex items-center justify-between">
+                        <span
+                          className={`rounded-2xl px-4 py-2 text-sm font-bold ${activityTypeConfig.color} bg-gradient-to-r from-slate-100 to-slate-200 shadow-md`}
+                        >
+                          {activityTypeConfig.icon} {activityTypeConfig.name}
+                        </span>
+                        <span
+                          className={`rounded-2xl px-4 py-2 text-sm font-bold ${difficultyConfig.textColor} ${difficultyConfig.bgColor} ${difficultyConfig.borderColor} border-2 shadow-md`}
+                        >
+                          {difficultyConfig.label}
+                        </span>
+                      </div>
+
+                      <div className="mb-5 grid grid-cols-3 gap-3 text-sm">
+                        <div className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-yellow-100 to-orange-100 p-2">
+                          <Diamond className="h-5 w-5 text-yellow-600" />
+                          <span className="font-black text-yellow-700">
+                            +{activity.diamondReward}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-purple-100 to-pink-100 p-2">
+                          <Star className="h-5 w-5 text-purple-600" />
+                          <span className="font-black text-purple-700">
+                            +{activity.experienceReward} XP
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-slate-100 to-slate-200 p-2">
+                          <Clock className="h-5 w-5 text-slate-600" />
+                          <span className="font-black text-slate-700">
+                            {activity.estimatedMinutes}m
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => launchActivity(activity)}
+                        className={`flex w-full transform items-center justify-center space-x-3 rounded-2xl py-4 text-lg font-black transition-all hover:scale-105 ${
+                          activity.userProgress?.completed
+                            ? "bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-xl hover:shadow-2xl"
+                            : "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-xl hover:shadow-2xl"
+                        }`}
+                      >
+                        {activity.userProgress?.completed ? (
+                          <>
+                            <Trophy className="h-5 w-5" />
+                            <span>🏆 REVIEW</span>
+                          </>
+                        ) : (
+                          <>
+                            <Rocket className="h-5 w-5" />
+                            <span>🚀 START CHALLENGE</span>
+                          </>
+                        )}
+                      </button>
+                    </motion.div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
+
+        {/* Categories View */}
+        {viewMode === "categories" && (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="mb-2 text-3xl font-bold text-slate-900">
+                Learning Categories
+              </h2>
+              <p className="text-lg text-slate-600">
+                Explore different programming topics
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {Object.entries(groupedActivities).map(
+                ([category, categoryActivities], index) => {
+                  const progress = getCategoryProgress(category);
+                  const configData = categoryConfigs[category] || {
+                    title: category,
+                    description: "Programming challenges",
+                    icon: "💻",
+                    gradient: "from-slate-500 to-slate-600",
+                    bgGradient: "from-slate-50 to-slate-50",
+                    iconBg: "bg-slate-500",
+                  };
+
+                  return (
+                    <motion.div
+                      key={category}
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      className={`relative overflow-hidden rounded-3xl bg-gradient-to-br p-8 ${configData.bgGradient} group cursor-pointer border-2 border-indigo-200 transition-all duration-300 hover:scale-105 hover:shadow-2xl`}
+                      onClick={() => setSelectedTopic(category)}
+                    >
+                      <div className="mb-6 flex items-start justify-between">
+                        <div
+                          className={`h-20 w-20 rounded-3xl ${configData.iconBg} flex items-center justify-center text-3xl text-white shadow-2xl transition-transform group-hover:rotate-12 group-hover:scale-110`}
+                        >
+                          {configData.icon}
+                        </div>
+                        <div className="text-right">
+                          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-4xl font-black text-transparent">
+                            {progress.percentage}%
+                          </div>
+                          <div className="rounded-full bg-slate-100 px-2 py-1 text-sm font-bold text-slate-700">
+                            Complete
+                          </div>
+                        </div>
+                      </div>
+
+                      <h3 className="mb-3 text-3xl font-black text-slate-900 transition-colors group-hover:text-indigo-600">
+                        {configData.title}
+                      </h3>
+                      <p className="mb-6 text-lg font-medium text-slate-600">
+                        {configData.description}
+                      </p>
+
+                      <div className="space-y-5">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="rounded-full bg-slate-100 px-3 py-1 font-bold text-slate-700">
+                            {progress.completed}/{progress.total} activities
+                          </span>
+                          <div className="flex items-center space-x-2 rounded-full bg-gradient-to-r from-yellow-100 to-orange-100 px-3 py-1">
+                            <Diamond className="h-5 w-5 text-yellow-600" />
+                            <span className="font-black text-yellow-700">
+                              {categoryActivities.reduce(
+                                (sum, a) => sum + a.diamondReward,
+                                0
+                              )}{" "}
+                              diamonds
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="h-4 w-full rounded-full bg-white/70 shadow-inner">
+                          <div
+                            className={`h-4 rounded-full bg-gradient-to-r ${configData.gradient} shadow-lg transition-all duration-500`}
+                            style={{ width: `${progress.percentage}%` }}
+                          />
+                        </div>
+
+                        <button className="flex w-full items-center justify-center space-x-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-500 py-4 text-lg font-black text-white shadow-xl transition-all hover:scale-105 hover:shadow-2xl">
+                          <span>
+                            🎯 Explore {categoryActivities.length} Activities
+                          </span>
+                          <ArrowRight className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  );
+                }
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* No activities message */}
+        {activities.length === 0 && !loading && (
+          <div className="py-16 text-center">
+            <div className="mb-4 text-6xl">🔍</div>
+            <h3 className="mb-2 text-2xl font-bold text-slate-900">
+              No Activities Found
+            </h3>
+            <p className="text-lg text-slate-600">
+              No activities available for this topic yet. Try selecting a
+              different topic!
+            </p>
+          </div>
+        )}
       </main>
 
       {/* Activity Modal */}
@@ -883,24 +1387,47 @@ function CodeArenaContent() {
 
                       if (response.ok) {
                         const completionData = await response.json();
+                        console.log(
+                          "✅ Activity completion response:",
+                          completionData
+                        );
 
-                        // Prepare reward data for claim button
+                        // Prepare reward data for claim button - fix response mapping
                         const rewardData = {
                           diamonds:
-                            completionData.diamonds ||
+                            completionData.rewards?.diamonds ||
                             selectedActivity.diamondReward,
                           experience:
-                            completionData.experience ||
+                            completionData.rewards?.experience ||
                             selectedActivity.experienceReward,
-                          levelUp: completionData.levelUp || false,
-                          newLevel: completionData.newLevel,
-                          badges: completionData.badges || [],
+                          levelUp: completionData.rewards?.levelUp || false,
+                          newLevel: completionData.rewards?.newLevel,
+                          badges: completionData.rewards?.badges || [],
                           activityTitle: selectedActivity.title,
                           score: score,
                         };
 
-                        // Show reward claim button instead of immediate animations
-                        showRewardClaim(rewardData);
+                        console.log("🎁 Prepared reward data:", rewardData);
+                        console.log(
+                          "🔍 showRewardButton state before:",
+                          showRewardButton
+                        );
+
+                        // Show reward claim button - direct state update
+                        setRewardClaimData(rewardData);
+                        setShowRewardButton(true);
+
+                        // Check state after React state update
+                        setTimeout(() => {
+                          console.log(
+                            "🔍 showRewardButton state after timeout:",
+                            showRewardButton
+                          );
+                          console.log(
+                            "🔍 rewardClaimData after timeout:",
+                            rewardClaimData
+                          );
+                        }, 100);
 
                         // Store completion data for later use when claiming rewards
                         (window as any)._pendingCompletionData = completionData;
