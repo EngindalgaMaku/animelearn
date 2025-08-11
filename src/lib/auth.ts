@@ -27,7 +27,7 @@ const getBaseUrl = () => {
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
-  adapter: PrismaAdapter(prisma) as any,
+  // PrismaAdapter kaldırıldı - JWT ile manual session yönetimi
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -241,60 +241,59 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async session({ session, user }) {
-      console.log("🔄 Session callback called (database strategy)");
-      console.log("📧 Session email:", session.user?.email);
-      console.log("👤 User from DB:", JSON.stringify(user, null, 2));
+    async jwt({ token, user }) {
+      console.log("🔄 JWT callback called");
 
-      if (session.user?.email) {
-        try {
-          const dbUser = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: {
-              id: true,
-              username: true,
-              email: true,
-              role: true,
-              level: true,
-              experience: true,
-              currentDiamonds: true,
-              totalDiamonds: true,
-              loginStreak: true,
-              maxLoginStreak: true,
-              isPremium: true,
-              isActive: true,
-            },
-          });
-
-          if (dbUser) {
-            session.user = {
-              ...session.user,
-              id: dbUser.id,
-              username: dbUser.username,
-              role: dbUser.role,
-              level: dbUser.level,
-              experience: dbUser.experience,
-              currentDiamonds: dbUser.currentDiamonds,
-              totalDiamonds: dbUser.totalDiamonds,
-              loginStreak: dbUser.loginStreak,
-              maxLoginStreak: dbUser.maxLoginStreak,
-              isPremium: dbUser.isPremium,
-            };
-          }
-        } catch (error) {
-          console.error("Error in session callback:", error);
-        }
+      if (user) {
+        // İlk login'de user bilgilerini token'a kaydet
+        token.id = user.id;
+        token.username = user.username;
+        token.role = user.role;
+        token.level = user.level;
+        token.experience = user.experience;
+        token.currentDiamonds = user.currentDiamonds;
+        token.totalDiamonds = user.totalDiamonds;
+        token.loginStreak = user.loginStreak;
+        token.maxLoginStreak = user.maxLoginStreak;
+        token.isPremium = user.isPremium;
       }
 
-      console.log(
-        "✅ Final session user:",
-        JSON.stringify(session.user, null, 2)
-      );
-      return session;
+      console.log("✅ JWT token saved");
+      return token;
+    },
+    async session({ session, token }) {
+      console.log("🔄 Session callback called (JWT strategy)");
+
+      try {
+        if (token && session.user) {
+          session.user = {
+            ...session.user,
+            id: token.id as string,
+            username:
+              (token.username as string) ||
+              session.user.email?.split("@")[0] ||
+              "User",
+            role: (token.role as string) || "user",
+            level: (token.level as number) || 1,
+            experience: (token.experience as number) || 0,
+            currentDiamonds: (token.currentDiamonds as number) || 100,
+            totalDiamonds: (token.totalDiamonds as number) || 100,
+            loginStreak: (token.loginStreak as number) || 1,
+            maxLoginStreak: (token.maxLoginStreak as number) || 1,
+            isPremium: (token.isPremium as boolean) || false,
+          };
+        }
+
+        console.log("✅ Session user set");
+        return session;
+      } catch (error) {
+        console.error("Error in session callback:", error);
+        return session;
+      }
     },
   },
   session: {
-    strategy: "database",
+    strategy: "jwt",
     maxAge: 7 * 24 * 60 * 60, // 7 days for better security
     updateAge: 24 * 60 * 60, // Update session every 24 hours
   },

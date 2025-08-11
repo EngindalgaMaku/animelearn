@@ -7,6 +7,11 @@ import { authOptions } from "@/lib/auth";
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
+    console.log(
+      "🔍 Python tips session:",
+      JSON.stringify(session?.user, null, 2)
+    );
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -35,15 +40,20 @@ export async function GET(request: NextRequest) {
     if (!dailyTip) {
       // Get user's difficulty preference or default
       let userDifficulty = "beginner";
-      if (session?.user) {
-        const user = await prisma.user.findUnique({
-          where: { id: session.user.id as string },
-          select: { level: true },
-        });
+      if (session?.user?.id) {
+        try {
+          const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { level: true },
+          });
 
-        if (user) {
-          if (user.level >= 10) userDifficulty = "advanced";
-          else if (user.level >= 5) userDifficulty = "intermediate";
+          if (user) {
+            if (user.level >= 10) userDifficulty = "advanced";
+            else if (user.level >= 5) userDifficulty = "intermediate";
+          }
+        } catch (error) {
+          console.error("User lookup error:", error);
+          // Continue with default difficulty
         }
       }
 
@@ -104,20 +114,25 @@ export async function GET(request: NextRequest) {
     let userInteraction = null;
     let userStreak = null;
 
-    if (session?.user) {
-      [userInteraction, userStreak] = await Promise.all([
-        prisma.userPythonTipInteraction.findUnique({
-          where: {
-            userId_tipId: {
-              userId: session.user.id as string,
-              tipId: dailyTip.tip.id,
+    if (session?.user?.id) {
+      try {
+        [userInteraction, userStreak] = await Promise.all([
+          prisma.userPythonTipInteraction.findUnique({
+            where: {
+              userId_tipId: {
+                userId: session.user.id,
+                tipId: dailyTip.tip.id,
+              },
             },
-          },
-        }),
-        prisma.pythonTipStreak.findUnique({
-          where: { userId: session.user.id as string },
-        }),
-      ]);
+          }),
+          prisma.pythonTipStreak.findUnique({
+            where: { userId: session.user.id },
+          }),
+        ]);
+      } catch (error) {
+        console.error("User interaction lookup error:", error);
+        // Continue without user data
+      }
     }
 
     return NextResponse.json({

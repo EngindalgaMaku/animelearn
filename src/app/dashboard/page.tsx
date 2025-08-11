@@ -204,6 +204,8 @@ export default function Dashboard() {
           console.log("API Response:", data); // Debug log
           setDailyTip(data.dailyTip);
           setTipProgress(data.userProgress);
+        } else {
+          console.error("Failed to load daily tip:", response.status);
         }
       } catch (error) {
         console.error("Failed to load daily tip:", error);
