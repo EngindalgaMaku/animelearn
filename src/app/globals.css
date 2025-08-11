@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* CSS Cache Busting - Force refresh styles */
 * {
@@ -15,9 +17,6 @@ html {
   --background: #ffffff;
   --foreground: #171717;
   --cache-buster: v1.0.0; /* Increment this to force CSS refresh */
-}
-
-@theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);

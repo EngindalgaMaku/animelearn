@@ -2,9 +2,6 @@
 const nextConfig = {
   // Minimal configuration to fix static asset issues
 
-  // Disable Turbopack - use webpack instead
-  turbo: false,
-
   // Performance optimizations
   serverExternalPackages: ["sharp"],
 
