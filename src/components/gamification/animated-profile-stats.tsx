@@ -161,11 +161,11 @@ export const AnimatedProfileStats: React.FC<AnimatedProfileStatsProps> = ({
   const [previousStats, setPreviousStats] = useState(stats);
 
   useEffect(() => {
-    if (stats !== previousStats) {
+    if (JSON.stringify(stats) !== JSON.stringify(previousStats)) {
       setPreviousStats(stats);
       onStatsUpdate?.(stats);
     }
-  }, [stats, previousStats, onStatsUpdate]);
+  }, [stats, onStatsUpdate]);
 
   const variants = {
     header:
