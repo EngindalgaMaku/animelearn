@@ -53,8 +53,13 @@ async function scanCardsDirectory(
       const fullPath = path.join(dirPath, entry.name);
 
       if (entry.isDirectory()) {
-        // Skip placeholder.txt, thumbs directory and scan subdirectories
-        if (entry.name !== "placeholder.txt" && entry.name !== "thumbs") {
+        // Skip thumbnail directories and placeholder files
+        if (
+          entry.name !== "placeholder.txt" &&
+          entry.name !== "thumbs" &&
+          !entry.name.includes("thumbnail") &&
+          !entry.name.includes("thumb")
+        ) {
           const subResult = await scanCardsDirectory(fullPath);
           files.push(...subResult.files);
           errors.push(...subResult.errors);
@@ -65,7 +70,10 @@ async function scanCardsDirectory(
           entry.name === "placeholder.jpg" ||
           entry.name === "placeholder.txt" ||
           entry.name.startsWith("thumb_") ||
-          entry.name.includes("thumbnail")
+          entry.name.includes("thumbnail") ||
+          entry.name.includes("thumb") ||
+          fullPath.includes("/thumbs/") ||
+          fullPath.includes("\\thumbs\\")
         ) {
           continue;
         }
@@ -172,114 +180,207 @@ function generateCardDetails(fileInfo: FileInfo): {
   character: string;
   category: string;
   rarity: string;
+  diamondPrice: number;
 } {
-  const { fileName, element } = fileInfo;
+  const { fileName, relativePath, element } = fileInfo;
   const baseName = path.parse(fileName).name;
 
-  // Extract number from filename (e.g., fire_001 -> 001)
-  const numberMatch = baseName.match(/(\d+)$/);
-  const cardNumber = numberMatch ? numberMatch[1] : "001";
+  // Extract category from path for new category-based structure
+  const pathParts = relativePath.split("/");
+  let detectedCategory = "anime-collection"; // default
+  let categoryFromPath = "";
 
-  // Generate card details based on element and naming conventions
-  const elementConfig = {
-    fire: {
-      series: "Fire Elemental Collection",
-      category: "anime-collection",
-      namePrefix: "Flame",
-      characters: [
-        "Pyro Master",
-        "Fire Dragon",
-        "Flame Guardian",
-        "Inferno Warrior",
+  // Check if it's in the new category-based structure: /uploads/categories/{category-slug}/
+  if (pathParts.includes("categories") && pathParts.length >= 4) {
+    const categoryIndex = pathParts.indexOf("categories");
+    if (categoryIndex >= 0 && pathParts[categoryIndex + 1]) {
+      categoryFromPath = pathParts[categoryIndex + 1];
+      detectedCategory = categoryFromPath;
+    }
+  }
+
+  // Extract number from filename for unique naming
+  const numberMatch = baseName.match(/(\d+)$/);
+  const cardNumber = numberMatch
+    ? numberMatch[1]
+    : Math.floor(Math.random() * 1000)
+        .toString()
+        .padStart(3, "0");
+
+  // Category-based card generation
+  const categoryConfigs = {
+    "anime-collection": {
+      series: "Anime Collection",
+      names: [
+        "Akira",
+        "Yuki",
+        "Sakura",
+        "Hiro",
+        "Rei",
+        "Sora",
+        "Kyo",
+        "Rin",
+        "Natsu",
+        "Lucy",
+      ],
+      prefixes: [
+        "Guardian",
+        "Master",
+        "Champion",
+        "Hero",
+        "Warrior",
+        "Knight",
+        "Spirit",
+        "Dragon",
+      ],
+      suffixes: [
+        "Guardian",
+        "Master",
+        "Champion",
+        "Hero",
+        "Warrior",
+        "Spirit",
+        "Soul",
+        "Heart",
       ],
     },
-    water: {
-      series: "Water Elemental Collection",
-      category: "anime-collection",
-      namePrefix: "Aqua",
-      characters: [
-        "Hydro Master",
-        "Water Spirit",
-        "Ocean Guardian",
-        "Tidal Warrior",
+    "star-collection": {
+      series: "Star Collection",
+      names: [
+        "Leo",
+        "Brad",
+        "Tom",
+        "Will",
+        "Denzel",
+        "Robert",
+        "Chris",
+        "Ryan",
+        "Johnny",
+        "Morgan",
+      ],
+      prefixes: [
+        "Legend",
+        "Icon",
+        "Superstar",
+        "Celebrity",
+        "Famous",
+        "Renowned",
+        "Acclaimed",
+      ],
+      suffixes: [
+        "Legend",
+        "Icon",
+        "Superstar",
+        "Celebrity",
+        "Star",
+        "Fame",
+        "Glory",
       ],
     },
-    earth: {
-      series: "Earth Elemental Collection",
-      category: "anime-collection",
-      namePrefix: "Terra",
-      characters: [
-        "Earth Shaker",
-        "Stone Guardian",
-        "Rock Master",
-        "Geo Warrior",
+    "car-collection": {
+      series: "Car Collection",
+      names: [
+        "GT",
+        "RS",
+        "R",
+        "S",
+        "M",
+        "AMG",
+        "Type R",
+        "STI",
+        "Evo",
+        "Turbo",
       ],
-    },
-    air: {
-      series: "Air Elemental Collection",
-      category: "anime-collection",
-      namePrefix: "Wind",
-      characters: [
-        "Sky Master",
-        "Wind Spirit",
-        "Storm Guardian",
-        "Aerial Warrior",
+      prefixes: [
+        "Ferrari",
+        "Lamborghini",
+        "Porsche",
+        "McLaren",
+        "BMW",
+        "Mercedes",
+        "Audi",
       ],
-    },
-    light: {
-      series: "Light Elemental Collection",
-      category: "anime-collection",
-      namePrefix: "Radiant",
-      characters: [
-        "Light Bringer",
-        "Solar Guardian",
-        "Divine Warrior",
-        "Luminous Master",
-      ],
-    },
-    shadow: {
-      series: "Shadow Elemental Collection",
-      category: "anime-collection",
-      namePrefix: "Dark",
-      characters: [
-        "Shadow Master",
-        "Void Guardian",
-        "Dark Warrior",
-        "Umbral Spirit",
-      ],
-    },
-    neutral: {
-      series: "Neutral Collection",
-      category: "anime-collection",
-      namePrefix: "Balanced",
-      characters: [
-        "Neutral Guardian",
-        "Harmony Master",
-        "Balance Keeper",
-        "Unity Warrior",
+      suffixes: [
+        "GT",
+        "RS",
+        "R",
+        "S",
+        "Edition",
+        "Special",
+        "Performance",
+        "Ultimate",
       ],
     },
   };
 
+  // Use detected category or fallback to anime-collection
   const config =
-    elementConfig[element as keyof typeof elementConfig] ||
-    elementConfig.neutral;
-  const characterIndex = parseInt(cardNumber) % config.characters.length;
+    categoryConfigs[detectedCategory as keyof typeof categoryConfigs] ||
+    categoryConfigs["anime-collection"];
 
-  // Determine rarity based on card number
+  // Generate unique character name
+  const nameIndex = parseInt(cardNumber) % config.names.length;
+  const prefixIndex = parseInt(cardNumber) % config.prefixes.length;
+  const suffixIndex = (parseInt(cardNumber) + 1) % config.suffixes.length;
+
+  const characterName = config.names[nameIndex];
+  const prefix = config.prefixes[prefixIndex];
+  const suffix = config.suffixes[suffixIndex];
+
+  // Generate card name with variety
+  const nameFormats = [
+    `${prefix} ${characterName}`,
+    `${characterName} the ${suffix}`,
+    `${characterName} ${suffix}`,
+    `${prefix} of ${characterName}`,
+  ];
+  const nameFormat = nameFormats[parseInt(cardNumber) % nameFormats.length];
+
+  // Determine rarity based on card number and some randomness
   const num = parseInt(cardNumber);
   let rarity = "common";
-  if (num <= 2) rarity = "legendary";
-  else if (num <= 4) rarity = "epic";
-  else if (num <= 8) rarity = "rare";
-  else if (num <= 12) rarity = "uncommon";
+  const rarityRoll = num % 100;
+
+  if (rarityRoll <= 1)
+    rarity = "legendary"; // 1%
+  else if (rarityRoll <= 3)
+    rarity = "secret rare"; // 2%
+  else if (rarityRoll <= 6)
+    rarity = "ultra rare"; // 3%
+  else if (rarityRoll <= 11)
+    rarity = "super rare"; // 5%
+  else if (rarityRoll <= 21)
+    rarity = "epic"; // 10%
+  else if (rarityRoll <= 36)
+    rarity = "rare"; // 15%
+  else if (rarityRoll <= 56) rarity = "uncommon"; // 20%
+  // else common (44%)
+
+  // Calculate diamond price based on rarity
+  const rarityPriceMap = {
+    common: 25,
+    uncommon: 65,
+    rare: 150,
+    epic: 350,
+    "super rare": 650,
+    "ultra rare": 1200,
+    "secret rare": 2200,
+    legendary: 4500,
+  };
+
+  const baseDiamondPrice =
+    rarityPriceMap[rarity as keyof typeof rarityPriceMap] || 25;
+  // Add some variation (±20%)
+  const variation = 0.8 + Math.random() * 0.4;
+  const diamondPrice = Math.round(baseDiamondPrice * variation);
 
   return {
-    name: `${config.namePrefix} ${config.characters[characterIndex]}`,
+    name: nameFormat,
     series: config.series,
-    character: config.characters[characterIndex],
-    category: config.category,
+    character: characterName,
+    category: detectedCategory,
     rarity,
+    diamondPrice,
   };
 }
 
@@ -302,9 +403,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Scan the uploads directory
+    // Scan the uploads directory (this includes categories subdirectory automatically)
     const { files, errors } = await scanCardsDirectory(uploadsDir);
-    console.log(`📁 Found ${files.length} card files`);
+
+    // Remove any duplicate files that might have been found
+    const uniqueFiles = files.filter(
+      (file, index, self) =>
+        index === self.findIndex((f) => f.absolutePath === file.absolutePath)
+    );
+
+    console.log(
+      `📁 Found ${uniqueFiles.length} unique card files after deduplication`
+    );
+
+    const allFiles = uniqueFiles;
+    const allErrors = errors;
+
+    console.log(`📁 Total found ${allFiles.length} card files`);
 
     // Get existing cards from database
     const existingCards = await prisma.card.findMany({
@@ -321,10 +436,10 @@ export async function GET(request: NextRequest) {
     console.log(`💾 Found ${existingCards.length} cards in database`);
 
     // Find missing cards (files that exist but not in database)
-    const missingCards: FileInfo[] = [];
+    const missingCards: any[] = [];
     const skippedFiles: string[] = [];
 
-    for (const file of files) {
+    for (const file of allFiles) {
       // Check if card already exists by filename or path
       const existingCard = existingCards.find(
         (card) =>
@@ -334,7 +449,18 @@ export async function GET(request: NextRequest) {
       );
 
       if (!existingCard) {
-        missingCards.push(file);
+        // Generate card details for preview in frontend
+        const cardDetails = generateCardDetails(file);
+        missingCards.push({
+          ...file,
+          generatedName: cardDetails.name,
+          rarity: cardDetails.rarity,
+          diamondPrice: cardDetails.diamondPrice,
+          category: cardDetails.category,
+          series: cardDetails.series,
+          character: cardDetails.character,
+          imageUrl: file.relativePath, // Frontend expects this for preview
+        });
       } else {
         skippedFiles.push(file.fileName);
       }
@@ -343,12 +469,12 @@ export async function GET(request: NextRequest) {
     console.log(`✨ Found ${missingCards.length} missing cards`);
 
     const result: ScanResult = {
-      totalFiles: files.length,
+      totalFiles: allFiles.length,
       newFiles: missingCards.length,
       existingFiles: skippedFiles.length,
       missingCards,
       skippedFiles,
-      errors,
+      errors: allErrors,
     };
 
     return NextResponse.json({
@@ -417,24 +543,8 @@ export async function POST(request: NextRequest) {
         // Generate file hash
         const fileHash = await generateFileHash(fileInfo.absolutePath);
 
-        // Generate card details
+        // Generate card details (now includes diamondPrice)
         const cardDetails = generateCardDetails(fileInfo);
-
-        // Calculate diamond price based on rarity
-        const rarityPriceMap = {
-          common: 50,
-          uncommon: 80,
-          rare: 150,
-          "super-rare": 300,
-          epic: 400,
-          "ultra-rare": 800,
-          "secret-rare": 1500,
-          legendary: 2500,
-        };
-
-        const diamondPrice =
-          rarityPriceMap[cardDetails.rarity as keyof typeof rarityPriceMap] ||
-          50;
 
         // Create card in database
         const newCard = await prisma.card.create({
@@ -446,8 +556,8 @@ export async function POST(request: NextRequest) {
             rarity: cardDetails.rarity,
             element: fileInfo.element,
             condition: "Good",
-            estimatedValue: diamondPrice,
-            diamondPrice,
+            estimatedValue: cardDetails.diamondPrice,
+            diamondPrice: cardDetails.diamondPrice,
             imagePath: fileInfo.relativePath,
             imageUrl: fileInfo.relativePath,
             fileName: fileInfo.fileName,
@@ -468,7 +578,7 @@ export async function POST(request: NextRequest) {
           name: cardDetails.name,
           element: fileInfo.element,
           rarity: cardDetails.rarity,
-          diamondPrice,
+          diamondPrice: cardDetails.diamondPrice,
         });
 
         console.log(`✅ Imported: ${cardDetails.name} (${fileInfo.fileName})`);
@@ -485,10 +595,70 @@ export async function POST(request: NextRequest) {
       `🎯 Import completed. Success: ${results.imported.length}, Failed: ${results.failed.length}, Skipped: ${results.skipped.length}`
     );
 
+    // Auto-trigger bulk analysis for system recovery after successful import
+    if (results.imported.length > 0) {
+      console.log(
+        `🚀 Auto-triggering bulk analysis for ${results.imported.length} newly imported cards...`
+      );
+
+      try {
+        // Trigger bulk analysis for unanalyzed cards
+        const response = await fetch(
+          `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/dashboard`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              action: "bulkAnalyze",
+              forceReAnalysis: false,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          const analysisResult = await response.json();
+          console.log(
+            `✅ Auto bulk analysis completed: ${analysisResult.analyzedCount} cards analyzed`
+          );
+
+          return NextResponse.json({
+            success: true,
+            message: `Import completed. ${results.imported.length} cards imported and ${analysisResult.analyzedCount} cards auto-analyzed for system recovery.`,
+            data: {
+              ...results,
+              autoAnalysis: {
+                triggered: true,
+                analyzedCount: analysisResult.analyzedCount,
+                totalAttempted: analysisResult.totalAttempted,
+              },
+            },
+          });
+        } else {
+          console.warn(
+            `⚠️ Auto bulk analysis failed with status: ${response.status}`
+          );
+        }
+      } catch (analysisError) {
+        console.error(`❌ Auto bulk analysis error:`, analysisError);
+        // Continue with normal response even if auto-analysis fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: `Import completed. ${results.imported.length} cards imported successfully.`,
-      data: results,
+      data: {
+        ...results,
+        autoAnalysis: {
+          triggered: false,
+          reason:
+            results.imported.length === 0
+              ? "No new cards imported"
+              : "Auto-analysis failed",
+        },
+      },
     });
   } catch (error) {
     console.error("❌ Card import failed:", error);

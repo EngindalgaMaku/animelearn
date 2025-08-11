@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Minimal configuration to fix static asset issues
+
+  // Disable Turbopack - use webpack instead
+  turbo: false,
+
   // Performance optimizations
   serverExternalPackages: ["sharp"],
 
@@ -8,18 +13,16 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
 
-  // WebSocket configuration for better HMR
+  // Simple webpack configuration
   webpack: (config, { isServer, dev }) => {
     if (dev && !isServer) {
-      config.watchOptions = {
-        poll: 1000,
-        aggregateTimeout: 300,
-      };
+      // Disable all caching in development
+      config.cache = false;
     }
     return config;
   },
 
-  // Image optimization for better Core Web Vitals
+  // Image optimization
   images: {
     remotePatterns: [
       {
@@ -30,25 +33,15 @@ const nextConfig = {
         protocol: "https",
         hostname: "**",
       },
-      {
-        protocol: "http",
-        hostname: "**",
-      },
     ],
     formats: ["image/avif", "image/webp"],
-    minimumCacheTTL: 31536000, // 1 year cache
-    dangerouslyAllowSVG: true,
-    contentSecurityPolicy:
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;",
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
-  // Compression and performance
+  // Compression
   compress: true,
   poweredByHeader: false,
 
-  // SEO and performance headers
+  // Minimal headers
   async headers() {
     return [
       {
@@ -58,213 +51,29 @@ const nextConfig = {
             key: "X-Frame-Options",
             value: "DENY",
           },
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-          {
-            key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
-          },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
-          },
-          {
-            key: "Content-Security-Policy",
-            value:
-              "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data: https:; connect-src 'self' https: https://www.google-analytics.com https://analytics.google.com; frame-src 'self'",
-          },
-        ],
-      },
-      {
-        source: "/sitemap.xml",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=3600, s-maxage=3600",
-          },
-        ],
-      },
-      {
-        source: "/sitemap-:type.xml",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=3600, s-maxage=3600",
-          },
-        ],
-      },
-      {
-        source: "/robots.txt",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=86400, s-maxage=86400",
-          },
-        ],
-      },
-      {
-        source: "/_next/static/(.*)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        source: "/_next/static/chunks/(.*).js",
-        headers: [
-          {
-            key: "Content-Type",
-            value: "application/javascript; charset=utf-8",
-          },
-        ],
-      },
-      {
-        source: "/_next/static/css/(.*)",
-        headers: [
-          {
-            key: "Content-Type",
-            value: "text/css; charset=utf-8",
-          },
-        ],
-      },
-      {
-        source: "/_next/static/media/(.*).woff2",
-        headers: [
-          {
-            key: "Content-Type",
-            value: "font/woff2",
-          },
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "*",
-          },
-          {
-            key: "Cross-Origin-Resource-Policy",
-            value: "cross-origin",
-          },
-        ],
-      },
-      {
-        source: "/_next/static/media/(.*).woff",
-        headers: [
-          {
-            key: "Content-Type",
-            value: "font/woff",
-          },
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "*",
-          },
-          {
-            key: "Cross-Origin-Resource-Policy",
-            value: "cross-origin",
-          },
-        ],
-      },
-      {
-        source: "/api/secure-image",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
         ],
       },
     ];
   },
 
-  // Rewrites for better SEO URLs
+  // Simple rewrites
   async rewrites() {
     return [
       {
         source: "/uploads/:path*",
         destination: "/api/static-files/:path*",
       },
-      // SEO-friendly URLs
-      {
-        source: "/python-kursu",
-        destination: "/code-arena",
-      },
-      {
-        source: "/python-kursu/:path*",
-        destination: "/code-arena/:path*",
-      },
-      {
-        source: "/kart-koleksiyonu",
-        destination: "/shop",
-      },
-      {
-        source: "/kart-koleksiyonu/:path*",
-        destination: "/shop/:path*",
-      },
-      {
-        source: "/rozetler-basarimlar",
-        destination: "/achievements",
-      },
-      {
-        source: "/gunluk-gorevler",
-        destination: "/dashboard",
-      },
-    ];
-  },
-
-  // Redirects for SEO
-  async redirects() {
-    return [
-      {
-        source: "/learn",
-        destination: "/code-arena",
-        permanent: true,
-      },
-      {
-        source: "/lessons",
-        destination: "/code-arena",
-        permanent: true,
-      },
-      {
-        source: "/collection",
-        destination: "/shop",
-        permanent: true,
-      },
     ];
   },
 
   // Bundle optimization
   experimental: {
-    optimizePackageImports: ["lucide-react", "recharts"],
-  },
-
-  // Turbopack configuration (stable)
-  turbopack: {
-    rules: {
-      "*.svg": {
-        loaders: ["@svgr/webpack"],
-        as: "*.js",
-      },
-    },
+    optimizePackageImports: ["lucide-react"],
   },
 
   // Static file handling
   trailingSlash: false,
   output: "standalone",
-
-  // Better error handling for dev
-  onDemandEntries: {
-    maxInactiveAge: 25 * 1000,
-    pagesBufferLength: 2,
-  },
 };
 
 module.exports = nextConfig;

@@ -1,0 +1,64 @@
+{
+  "algorithmType": "bubble_sort",
+  "title": "Simple Bubble Sort Test",
+  "description": "A simplified bubble sort for testing JSON save functionality",
+  "initialArray": [64, 34, 25],
+  "steps": [
+    {
+      "step": 1,
+      "phase": "initialization",
+      "description": "Initialize bubble sort",
+      "code": "def bubble_sort(arr):",
+      "array": [64, 34, 25],
+      "explanation": "Starting bubble sort with 3 elements",
+      "highlighted": [],
+      "swapped": false
+    },
+    {
+      "step": 2,
+      "phase": "comparison",
+      "description": "Compare 64 vs 34",
+      "code": "if arr[0] > arr[1]:",
+      "array": [64, 34, 25],
+      "explanation": "64 > 34, so we need to swap",
+      "highlighted": [0, 1],
+      "swapped": false,
+      "comparison": { "left": 64, "right": 34, "result": "swap" }
+    },
+    {
+      "step": 3,
+      "phase": "swap",
+      "description": "Swap 64 and 34",
+      "code": "arr[0], arr[1] = arr[1], arr[0]",
+      "array": [34, 64, 25],
+      "explanation": "After swap: 34 is now first",
+      "highlighted": [0, 1],
+      "swapped": true
+    },
+    {
+      "step": 4,
+      "phase": "comparison",
+      "description": "Compare 64 vs 25",
+      "code": "if arr[1] > arr[2]:",
+      "array": [34, 64, 25],
+      "explanation": "64 > 25, need another swap",
+      "highlighted": [1, 2],
+      "swapped": false,
+      "comparison": { "left": 64, "right": 25, "result": "swap" }
+    },
+    {
+      "step": 5,
+      "phase": "completion",
+      "description": "Bubble sort complete",
+      "code": "return arr",
+      "array": [25, 34, 64],
+      "explanation": "Array is now sorted!",
+      "highlighted": [0, 1, 2],
+      "swapped": true
+    }
+  ],
+  "complexity": {
+    "time": "O(n²)",
+    "space": "O(1)"
+  }
+}

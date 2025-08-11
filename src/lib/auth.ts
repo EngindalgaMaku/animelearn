@@ -242,8 +242,6 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async jwt({ token, user }) {
-      console.log("🔄 JWT callback called");
-
       if (user) {
         // İlk login'de user bilgilerini token'a kaydet
         token.id = user.id;
@@ -258,12 +256,9 @@ export const authOptions: NextAuthOptions = {
         token.isPremium = user.isPremium;
       }
 
-      console.log("✅ JWT token saved");
       return token;
     },
     async session({ session, token }) {
-      console.log("🔄 Session callback called (JWT strategy)");
-
       try {
         if (token && session.user) {
           session.user = {
@@ -284,7 +279,6 @@ export const authOptions: NextAuthOptions = {
           };
         }
 
-        console.log("✅ Session user set");
         return session;
       } catch (error) {
         console.error("Error in session callback:", error);

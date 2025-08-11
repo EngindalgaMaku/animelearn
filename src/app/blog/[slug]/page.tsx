@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowLeft, Calendar, Clock, FileText, User, Tag } from "lucide-react";
 import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { marked } from "marked";
 
 interface BlogPostPageProps {
   params: Promise<{
@@ -11,21 +13,46 @@ interface BlogPostPageProps {
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
 
-  // Get blog post from database
+  // Get blog post from database directly
   let post;
   try {
-    const response = await fetch(
-      `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/blog/posts/${slug}`,
-      {
-        cache: "no-store", // Always fetch fresh data
-      }
-    );
+    const blogPost = await prisma.blogPost.findUnique({
+      where: {
+        slug,
+        isPublished: true,
+      },
+      include: {
+        authorUser: {
+          select: {
+            username: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+          },
+        },
+      },
+    });
 
-    if (response.ok) {
-      post = await response.json();
-    } else {
+    if (!blogPost) {
       notFound();
     }
+
+    // Increment view count
+    await prisma.blogPost.update({
+      where: { id: blogPost.id },
+      data: {
+        viewCount: {
+          increment: 1,
+        },
+      },
+    });
+
+    // Transform tags from JSON string to array and convert markdown to HTML
+    post = {
+      ...blogPost,
+      tags: blogPost.tags ? JSON.parse(blogPost.tags) : [],
+      content: marked(blogPost.content || ""),
+    };
   } catch (error) {
     console.error("Error fetching blog post:", error);
     notFound();
@@ -122,10 +149,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </div>
 
             {/* Article Content - Rendered HTML */}
-            <div
-              className="prose prose-lg max-w-none"
-              dangerouslySetInnerHTML={{ __html: post.content }}
-            />
+            <div className="blog-content">
+              <div
+                className="prose prose-lg max-w-none"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
+            </div>
 
             {/* Bottom CTA */}
             <div className="mt-12 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 p-8 text-center">

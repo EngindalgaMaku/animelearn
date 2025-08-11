@@ -275,6 +275,22 @@ export default function RootLayout({
         <meta name="msapplication-TileColor" content="#3b82f6" />
         <meta name="msapplication-config" content="/browserconfig.xml" />
 
+        {/* CSS Cache Control - Development Mode */}
+        {process.env.NODE_ENV === "development" && (
+          <>
+            <meta
+              httpEquiv="Cache-Control"
+              content="no-cache, no-store, must-revalidate"
+            />
+            <meta httpEquiv="Pragma" content="no-cache" />
+            <meta httpEquiv="Expires" content="0" />
+            <meta
+              name="viewport"
+              content="width=device-width, initial-scale=1, viewport-fit=cover"
+            />
+          </>
+        )}
+
         {/* Critical CSS for better performance */}
         <style
           dangerouslySetInnerHTML={{
@@ -283,6 +299,8 @@ export default function RootLayout({
             body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
             .loading-skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; }
             @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+            /* Force style refresh in dev mode */
+            ${process.env.NODE_ENV === "development" ? "html { --dev-cache-buster: " + Date.now() + "; }" : ""}
           `,
           }}
         />

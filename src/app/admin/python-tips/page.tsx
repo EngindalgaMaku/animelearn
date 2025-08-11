@@ -87,9 +87,14 @@ export default function PythonTipsManagement() {
   const [totalPages, setTotalPages] = useState(0);
   const itemsPerPage = 10;
 
+  // Stats state
+  const [stats, setStats] = useState<any>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
   useEffect(() => {
     fetchTips();
     fetchCategories();
+    fetchStats();
   }, [
     selectedCategory,
     selectedDifficulty,
@@ -153,6 +158,24 @@ export default function PythonTipsManagement() {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      setStatsLoading(true);
+      const response = await fetch("/api/admin/python-tips/stats");
+      const data = await response.json();
+
+      if (response.ok) {
+        setStats(data);
+      } else {
+        console.error("Failed to fetch stats:", data.error);
+      }
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
   const toggleActive = async (tip: PythonTip) => {
     try {
       const response = await fetch(`/api/admin/python-tips/${tip.id}`, {
@@ -167,6 +190,7 @@ export default function PythonTipsManagement() {
 
       if (response.ok) {
         fetchTips();
+        fetchStats(); // Refresh stats after updating
       } else {
         alert("Error updating status!");
       }
@@ -190,6 +214,7 @@ export default function PythonTipsManagement() {
 
       if (response.ok) {
         fetchTips();
+        fetchStats(); // Refresh stats after deleting
         alert("Python tip deleted successfully!");
       } else {
         alert("Error deleting Python tip!");
@@ -267,7 +292,9 @@ export default function PythonTipsManagement() {
               <div className="mb-2 w-fit rounded-xl bg-white/20 p-2">
                 <Code className="h-5 w-5" />
               </div>
-              <p className="text-2xl font-bold">{tips.length}</p>
+              <p className="text-2xl font-bold">
+                {statsLoading ? "..." : stats?.totals?.total || 0}
+              </p>
               <p className="text-sm text-yellow-100">Total Tips</p>
             </div>
 
@@ -276,7 +303,7 @@ export default function PythonTipsManagement() {
                 <Eye className="h-5 w-5" />
               </div>
               <p className="text-2xl font-bold">
-                {tips.filter((t) => t.isActive).length}
+                {statsLoading ? "..." : stats?.totals?.active || 0}
               </p>
               <p className="text-sm text-green-100">Active</p>
             </div>
@@ -286,7 +313,7 @@ export default function PythonTipsManagement() {
                 <Brain className="h-5 w-5" />
               </div>
               <p className="text-2xl font-bold">
-                {tips.filter((t) => t.difficulty === "beginner").length}
+                {statsLoading ? "..." : stats?.difficulties?.beginner || 0}
               </p>
               <p className="text-sm text-blue-100">Beginner</p>
             </div>
@@ -296,7 +323,7 @@ export default function PythonTipsManagement() {
                 <Zap className="h-5 w-5" />
               </div>
               <p className="text-2xl font-bold">
-                {tips.filter((t) => t.difficulty === "intermediate").length}
+                {statsLoading ? "..." : stats?.difficulties?.intermediate || 0}
               </p>
               <p className="text-sm text-purple-100">Intermediate</p>
             </div>
@@ -306,7 +333,7 @@ export default function PythonTipsManagement() {
                 <TrendingUp className="h-5 w-5" />
               </div>
               <p className="text-2xl font-bold">
-                {tips.reduce((acc, t) => acc + t.viewCount, 0)}
+                {statsLoading ? "..." : stats?.engagement?.totalViews || 0}
               </p>
               <p className="text-sm text-red-100">Total Views</p>
             </div>
@@ -361,7 +388,10 @@ export default function PythonTipsManagement() {
                 </Link>
 
                 <button
-                  onClick={fetchTips}
+                  onClick={() => {
+                    fetchTips();
+                    fetchStats();
+                  }}
                   className="flex items-center space-x-3 rounded-xl border-2 border-orange-200 bg-orange-50 p-4 transition-all hover:border-orange-300 hover:bg-orange-100"
                 >
                   <RefreshCw className="h-6 w-6 text-orange-600" />

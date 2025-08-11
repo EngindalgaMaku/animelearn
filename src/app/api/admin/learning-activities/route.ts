@@ -1,51 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-interface AuthUser {
-  userId: string;
-  username: string;
-}
-
-function getUserFromToken(request: NextRequest): AuthUser | null {
-  const token = request.cookies.get("auth-token")?.value;
-
-  if (!token) {
-    return null;
+// Admin kontrolü
+async function checkAdminAccess() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user || session.user.role !== "admin") {
+    return false;
   }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
-  } catch (error) {
-    return null;
-  }
+  return true;
 }
 
 // GET - Learning activities listele
 export async function GET(request: NextRequest) {
   try {
-    const authUser = getUserFromToken(request);
-
-    if (!authUser) {
+    const isAdmin = await checkAdminAccess();
+    if (!isAdmin) {
       return NextResponse.json(
-        { error: "Oturum açmanız gerekli" },
+        { error: "Unauthorized access" },
         { status: 401 }
-      );
-    }
-
-    // Admin kontrolü
-    const user = await prisma.user.findUnique({
-      where: { id: authUser.userId },
-      select: { role: true, username: true },
-    });
-
-    if (!user || (user.role !== "admin" && user.username !== "admin")) {
-      return NextResponse.json(
-        { error: "Bu işlem için yetkiniz yok" },
-        { status: 403 }
       );
     }
 
@@ -61,10 +35,7 @@ export async function GET(request: NextRequest) {
 
     const activities = await prisma.learningActivity.findMany({
       where,
-      orderBy: [
-        { sortOrder: "asc" },
-        { createdAt: "desc" },
-      ],
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
       skip: (page - 1) * limit,
       take: limit,
       include: {
@@ -79,20 +50,21 @@ export async function GET(request: NextRequest) {
     const totalCount = await prisma.learningActivity.count({ where });
 
     // Parse JSON fields
-    const formattedActivities = activities.map(activity => {
+    const formattedActivities = activities.map((activity) => {
       let tags = [];
       try {
         if (activity.tags) {
           // Eğer string ise JSON parse et, array ise olduğu gibi kullan
-          tags = typeof activity.tags === 'string'
-            ? JSON.parse(activity.tags)
-            : activity.tags;
+          tags =
+            typeof activity.tags === "string"
+              ? JSON.parse(activity.tags)
+              : activity.tags;
         }
       } catch (error) {
         // JSON parse hatasında boş array kullan
         tags = [];
       }
-      
+
       return {
         ...activity,
         content: JSON.parse(activity.content),
@@ -126,25 +98,11 @@ export async function GET(request: NextRequest) {
 // POST - Yeni learning activity oluştur
 export async function POST(request: NextRequest) {
   try {
-    const authUser = getUserFromToken(request);
-
-    if (!authUser) {
+    const isAdmin = await checkAdminAccess();
+    if (!isAdmin) {
       return NextResponse.json(
-        { error: "Oturum açmanız gerekli" },
+        { error: "Unauthorized access" },
         { status: 401 }
-      );
-    }
-
-    // Admin kontrolü
-    const user = await prisma.user.findUnique({
-      where: { id: authUser.userId },
-      select: { role: true, username: true },
-    });
-
-    if (!user || (user.role !== "admin" && user.username !== "admin")) {
-      return NextResponse.json(
-        { error: "Bu işlem için yetkiniz yok" },
-        { status: 403 }
       );
     }
 
@@ -197,7 +155,9 @@ export async function POST(request: NextRequest) {
       activity: {
         ...newActivity,
         content: JSON.parse(newActivity.content),
-        settings: newActivity.settings ? JSON.parse(newActivity.settings) : null,
+        settings: newActivity.settings
+          ? JSON.parse(newActivity.settings)
+          : null,
         tags: newActivity.tags ? JSON.parse(newActivity.tags) : [],
       },
     });

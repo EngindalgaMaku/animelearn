@@ -181,6 +181,7 @@ export async function processAndSaveImage(
     character?: string;
     rarity?: string;
     cardType?: string;
+    category?: string;
   }
 ): Promise<{
   filename: string;
@@ -191,12 +192,19 @@ export async function processAndSaveImage(
   thumbnailUrl: string;
   processingResult: ProcessingResult;
 }> {
+  // Determine category slug for directory structure
+  const categorySlug = cardInfo?.category || "anime-collection"; // Default category
+
+  // Create category-specific directory
+  const categoryDir = path.join(outputDir, "categories", categorySlug);
+  await fs.mkdir(categoryDir, { recursive: true });
+
   // Generate secure random filename
   const secureFilename = imageProcessor.generateSecureFilename();
-  const outputPath = path.join(outputDir, secureFilename);
+  const outputPath = path.join(categoryDir, secureFilename);
 
-  // Create thumbnails directory
-  const thumbsDir = path.join(outputDir, "thumbs");
+  // Create thumbnails directory within category
+  const thumbsDir = path.join(categoryDir, "thumbs");
   await fs.mkdir(thumbsDir, { recursive: true });
 
   // Process main image
@@ -215,10 +223,10 @@ export async function processAndSaveImage(
   return {
     filename: secureFilename,
     path: outputPath,
-    url: `/uploads/${secureFilename}`,
+    url: `/uploads/categories/${categorySlug}/${secureFilename}`,
     thumbnailFilename,
     thumbnailPath,
-    thumbnailUrl: `/uploads/thumbs/${thumbnailFilename}`,
+    thumbnailUrl: `/uploads/categories/${categorySlug}/thumbs/${thumbnailFilename}`,
     processingResult,
   };
 }

@@ -54,7 +54,10 @@ export async function POST(
     });
 
     if (!codeArena) {
-      return NextResponse.json({ error: "Code Arena not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Code Arena not found" },
+        { status: 404 }
+      );
     }
 
     // Check if user has already completed this code exercise
@@ -149,6 +152,22 @@ export async function POST(
             diamonds: rewards.diamonds,
             experience: rewards.experience,
           },
+          animations: [
+            {
+              type: "experience",
+              amount: rewards.experience,
+              icon: "⭐",
+              color: "#FFD700",
+              delay: 0,
+            },
+            {
+              type: "diamonds",
+              amount: rewards.diamonds,
+              icon: "💎",
+              color: "#00D4FF",
+              delay: 500,
+            },
+          ],
           score,
           newCompletion: true,
         });

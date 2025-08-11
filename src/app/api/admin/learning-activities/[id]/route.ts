@@ -1,27 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-interface AuthUser {
-  userId: string;
-  username: string;
-}
-
-function getUserFromToken(request: NextRequest): AuthUser | null {
-  const token = request.cookies.get("auth-token")?.value;
-
-  if (!token) {
-    return null;
+// Admin kontrolü
+async function checkAdminAccess() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user || session.user.role !== "admin") {
+    return false;
   }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
-  } catch (error) {
-    return null;
-  }
+  return true;
 }
 
 // GET - Tek learning activity getir
@@ -30,25 +18,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authUser = getUserFromToken(request);
-
-    if (!authUser) {
+    const isAdmin = await checkAdminAccess();
+    if (!isAdmin) {
       return NextResponse.json(
-        { error: "Oturum açmanız gerekli" },
+        { error: "Unauthorized access" },
         { status: 401 }
-      );
-    }
-
-    // Admin kontrolü
-    const user = await prisma.user.findUnique({
-      where: { id: authUser.userId },
-      select: { role: true, username: true },
-    });
-
-    if (!user || (user.role !== "admin" && user.username !== "admin")) {
-      return NextResponse.json(
-        { error: "Bu işlem için yetkiniz yok" },
-        { status: 403 }
       );
     }
 
@@ -115,25 +89,11 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authUser = getUserFromToken(request);
-
-    if (!authUser) {
+    const isAdmin = await checkAdminAccess();
+    if (!isAdmin) {
       return NextResponse.json(
-        { error: "Oturum açmanız gerekli" },
+        { error: "Unauthorized access" },
         { status: 401 }
-      );
-    }
-
-    // Admin kontrolü
-    const user = await prisma.user.findUnique({
-      where: { id: authUser.userId },
-      select: { role: true, username: true },
-    });
-
-    if (!user || (user.role !== "admin" && user.username !== "admin")) {
-      return NextResponse.json(
-        { error: "Bu işlem için yetkiniz yok" },
-        { status: 403 }
       );
     }
 
@@ -155,7 +115,7 @@ export async function PUT(
     } = body;
 
     const { id } = await params;
-    
+
     // Mevcut activity'yi kontrol et
     const existingActivity = await prisma.learningActivity.findUnique({
       where: { id },
@@ -175,11 +135,15 @@ export async function PUT(
     if (category !== undefined) updateData.category = category;
     if (difficulty !== undefined) updateData.difficulty = difficulty;
     if (diamondReward !== undefined) updateData.diamondReward = diamondReward;
-    if (experienceReward !== undefined) updateData.experienceReward = experienceReward;
+    if (experienceReward !== undefined)
+      updateData.experienceReward = experienceReward;
     if (content !== undefined) updateData.content = JSON.stringify(content);
-    if (settings !== undefined) updateData.settings = settings ? JSON.stringify(settings) : null;
-    if (estimatedMinutes !== undefined) updateData.estimatedMinutes = estimatedMinutes;
-    if (tags !== undefined) updateData.tags = tags ? JSON.stringify(tags) : null;
+    if (settings !== undefined)
+      updateData.settings = settings ? JSON.stringify(settings) : null;
+    if (estimatedMinutes !== undefined)
+      updateData.estimatedMinutes = estimatedMinutes;
+    if (tags !== undefined)
+      updateData.tags = tags ? JSON.stringify(tags) : null;
     if (isActive !== undefined) updateData.isActive = isActive;
     if (sortOrder !== undefined) updateData.sortOrder = sortOrder;
 
@@ -194,7 +158,9 @@ export async function PUT(
       activity: {
         ...updatedActivity,
         content: JSON.parse(updatedActivity.content),
-        settings: updatedActivity.settings ? JSON.parse(updatedActivity.settings) : null,
+        settings: updatedActivity.settings
+          ? JSON.parse(updatedActivity.settings)
+          : null,
         tags: updatedActivity.tags ? JSON.parse(updatedActivity.tags) : [],
       },
     });
@@ -213,30 +179,16 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authUser = getUserFromToken(request);
-
-    if (!authUser) {
+    const isAdmin = await checkAdminAccess();
+    if (!isAdmin) {
       return NextResponse.json(
-        { error: "Oturum açmanız gerekli" },
+        { error: "Unauthorized access" },
         { status: 401 }
       );
     }
 
-    // Admin kontrolü
-    const user = await prisma.user.findUnique({
-      where: { id: authUser.userId },
-      select: { role: true, username: true },
-    });
-
-    if (!user || (user.role !== "admin" && user.username !== "admin")) {
-      return NextResponse.json(
-        { error: "Bu işlem için yetkiniz yok" },
-        { status: 403 }
-      );
-    }
-
     const { id } = await params;
-    
+
     // Activity'nin var olup olmadığını kontrol et
     const existingActivity = await prisma.learningActivity.findUnique({
       where: { id },

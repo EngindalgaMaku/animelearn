@@ -14,6 +14,26 @@ interface UseSecureImageOptions {
   retryDelay?: number; // milliseconds
 }
 
+// Helper function to extract card ID from image URL
+function extractCardIdFromUrl(imageUrl: string): string | null {
+  // Try to extract card ID from various URL patterns
+  const patterns = [
+    /cardId=([^&]+)/, // ?cardId=abc123
+    /\/cards\/([^\/]+)/, // /cards/abc123
+    /\/([^\/]+)\.(jpg|jpeg|png|webp|gif)/i, // filename before extension
+  ];
+
+  for (const pattern of patterns) {
+    const match = imageUrl.match(pattern);
+    if (match) {
+      return match[1];
+    }
+  }
+
+  // If no pattern matches, return null and let the API handle it
+  return null;
+}
+
 export function useSecureImage(
   originalImageUrl: string | null | undefined,
   options: UseSecureImageOptions = {}
@@ -43,14 +63,14 @@ export function useSecureImage(
         setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
         // Call server endpoint to get secure token
-        const response = await fetch("/api/secure-images/token", {
+        const response = await fetch("/api/secure-image", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            imageUrl,
-            userId,
+            cardId: extractCardIdFromUrl(imageUrl),
+            type: "preview", // Default to preview type
           }),
         });
 

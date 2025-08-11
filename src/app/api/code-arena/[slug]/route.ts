@@ -68,7 +68,10 @@ export async function GET(
     });
 
     if (!codeArena) {
-      return NextResponse.json({ error: "Code Arena not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Code Arena not found" },
+        { status: 404 }
+      );
     }
 
     // Parse content from JSON string to object
@@ -105,7 +108,9 @@ export async function GET(
 
     let parsedTestCases = [];
     try {
-      parsedTestCases = codeArena.testCases ? JSON.parse(codeArena.testCases) : [];
+      parsedTestCases = codeArena.testCases
+        ? JSON.parse(codeArena.testCases)
+        : [];
     } catch (error) {
       parsedTestCases = [];
     }
@@ -430,7 +435,10 @@ export async function POST(
     });
 
     if (!codeArena) {
-      return NextResponse.json({ error: "Code Arena not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Code Arena not found" },
+        { status: 404 }
+      );
     }
 
     // Find or create progress
@@ -561,6 +569,42 @@ export async function POST(
           }
         }
 
+        // Prepare reward animations
+        let rewardAnimations: any[] = [];
+
+        if (!wasAlreadyCompleted) {
+          rewardAnimations = [
+            {
+              type: "experience",
+              amount: codeArena.experienceReward,
+              icon: "⭐",
+              color: "#FFD700",
+              delay: 0,
+            },
+            {
+              type: "diamonds",
+              amount: codeArena.diamondReward,
+              icon: "💎",
+              color: "#00D4FF",
+              delay: 500,
+            },
+          ];
+
+          // Add badge animations if any new badges
+          if (newBadges.length > 0) {
+            newBadges.forEach((badge, index) => {
+              rewardAnimations.push({
+                type: "badge",
+                amount: 1,
+                icon: badge.icon || "🏆",
+                color: badge.color || "#FFD700",
+                delay: 1000 + index * 300,
+                badgeData: badge,
+              });
+            });
+          }
+        }
+
         return NextResponse.json({
           success: true,
           message: "Code Arena completed",
@@ -573,6 +617,7 @@ export async function POST(
             : null,
           alreadyCompleted: wasAlreadyCompleted,
           newBadges: newBadges.length > 0 ? newBadges : undefined,
+          animations: rewardAnimations,
         });
 
       default:

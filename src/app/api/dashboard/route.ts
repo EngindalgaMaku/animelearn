@@ -238,32 +238,106 @@ export async function POST(request: Request) {
       const imagePath = card.imagePath;
 
       try {
-        // OCR ve AI analizi
-        const analysisResult = await processCardImage(imagePath as any);
-
-        // Get file stats for intelligent rarity detection
+        // First resolve the correct absolute path before any processing
+        let fullImagePath = "";
         let fileSize = 0;
+
         try {
-          let fullImagePath;
+          const projectRoot = process.cwd();
+          console.log(`🔍 Dashboard: Project root: ${projectRoot}`);
+          console.log(`🔍 Dashboard: Original imagePath: ${imagePath}`);
 
           // Check if imagePath is already an absolute path
           if (path.isAbsolute(imagePath)) {
             fullImagePath = imagePath;
+            console.log(`🔍 Dashboard: Using absolute path: ${fullImagePath}`);
           } else {
-            // If it's a relative path, join with public directory
-            fullImagePath = imagePath.startsWith("/uploads/")
-              ? path.join(process.cwd(), "public", imagePath)
-              : path.join(process.cwd(), "public", "uploads", imagePath);
+            // Always construct the full path explicitly
+            if (imagePath.startsWith("/uploads/")) {
+              // Remove leading slash
+              const relativePath = imagePath.substring(1);
+              fullImagePath = path.resolve(projectRoot, "public", relativePath);
+              console.log(
+                `🔍 Dashboard: Constructed from /uploads/: ${fullImagePath}`
+              );
+            } else if (imagePath.startsWith("uploads/")) {
+              // Already relative, just join with public
+              fullImagePath = path.resolve(projectRoot, "public", imagePath);
+              console.log(
+                `🔍 Dashboard: Constructed from uploads/: ${fullImagePath}`
+              );
+            } else {
+              // Legacy path handling - assume it's just a filename
+              fullImagePath = path.resolve(
+                projectRoot,
+                "public",
+                "uploads",
+                imagePath
+              );
+              console.log(
+                `🔍 Dashboard: Constructed legacy path: ${fullImagePath}`
+              );
+            }
+          }
+
+          console.log(`🔍 Dashboard: Final fullImagePath: ${fullImagePath}`);
+          console.log(
+            `🔍 Dashboard: File exists check: ${fs.existsSync(fullImagePath)}`
+          );
+
+          if (!fs.existsSync(fullImagePath)) {
+            // Try to find the file in different locations
+            console.log(
+              `🔍 Dashboard: File not found, trying alternative locations...`
+            );
+
+            // Check if it's in the uploads directory structure
+            const fileName = path.basename(imagePath);
+            const categoryMatch = imagePath.match(/\/categories\/([^/]+)\//);
+
+            if (categoryMatch) {
+              const category = categoryMatch[1];
+              const alternativePath = path.resolve(
+                projectRoot,
+                "public",
+                "uploads",
+                "categories",
+                category,
+                fileName
+              );
+              console.log(
+                `🔍 Dashboard: Trying alternative path: ${alternativePath}`
+              );
+
+              if (fs.existsSync(alternativePath)) {
+                fullImagePath = alternativePath;
+                console.log(
+                  `🔍 Dashboard: Found file at alternative path: ${fullImagePath}`
+                );
+              } else {
+                throw new Error(
+                  `File not found at resolved path: ${fullImagePath} or alternative: ${alternativePath}`
+                );
+              }
+            } else {
+              throw new Error(
+                `File not found at resolved path: ${fullImagePath}`
+              );
+            }
           }
 
           const stats = fs.statSync(fullImagePath);
           fileSize = stats.size;
         } catch (error) {
-          console.warn("Could not get file stats:", error);
-          console.warn("Failed imagePath:", imagePath);
-          // Set default file size if we can't get stats
-          fileSize = 0;
+          console.error("🚨 Path resolution failed:", error);
+          console.error("🚨 Failed imagePath:", imagePath);
+          console.error("🚨 Process CWD:", process.cwd());
+          console.error("🚨 Attempted fullImagePath:", fullImagePath);
+          throw error; // Re-throw to stop processing this card
         }
+
+        // OCR ve AI analizi with the resolved absolute path
+        const analysisResult = await processCardImage(fullImagePath as any);
 
         // Intelligent rarity detection
         const rarityAnalysis = await detectCardRarity({
@@ -383,8 +457,13 @@ export async function POST(request: Request) {
           },
         });
 
-        // Kullanılmış ismi kaydet
-        await saveUsedCardName(card.id, cardProperties.cardTitle);
+        // Kullanılmış ismi kaydet (handle unique constraint gracefully)
+        try {
+          await saveUsedCardName(card.id, cardProperties.cardTitle);
+        } catch (saveError) {
+          console.warn(`Failed to save card name for ${card.id}:`, saveError);
+          // Continue processing even if save fails
+        }
 
         return {
           message: forceReAnalysis

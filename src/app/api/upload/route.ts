@@ -11,9 +11,22 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const files = formData.getAll("files") as File[];
+    const category = formData.get("category") as string; // Get category from form data
 
     if (!files || files.length === 0) {
       return NextResponse.json({ error: "Dosya bulunamadı" }, { status: 400 });
+    }
+
+    // Validate category if provided
+    let categorySlug = "anime-collection"; // Default category
+    if (category) {
+      // Check if category exists in database
+      const categoryExists = await prisma.category.findFirst({
+        where: { slug: category },
+      });
+      if (categoryExists) {
+        categorySlug = category;
+      }
     }
 
     // Upload klasörünü oluştur
@@ -74,12 +87,18 @@ export async function POST(request: NextRequest) {
       // Dosya adından temel kart bilgilerini çıkar (AI analizi öncesi)
       const basicCardInfo = extractCardInfoFromFilename(file.name);
 
+      // Add category to card info
+      const cardInfoWithCategory = {
+        ...basicCardInfo,
+        category: categorySlug,
+      };
+
       // Dosyayı işle: JPG'ye çevir, optimizasyon yap, akıllı isimlendirme
       const processedImage = await processAndSaveImage(
         buffer,
         file.name,
         uploadDir,
-        basicCardInfo
+        cardInfoWithCategory
       );
 
       // Veritabanına kaydet - tamamen güvenli random isim
@@ -91,7 +110,7 @@ export async function POST(request: NextRequest) {
           series: basicCardInfo.series,
           character: basicCardInfo.character,
           rarity: basicCardInfo.rarity,
-          category: "anime-collection", // Default kategori - admin sonra değiştirebilir
+          category: categorySlug, // Use the determined category
           imagePath: processedImage.path,
           imageUrl: processedImage.url,
           thumbnailUrl: processedImage.thumbnailUrl,

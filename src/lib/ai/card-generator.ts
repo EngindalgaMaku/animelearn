@@ -1109,37 +1109,95 @@ export async function saveUsedCardName(
   const { prisma } = await import("../prisma");
 
   try {
-    // Use upsert to handle both create and update cases
-    await prisma.usedCardNames.upsert({
+    console.log(`💾 Saving card name: ${cardTitle} for cardId: ${cardId}`);
+
+    // First check if this cardId already has a record
+    const existingRecord = await prisma.usedCardNames.findUnique({
       where: { cardId },
-      update: { cardTitle },
-      create: {
-        cardTitle,
-        cardId,
-      },
     });
-  } catch (error) {
-    console.error("Failed to save card name:", error);
-    // If there's still a unique constraint error on cardTitle, try with a suffix
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "P2002"
-    ) {
-      try {
-        const timestamp = Date.now().toString().slice(-4);
-        await prisma.usedCardNames.upsert({
-          where: { cardId },
-          update: { cardTitle: `${cardTitle}_${timestamp}` },
-          create: {
-            cardTitle: `${cardTitle}_${timestamp}`,
-            cardId,
-          },
+
+    if (existingRecord) {
+      // If record exists, only update if the cardTitle is different and doesn't conflict
+      if (existingRecord.cardTitle !== cardTitle) {
+        // Check if the new cardTitle is already used by another record
+        const conflictingRecord = await prisma.usedCardNames.findUnique({
+          where: { cardTitle },
         });
-      } catch (retryError) {
-        console.error("Failed to save card name even with retry:", retryError);
+
+        if (conflictingRecord && conflictingRecord.cardId !== cardId) {
+          // The new cardTitle conflicts with another record, so keep the existing one
+          console.log(
+            `⚠️ Card title "${cardTitle}" conflicts with existing record. Keeping existing title: ${existingRecord.cardTitle} for cardId: ${cardId}`
+          );
+          return; // Don't update, keep existing
+        } else {
+          // Safe to update
+          await prisma.usedCardNames.update({
+            where: { cardId },
+            data: { cardTitle },
+          });
+          console.log(
+            `✅ Updated existing card name record for cardId: ${cardId}`
+          );
+        }
+      } else {
+        console.log(
+          `✅ Card name already exists and matches for cardId: ${cardId}`
+        );
+      }
+    } else {
+      // Create new record, but handle potential cardTitle conflicts
+      let finalCardTitle = cardTitle;
+      let attempts = 0;
+      const maxAttempts = 10;
+
+      while (attempts < maxAttempts) {
+        try {
+          await prisma.usedCardNames.create({
+            data: {
+              cardTitle: finalCardTitle,
+              cardId,
+            },
+          });
+          console.log(
+            `✅ Created new card name record: ${finalCardTitle} for cardId: ${cardId}`
+          );
+          break;
+        } catch (createError) {
+          // Check if it's a unique constraint error on cardTitle
+          if (
+            createError &&
+            typeof createError === "object" &&
+            "code" in createError &&
+            createError.code === "P2002"
+          ) {
+            attempts++;
+            const timestamp = Date.now().toString().slice(-4);
+            const randomSuffix = Math.random().toString(36).substring(2, 6);
+            finalCardTitle = `${cardTitle}_${timestamp}_${randomSuffix}`;
+            console.log(
+              `⚠️ Card title conflict, retrying with: ${finalCardTitle} (attempt ${attempts})`
+            );
+          } else {
+            throw createError;
+          }
+        }
+      }
+
+      if (attempts >= maxAttempts) {
+        console.error(
+          `❌ Failed to create unique card title after ${maxAttempts} attempts for cardId: ${cardId}`
+        );
+        throw new Error(
+          `Failed to create unique card title for cardId: ${cardId}`
+        );
       }
     }
+  } catch (error) {
+    console.error("❌ Failed to save card name:", error);
+    // Don't throw the error, just log it and continue - this shouldn't stop the analysis
+    console.warn(
+      `⚠️ Continuing analysis despite card name save failure for cardId: ${cardId}`
+    );
   }
 }

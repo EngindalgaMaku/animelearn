@@ -25,10 +25,22 @@ interface Step {
 interface AlgorithmVisualizationActivityProps {
   activity: {
     content: {
-      algorithm: string;
+      algorithmType: string;
+      title: string;
       description: string;
-      steps: Step[];
-      initialData: any[];
+      initialArray: number[];
+      speed?: string;
+      showCode?: boolean;
+      showComplexity?: boolean;
+      allowUserInput?: boolean;
+      codeSnippet?: string;
+      complexity?: {
+        time: string;
+        space: string;
+      };
+      steps?: Step[];
+      initialData?: any[];
+      algorithm?: string;
       timeComplexity?: string;
       spaceComplexity?: string;
       explanation?: string;
@@ -47,9 +59,252 @@ export default function AlgorithmVisualizationActivity({
   const [isCompleted, setIsCompleted] = useState(false);
   const [watchTime, setWatchTime] = useState(0);
 
-  // Ensure we have valid steps data
-  const steps = activity.content?.steps || [];
-  const algorithm = activity.content?.algorithm || "Algorithm";
+  // Generate algorithm steps dynamically
+  const generateSteps = (
+    algorithmType: string,
+    initialArray: number[]
+  ): Step[] => {
+    switch (algorithmType) {
+      case "bubble_sort":
+        return generateBubbleSortSteps(initialArray);
+      case "quick_sort":
+        return generateQuickSortSteps(initialArray);
+      case "binary_search":
+        return generateBinarySearchSteps(
+          initialArray,
+          initialArray[Math.floor(initialArray.length / 2)]
+        );
+      default:
+        return [];
+    }
+  };
+
+  const generateBubbleSortSteps = (arr: number[]): Step[] => {
+    const steps: Step[] = [];
+    const array = [...arr];
+    let stepId = 0;
+
+    steps.push({
+      id: stepId++,
+      description: "Starting Bubble Sort algorithm with the initial array",
+      data: [...array],
+      action: "initialize",
+    });
+
+    for (let i = 0; i < array.length - 1; i++) {
+      for (let j = 0; j < array.length - i - 1; j++) {
+        // Compare step
+        steps.push({
+          id: stepId++,
+          description: `Comparing elements at positions ${j} and ${j + 1}: ${array[j]} and ${array[j + 1]}`,
+          data: [...array],
+          comparison: [j, j + 1],
+          action: "compare",
+        });
+
+        // Swap if needed
+        if (array[j] > array[j + 1]) {
+          [array[j], array[j + 1]] = [array[j + 1], array[j]];
+          steps.push({
+            id: stepId++,
+            description: `Swapping ${array[j + 1]} and ${array[j]} because ${array[j + 1]} > ${array[j]}`,
+            data: [...array],
+            highlights: [j, j + 1],
+            action: "swap",
+          });
+        } else {
+          steps.push({
+            id: stepId++,
+            description: `No swap needed: ${array[j]} ≤ ${array[j + 1]}`,
+            data: [...array],
+            highlights: [j, j + 1],
+            action: "no_swap",
+          });
+        }
+      }
+
+      steps.push({
+        id: stepId++,
+        description: `Pass ${i + 1} complete. Largest element ${array[array.length - 1 - i]} is now in position ${array.length - 1 - i}`,
+        data: [...array],
+        highlights: [array.length - 1 - i],
+        action: "pass_complete",
+      });
+    }
+
+    steps.push({
+      id: stepId++,
+      description: "Bubble Sort complete! Array is now sorted.",
+      data: [...array],
+      action: "complete",
+    });
+
+    return steps;
+  };
+
+  const generateQuickSortSteps = (arr: number[]): Step[] => {
+    const steps: Step[] = [];
+    const array = [...arr];
+    let stepId = 0;
+
+    const quickSortHelper = (arr: number[], low: number, high: number) => {
+      if (low < high) {
+        steps.push({
+          id: stepId++,
+          description: `Partitioning array from index ${low} to ${high}`,
+          data: [...arr],
+          highlights: [low, high],
+          action: "partition_start",
+        });
+
+        const pi = partition(arr, low, high);
+
+        steps.push({
+          id: stepId++,
+          description: `Pivot ${arr[pi]} is now in correct position at index ${pi}`,
+          data: [...arr],
+          highlights: [pi],
+          action: "pivot_placed",
+        });
+
+        quickSortHelper(arr, low, pi - 1);
+        quickSortHelper(arr, pi + 1, high);
+      }
+    };
+
+    const partition = (arr: number[], low: number, high: number): number => {
+      const pivot = arr[high];
+      let i = low - 1;
+
+      steps.push({
+        id: stepId++,
+        description: `Using ${pivot} as pivot (last element)`,
+        data: [...arr],
+        highlights: [high],
+        action: "select_pivot",
+      });
+
+      for (let j = low; j <= high - 1; j++) {
+        steps.push({
+          id: stepId++,
+          description: `Comparing ${arr[j]} with pivot ${pivot}`,
+          data: [...arr],
+          comparison: [j, high],
+          action: "compare_with_pivot",
+        });
+
+        if (arr[j] < pivot) {
+          i++;
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+          steps.push({
+            id: stepId++,
+            description: `${arr[j]} < ${pivot}, swapping with element at index ${i}`,
+            data: [...arr],
+            highlights: [i, j],
+            action: "swap_with_pivot",
+          });
+        }
+      }
+
+      [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+      return i + 1;
+    };
+
+    steps.push({
+      id: stepId++,
+      description: "Starting Quick Sort algorithm",
+      data: [...array],
+      action: "initialize",
+    });
+
+    quickSortHelper(array, 0, array.length - 1);
+
+    steps.push({
+      id: stepId++,
+      description: "Quick Sort complete! Array is now sorted.",
+      data: [...array],
+      action: "complete",
+    });
+
+    return steps;
+  };
+
+  const generateBinarySearchSteps = (arr: number[], target: number): Step[] => {
+    const steps: Step[] = [];
+    const sortedArray = [...arr].sort((a, b) => a - b);
+    let stepId = 0;
+    let left = 0;
+    let right = sortedArray.length - 1;
+
+    steps.push({
+      id: stepId++,
+      description: `Starting Binary Search for target value: ${target}`,
+      data: [...sortedArray],
+      highlights: [],
+      action: "initialize",
+    });
+
+    while (left <= right) {
+      const mid = Math.floor((left + right) / 2);
+
+      steps.push({
+        id: stepId++,
+        description: `Checking middle element at index ${mid}: ${sortedArray[mid]}`,
+        data: [...sortedArray],
+        highlights: [mid],
+        comparison: [left, right],
+        action: "check_middle",
+      });
+
+      if (sortedArray[mid] === target) {
+        steps.push({
+          id: stepId++,
+          description: `Found target ${target} at index ${mid}!`,
+          data: [...sortedArray],
+          highlights: [mid],
+          action: "found",
+        });
+        break;
+      } else if (sortedArray[mid] < target) {
+        steps.push({
+          id: stepId++,
+          description: `${sortedArray[mid]} < ${target}, searching right half`,
+          data: [...sortedArray],
+          highlights: [mid],
+          action: "search_right",
+        });
+        left = mid + 1;
+      } else {
+        steps.push({
+          id: stepId++,
+          description: `${sortedArray[mid]} > ${target}, searching left half`,
+          data: [...sortedArray],
+          highlights: [mid],
+          action: "search_left",
+        });
+        right = mid - 1;
+      }
+    }
+
+    if (left > right) {
+      steps.push({
+        id: stepId++,
+        description: `Target ${target} not found in the array`,
+        data: [...sortedArray],
+        action: "not_found",
+      });
+    }
+
+    return steps;
+  };
+
+  // Get algorithm data
+  const algorithmType = activity.content?.algorithmType || "bubble_sort";
+  const initialArray = activity.content?.initialArray || [];
+  const steps =
+    activity.content?.steps || generateSteps(algorithmType, initialArray);
+  const algorithm =
+    activity.content?.title || activity.content?.algorithm || "Algorithm";
   const description =
     activity.content?.description || "Algorithm demonstration";
 
@@ -129,9 +384,23 @@ export default function AlgorithmVisualizationActivity({
           <h3 className="mb-2 text-lg font-semibold text-yellow-900">
             No Algorithm Steps Available
           </h3>
-          <p className="text-yellow-800">
-            This algorithm visualization doesn't have any steps configured yet.
+          <p className="mb-4 text-yellow-800">
+            Unable to generate visualization steps for this algorithm.
           </p>
+          <div className="rounded bg-yellow-100 p-4 text-left text-sm text-yellow-700">
+            <p className="mb-2 font-semibold">Debug Information:</p>
+            <ul className="list-inside list-disc space-y-1">
+              <li>Algorithm Type: {algorithmType}</li>
+              <li>Initial Array: {JSON.stringify(initialArray)}</li>
+              <li>Array Length: {initialArray.length}</li>
+              <li>
+                Has Steps in Content: {activity.content?.steps ? "Yes" : "No"}
+              </li>
+            </ul>
+            <p className="mt-3 text-xs">
+              Supported algorithms: bubble_sort, quick_sort, binary_search
+            </p>
+          </div>
         </div>
       </div>
     );

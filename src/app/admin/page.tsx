@@ -138,9 +138,8 @@ export default function AdminPanel() {
     );
   }
 
-  // Check if user is admin (in real app, check user role from database)
-  const isAdmin =
-    user.email === "admin@example.com" || user.username === "admin";
+  // Check if user is admin
+  const isAdmin = user.role === "admin";
 
   if (!isAdmin) {
     return (
@@ -264,7 +263,56 @@ export default function AdminPanel() {
             <h2 className="mb-6 text-2xl font-bold text-gray-900">
               🚀 Management Tools
             </h2>
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-4">
+              {/* Learning Activities Management */}
+              <div className="group rounded-2xl border-2 border-indigo-300 bg-gradient-to-br from-indigo-50 to-blue-50 p-6 shadow-xl backdrop-blur-sm transition-all duration-300 hover:border-indigo-400 hover:shadow-2xl">
+                <div className="mb-6 flex items-center">
+                  <div className="rounded-xl bg-gradient-to-r from-indigo-500 to-blue-500 p-3 shadow-lg">
+                    <Target className="h-7 w-7 text-white" />
+                  </div>
+                  <h2 className="ml-4 text-xl font-bold text-gray-900">
+                    🎮 Learning Activities
+                  </h2>
+                </div>
+
+                <div className="space-y-3">
+                  <Link
+                    href="/admin/learning-activities"
+                    className="group flex items-center rounded-xl border-2 border-indigo-200 bg-indigo-50/70 p-4 transition-all duration-200 hover:border-indigo-400 hover:bg-indigo-100 hover:shadow-md"
+                  >
+                    <div className="rounded-lg bg-indigo-500 p-2 shadow-md">
+                      <Target className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <p className="font-semibold text-gray-900">
+                        All Challenge Types
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Manage 11 interactive challenge types
+                      </p>
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-indigo-600 transition-transform group-hover:translate-x-1" />
+                  </Link>
+
+                  <Link
+                    href="/admin/learning-activities/stats"
+                    className="group flex items-center rounded-xl border-2 border-blue-200 bg-blue-50/70 p-4 transition-all duration-200 hover:border-blue-400 hover:bg-blue-100 hover:shadow-md"
+                  >
+                    <div className="rounded-lg bg-blue-500 p-2 shadow-md">
+                      <BarChart3 className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <p className="font-semibold text-gray-900">
+                        Activity Stats
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Performance and completion data
+                      </p>
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-blue-600 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </div>
+              </div>
               {/* Quiz Management */}
               <div className="group rounded-2xl border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 shadow-xl backdrop-blur-sm transition-all duration-300 hover:border-blue-400 hover:shadow-2xl">
                 <div className="mb-6 flex items-center">
