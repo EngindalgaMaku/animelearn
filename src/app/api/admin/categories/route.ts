@@ -1,26 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import jwt from "jsonwebtoken";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
 const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 interface AuthUser {
   userId: string;
   username: string;
 }
 
-function getUserFromToken(request: NextRequest): AuthUser | null {
-  const token = request.cookies.get("auth-token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
+async function getUserFromSession(): Promise<AuthUser | null> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return null;
+    }
+
+    return {
+      userId: session.user.id,
+      username:
+        session.user.username || session.user.email?.split("@")[0] || "User",
+    };
   } catch (error) {
+    console.error("Session error:", error);
     return null;
   }
 }
@@ -28,7 +32,7 @@ function getUserFromToken(request: NextRequest): AuthUser | null {
 // GET - List all categories
 export async function GET(request: NextRequest) {
   try {
-    const authUser = getUserFromToken(request);
+    const authUser = await getUserFromSession();
 
     if (!authUser) {
       return NextResponse.json(
@@ -51,18 +55,18 @@ export async function GET(request: NextRequest) {
     }
 
     const categories = await prisma.category.findMany({
-      orderBy: [
-        { sortOrder: 'asc' },
-        { name: 'asc' }
-      ]
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     });
 
-    console.log('Categories API response:', { categories, count: categories.length });
+    console.log("Categories API response:", {
+      categories,
+      count: categories.length,
+    });
 
     return NextResponse.json({
       success: true,
       categories,
-      total: categories.length
+      total: categories.length,
     });
   } catch (error) {
     console.error("Categories GET API error:", error);
@@ -77,15 +81,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
-    
+
     // Generate slug from name
-    const slug = data.name.toLowerCase()
-      .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '');
+    const slug = data.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
 
     // Check if slug already exists
     const existingCategory = await prisma.category.findUnique({
-      where: { slug }
+      where: { slug },
     });
 
     if (existingCategory) {
@@ -103,8 +108,8 @@ export async function POST(request: NextRequest) {
         color: data.color || "#8B5CF6",
         icon: data.icon || null,
         isActive: data.isActive !== false,
-        sortOrder: data.sortOrder || 0
-      }
+        sortOrder: data.sortOrder || 0,
+      },
     });
 
     return NextResponse.json(category);

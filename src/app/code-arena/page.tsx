@@ -161,7 +161,9 @@ function CodeArenaContent() {
   const [showFilters, setShowFilters] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<{
     [key: string]: boolean;
-  }>({});
+  }>({
+    "Python Fundamentals": true, // Default topic expanded on load
+  });
 
   // Notification states
   const [showSuccessMessage, setShowSuccessMessage] = useState("");
@@ -217,6 +219,11 @@ function CodeArenaContent() {
 
   useEffect(() => {
     fetchActivities(); // Re-fetch when filters change
+    // Auto-expand the selected topic's accordion
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [selectedTopic]: true,
+    }));
   }, [selectedTopic, selectedDifficulty]);
 
   useEffect(() => {
@@ -1336,15 +1343,7 @@ function CodeArenaContent() {
                 maxHeight: "90vh",
               }}
             >
-              <header className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-r from-blue-50 to-purple-50 p-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">
-                    {selectedActivity.title}
-                  </h2>
-                  <p className="text-slate-600">
-                    {selectedActivity.description}
-                  </p>
-                </div>
+              <header className="flex items-center justify-end border-b border-slate-200 bg-gradient-to-r from-blue-50 to-purple-50 p-6">
                 <button
                   onClick={closeActivity}
                   className="rounded-xl bg-white p-2 shadow-sm transition-shadow hover:shadow-md"
