@@ -308,7 +308,7 @@ export default function MyCardsPage() {
   // Get category display name
   const getCategoryDisplayName = (categorySlug: string | null | undefined) => {
     if (!categorySlug) return null;
-    const category = categories.find(cat => cat.slug === categorySlug);
+    const category = categories.find((cat) => cat.slug === categorySlug);
     return category ? category.name : categorySlug;
   };
 
@@ -469,7 +469,7 @@ export default function MyCardsPage() {
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header with Info Guide Button */}
         <div className="mb-8 text-center">
-          <div className="flex items-center justify-center mb-4">
+          <div className="mb-4 flex items-center justify-center">
             <h1 className="text-4xl font-bold text-gray-900">
               {primaryCategory?.icon || "🎴"} My Card Collection
             </h1>
@@ -691,13 +691,20 @@ export default function MyCardsPage() {
                       className={`${rarityStyles.imageContainer} aspect-[2/3]`}
                     >
                       <img
-                        src={
-                          userCard.card.thumbnailUrl ||
-                          userCard.card.imageUrl ||
-                          userCard.card.imagePath
-                        }
+                        src={`/api/secure-image?cardId=${userCard.card.id}&type=thumbnail`}
                         alt={userCard.card.name || "Card"}
                         className="h-full w-full object-cover object-[center_top] transition-transform duration-300 group-hover:scale-105"
+                        onError={(e) => {
+                          // Fallback to direct URL if secure API fails
+                          const target = e.target as HTMLImageElement;
+                          if (!target.src.includes("placeholder")) {
+                            target.src =
+                              userCard.card.thumbnailUrl ||
+                              userCard.card.imageUrl ||
+                              userCard.card.imagePath ||
+                              "/placeholder-card.jpg";
+                          }
+                        }}
                       />
                       <div
                         className={`absolute left-2 top-2 rounded-full px-2 py-1 text-xs font-medium ${
@@ -715,7 +722,8 @@ export default function MyCardsPage() {
                       </h3>
                       <p className="mb-2 text-sm text-gray-600">
                         {userCard.card.character || "Unknown"} •{" "}
-                        {getCategoryDisplayName(userCard.card.series) || "Unknown Series"}
+                        {getCategoryDisplayName(userCard.card.series) ||
+                          "Unknown Series"}
                       </p>
                       <div className="flex items-center justify-between text-xs text-gray-500">
                         <span>Acquired</span>
@@ -738,13 +746,20 @@ export default function MyCardsPage() {
                 >
                   <div className="flex items-center space-x-4">
                     <img
-                      src={
-                        userCard.card.thumbnailUrl ||
-                        userCard.card.imageUrl ||
-                        userCard.card.imagePath
-                      }
+                      src={`/api/secure-image?cardId=${userCard.card.id}&type=thumbnail`}
                       alt={userCard.card.name || "Card"}
                       className="h-20 w-16 rounded-lg object-contain"
+                      onError={(e) => {
+                        // Fallback to direct URL if secure API fails
+                        const target = e.target as HTMLImageElement;
+                        if (!target.src.includes("placeholder")) {
+                          target.src =
+                            userCard.card.thumbnailUrl ||
+                            userCard.card.imageUrl ||
+                            userCard.card.imagePath ||
+                            "/placeholder-card.jpg";
+                        }
+                      }}
                     />
                     <div className="flex-1">
                       <div className="flex items-start justify-between">
@@ -754,7 +769,8 @@ export default function MyCardsPage() {
                           </h3>
                           <p className="mb-2 text-gray-600">
                             {userCard.card.character || "Unknown"} •{" "}
-                            {getCategoryDisplayName(userCard.card.series) || "Unknown Series"}
+                            {getCategoryDisplayName(userCard.card.series) ||
+                              "Unknown Series"}
                           </p>
                           <div className="flex items-center space-x-4 text-sm text-gray-500">
                             <span
@@ -834,19 +850,25 @@ export default function MyCardsPage() {
                 <div className="flex flex-col items-center justify-center">
                   <div className="group relative">
                     <img
-                      src={
-                        selectedCard.card.imageUrl ||
-                        selectedCard.card.imagePath
-                      }
+                      src={`/api/secure-image?cardId=${selectedCard.card.id}&type=full`}
                       alt={selectedCard.card.name || "Anime Card"}
                       className="max-h-96 max-w-full rounded-xl object-contain shadow-lg"
+                      onError={(e) => {
+                        // Fallback to direct URL if secure API fails
+                        const target = e.target as HTMLImageElement;
+                        if (!target.src.includes("placeholder")) {
+                          target.src =
+                            selectedCard.card.imageUrl ||
+                            selectedCard.card.imagePath ||
+                            "/placeholder-card.svg";
+                        }
+                      }}
                     />
                     {/* Expand Icon */}
                     <button
                       onClick={() =>
                         openFullScreenImage(
-                          selectedCard.card.imageUrl ||
-                            selectedCard.card.imagePath
+                          `/api/secure-image?cardId=${selectedCard.card.id}&type=full`
                         )
                       }
                       className="absolute right-3 top-3 rounded-full bg-black/60 p-2 text-white opacity-0 transition-all hover:bg-black/80 group-hover:opacity-100"
@@ -881,8 +903,12 @@ export default function MyCardsPage() {
                         <span className="font-medium text-blue-700">Seri:</span>
                         <p className="truncate font-medium text-blue-900">
                           {(() => {
-                            const category = categories.find(cat => cat.slug === selectedCard.card.series);
-                            return category ? category.name : (selectedCard.card.series || "Bilinmiyor");
+                            const category = categories.find(
+                              (cat) => cat.slug === selectedCard.card.series
+                            );
+                            return category
+                              ? category.name
+                              : selectedCard.card.series || "Bilinmiyor";
                           })()}
                         </p>
                       </div>
@@ -893,11 +919,13 @@ export default function MyCardsPage() {
                         <p className="truncate font-medium text-blue-900">
                           {(() => {
                             const character = selectedCard.card.character;
-                            if (!character ||
-                                character === "Unknown" ||
-                                character === "Unknown Fighter" ||
-                                character === "Anime Character" ||
-                                character.trim() === "") {
+                            if (
+                              !character ||
+                              character === "Unknown" ||
+                              character === "Unknown Fighter" ||
+                              character === "Anime Character" ||
+                              character.trim() === ""
+                            ) {
                               return "Gizemli Karakter";
                             }
                             return character;
@@ -1300,133 +1328,170 @@ export default function MyCardsPage() {
       {/* Gamified Collection Guide Modal */}
       {showInfoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="max-h-[95vh] w-full max-w-6xl overflow-auto rounded-3xl bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 shadow-2xl border border-purple-500/30">
+          <div className="max-h-[95vh] w-full max-w-6xl overflow-auto rounded-3xl border border-purple-500/30 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 shadow-2xl">
             {/* Animated Header */}
-            <div className="relative bg-gradient-to-r from-amber-400 via-purple-500 to-pink-600 p-6 rounded-t-3xl overflow-hidden">
+            <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-r from-amber-400 via-purple-500 to-pink-600 p-6">
               {/* Animated Background Elements */}
               <div className="absolute inset-0 opacity-30">
-                <div className="absolute top-0 left-0 w-20 h-20 bg-white rounded-full animate-pulse"></div>
-                <div className="absolute top-5 right-10 w-8 h-8 bg-amber-200 rounded-full animate-bounce delay-300"></div>
-                <div className="absolute bottom-0 right-0 w-16 h-16 bg-purple-200 rounded-full animate-pulse delay-500"></div>
+                <div className="absolute left-0 top-0 h-20 w-20 animate-pulse rounded-full bg-white"></div>
+                <div className="absolute right-10 top-5 h-8 w-8 animate-bounce rounded-full bg-amber-200 delay-300"></div>
+                <div className="absolute bottom-0 right-0 h-16 w-16 animate-pulse rounded-full bg-purple-200 delay-500"></div>
               </div>
-              
+
               <div className="relative flex items-center justify-between">
                 <div className="text-white">
                   <div className="flex items-center space-x-4">
                     <div className="relative">
-                      <div className="absolute inset-0 bg-white/20 rounded-full animate-ping"></div>
-                      <div className="relative bg-white/10 backdrop-blur-sm rounded-full p-3">
-                        <CreditCard className="h-10 w-10 drop-shadow-lg animate-pulse" />
+                      <div className="absolute inset-0 animate-ping rounded-full bg-white/20"></div>
+                      <div className="relative rounded-full bg-white/10 p-3 backdrop-blur-sm">
+                        <CreditCard className="h-10 w-10 animate-pulse drop-shadow-lg" />
                       </div>
                     </div>
                     <div>
-                      <h2 className="text-3xl font-bold drop-shadow-lg">🎴 Koleksiyon Rehberi</h2>
-                      <p className="text-amber-100 opacity-90 text-lg">Kartlarınızın gücünü ve değerini keşfedin!</p>
+                      <h2 className="text-3xl font-bold drop-shadow-lg">
+                        🎴 Koleksiyon Rehberi
+                      </h2>
+                      <p className="text-lg text-amber-100 opacity-90">
+                        Kartlarınızın gücünü ve değerini keşfedin!
+                      </p>
                     </div>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowInfoModal(false)}
-                  className="rounded-full p-3 text-white transition-all hover:bg-white/20 hover:scale-110 group"
+                  className="group rounded-full p-3 text-white transition-all hover:scale-110 hover:bg-white/20"
                 >
-                  <X className="h-6 w-6 group-hover:rotate-90 transition-transform" />
+                  <X className="h-6 w-6 transition-transform group-hover:rotate-90" />
                 </button>
               </div>
             </div>
 
             {/* Content with Gaming Theme */}
-            <div className="p-8 bg-gradient-to-br from-slate-800 to-purple-800">
+            <div className="bg-gradient-to-br from-slate-800 to-purple-800 p-8">
               {/* Collection Stats Section - NEW for My Cards */}
-              <div className="mb-8 rounded-2xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 p-6">
+              <div className="mb-8 rounded-2xl border border-green-500/30 bg-gradient-to-r from-green-500/20 to-emerald-500/20 p-6">
                 <h3 className="mb-6 flex items-center space-x-3 text-2xl font-bold text-green-300">
                   <span className="text-3xl">🏆</span>
                   <span>Koleksiyon İstatistikleri</span>
-                  <span className="text-lg bg-green-500/20 px-2 py-1 rounded-full">COLLECTION</span>
+                  <span className="rounded-full bg-green-500/20 px-2 py-1 text-lg">
+                    COLLECTION
+                  </span>
                 </h3>
-                
+
                 <div className="grid gap-6 md:grid-cols-4">
                   {/* Total Cards */}
-                  <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-600/30 to-blue-800/30 border border-blue-500/40 p-4 transition-all hover:scale-105 hover:shadow-xl hover:shadow-blue-500/20">
-                    <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="group relative overflow-hidden rounded-xl border border-blue-500/40 bg-gradient-to-br from-blue-600/30 to-blue-800/30 p-4 transition-all hover:scale-105 hover:shadow-xl hover:shadow-blue-500/20">
+                    <div className="absolute inset-0 bg-blue-500/5 opacity-0 transition-opacity group-hover:opacity-100"></div>
                     <div className="relative text-center">
-                      <div className="flex items-center justify-center space-x-2 mb-2">
+                      <div className="mb-2 flex items-center justify-center space-x-2">
                         <Package className="h-6 w-6 text-blue-400" />
                         <h4 className="font-bold text-blue-300">Toplam Kart</h4>
                       </div>
-                      <div className="text-3xl font-bold text-blue-200">{stats?.totalCards || 0}</div>
-                      <p className="text-xs text-blue-300 mt-1">Koleksiyonunuzda</p>
+                      <div className="text-3xl font-bold text-blue-200">
+                        {stats?.totalCards || 0}
+                      </div>
+                      <p className="mt-1 text-xs text-blue-300">
+                        Koleksiyonunuzda
+                      </p>
                     </div>
                   </div>
 
                   {/* Unique Cards */}
-                  <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-600/30 to-purple-800/30 border border-purple-500/40 p-4 transition-all hover:scale-105 hover:shadow-xl hover:shadow-purple-500/20">
-                    <div className="absolute inset-0 bg-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="group relative overflow-hidden rounded-xl border border-purple-500/40 bg-gradient-to-br from-purple-600/30 to-purple-800/30 p-4 transition-all hover:scale-105 hover:shadow-xl hover:shadow-purple-500/20">
+                    <div className="absolute inset-0 bg-purple-500/5 opacity-0 transition-opacity group-hover:opacity-100"></div>
                     <div className="relative text-center">
-                      <div className="flex items-center justify-center space-x-2 mb-2">
+                      <div className="mb-2 flex items-center justify-center space-x-2">
                         <Award className="h-6 w-6 text-purple-400" />
                         <h4 className="font-bold text-purple-300">Benzersiz</h4>
                       </div>
-                      <div className="text-3xl font-bold text-purple-200">{stats?.uniqueCards || 0}</div>
-                      <p className="text-xs text-purple-300 mt-1">Farklı kart türü</p>
+                      <div className="text-3xl font-bold text-purple-200">
+                        {stats?.uniqueCards || 0}
+                      </div>
+                      <p className="mt-1 text-xs text-purple-300">
+                        Farklı kart türü
+                      </p>
                     </div>
                   </div>
 
                   {/* Total Value */}
-                  <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-600/30 to-orange-600/30 border border-yellow-500/40 p-4 transition-all hover:scale-105 hover:shadow-xl hover:shadow-yellow-500/20">
-                    <div className="absolute inset-0 bg-yellow-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="group relative overflow-hidden rounded-xl border border-yellow-500/40 bg-gradient-to-br from-yellow-600/30 to-orange-600/30 p-4 transition-all hover:scale-105 hover:shadow-xl hover:shadow-yellow-500/20">
+                    <div className="absolute inset-0 bg-yellow-500/5 opacity-0 transition-opacity group-hover:opacity-100"></div>
                     <div className="relative text-center">
-                      <div className="flex items-center justify-center space-x-2 mb-2">
+                      <div className="mb-2 flex items-center justify-center space-x-2">
                         <Diamond className="h-6 w-6 text-yellow-400" />
-                        <h4 className="font-bold text-yellow-300">Toplam Değer</h4>
+                        <h4 className="font-bold text-yellow-300">
+                          Toplam Değer
+                        </h4>
                       </div>
-                      <div className="text-3xl font-bold text-yellow-200">💎{stats?.totalValue || 0}</div>
-                      <p className="text-xs text-yellow-300 mt-1">Diamond değeri</p>
+                      <div className="text-3xl font-bold text-yellow-200">
+                        💎{stats?.totalValue || 0}
+                      </div>
+                      <p className="mt-1 text-xs text-yellow-300">
+                        Diamond değeri
+                      </p>
                     </div>
                   </div>
 
                   {/* Collection Rate */}
-                  <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-green-600/30 to-emerald-600/30 border border-green-500/40 p-4 transition-all hover:scale-105 hover:shadow-xl hover:shadow-green-500/20">
-                    <div className="absolute inset-0 bg-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="group relative overflow-hidden rounded-xl border border-green-500/40 bg-gradient-to-br from-green-600/30 to-emerald-600/30 p-4 transition-all hover:scale-105 hover:shadow-xl hover:shadow-green-500/20">
+                    <div className="absolute inset-0 bg-green-500/5 opacity-0 transition-opacity group-hover:opacity-100"></div>
                     <div className="relative text-center">
-                      <div className="flex items-center justify-center space-x-2 mb-2">
+                      <div className="mb-2 flex items-center justify-center space-x-2">
                         <TrendingUp className="h-6 w-6 text-green-400" />
                         <h4 className="font-bold text-green-300">Çeşitlilik</h4>
                       </div>
                       <div className="text-3xl font-bold text-green-200">
-                        {Math.round((stats?.uniqueCards / stats?.totalCards) * 100) || 0}%
+                        {Math.round(
+                          (stats?.uniqueCards / stats?.totalCards) * 100
+                        ) || 0}
+                        %
                       </div>
-                      <p className="text-xs text-green-300 mt-1">Unique oranı</p>
+                      <p className="mt-1 text-xs text-green-300">
+                        Unique oranı
+                      </p>
                     </div>
                   </div>
                 </div>
 
                 {/* Collection Achievement Badges */}
-                <div className="mt-6 rounded-xl bg-gradient-to-r from-indigo-600/20 to-purple-600/20 border border-indigo-500/30 p-4">
-                  <h4 className="font-bold text-indigo-300 mb-3 flex items-center space-x-2">
+                <div className="mt-6 rounded-xl border border-indigo-500/30 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 p-4">
+                  <h4 className="mb-3 flex items-center space-x-2 font-bold text-indigo-300">
                     <span>🏅</span>
                     <span>Koleksiyon Başarıları</span>
                   </h4>
-                  <div className="grid md:grid-cols-3 gap-4 text-sm">
-                    <div className="bg-indigo-800/30 rounded p-3">
-                      <p className="text-indigo-200 font-medium">📚 Collector Status:</p>
-                      <div className="text-indigo-100 text-xs mt-1">
-                        {(stats?.totalCards || 0) < 5 ? "🥉 Yeni Koleksiyoncu" :
-                         (stats?.totalCards || 0) < 20 ? "🥈 Deneyimli Koleksiyoncu" :
-                         "🥇 Usta Koleksiyoncu"}
+                  <div className="grid gap-4 text-sm md:grid-cols-3">
+                    <div className="rounded bg-indigo-800/30 p-3">
+                      <p className="font-medium text-indigo-200">
+                        📚 Collector Status:
+                      </p>
+                      <div className="mt-1 text-xs text-indigo-100">
+                        {(stats?.totalCards || 0) < 5
+                          ? "🥉 Yeni Koleksiyoncu"
+                          : (stats?.totalCards || 0) < 20
+                            ? "🥈 Deneyimli Koleksiyoncu"
+                            : "🥇 Usta Koleksiyoncu"}
                       </div>
                     </div>
-                    <div className="bg-purple-800/30 rounded p-3">
-                      <p className="text-purple-200 font-medium">⭐ Rarity Master:</p>
-                      <div className="text-purple-100 text-xs mt-1">
-                        {stats?.rarityBreakdown?.legendary ? `${Object.keys(stats.rarityBreakdown).length} farklı rarity` : "Legendary arıyorsun!"}
+                    <div className="rounded bg-purple-800/30 p-3">
+                      <p className="font-medium text-purple-200">
+                        ⭐ Rarity Master:
+                      </p>
+                      <div className="mt-1 text-xs text-purple-100">
+                        {stats?.rarityBreakdown?.legendary
+                          ? `${Object.keys(stats.rarityBreakdown).length} farklı rarity`
+                          : "Legendary arıyorsun!"}
                       </div>
                     </div>
-                    <div className="bg-pink-800/30 rounded p-3">
-                      <p className="text-pink-200 font-medium">💎 Value Rank:</p>
-                      <div className="text-pink-100 text-xs mt-1">
-                        {(stats?.totalValue || 0) < 1000 ? "💎 Rising Collector" :
-                         (stats?.totalValue || 0) < 5000 ? "💎💎 Premium Collector" :
-                         "💎💎💎 Elite Collector"}
+                    <div className="rounded bg-pink-800/30 p-3">
+                      <p className="font-medium text-pink-200">
+                        💎 Value Rank:
+                      </p>
+                      <div className="mt-1 text-xs text-pink-100">
+                        {(stats?.totalValue || 0) < 1000
+                          ? "💎 Rising Collector"
+                          : (stats?.totalValue || 0) < 5000
+                            ? "💎💎 Premium Collector"
+                            : "💎💎💎 Elite Collector"}
                       </div>
                     </div>
                   </div>
@@ -1435,52 +1500,76 @@ export default function MyCardsPage() {
 
               <div className="grid gap-8 lg:grid-cols-2">
                 {/* Rarity Section - Enhanced for Collection */}
-                <div className="rounded-2xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 p-6">
+                <div className="rounded-2xl border border-yellow-500/30 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 p-6">
                   <h3 className="mb-6 flex items-center space-x-3 text-2xl font-bold text-yellow-300">
                     <span className="text-3xl">💎</span>
                     <span>Nadir Seviyeler</span>
-                    <span className="text-lg bg-yellow-500/20 px-2 py-1 rounded-full">OWNED</span>
+                    <span className="rounded-full bg-yellow-500/20 px-2 py-1 text-lg">
+                      OWNED
+                    </span>
                   </h3>
                   <div className="space-y-4">
                     {rarities.length > 0 ? (
                       rarities.map((rarity, index) => {
-                        const ownedCount = stats?.rarityBreakdown?.[rarity.name.toLowerCase()] || 0;
+                        const ownedCount =
+                          stats?.rarityBreakdown?.[rarity.name.toLowerCase()] ||
+                          0;
                         const isOwned = ownedCount > 0;
-                        
+
                         return (
                           <div
                             key={rarity.id}
-                            className={`group relative overflow-hidden rounded-xl border-2 p-4 transition-all hover:scale-105 hover:shadow-xl cursor-pointer ${isOwned ? 'opacity-100' : 'opacity-50'}`}
+                            className={`group relative cursor-pointer overflow-hidden rounded-xl border-2 p-4 transition-all hover:scale-105 hover:shadow-xl ${isOwned ? "opacity-100" : "opacity-50"}`}
                             style={{
-                              backgroundColor: rarity.bgColor ? `${rarity.bgColor}40` : "#1F2937",
+                              backgroundColor: rarity.bgColor
+                                ? `${rarity.bgColor}40`
+                                : "#1F2937",
                               borderColor: rarity.borderColor || "#374151",
-                              boxShadow: rarity.color && isOwned ? `0 0 20px ${rarity.color}20` : "none"
+                              boxShadow:
+                                rarity.color && isOwned
+                                  ? `0 0 20px ${rarity.color}20`
+                                  : "none",
                             }}
                           >
                             {/* Collection status indicator */}
-                            <div className={`absolute top-2 right-2 rounded-full px-2 py-1 text-xs font-bold ${isOwned ? 'bg-green-500/80 text-white' : 'bg-gray-500/80 text-white'}`}>
-                              {isOwned ? `${ownedCount} Adet` : 'Henüz Yok'}
+                            <div
+                              className={`absolute right-2 top-2 rounded-full px-2 py-1 text-xs font-bold ${isOwned ? "bg-green-500/80 text-white" : "bg-gray-500/80 text-white"}`}
+                            >
+                              {isOwned ? `${ownedCount} Adet` : "Henüz Yok"}
                             </div>
-                            
+
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-4">
                                 <div className="relative">
-                                  <div className={`absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 ${isOwned ? 'opacity-30' : 'opacity-10'}`}></div>
-                                  <span className="relative text-4xl drop-shadow-lg">{rarity.iconUrl ? "🎯" : "💎"}</span>
+                                  <div
+                                    className={`absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 ${isOwned ? "opacity-30" : "opacity-10"}`}
+                                  ></div>
+                                  <span className="relative text-4xl drop-shadow-lg">
+                                    {rarity.iconUrl ? "🎯" : "💎"}
+                                  </span>
                                 </div>
                                 <div>
-                                  <p className="text-xl font-bold" style={{ color: rarity.color || "#F3F4F6" }}>
+                                  <p
+                                    className="text-xl font-bold"
+                                    style={{ color: rarity.color || "#F3F4F6" }}
+                                  >
                                     {rarity.name}
                                   </p>
-                                  <p className="text-sm opacity-80" style={{ color: rarity.textColor || "#D1D5DB" }}>
-                                    {rarity.description || "Efsanevi güç seviyesi"}
+                                  <p
+                                    className="text-sm opacity-80"
+                                    style={{
+                                      color: rarity.textColor || "#D1D5DB",
+                                    }}
+                                  >
+                                    {rarity.description ||
+                                      "Efsanevi güç seviyesi"}
                                   </p>
-                                  <div className="flex items-center space-x-2 mt-1">
-                                    <span className="text-xs bg-black/30 px-2 py-1 rounded">
+                                  <div className="mt-1 flex items-center space-x-2">
+                                    <span className="rounded bg-black/30 px-2 py-1 text-xs">
                                       Level {rarity.level}
                                     </span>
                                     {isOwned && (
-                                      <span className="text-xs bg-green-500/30 px-2 py-1 rounded text-green-200">
+                                      <span className="rounded bg-green-500/30 px-2 py-1 text-xs text-green-200">
                                         ✅ Koleksiyonda
                                       </span>
                                     )}
@@ -1513,8 +1602,8 @@ export default function MyCardsPage() {
                         );
                       })
                     ) : (
-                      <div className="text-center text-gray-400 py-12">
-                        <div className="animate-spin text-6xl mb-4">💎</div>
+                      <div className="py-12 text-center text-gray-400">
+                        <div className="mb-4 animate-spin text-6xl">💎</div>
                         <p className="text-lg">Nadir veriler yükleniyor...</p>
                       </div>
                     )}
@@ -1522,56 +1611,79 @@ export default function MyCardsPage() {
                 </div>
 
                 {/* Elements Section - Enhanced for Collection */}
-                <div className="rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 p-6">
+                <div className="rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-purple-500/20 p-6">
                   <h3 className="mb-6 flex items-center space-x-3 text-2xl font-bold text-blue-300">
                     <span className="text-3xl">🌟</span>
                     <span>Element Güçleri</span>
-                    <span className="text-lg bg-blue-500/20 px-2 py-1 rounded-full">POWER</span>
+                    <span className="rounded-full bg-blue-500/20 px-2 py-1 text-lg">
+                      POWER
+                    </span>
                   </h3>
                   <div className="space-y-4">
                     {elements.length > 0 ? (
                       elements.map((element, index) => (
                         <div
                           key={element.id}
-                          className="group relative overflow-hidden rounded-xl border-2 p-4 transition-all hover:scale-105 hover:shadow-xl cursor-pointer"
+                          className="group relative cursor-pointer overflow-hidden rounded-xl border-2 p-4 transition-all hover:scale-105 hover:shadow-xl"
                           style={{
-                            backgroundColor: element.color ? `${element.color}20` : "#1F2937",
+                            backgroundColor: element.color
+                              ? `${element.color}20`
+                              : "#1F2937",
                             borderColor: element.color || "#374151",
-                            boxShadow: element.color ? `0 0 15px ${element.color}30` : "none"
+                            boxShadow: element.color
+                              ? `0 0 15px ${element.color}30`
+                              : "none",
                           }}
                         >
                           {/* Element mastery level */}
-                          <div className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm rounded-full px-2 py-1 text-xs font-bold text-white">
+                          <div className="absolute right-2 top-2 rounded-full bg-black/50 px-2 py-1 text-xs font-bold text-white backdrop-blur-sm">
                             Master Lv.{index + 1}
                           </div>
-                          
+
                           <div className="flex items-start space-x-4">
                             <div className="relative">
                               <div
                                 className="absolute inset-0 animate-pulse rounded-full opacity-50"
-                                style={{ backgroundColor: element.color || "#3B82F6" }}
+                                style={{
+                                  backgroundColor: element.color || "#3B82F6",
+                                }}
                               ></div>
-                              <span className="relative text-4xl drop-shadow-lg">{element.icon || "✨"}</span>
+                              <span className="relative text-4xl drop-shadow-lg">
+                                {element.icon || "✨"}
+                              </span>
                             </div>
                             <div className="flex-1">
-                              <p className="text-xl font-bold" style={{ color: element.color || "#60A5FA" }}>
+                              <p
+                                className="text-xl font-bold"
+                                style={{ color: element.color || "#60A5FA" }}
+                              >
                                 {element.name}
                               </p>
-                              <p className="text-sm opacity-90 mt-1" style={{ color: element.color || "#93C5FD" }}>
-                                {element.effectDescription || element.description || "Büyülü element gücü"}
+                              <p
+                                className="mt-1 text-sm opacity-90"
+                                style={{ color: element.color || "#93C5FD" }}
+                              >
+                                {element.effectDescription ||
+                                  element.description ||
+                                  "Büyülü element gücü"}
                               </p>
                               {element.priceModifier !== 1 && (
-                                <div className="mt-3 bg-black/20 rounded-lg p-2">
-                                  <p className="text-xs font-bold text-amber-300">💰 Değer Çarpanı:</p>
-                                  <p className="text-xs text-amber-200">{element.priceModifier}x fiyat etkisi</p>
+                                <div className="mt-3 rounded-lg bg-black/20 p-2">
+                                  <p className="text-xs font-bold text-amber-300">
+                                    💰 Değer Çarpanı:
+                                  </p>
+                                  <p className="text-xs text-amber-200">
+                                    {element.priceModifier}x fiyat etkisi
+                                  </p>
                                 </div>
                               )}
-                              <div className="flex items-center space-x-2 mt-2">
-                                <span className="text-xs bg-black/30 px-2 py-1 rounded">
-                                  Element Bonusu: +{Math.floor(5 + (index * 3))}%
+                              <div className="mt-2 flex items-center space-x-2">
+                                <span className="rounded bg-black/30 px-2 py-1 text-xs">
+                                  Element Bonusu: +{Math.floor(5 + index * 3)}%
                                 </span>
-                                <span className="text-xs bg-black/30 px-2 py-1 rounded">
-                                  Koleksiyon Değeri: +{Math.floor(2 + (index * 2))}%
+                                <span className="rounded bg-black/30 px-2 py-1 text-xs">
+                                  Koleksiyon Değeri: +
+                                  {Math.floor(2 + index * 2)}%
                                 </span>
                               </div>
                             </div>
@@ -1579,9 +1691,11 @@ export default function MyCardsPage() {
                         </div>
                       ))
                     ) : (
-                      <div className="text-center text-gray-400 py-12">
-                        <div className="animate-bounce text-6xl mb-4">🌟</div>
-                        <p className="text-lg">Element büyüleri yükleniyor...</p>
+                      <div className="py-12 text-center text-gray-400">
+                        <div className="mb-4 animate-bounce text-6xl">🌟</div>
+                        <p className="text-lg">
+                          Element büyüleri yükleniyor...
+                        </p>
                       </div>
                     )}
                   </div>
@@ -1589,33 +1703,39 @@ export default function MyCardsPage() {
               </div>
 
               {/* Collection Management Section */}
-              <div className="mt-8 rounded-2xl bg-gradient-to-r from-teal-500/20 to-cyan-500/20 border border-teal-500/30 p-6">
+              <div className="mt-8 rounded-2xl border border-teal-500/30 bg-gradient-to-r from-teal-500/20 to-cyan-500/20 p-6">
                 <h4 className="mb-4 flex items-center space-x-3 text-xl font-bold text-teal-300">
                   <span className="text-2xl">📋</span>
                   <span>Koleksiyon Yönetimi</span>
                 </h4>
-                <div className="grid gap-4 md:grid-cols-3 text-sm">
-                  <div className="bg-teal-800/30 rounded-lg p-4">
-                    <h5 className="font-bold text-teal-200 mb-2">🔍 Keşif Stratejisi</h5>
-                    <ul className="space-y-1 text-teal-100 text-xs">
+                <div className="grid gap-4 text-sm md:grid-cols-3">
+                  <div className="rounded-lg bg-teal-800/30 p-4">
+                    <h5 className="mb-2 font-bold text-teal-200">
+                      🔍 Keşif Stratejisi
+                    </h5>
+                    <ul className="space-y-1 text-xs text-teal-100">
                       <li>• Eksik rarity seviyelerini belirle</li>
                       <li>• Element çeşitliliğini artır</li>
                       <li>• Düşük drop rate'li kartları hedefle</li>
                       <li>• Özel etkinlikleri takip et</li>
                     </ul>
                   </div>
-                  <div className="bg-blue-800/30 rounded-lg p-4">
-                    <h5 className="font-bold text-blue-200 mb-2">💎 Değer Optimizasyonu</h5>
-                    <ul className="space-y-1 text-blue-100 text-xs">
+                  <div className="rounded-lg bg-blue-800/30 p-4">
+                    <h5 className="mb-2 font-bold text-blue-200">
+                      💎 Değer Optimizasyonu
+                    </h5>
+                    <ul className="space-y-1 text-xs text-blue-100">
                       <li>• Yüksek value/card oranını hedefle</li>
                       <li>• Legendary kartları prioritize et</li>
                       <li>• Element bonuslarını değerlendir</li>
                       <li>• Market trendlerini analiz et</li>
                     </ul>
                   </div>
-                  <div className="bg-purple-800/30 rounded-lg p-4">
-                    <h5 className="font-bold text-purple-200 mb-2">🏆 Başarı Takibi</h5>
-                    <ul className="space-y-1 text-purple-100 text-xs">
+                  <div className="rounded-lg bg-purple-800/30 p-4">
+                    <h5 className="mb-2 font-bold text-purple-200">
+                      🏆 Başarı Takibi
+                    </h5>
+                    <ul className="space-y-1 text-xs text-purple-100">
                       <li>• Koleksiyon hedeflerini belirle</li>
                       <li>• Progress tracking yap</li>
                       <li>• Milestone rewards'ları kovala</li>
@@ -1627,13 +1747,15 @@ export default function MyCardsPage() {
             </div>
 
             {/* Gamified Footer */}
-            <div className="border-t border-purple-500/30 bg-gradient-to-r from-slate-800 to-purple-800 px-8 py-6 rounded-b-3xl">
+            <div className="rounded-b-3xl border-t border-purple-500/30 bg-gradient-to-r from-slate-800 to-purple-800 px-8 py-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="text-2xl animate-bounce">🎴</div>
+                  <div className="animate-bounce text-2xl">🎴</div>
                   <div>
                     <p className="text-sm text-purple-200">
-                      <strong>Collector Status:</strong> 💎 {user?.currentDiamonds || 0} Diamonds | 🏆 {stats?.totalCards || 0} Cards
+                      <strong>Collector Status:</strong> 💎{" "}
+                      {user?.currentDiamonds || 0} Diamonds | 🏆{" "}
+                      {stats?.totalCards || 0} Cards
                     </p>
                     <p className="text-xs text-purple-300">
                       Koleksiyonunuzu büyütmeye devam edin!
@@ -1642,7 +1764,7 @@ export default function MyCardsPage() {
                 </div>
                 <button
                   onClick={() => setShowInfoModal(false)}
-                  className="rounded-xl bg-gradient-to-r from-amber-600 to-purple-600 px-6 py-3 text-white font-bold transition-all hover:scale-110 hover:shadow-lg hover:shadow-amber-500/50"
+                  className="rounded-xl bg-gradient-to-r from-amber-600 to-purple-600 px-6 py-3 font-bold text-white transition-all hover:scale-110 hover:shadow-lg hover:shadow-amber-500/50"
                 >
                   Koleksiyona Dön 🎴
                 </button>

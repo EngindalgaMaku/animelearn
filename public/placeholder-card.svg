@@ -1,38 +1,23 @@
-<svg width="400" height="600" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#667eea"/>
-      <stop offset="100%" style="stop-color:#764ba2"/>
-    </linearGradient>
-    <radialGradient id="glow" cx="50%" cy="30%" r="60%">
-      <stop offset="0%" style="stop-color:rgba(255,255,255,0.3)"/>
-      <stop offset="100%" style="stop-color:rgba(255,255,255,0)"/>
-    </radialGradient>
-  </defs>
-  
-  <!-- Card Background -->
-  <rect width="100%" height="100%" fill="url(#cardBg)" rx="20"/>
-  
-  <!-- Glow Effect -->
-  <ellipse cx="200" cy="180" rx="150" ry="100" fill="url(#glow)"/>
+<svg width="300" height="400" viewBox="0 0 300 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" rx="12" fill="#f3f4f6"/>
+  <rect x="20" y="20" width="260" height="360" rx="8" fill="#e5e7eb" stroke="#d1d5db" stroke-width="2"/>
   
   <!-- Card Icon -->
-  <circle cx="200" cy="200" r="60" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
-  <circle cx="200" cy="200" r="35" fill="rgba(255,255,255,0.3)"/>
+  <circle cx="150" cy="120" r="30" fill="#9ca3af"/>
+  <path d="M135 115h30v10h-30v-10zm5-10h20v5h-20v-5zm2.5 25h15v5h-15v-5z" fill="white"/>
   
-  <!-- Sparkle Effects -->
-  <g fill="rgba(255,255,255,0.8)">
-    <circle cx="120" cy="150" r="3"/>
-    <circle cx="280" cy="170" r="2"/>
-    <circle cx="150" cy="280" r="2"/>
-    <circle cx="320" cy="250" r="3"/>
-    <circle cx="80" cy="320" r="2"/>
-  </g>
+  <!-- Loading text -->
+  <text x="150" y="170" font-family="Arial, sans-serif" font-size="16" font-weight="600" text-anchor="middle" fill="#6b7280">
+    Loading Card...
+  </text>
   
-  <!-- Card Text -->
-  <text x="200" y="350" text-anchor="middle" fill="white" font-size="20" font-family="Arial, sans-serif" font-weight="bold">Card Image</text>
-  <text x="200" y="380" text-anchor="middle" fill="#ffd700" font-size="16" font-family="Arial, sans-serif">Loading...</text>
+  <!-- Placeholder content -->
+  <rect x="40" y="190" width="220" height="8" rx="4" fill="#d1d5db"/>
+  <rect x="40" y="210" width="180" height="8" rx="4" fill="#e5e7eb"/>
+  <rect x="40" y="230" width="160" height="8" rx="4" fill="#e5e7eb"/>
   
-  <!-- Border Effect -->
-  <rect width="396" height="596" x="2" y="2" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" rx="18"/>
+  <!-- Bottom decoration -->
+  <rect x="40" y="320" width="60" height="20" rx="4" fill="#ddd6fe"/>
+  <rect x="110" y="320" width="80" height="20" rx="4" fill="#fde68a"/>
+  <rect x="200" y="320" width="60" height="20" rx="4" fill="#fed7d7"/>
 </svg>
