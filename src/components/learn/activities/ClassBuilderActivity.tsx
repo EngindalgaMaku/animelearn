@@ -44,13 +44,16 @@ export default function ClassBuilderActivity({
   const { project, description, components, testScenarios } = activity.content;
 
   useEffect(() => {
-    // Auto-complete when all components are built
+    // Mark class as completed but don't auto-complete activity
     if (completedComponents.size === components.length && !classCompleted) {
       setClassCompleted(true);
-      const score = 95; // High score for completing OOP class
-      onComplete(score, 100, true);
     }
-  }, [completedComponents, components.length, classCompleted, onComplete]);
+  }, [completedComponents, components.length, classCompleted]);
+
+  const handleManualComplete = () => {
+    const score = 95; // High score for completing OOP class
+    onComplete(score, 100, true);
+  };
 
   const addComponent = (componentIndex: number) => {
     const component = components[componentIndex];
@@ -400,11 +403,11 @@ Missing components: ${components.length - builtClass.length}`;
               Class Complete!
             </span>
           </div>
-          <p className="mb-4 text-green-800">
+          <p className="mb-6 text-green-800">
             Excellent! You've successfully built a complete {project} class with
             all OOP concepts implemented.
           </p>
-          <div className="rounded-lg border border-green-200 bg-white p-4">
+          <div className="mb-6 rounded-lg border border-green-200 bg-white p-4">
             <h4 className="mb-2 font-semibold text-green-900">
               OOP Mastery Achieved:
             </h4>
@@ -421,6 +424,12 @@ Missing components: ${components.length - builtClass.length}`;
               </div>
             </div>
           </div>
+          <button
+            onClick={handleManualComplete}
+            className="rounded-lg bg-green-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-700"
+          >
+            🎉 Complete Activity & Claim Rewards
+          </button>
         </div>
       )}
 

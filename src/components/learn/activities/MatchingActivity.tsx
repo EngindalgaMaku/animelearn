@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle, RotateCcw, Shuffle, Trophy } from "lucide-react";
+import {
+  CheckCircle,
+  RotateCcw,
+  Shuffle,
+  Trophy,
+  Star,
+  Gift,
+  Sparkles,
+} from "lucide-react";
 
 interface Pair {
   left: string;
@@ -17,7 +25,26 @@ interface LearningActivity {
   id: string;
   title: string;
   description: string;
+  activityType: string;
+  difficulty: number;
+  category: string;
+  diamondReward: number;
+  experienceReward: number;
+  estimatedMinutes: number;
   content: MatchingContent;
+  settings?: any;
+  tags: string[];
+  userProgress?: {
+    score: number;
+    maxScore: number;
+    completed: boolean;
+    timeSpent: number;
+    hintsUsed: number;
+    mistakes: number;
+    startedAt: string;
+    completedAt?: string;
+    percentage: number;
+  };
 }
 
 interface MatchingActivityProps {
@@ -44,6 +71,32 @@ export default function MatchingActivity({
   const [showResults, setShowResults] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [score, setScore] = useState(0);
+  const [showRewardAnimation, setShowRewardAnimation] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [rewardAwarded, setRewardAwarded] = useState(false);
+
+  // Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check authentication status on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/session");
+        const session = await response.json();
+        setIsAuthenticated(!!session?.user);
+      } catch (error) {
+        const userSession =
+          localStorage.getItem("user") ||
+          sessionStorage.getItem("user") ||
+          localStorage.getItem("next-auth.session-token") ||
+          document.cookie.includes("next-auth.session-token");
+        setIsAuthenticated(!!userSession);
+      }
+    };
+
+    checkAuth();
+  }, []);
 
   const { pairs } = activity.content;
 
@@ -127,7 +180,7 @@ export default function MatchingActivity({
     }
   };
 
-  const completeActivity = () => {
+  const completeActivity = async () => {
     setShowResults(true);
     const correctMatches = Object.keys(matches).length / 2;
     const accuracy = (correctMatches / pairs.length) * 100;
@@ -136,7 +189,84 @@ export default function MatchingActivity({
     setScore(finalScore);
 
     const success = finalScore >= 70;
+
+    if (success) {
+      await handleActivityCompletion();
+    }
+
+    // Don't auto-complete - let user manually complete
+  };
+
+  const handleManualComplete = () => {
+    const correctMatches = Object.keys(matches).length / 2;
+    const accuracy = (correctMatches / pairs.length) * 100;
+    const efficiency = Math.max(0, 100 - (attempts - pairs.length) * 5);
+    const finalScore = Math.round((accuracy + efficiency) / 2);
+    const success = finalScore >= 70;
     onComplete(finalScore, 100, success);
+  };
+
+  const handleActivityCompletion = async () => {
+    setIsCompleted(true);
+
+    if (!isAuthenticated) {
+      // Show login incentive
+      return;
+    }
+
+    // Check if reward already awarded for this activity
+    const awardedActivities = JSON.parse(
+      localStorage.getItem("awardedActivities") || "[]"
+    );
+    const alreadyAwarded = awardedActivities.includes(activity.id);
+
+    if (!alreadyAwarded) {
+      try {
+        // Call API to award rewards to user account
+        const response = await fetch("/api/learning-activities/complete", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            activityType: "matching",
+            activityId: activity.id,
+            activityTitle: activity.title,
+            score: Math.max(70, score),
+            timeSpent: 300, // Estimated 5 minutes for completion
+            success: true,
+            diamondReward: activity.diamondReward || 50,
+            experienceReward: activity.experienceReward || 100,
+          }),
+        });
+
+        if (response.ok) {
+          // Show reward animation only after successful API call
+          setShowRewardAnimation(true);
+
+          // Mark reward as awarded
+          awardedActivities.push(activity.id);
+          localStorage.setItem(
+            "awardedActivities",
+            JSON.stringify(awardedActivities)
+          );
+          setRewardAwarded(true);
+
+          // Auto-hide animation after 3 seconds
+          setTimeout(() => {
+            setShowRewardAnimation(false);
+          }, 3000);
+        } else {
+          console.error("Failed to award rewards:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error awarding rewards:", error);
+      }
+    }
+  };
+
+  const handleCloseLoginMessage = () => {
+    setIsCompleted(false);
   };
 
   const shuffleItems = () => {
@@ -240,13 +370,123 @@ export default function MatchingActivity({
             </div>
           </div>
 
-          <button
-            onClick={resetActivity}
-            className="inline-flex items-center space-x-2 rounded-lg bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700"
-          >
-            <RotateCcw className="h-5 w-5" />
-            <span>Try Again</span>
-          </button>
+          <div className="relative">
+            {isCompleted && !isAuthenticated ? (
+              <div className="relative text-center">
+                <div className="relative mb-2 rounded-lg border border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-3">
+                  <button
+                    onClick={handleCloseLoginMessage}
+                    className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-200 text-xs font-bold text-yellow-800 transition-colors hover:bg-yellow-300 hover:text-yellow-900"
+                    title="Close"
+                  >
+                    ✕
+                  </button>
+                  <div className="mb-1 flex items-center justify-center space-x-1 pr-6">
+                    <Gift className="h-4 w-4 text-yellow-600" />
+                    <span className="text-sm font-semibold text-yellow-800">
+                      Login Benefits Available!
+                    </span>
+                  </div>
+                  <p className="pr-6 text-xs text-yellow-700">
+                    Login users earn{" "}
+                    <strong>{activity.diamondReward || 50} diamonds</strong> and{" "}
+                    <strong>{activity.experienceReward || 100} XP</strong> for
+                    completing activities!
+                  </p>
+                </div>
+              </div>
+            ) : isCompleted ? (
+              <div className="text-center">
+                <div className="mb-3 rounded-lg border border-green-200 bg-green-50 p-3">
+                  <div className="mb-2 flex items-center justify-center space-x-2">
+                    <Trophy className="h-5 w-5 text-green-600" />
+                    <span className="text-sm font-semibold text-green-900">
+                      Matching Complete!
+                    </span>
+                  </div>
+                  <p className="mb-3 text-xs text-green-800">
+                    You've successfully completed all the matches. Review the
+                    explanations above and claim your rewards!
+                  </p>
+                  <button
+                    onClick={handleManualComplete}
+                    className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700"
+                  >
+                    🎉 Complete Activity & Claim Rewards
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={resetActivity}
+                className="inline-flex items-center space-x-2 rounded-lg bg-indigo-600 px-6 py-3 font-bold text-white transition-colors hover:bg-indigo-700"
+              >
+                <RotateCcw className="h-5 w-5" />
+                <span>Try Again</span>
+              </button>
+            )}
+
+            {/* Reward Animation Overlay */}
+            {showRewardAnimation && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                <div className="relative rounded-2xl border border-purple-500/30 bg-gradient-to-br from-purple-900 via-blue-900 to-purple-900 p-8 text-center shadow-2xl">
+                  <div className="absolute inset-0 animate-pulse rounded-2xl bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20"></div>
+
+                  <div className="relative z-10">
+                    <div className="mb-6 flex justify-center">
+                      <div className="animate-bounce rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-4">
+                        <Trophy className="h-12 w-12 text-white" />
+                      </div>
+                    </div>
+
+                    <h3 className="mb-4 text-3xl font-bold text-white">
+                      🎉 Congratulations! 🎉
+                    </h3>
+
+                    <div className="mb-6 space-y-3">
+                      <div className="flex items-center justify-center space-x-3 rounded-lg bg-yellow-500/20 p-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-500">
+                          <span className="font-bold text-white">💎</span>
+                        </div>
+                        <span className="text-xl font-semibold text-yellow-300">
+                          +{activity.diamondReward || 50} Diamonds
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-center space-x-3 rounded-lg bg-blue-500/20 p-3">
+                        <Star className="h-8 w-8 text-blue-400" />
+                        <span className="text-xl font-semibold text-blue-300">
+                          +{activity.experienceReward || 100} Experience
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-purple-200">
+                      Activity completed successfully!
+                    </p>
+                  </div>
+
+                  {/* Floating particles animation */}
+                  <div className="absolute inset-0 overflow-hidden rounded-2xl">
+                    {[...Array(20)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="absolute animate-ping"
+                        style={{
+                          left: `${Math.random() * 100}%`,
+                          top: `${Math.random() * 100}%`,
+                          animationDelay: `${Math.random() * 2}s`,
+                          animationDuration: `${2 + Math.random() * 2}s`,
+                        }}
+                      >
+                        <div className="h-2 w-2 rounded-full bg-yellow-400"></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );

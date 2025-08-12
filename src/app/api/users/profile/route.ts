@@ -1,27 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-interface AuthUser {
-  userId: string;
-  username: string;
-}
-
-// Token'dan kullanıcı bilgilerini çıkart
-function getUserFromToken(request: NextRequest): AuthUser | null {
-  const token = request.cookies.get("auth-token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
+// Get user from NextAuth session
+async function getUserFromSession(request: NextRequest) {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
+    const session = await getServerSession(authOptions);
+    return session?.user || null;
   } catch (error) {
+    console.error("Error getting session:", error);
     return null;
   }
 }
@@ -60,9 +49,9 @@ function checkDailyDiamondLimit(user: any): boolean {
 // GET - Kullanıcı profil bilgilerini getir
 export async function GET(request: NextRequest) {
   try {
-    const authUser = getUserFromToken(request);
+    const sessionUser = await getUserFromSession(request);
 
-    if (!authUser) {
+    if (!sessionUser?.id) {
       return NextResponse.json(
         { error: "Oturum açmanız gerekli" },
         { status: 401 }
@@ -71,7 +60,7 @@ export async function GET(request: NextRequest) {
 
     // Kullanıcı bilgilerini getir (ilişkili verilerle)
     const user = await db.user.findUnique({
-      where: { id: authUser.userId },
+      where: { id: sessionUser.id },
       include: {
         userCards: {
           include: {
@@ -112,7 +101,7 @@ export async function GET(request: NextRequest) {
         },
         diamondTransactions: {
           orderBy: { createdAt: "desc" },
-          take: 10,
+          take: 50, // Daha fazla işlem verisi için
         },
         codeArenaProgress: {
           where: { isCompleted: true },
@@ -237,9 +226,9 @@ export async function GET(request: NextRequest) {
 // PUT - Kullanıcı profil bilgilerini güncelle
 export async function PUT(request: NextRequest) {
   try {
-    const authUser = getUserFromToken(request);
+    const sessionUser = await getUserFromSession(request);
 
-    if (!authUser) {
+    if (!sessionUser?.id) {
       return NextResponse.json(
         { error: "Oturum açmanız gerekli" },
         { status: 401 }
@@ -247,11 +236,20 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { firstName, lastName, bio, avatar, username, currentPassword, newPassword, actionType } = body;
+    const {
+      firstName,
+      lastName,
+      bio,
+      avatar,
+      username,
+      currentPassword,
+      newPassword,
+      actionType,
+    } = body;
 
     // Kullanıcıyı al
     const user = await db.user.findUnique({
-      where: { id: authUser.userId },
+      where: { id: sessionUser.id },
     });
 
     if (!user) {
@@ -272,7 +270,7 @@ export async function PUT(request: NextRequest) {
 
       // Mevcut şifreyi doğrula
       let isCurrentPasswordValid = false;
-      
+
       // OAuth kullanıcıları şifre değiştiremez
       if (!user.passwordHash) {
         return NextResponse.json(
@@ -280,16 +278,25 @@ export async function PUT(request: NextRequest) {
           { status: 400 }
         );
       }
-      
+
       if (user.passwordHash.includes(":")) {
         // Node.js crypto format: hash:salt
         const { pbkdf2Sync } = require("crypto");
         const [hash, salt] = user.passwordHash.split(":");
-        const computedHash = pbkdf2Sync(currentPassword, salt, 1000, 64, "sha512").toString("hex");
+        const computedHash = pbkdf2Sync(
+          currentPassword,
+          salt,
+          1000,
+          64,
+          "sha512"
+        ).toString("hex");
         isCurrentPasswordValid = computedHash === hash;
       } else {
         // bcrypt format
-        isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+        isCurrentPasswordValid = await bcrypt.compare(
+          currentPassword,
+          user.passwordHash
+        );
       }
 
       if (!isCurrentPasswordValid) {
@@ -312,7 +319,7 @@ export async function PUT(request: NextRequest) {
 
       // Şifreyi güncelle
       await db.user.update({
-        where: { id: authUser.userId },
+        where: { id: sessionUser.id },
         data: {
           passwordHash: hashedNewPassword,
           updatedAt: new Date(),
@@ -353,8 +360,8 @@ export async function PUT(request: NextRequest) {
       const existingUser = await db.user.findFirst({
         where: {
           username: username,
-          id: { not: authUser.userId }
-        }
+          id: { not: sessionUser.id },
+        },
       });
 
       if (existingUser) {
@@ -366,7 +373,7 @@ export async function PUT(request: NextRequest) {
 
       // Kullanıcı adını güncelle
       const updatedUser = await db.user.update({
-        where: { id: authUser.userId },
+        where: { id: sessionUser.id },
         data: {
           username: username,
           updatedAt: new Date(),
@@ -404,7 +411,7 @@ export async function PUT(request: NextRequest) {
 
     // Kullanıcıyı güncelle
     const updatedUser = await db.user.update({
-      where: { id: authUser.userId },
+      where: { id: sessionUser.id },
       data: {
         ...updateData,
         updatedAt: new Date(),
@@ -442,9 +449,9 @@ export async function PUT(request: NextRequest) {
 // POST - Günlük elmas sıfırlama ve diğer işlemler
 export async function POST(request: NextRequest) {
   try {
-    const authUser = getUserFromToken(request);
+    const sessionUser = await getUserFromSession(request);
 
-    if (!authUser) {
+    if (!sessionUser?.id) {
       return NextResponse.json(
         { error: "Oturum açmanız gerekli" },
         { status: 401 }
@@ -455,7 +462,7 @@ export async function POST(request: NextRequest) {
     const { action } = body;
 
     const user = await db.user.findUnique({
-      where: { id: authUser.userId },
+      where: { id: sessionUser.id },
     });
 
     if (!user) {
@@ -473,7 +480,7 @@ export async function POST(request: NextRequest) {
 
         if (today.toDateString() !== lastReset.toDateString()) {
           await db.user.update({
-            where: { id: authUser.userId },
+            where: { id: sessionUser.id },
             data: {
               dailyDiamonds: 0,
               lastDailyReset: today,
@@ -497,7 +504,7 @@ export async function POST(request: NextRequest) {
 
         if (newLevel !== user.level) {
           await db.user.update({
-            where: { id: authUser.userId },
+            where: { id: sessionUser.id },
             data: { level: newLevel },
           });
 
@@ -506,7 +513,7 @@ export async function POST(request: NextRequest) {
             const levelReward = newLevel * 50; // Her seviye için 50 elmas
 
             await db.user.update({
-              where: { id: authUser.userId },
+              where: { id: sessionUser.id },
               data: {
                 currentDiamonds: { increment: levelReward },
                 totalDiamonds: { increment: levelReward },
@@ -516,7 +523,7 @@ export async function POST(request: NextRequest) {
             // İşlem kaydı
             await db.diamondTransaction.create({
               data: {
-                userId: authUser.userId,
+                userId: sessionUser.id,
                 amount: levelReward,
                 type: "LEVEL_UP",
                 description: `Seviye ${newLevel} ödülü`,

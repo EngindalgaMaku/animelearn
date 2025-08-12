@@ -43,13 +43,16 @@ export default function CodeBuilderActivity({
   const { project, description, modules, testGraph } = activity.content;
 
   useEffect(() => {
-    // Auto-complete when all modules are built
+    // Mark project as completed but don't auto-complete activity
     if (completedModules.size === modules.length && !projectCompleted) {
       setProjectCompleted(true);
-      const score = 90 + completedModules.size * 2; // High score for completing all modules
-      onComplete(Math.min(100, score), 100, true);
     }
-  }, [completedModules, modules.length, projectCompleted, onComplete]);
+  }, [completedModules, modules.length, projectCompleted]);
+
+  const handleManualComplete = () => {
+    const score = 90 + completedModules.size * 2; // High score for completing all modules
+    onComplete(Math.min(100, score), 100, true);
+  };
 
   const addModule = (moduleIndex: number) => {
     const module = modules[moduleIndex];
@@ -329,11 +332,11 @@ Code is ready for execution.`;
               Project Complete!
             </span>
           </div>
-          <p className="mb-4 text-green-800">
+          <p className="mb-6 text-green-800">
             Congratulations! You've successfully built the {project} project by
             assembling all the required modules.
           </p>
-          <div className="rounded-lg border border-green-200 bg-white p-4">
+          <div className="mb-6 rounded-lg border border-green-200 bg-white p-4">
             <h4 className="mb-2 font-semibold text-green-900">
               What you learned:
             </h4>
@@ -348,6 +351,12 @@ Code is ready for execution.`;
               </li>
             </ul>
           </div>
+          <button
+            onClick={handleManualComplete}
+            className="rounded-lg bg-green-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-700"
+          >
+            🎉 Complete Activity & Claim Rewards
+          </button>
         </div>
       )}
 

@@ -1,25 +1,40 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Minimal configuration to fix static asset issues
-
-  // Performance optimizations
-  serverExternalPackages: ["sharp"],
-
-  // ESLint configuration
+  // Next.js 15 specific configuration for static asset serving
   eslint: {
     ignoreDuringBuilds: true,
   },
 
-  // Simple webpack configuration
+  // Force static optimization for better asset serving
+  experimental: {
+    // Disable optimizations that might interfere with asset serving
+    optimizePackageImports: [],
+  },
+
+  // Webpack configuration for Next.js 15
   webpack: (config, { isServer, dev }) => {
+    // Ensure proper asset handling in Next.js 15
     if (dev && !isServer) {
-      // Disable all caching in development
-      config.cache = false;
+      // Force filesystem cache for development
+      config.cache = {
+        type: "filesystem",
+        allowCollectingMemory: false,
+        buildDependencies: {
+          config: [__filename],
+        },
+      };
+
+      // Ensure static assets are properly resolved
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        "@": require("path").resolve(__dirname, "src"),
+      };
     }
+
     return config;
   },
 
-  // Image optimization
+  // Next.js 15 compatible image configuration
   images: {
     remotePatterns: [
       {
@@ -31,46 +46,31 @@ const nextConfig = {
         hostname: "**",
       },
     ],
-    formats: ["image/avif", "image/webp"],
   },
 
-  // Compression
-  compress: true,
-  poweredByHeader: false,
-
-  // Minimal headers
+  // Static file serving configuration
   async headers() {
     return [
       {
-        source: "/(.*)",
+        source: "/_next/static/:path*",
         headers: [
           {
-            key: "X-Frame-Options",
-            value: "DENY",
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
           },
         ],
       },
     ];
   },
 
-  // Simple rewrites
-  async rewrites() {
-    return [
-      {
-        source: "/uploads/:path*",
-        destination: "/api/static-files/:path*",
-      },
-    ];
-  },
-
-  // Bundle optimization
-  experimental: {
-    optimizePackageImports: ["lucide-react"],
-  },
-
-  // Static file handling
+  // Ensure proper trailing slash handling
   trailingSlash: false,
-  output: "standalone",
+
+  // Disable output optimization for development
+  ...(process.env.NODE_ENV !== "production" &&
+    {
+      // No output configuration in development
+    }),
 };
 
 module.exports = nextConfig;

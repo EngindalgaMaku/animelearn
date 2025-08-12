@@ -260,6 +260,12 @@ export default function CodeArenaDetailPage() {
   const [currentDialogue, setCurrentDialogue] = useState("");
   const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
   const [timeOnContent, setTimeOnContent] = useState(0);
+  const [earnedRewards, setEarnedRewards] = useState<{
+    diamonds: number;
+    experience: number;
+    newBadges?: any[];
+  } | null>(null);
+  const [showRewardModal, setShowRewardModal] = useState(false);
 
   // Character dialogues for different situations
   const characterDialogues = {
@@ -456,7 +462,7 @@ export default function CodeArenaDetailPage() {
     }
   };
 
-  // Complete code arena
+  // Complete code arena with enhanced reward system
   const completeCodeArena = async () => {
     if (!codeArena) return;
 
@@ -486,46 +492,65 @@ export default function CodeArenaDetailPage() {
           // Close the completion modal
           setIsCompletionModalOpen(false);
 
-          // Check for new badges
-          if (result.newBadges && result.newBadges.length > 0) {
-            // Show badge notifications
-            result.newBadges.forEach((badgeInfo: any, index: number) => {
-              setTimeout(() => {
-                showNotification(
-                  "success",
-                  `🏆 New Battle Badge Earned: ${badgeInfo.badge.name}!`
-                );
-              }, index * 1000);
-            });
+          // Prepare rewards data for the new modal
+          const rewardsData = {
+            diamonds: result.rewards?.diamonds || codeArena.diamondReward,
+            experience:
+              result.rewards?.experience || codeArena.experienceReward,
+            newBadges: result.newBadges || [],
+          };
 
-            // Enhanced celebration for badge earning
-            setShowRewardAnimation(true);
-            setTimeout(() => setShowRewardAnimation(false), 4000);
-            setCharacterMood("celebrating");
-            showCharacterDialogue("success");
-          }
-
-          // Update user stats with rewards
-          if (result.rewards) {
+          // Only show animated rewards if user actually received them (not duplicate)
+          if (
+            isAuthenticated &&
+            result.rewards &&
+            result.rewards.diamonds > 0
+          ) {
+            // Update user stats immediately for UI responsiveness
             setCurrentXP((prev) => prev + result.rewards.experience);
 
-            let message = `🎉 Arena conquered! +${result.rewards.diamonds} diamonds, +${result.rewards.experience} XP`;
+            // Set earned rewards for animation
+            setEarnedRewards(rewardsData);
+
+            // Show the enhanced reward sequence
+            setShowRewardAnimation(true);
+            setTimeout(() => setShowRewardAnimation(false), 3000);
+
+            // Show reward modal after animation
+            setTimeout(() => setShowRewardModal(true), 3500);
+
+            setCharacterMood("celebrating");
+            showCharacterDialogue("success");
+
+            // Show badge notifications if any
             if (result.newBadges && result.newBadges.length > 0) {
-              message += ` & ${result.newBadges.length} new badge${result.newBadges.length > 1 ? "s" : ""}!`;
+              result.newBadges.forEach((badgeInfo: any, index: number) => {
+                setTimeout(
+                  () => {
+                    showNotification(
+                      "success",
+                      `🏆 New Battle Badge Earned: ${badgeInfo.badge.name}!`
+                    );
+                  },
+                  4000 + index * 1000
+                );
+              });
             }
-
-            showNotification("success", message);
-
-            // Show celebration animation
-            if (!result.newBadges || result.newBadges.length === 0) {
-              setShowRewardAnimation(true);
-              setTimeout(() => setShowRewardAnimation(false), 3000);
-              setCharacterMood("celebrating");
-              showCharacterDialogue("success");
-            }
+          } else if (isAuthenticated) {
+            // Already completed - show simple notification
+            showNotification(
+              "success",
+              "🎉 Code Arena already conquered! (Rewards already earned)"
+            );
           } else {
-            showNotification("success", "🎉 Code Arena conquered!");
+            // Not authenticated - show login incentive
+            showNotification(
+              "warning",
+              `🔐 Arena completed! Login to claim ${rewardsData.diamonds} diamonds + ${rewardsData.experience} XP rewards!`
+            );
           }
+        } else {
+          showNotification("error", "Failed to complete Code Arena");
         }
       } catch (error) {
         console.error("Error completing Code Arena:", error);
@@ -712,6 +737,21 @@ export default function CodeArenaDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
+      {/* Custom CSS for shimmer animation */}
+      <style jsx>{`
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%) skewX(-12deg);
+          }
+          100% {
+            transform: translateX(200%) skewX(-12deg);
+          }
+        }
+        .animate-shimmer {
+          animation: shimmer 0.8s ease-out;
+        }
+      `}</style>
+
       {/* Floating Particles Background */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         {[...Array(20)].map((_, i) => (
@@ -730,10 +770,108 @@ export default function CodeArenaDetailPage() {
         ))}
       </div>
 
-      {/* Reward Animation */}
+      {/* Enhanced Reward Animation */}
       {showRewardAnimation && (
-        <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center">
-          <div className="animate-pulse text-6xl">🎉</div>
+        <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center overflow-hidden">
+          {/* Confetti-like particles */}
+          {[...Array(12)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute animate-bounce text-4xl"
+              style={{
+                left: `${20 + i * 7}%`,
+                top: `${30 + (i % 3) * 20}%`,
+                animationDelay: `${i * 0.1}s`,
+                animationDuration: `${1 + Math.random()}s`,
+              }}
+            >
+              {["🎉", "💎", "⭐", "🏆", "✨", "🎯"][i % 6]}
+            </div>
+          ))}
+
+          {/* Central celebration */}
+          <div className="animate-pulse text-8xl">🎊</div>
+
+          {/* Floating reward numbers */}
+          {earnedRewards && (
+            <div className="absolute flex flex-col items-center gap-2">
+              <div className="animate-bounce text-3xl font-bold text-yellow-400">
+                +{earnedRewards.diamonds} 💎
+              </div>
+              <div
+                className="animate-bounce text-2xl font-bold text-purple-400"
+                style={{ animationDelay: "0.2s" }}
+              >
+                +{earnedRewards.experience} XP
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Reward Modal */}
+      {showRewardModal && earnedRewards && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="shadow-3xl relative max-w-md transform rounded-3xl bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 p-8 text-white transition-all">
+            {/* Floating decoration */}
+            <div className="absolute -left-4 -top-4 animate-bounce text-4xl">
+              🎉
+            </div>
+            <div
+              className="absolute -right-4 -top-4 animate-bounce text-4xl"
+              style={{ animationDelay: "0.5s" }}
+            >
+              🏆
+            </div>
+
+            <div className="text-center">
+              <div className="mb-4 text-6xl">🎊</div>
+              <h2 className="mb-4 text-3xl font-bold">Arena Conquered!</h2>
+              <p className="mb-6 text-lg opacity-90">
+                Congratulations! You've mastered this challenge!
+              </p>
+
+              {/* Rewards display */}
+              <div className="mb-6 space-y-3">
+                <div className="flex items-center justify-center gap-3 rounded-xl bg-white/20 p-4">
+                  <Diamond className="h-8 w-8 text-yellow-200" />
+                  <span className="text-2xl font-bold">
+                    +{earnedRewards.diamonds}
+                  </span>
+                  <span className="text-lg">Diamonds</span>
+                </div>
+                <div className="flex items-center justify-center gap-3 rounded-xl bg-white/20 p-4">
+                  <Star className="h-8 w-8 text-purple-200" />
+                  <span className="text-2xl font-bold">
+                    +{earnedRewards.experience}
+                  </span>
+                  <span className="text-lg">Experience</span>
+                </div>
+                {earnedRewards.newBadges &&
+                  earnedRewards.newBadges.length > 0 && (
+                    <div className="flex items-center justify-center gap-3 rounded-xl bg-white/20 p-4">
+                      <Trophy className="h-8 w-8 text-yellow-200" />
+                      <span className="text-2xl font-bold">
+                        {earnedRewards.newBadges.length}
+                      </span>
+                      <span className="text-lg">
+                        New Badge{earnedRewards.newBadges.length > 1 ? "s" : ""}
+                      </span>
+                    </div>
+                  )}
+              </div>
+
+              <button
+                onClick={() => {
+                  setShowRewardModal(false);
+                  setEarnedRewards(null);
+                }}
+                className="transform rounded-xl bg-white px-8 py-3 text-xl font-bold text-orange-600 transition-all hover:scale-105 hover:shadow-lg"
+              >
+                Awesome! 🚀
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1120,16 +1258,57 @@ export default function CodeArenaDetailPage() {
           </div>
         )}
 
-        {/* Complete Arena Button */}
+        {/* Enhanced Complete Arena Button */}
         {arenaStarted && !codeArena.isCompleted && (
           <div className="mt-8 text-center">
-            <button
-              onClick={() => setIsCompletionModalOpen(true)}
-              className="mx-auto flex items-center gap-2 rounded-lg bg-purple-600 px-8 py-3 font-medium text-white hover:bg-purple-700"
-            >
-              <Award className="h-5 w-5" />
-              Claim Arena Victory
-            </button>
+            <div className="relative">
+              {/* Pulsing glow effect */}
+              <div className="absolute -inset-1 animate-pulse rounded-2xl bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 opacity-75 blur"></div>
+
+              <button
+                onClick={() => setIsCompletionModalOpen(true)}
+                className="hover:shadow-3xl group relative transform rounded-2xl bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 px-12 py-4 text-xl font-bold text-white shadow-2xl transition-all duration-300 hover:scale-110 hover:from-yellow-400 hover:via-orange-400 hover:to-red-400"
+              >
+                {/* Button content */}
+                <div className="flex items-center gap-3">
+                  <Gift className="h-8 w-8 animate-bounce" />
+                  <span className="relative">
+                    🎯 Finish & Get Reward
+                    {/* Shimmer effect */}
+                    <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 transition-opacity duration-700 group-hover:animate-shimmer group-hover:opacity-100"></div>
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <Diamond className="h-6 w-6 text-yellow-200" />
+                    <span className="text-lg font-bold text-yellow-200">
+                      +{codeArena.diamondReward}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Floating reward preview */}
+                <div className="absolute -right-2 -top-2 flex animate-bounce items-center gap-1 rounded-full bg-green-500 px-2 py-1 text-xs text-white">
+                  <Sparkles className="h-3 w-3" />
+                  <span>+{codeArena.experienceReward} XP</span>
+                </div>
+              </button>
+            </div>
+
+            {/* Login incentive for non-authenticated users */}
+            {!isAuthenticated && (
+              <div className="mt-4 rounded-xl border-2 border-dashed border-yellow-400 bg-gradient-to-r from-yellow-50 to-orange-50 p-4">
+                <div className="flex items-center justify-center gap-2 text-yellow-700">
+                  <Trophy className="h-5 w-5" />
+                  <span className="font-semibold">
+                    🔐 Login to claim {codeArena.diamondReward} diamonds +{" "}
+                    {codeArena.experienceReward} XP rewards!
+                  </span>
+                </div>
+                <p className="mt-2 text-center text-sm text-yellow-600">
+                  Complete challenges anonymously, but login to save progress
+                  and earn rewards 🎁
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -1152,70 +1331,111 @@ export default function CodeArenaDetailPage() {
         </div>
       </div>
 
-      {/* Completion Modal */}
+      {/* Enhanced Completion Modal */}
       {isCompletionModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="max-h-[90vh] w-full max-w-lg overflow-auto rounded-2xl bg-white p-6 shadow-2xl">
-            <h2 className="mb-4 text-2xl font-bold text-gray-900">
-              Claim Arena Victory?
-            </h2>
-            <p className="mb-6 text-gray-600">
-              To conquer the Code Arena, you must complete all battle phases:
-              Learn, Battle Practice, and Final Test.
-            </p>
+          <div className="shadow-3xl relative max-h-[90vh] w-full max-w-lg overflow-auto rounded-3xl bg-gradient-to-br from-purple-50 to-blue-50 p-8">
+            {/* Decorative elements */}
+            <div className="absolute -left-2 -top-2 animate-bounce text-3xl">
+              🎯
+            </div>
+            <div
+              className="absolute -right-2 -top-2 animate-bounce text-3xl"
+              style={{ animationDelay: "0.5s" }}
+            >
+              ⚔️
+            </div>
+
+            <div className="text-center">
+              <div className="mb-4 text-6xl">🏆</div>
+              <h2 className="mb-4 text-3xl font-bold text-gray-900">
+                Ready to Claim Victory?
+              </h2>
+              <p className="mb-6 text-gray-600">
+                Complete all battle phases to unlock your epic rewards!
+              </p>
+
+              {/* Reward preview */}
+              <div className="mb-6 rounded-xl bg-gradient-to-r from-yellow-100 to-orange-100 p-4">
+                <h3 className="mb-2 text-lg font-bold text-orange-800">
+                  🎁 Victory Rewards
+                </h3>
+                <div className="flex justify-center gap-4">
+                  <div className="flex items-center gap-1">
+                    <Diamond className="h-5 w-5 text-blue-600" />
+                    <span className="font-bold text-blue-800">
+                      +{codeArena.diamondReward}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Star className="h-5 w-5 text-purple-600" />
+                    <span className="font-bold text-purple-800">
+                      +{codeArena.experienceReward} XP
+                    </span>
+                  </div>
+                </div>
+                {!isAuthenticated && (
+                  <p className="mt-2 text-sm text-orange-600">
+                    🔐 Login required to claim rewards
+                  </p>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-4">
               <div
-                className={`flex items-center justify-between rounded-lg p-4 ${
+                className={`flex items-center justify-between rounded-xl p-4 transition-all ${
                   true
-                    ? "bg-green-100 text-green-800"
+                    ? "bg-green-100 text-green-800 shadow-sm"
                     : "bg-gray-100 text-gray-800"
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
-                  <span>Learn</span>
+                <div className="flex items-center gap-3">
+                  <BookOpen className="h-6 w-6" />
+                  <span className="font-semibold">Learn Phase</span>
                 </div>
-                {true && <CheckCircle className="h-5 w-5" />}
+                {true && <CheckCircle className="h-6 w-6" />}
               </div>
               <div
-                className={`flex items-center justify-between rounded-lg p-4 ${
+                className={`flex items-center justify-between rounded-xl p-4 transition-all ${
                   codeArena.progress?.isCodeCorrect
-                    ? "bg-green-100 text-green-800"
+                    ? "bg-green-100 text-green-800 shadow-sm"
                     : "bg-gray-100 text-gray-800"
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <Code className="h-5 w-5" />
-                  <span>Battle Practice</span>
+                <div className="flex items-center gap-3">
+                  <Code className="h-6 w-6" />
+                  <span className="font-semibold">Battle Practice</span>
                 </div>
                 {codeArena.progress?.isCodeCorrect && (
-                  <CheckCircle className="h-5 w-5" />
+                  <CheckCircle className="h-6 w-6" />
                 )}
               </div>
               <div
-                className={`flex items-center justify-between rounded-lg p-4 ${
+                className={`flex items-center justify-between rounded-xl p-4 transition-all ${
                   codeArena.progress?.score &&
                   codeArena.progress.score >= codeArena.quiz.passingScore
-                    ? "bg-green-100 text-green-800"
+                    ? "bg-green-100 text-green-800 shadow-sm"
                     : "bg-gray-100 text-gray-800"
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <Target className="h-5 w-5" />
-                  <span>Final Test</span>
+                <div className="flex items-center gap-3">
+                  <Target className="h-6 w-6" />
+                  <span className="font-semibold">Final Test</span>
                 </div>
                 {codeArena.progress?.score &&
                   codeArena.progress.score >= codeArena.quiz.passingScore && (
-                    <CheckCircle className="h-5 w-5" />
+                    <CheckCircle className="h-6 w-6" />
                   )}
               </div>
             </div>
-            <div className="mt-6 flex justify-end gap-4">
+
+            <div className="mt-8 flex justify-center gap-4">
               <button
                 onClick={() => setIsCompletionModalOpen(false)}
-                className="rounded-lg bg-gray-100 px-4 py-2 text-gray-700 hover:bg-gray-200"
+                className="rounded-xl bg-gray-200 px-6 py-3 text-gray-700 hover:bg-gray-300"
               >
-                Cancel
+                Not Yet
               </button>
               <button
                 onClick={completeCodeArena}
@@ -1227,9 +1447,13 @@ export default function CodeArenaDetailPage() {
                     codeArena.progress.score >= codeArena.quiz.passingScore
                   )
                 }
-                className="rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="relative transform rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-3 font-bold text-white shadow-lg transition-all hover:scale-105 hover:from-purple-700 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Claim Victory
+                <div className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5" />
+                  <span>Claim Victory!</span>
+                  <Sparkles className="h-5 w-5" />
+                </div>
               </button>
             </div>
           </div>

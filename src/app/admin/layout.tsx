@@ -36,6 +36,8 @@ import {
   Code,
   Brain,
   Calendar,
+  Database,
+  HardDrive,
 } from "lucide-react";
 
 const adminNavigation = [
@@ -158,10 +160,29 @@ const adminNavigation = [
     ],
   },
   {
-    name: "Settings",
-    href: "/admin/settings",
+    name: "System",
     icon: Settings,
     color: "text-gray-600",
+    submenu: [
+      {
+        name: "Site Settings",
+        href: "/admin/settings",
+        icon: Settings,
+        description: "Configure site settings and preferences",
+      },
+      {
+        name: "Analytics",
+        href: "/admin/analytics",
+        icon: BarChart3,
+        description: "View analytics and performance data",
+      },
+      {
+        name: "Backup & Restore",
+        href: "/admin/backup",
+        icon: Database,
+        description: "Manage database backups and restore points",
+      },
+    ],
   },
 ];
 

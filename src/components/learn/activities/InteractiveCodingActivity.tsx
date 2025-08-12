@@ -190,11 +190,14 @@ export default function InteractiveCodingActivity({
     if (currentExercise < exercises.length - 1) {
       setCurrentExercise(currentExercise + 1);
     } else {
-      // Complete the activity
-      const completionRate = completedExercises.size / exercises.length;
-      const score = Math.round(60 + completionRate * 40); // Base 60% + completion bonus
-      onComplete(score, 100, completionRate >= 0.7);
+      // Don't auto-complete - let user manually complete
     }
+  };
+
+  const handleManualComplete = () => {
+    const completionRate = completedExercises.size / exercises.length;
+    const score = Math.round(60 + completionRate * 40); // Base 60% + completion bonus
+    onComplete(score, 100, completionRate >= 0.7);
   };
 
   const previousExercise = () => {
@@ -418,14 +421,35 @@ export default function InteractiveCodingActivity({
           Previous Exercise
         </button>
 
-        <button
-          onClick={nextExercise}
-          className="rounded-lg bg-indigo-600 px-6 py-2 text-white transition-colors hover:bg-indigo-700"
-        >
-          {currentExercise === exercises.length - 1
-            ? "Complete Lab"
-            : "Next Exercise"}
-        </button>
+        {currentExercise === exercises.length - 1 ? (
+          <div className="text-center">
+            <div className="mb-3 rounded-lg border border-green-200 bg-green-50 p-3">
+              <div className="mb-2 flex items-center justify-center space-x-2">
+                <Trophy className="h-5 w-5 text-green-600" />
+                <span className="text-sm font-semibold text-green-900">
+                  Lab Complete!
+                </span>
+              </div>
+              <p className="mb-3 text-xs text-green-800">
+                You've finished all coding exercises in this lab. Review your
+                work and claim your rewards!
+              </p>
+              <button
+                onClick={handleManualComplete}
+                className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700"
+              >
+                🎉 Complete Lab & Claim Rewards
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={nextExercise}
+            className="rounded-lg bg-indigo-600 px-6 py-2 text-white transition-colors hover:bg-indigo-700"
+          >
+            Next Exercise
+          </button>
+        )}
       </div>
     </div>
   );

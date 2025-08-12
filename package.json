@@ -30,6 +30,8 @@
     "dev:clean": "npm run ultimate:fix && npm run dev",
     "dev:force": "rm -rf .next && npm run dev",
     "dev:fix": "node fix-next-assets.js && npm run dev",
+    "dev:fresh": "node ultimate-fix.js && npm run dev",
+    "dev:assets": "node enhanced-asset-fix.js && npm run dev",
     "build": "prisma generate && next build",
     "start": "next start",
     "postinstall": "prisma generate && node scripts/install-sharp-linux.js",

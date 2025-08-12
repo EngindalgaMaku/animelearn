@@ -39,12 +39,12 @@ async function getUserFromSession(): Promise<AuthUser | null> {
 
 // Calculate user level from experience
 function calculateLevel(experience: number): number {
-  return Math.floor(experience / 1000) + 1;
+  return Math.floor(experience / 100) + 1;
 }
 
 // Calculate experience needed for next level
 function calculateExpToNextLevel(experience: number, level: number): number {
-  return level * 1000 - experience;
+  return level * 100 - experience;
 }
 
 export async function POST(req: NextRequest) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Play,
   RotateCcw,
@@ -8,6 +8,11 @@ import {
   BookOpen,
   ChevronRight,
   ChevronLeft,
+  Trophy,
+  Star,
+  Gift,
+  LogIn,
+  Sparkles,
 } from "lucide-react";
 
 interface Step {
@@ -26,7 +31,26 @@ interface LearningActivity {
   id: string;
   title: string;
   description: string;
+  activityType: string;
+  difficulty: number;
+  category: string;
+  diamondReward: number;
+  experienceReward: number;
+  estimatedMinutes: number;
   content: InteractiveDemoContent;
+  settings?: any;
+  tags: string[];
+  userProgress?: {
+    score: number;
+    maxScore: number;
+    completed: boolean;
+    timeSpent: number;
+    hintsUsed: number;
+    mistakes: number;
+    startedAt: string;
+    completedAt?: string;
+    percentage: number;
+  };
 }
 
 interface InteractiveDemoActivityProps {
@@ -43,6 +67,34 @@ export default function InteractiveDemoActivity({
   const [isRunning, setIsRunning] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [editableCode, setEditableCode] = useState<string>("");
+  const [showRewardAnimation, setShowRewardAnimation] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [rewardAwarded, setRewardAwarded] = useState(false);
+
+  // Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check authentication status on component mount
+  useEffect(() => {
+    // Check for NextAuth session or other authentication indicators
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/session");
+        const session = await response.json();
+        setIsAuthenticated(!!session?.user);
+      } catch (error) {
+        // Fallback: check localStorage/sessionStorage
+        const userSession =
+          localStorage.getItem("user") ||
+          sessionStorage.getItem("user") ||
+          localStorage.getItem("next-auth.session-token") ||
+          document.cookie.includes("next-auth.session-token");
+        setIsAuthenticated(!!userSession);
+      }
+    };
+
+    checkAuth();
+  }, []);
 
   const { steps } = activity.content;
   const currentStepData = steps[currentStep];
@@ -148,11 +200,79 @@ export default function InteractiveDemoActivity({
       setEditableCode(steps[currentStep + 1].code);
       setCodeOutput("");
     } else {
-      // Complete the activity
-      const completionPercentage = (completedSteps.size / steps.length) * 100;
-      const score = Math.max(70, completionPercentage); // Minimum 70% for completion
-      onComplete(score, 100, true);
+      handleActivityCompletion();
     }
+  };
+
+  const handleActivityCompletion = async () => {
+    setIsCompleted(true);
+
+    if (!isAuthenticated) {
+      // Show login incentive
+      return;
+    }
+
+    // Check if reward already awarded for this activity
+    const awardedActivities = JSON.parse(
+      localStorage.getItem("awardedActivities") || "[]"
+    );
+    const alreadyAwarded = awardedActivities.includes(activity.id);
+
+    if (!alreadyAwarded) {
+      try {
+        // Call API to award rewards to user account
+        const response = await fetch("/api/learning-activities/complete", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            activityType: "interactive_demo",
+            activityId: activity.id,
+            activityTitle: activity.title,
+            score: Math.max(70, (completedSteps.size / steps.length) * 100),
+            timeSpent: 300, // Estimated 5 minutes for completion
+            success: true,
+            diamondReward: activity.diamondReward || 50,
+            experienceReward: activity.experienceReward || 100,
+          }),
+        });
+
+        if (response.ok) {
+          // Show reward animation only after successful API call
+          setShowRewardAnimation(true);
+
+          // Mark reward as awarded
+          awardedActivities.push(activity.id);
+          localStorage.setItem(
+            "awardedActivities",
+            JSON.stringify(awardedActivities)
+          );
+          setRewardAwarded(true);
+
+          // Auto-hide animation after 3 seconds
+          setTimeout(() => {
+            setShowRewardAnimation(false);
+          }, 3000);
+        } else {
+          console.error("Failed to award rewards:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error awarding rewards:", error);
+      }
+    }
+
+    // Don't auto-complete - let user manually complete
+  };
+
+  const handleManualComplete = () => {
+    const completionPercentage = (completedSteps.size / steps.length) * 100;
+    const score = Math.max(70, completionPercentage); // Minimum 70% for completion
+    onComplete(score, 100, true);
+  };
+
+  const handleCloseLoginMessage = () => {
+    setIsCompleted(false);
   };
 
   const previousStep = () => {
@@ -171,17 +291,17 @@ export default function InteractiveDemoActivity({
   });
 
   return (
-    <div className="mx-auto max-w-6xl p-6">
+    <div className="mx-auto flex h-screen max-w-7xl flex-col p-4">
       {/* Header */}
-      <div className="mb-8">
-        <h2 className="mb-4 text-3xl font-bold text-gray-900">
+      <div className="mb-4">
+        <h2 className="mb-2 text-2xl font-bold text-gray-900">
           {activity.title}
         </h2>
-        <p className="text-lg text-gray-600">{activity.description}</p>
+        <p className="text-base text-gray-600">{activity.description}</p>
       </div>
 
       {/* Progress */}
-      <div className="mb-8">
+      <div className="mb-4">
         <div className="mb-2 flex items-center justify-between">
           <span className="text-sm font-medium text-gray-700">
             Step {currentStep + 1} of {steps.length}
@@ -198,23 +318,23 @@ export default function InteractiveDemoActivity({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Left Panel - Explanation */}
-        <div className="space-y-6">
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
-            <div className="mb-4 flex items-center space-x-2">
-              <BookOpen className="h-5 w-5 text-indigo-600" />
-              <h3 className="text-xl font-semibold text-gray-900">
+        <div className="flex min-h-0 flex-col space-y-3">
+          <div className="rounded-lg border border-gray-200 bg-white p-4">
+            <div className="mb-3 flex items-center space-x-2">
+              <BookOpen className="h-4 w-4 text-indigo-600" />
+              <h3 className="text-lg font-semibold text-gray-900">
                 {currentStepData.title}
               </h3>
             </div>
-            <p className="mb-4 leading-relaxed text-gray-700">
+            <p className="mb-3 text-sm leading-relaxed text-gray-700">
               {currentStepData.explanation}
             </p>
 
             {currentStepData.hint && (
-              <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
-                <p className="text-sm text-yellow-800">
+              <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-2">
+                <p className="text-xs text-yellow-800">
                   💡 <strong>Hint:</strong> {currentStepData.hint}
                 </p>
               </div>
@@ -222,13 +342,15 @@ export default function InteractiveDemoActivity({
           </div>
 
           {/* Step Navigation */}
-          <div className="rounded-lg bg-gray-50 p-4">
-            <h4 className="mb-3 font-semibold text-gray-900">Learning Steps</h4>
-            <div className="space-y-2">
+          <div className="min-h-0 flex-1 rounded-lg bg-gray-50 p-3">
+            <h4 className="mb-2 text-sm font-semibold text-gray-900">
+              Learning Steps
+            </h4>
+            <div className="max-h-32 space-y-1 overflow-y-auto">
               {steps.map((step, index) => (
                 <div
                   key={index}
-                  className={`flex cursor-pointer items-center space-x-3 rounded p-2 transition-colors ${
+                  className={`flex cursor-pointer items-center space-x-2 rounded p-1.5 transition-colors ${
                     index === currentStep
                       ? "bg-indigo-100 text-indigo-900"
                       : completedSteps.has(index)
@@ -242,7 +364,7 @@ export default function InteractiveDemoActivity({
                   }}
                 >
                   <div
-                    className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                    className={`flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold ${
                       index === currentStep
                         ? "bg-indigo-600 text-white"
                         : completedSteps.has(index)
@@ -252,7 +374,7 @@ export default function InteractiveDemoActivity({
                   >
                     {index + 1}
                   </div>
-                  <span className="truncate text-sm font-medium">
+                  <span className="truncate text-xs font-medium">
                     {step.title}
                   </span>
                 </div>
@@ -262,54 +384,54 @@ export default function InteractiveDemoActivity({
         </div>
 
         {/* Right Panel - Code and Output */}
-        <div className="space-y-6">
+        <div className="flex min-h-0 flex-col space-y-3">
           {/* Code Editor */}
           <div className="overflow-hidden rounded-lg bg-gray-900">
-            <div className="flex items-center justify-between border-b border-gray-700 p-4">
+            <div className="flex items-center justify-between border-b border-gray-700 p-2">
               <div className="flex items-center space-x-2">
-                <Code className="h-5 w-5 text-gray-400" />
-                <span className="text-sm font-medium text-gray-400">
+                <Code className="h-4 w-4 text-gray-400" />
+                <span className="text-xs font-medium text-gray-400">
                   Python Code
                 </span>
               </div>
               <div className="flex space-x-1">
-                <div className="h-3 w-3 rounded-full bg-red-400"></div>
-                <div className="h-3 w-3 rounded-full bg-yellow-400"></div>
-                <div className="h-3 w-3 rounded-full bg-green-400"></div>
+                <div className="h-2 w-2 rounded-full bg-red-400"></div>
+                <div className="h-2 w-2 rounded-full bg-yellow-400"></div>
+                <div className="h-2 w-2 rounded-full bg-green-400"></div>
               </div>
             </div>
 
-            <div className="p-4">
+            <div className="p-2">
               {currentStepData.interactive ? (
                 <textarea
                   value={editableCode}
                   onChange={(e) => setEditableCode(e.target.value)}
-                  className="h-40 w-full resize-none bg-transparent font-mono text-sm text-white focus:outline-none"
+                  className="h-28 w-full resize-none bg-transparent font-mono text-xs text-white focus:outline-none"
                   placeholder="Write your Python code here..."
                 />
               ) : (
-                <pre className="whitespace-pre-wrap font-mono text-sm text-white">
+                <pre className="h-28 overflow-y-auto whitespace-pre-wrap font-mono text-xs text-white">
                   {currentStepData.code}
                 </pre>
               )}
             </div>
 
-            <div className="flex space-x-3 border-t border-gray-700 p-4">
+            <div className="flex space-x-2 border-t border-gray-700 p-2">
               <button
                 onClick={runCode}
                 disabled={isRunning}
-                className="inline-flex items-center space-x-2 rounded bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 disabled:bg-gray-600"
+                className="inline-flex items-center space-x-1 rounded bg-green-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-green-700 disabled:bg-gray-600"
               >
-                <Play className="h-4 w-4" />
+                <Play className="h-3 w-3" />
                 <span>{isRunning ? "Running..." : "Run Code"}</span>
               </button>
 
               {currentStepData.interactive && (
                 <button
                   onClick={resetCode}
-                  className="inline-flex items-center space-x-2 rounded bg-gray-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700"
+                  className="inline-flex items-center space-x-1 rounded bg-gray-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-gray-700"
                 >
-                  <RotateCcw className="h-4 w-4" />
+                  <RotateCcw className="h-3 w-3" />
                   <span>Reset</span>
                 </button>
               )}
@@ -317,36 +439,158 @@ export default function InteractiveDemoActivity({
           </div>
 
           {/* Output */}
-          <div className="rounded-lg bg-black p-4">
-            <div className="mb-3 flex items-center space-x-2">
-              <div className="h-2 w-2 rounded-full bg-green-400"></div>
-              <span className="text-sm font-medium text-green-400">Output</span>
+          <div className="rounded-lg bg-black p-2">
+            <div className="mb-1 flex items-center space-x-1">
+              <div className="h-1.5 w-1.5 rounded-full bg-green-400"></div>
+              <span className="text-xs font-medium text-green-400">Output</span>
             </div>
-            <pre className="min-h-[120px] whitespace-pre-wrap font-mono text-sm text-green-300">
+            <pre className="h-12 overflow-y-auto whitespace-pre-wrap font-mono text-xs text-green-300">
               {codeOutput || "Run the code to see output..."}
             </pre>
           </div>
 
           {/* Navigation */}
-          <div className="flex justify-between">
+          <div className="flex justify-between pt-2">
             <button
               onClick={previousStep}
               disabled={currentStep === 0}
-              className="flex items-center space-x-2 rounded-lg border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center space-x-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-3 w-3" />
               <span>Previous</span>
             </button>
 
-            <button
-              onClick={nextStep}
-              className="flex items-center space-x-2 rounded-lg bg-indigo-600 px-6 py-2 text-white transition-colors hover:bg-indigo-700"
-            >
-              <span>
-                {currentStep === steps.length - 1 ? "Complete" : "Next Step"}
-              </span>
-              <ChevronRight className="h-4 w-4" />
-            </button>
+            {currentStep === steps.length - 1 ? (
+              isCompleted && !isAuthenticated ? (
+                <div className="relative text-center">
+                  <div className="relative mb-2 rounded-lg border border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-3">
+                    <button
+                      onClick={handleCloseLoginMessage}
+                      className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-200 text-xs font-bold text-yellow-800 transition-colors hover:bg-yellow-300 hover:text-yellow-900"
+                      title="Close"
+                    >
+                      ✕
+                    </button>
+                    <div className="mb-1 flex items-center justify-center space-x-1 pr-6">
+                      <Gift className="h-4 w-4 text-yellow-600" />
+                      <span className="text-sm font-semibold text-yellow-800">
+                        Login Benefits Available!
+                      </span>
+                    </div>
+                    <p className="pr-6 text-xs text-yellow-700">
+                      Login users earn{" "}
+                      <strong>{activity.diamondReward || 50} diamonds</strong>{" "}
+                      and <strong>{activity.experienceReward || 100} XP</strong>{" "}
+                      for completing activities!
+                    </p>
+                  </div>
+                </div>
+              ) : isCompleted ? (
+                <div className="text-center">
+                  <div className="mb-3 rounded-lg border border-green-200 bg-green-50 p-3">
+                    <div className="mb-2 flex items-center justify-center space-x-2">
+                      <Trophy className="h-5 w-5 text-green-600" />
+                      <span className="text-sm font-semibold text-green-900">
+                        Demo Complete!
+                      </span>
+                    </div>
+                    <p className="mb-3 text-xs text-green-800">
+                      You've successfully completed all the interactive demo
+                      steps. Great job learning Python programming!
+                    </p>
+                    <button
+                      onClick={handleManualComplete}
+                      className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700"
+                    >
+                      🎉 Complete Activity & Claim Rewards
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="relative">
+                  <button
+                    onClick={nextStep}
+                    className="group relative transform overflow-hidden rounded-lg bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25"
+                  >
+                    <div className="absolute inset-0 -translate-x-full -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 group-hover:translate-x-full"></div>
+                    <div className="relative flex items-center space-x-1">
+                      <Gift className="h-4 w-4" />
+                      <span>Finish Demo</span>
+                      <Sparkles className="h-3 w-3 animate-pulse" />
+                    </div>
+                  </button>
+
+                  {/* Reward Animation Overlay */}
+                  {showRewardAnimation && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                      <div className="relative rounded-2xl border border-purple-500/30 bg-gradient-to-br from-purple-900 via-blue-900 to-purple-900 p-8 text-center shadow-2xl">
+                        <div className="absolute inset-0 animate-pulse rounded-2xl bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20"></div>
+
+                        <div className="relative z-10">
+                          <div className="mb-6 flex justify-center">
+                            <div className="animate-bounce rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-4">
+                              <Trophy className="h-12 w-12 text-white" />
+                            </div>
+                          </div>
+
+                          <h3 className="mb-4 text-3xl font-bold text-white">
+                            🎉 Congratulations! 🎉
+                          </h3>
+
+                          <div className="mb-6 space-y-3">
+                            <div className="flex items-center justify-center space-x-3 rounded-lg bg-yellow-500/20 p-3">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-500">
+                                <span className="font-bold text-white">💎</span>
+                              </div>
+                              <span className="text-xl font-semibold text-yellow-300">
+                                +{activity.diamondReward || 50} Diamonds
+                              </span>
+                            </div>
+
+                            <div className="flex items-center justify-center space-x-3 rounded-lg bg-blue-500/20 p-3">
+                              <Star className="h-8 w-8 text-blue-400" />
+                              <span className="text-xl font-semibold text-blue-300">
+                                +{activity.experienceReward || 100} Experience
+                              </span>
+                            </div>
+                          </div>
+
+                          <p className="text-purple-200">
+                            Activity completed successfully!
+                          </p>
+                        </div>
+
+                        {/* Floating particles animation */}
+                        <div className="absolute inset-0 overflow-hidden rounded-2xl">
+                          {[...Array(20)].map((_, i) => (
+                            <div
+                              key={i}
+                              className="absolute animate-ping"
+                              style={{
+                                left: `${Math.random() * 100}%`,
+                                top: `${Math.random() * 100}%`,
+                                animationDelay: `${Math.random() * 2}s`,
+                                animationDuration: `${2 + Math.random() * 2}s`,
+                              }}
+                            >
+                              <div className="h-2 w-2 rounded-full bg-yellow-400"></div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            ) : (
+              <button
+                onClick={nextStep}
+                className="flex items-center space-x-1 rounded-lg bg-indigo-600 px-4 py-1.5 text-sm text-white transition-colors hover:bg-indigo-700"
+              >
+                <span>Next Step</span>
+                <ChevronRight className="h-3 w-3" />
+              </button>
+            )}
           </div>
         </div>
       </div>

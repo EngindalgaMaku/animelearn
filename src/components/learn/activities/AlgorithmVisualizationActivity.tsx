@@ -74,8 +74,7 @@ export default function AlgorithmVisualizationActivity({
       setIsPlaying(false);
       if (!completedVisualization) {
         setCompletedVisualization(true);
-        const score = 85; // Good score for completing visualization
-        onComplete(score, 100, true);
+        // Don't auto-complete - let user review and manually complete
       }
     }
 
@@ -88,8 +87,12 @@ export default function AlgorithmVisualizationActivity({
     steps.length,
     playbackSpeed,
     completedVisualization,
-    onComplete,
   ]);
+
+  const handleManualComplete = () => {
+    const score = 85; // Good score for completing visualization
+    onComplete(score, 100, true);
+  };
 
   const playPause = () => {
     setIsPlaying(!isPlaying);
@@ -438,17 +441,23 @@ export default function AlgorithmVisualizationActivity({
       {/* Completion Message */}
       {completedVisualization && (
         <div className="mt-8 rounded-lg border border-green-200 bg-green-50 p-6 text-center">
-          <div className="mb-2 flex items-center justify-center space-x-2">
+          <div className="mb-4 flex items-center justify-center space-x-2">
             <Eye className="h-6 w-6 text-green-600" />
             <span className="text-lg font-semibold text-green-900">
               Visualization Complete!
             </span>
           </div>
-          <p className="text-green-800">
+          <p className="mb-6 text-green-800">
             You've successfully explored the algorithm visualization.
             Understanding how algorithms work step-by-step is key to mastering
             programming!
           </p>
+          <button
+            onClick={handleManualComplete}
+            className="rounded-lg bg-green-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-700"
+          >
+            🎉 Complete Activity & Claim Rewards
+          </button>
         </div>
       )}
 

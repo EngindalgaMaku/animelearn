@@ -66,6 +66,12 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Level calculation function matching the profile API
+function calculateLevel(experience: number): number {
+  // Each level requires 100 XP
+  return Math.floor(experience / 100) + 1;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -102,8 +108,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const safeName = sessionUser?.name || "";
         const emailUsername = safeEmail ? safeEmail.split("@")[0] : "";
 
-        // Create user object with maximum safety
-        const safeUser: User = {
+        // Create initial user object with session data as fallback
+        const initialUser: User = {
           id: sessionUser?.id || "",
           username: sessionUser?.username || emailUsername || "User",
           email: safeEmail,
@@ -111,8 +117,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           firstName: safeName ? safeName.split(" ")[0] : "",
           lastName: safeName ? safeName.split(" ").slice(1).join(" ") : "",
           avatar: sessionUser?.image || "",
-          level: Number(sessionUser?.level) || 1,
           experience: Number(sessionUser?.experience) || 0,
+          level: calculateLevel(Number(sessionUser?.experience) || 0),
           currentDiamonds: Number(sessionUser?.currentDiamonds) || 100,
           totalDiamonds: Number(sessionUser?.totalDiamonds) || 100,
           dailyDiamonds: 0,
@@ -131,7 +137,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           updatedAt: new Date().toISOString(),
         };
 
-        setUser(safeUser);
+        setUser(initialUser);
+
+        // Immediately refresh user data from the database to get latest values
+        refreshUserFromAPI();
       } else {
         // status === "unauthenticated" or any other state
         setIsAuthenticated(false);
@@ -149,13 +158,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [session, status, isHydrated]);
 
-  const refreshUser = async () => {
+  const refreshUserFromAPI = async () => {
     try {
       const response = await fetch("/api/users/profile");
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.user) {
-          setUser(data.user);
+          // Map profile API response to our User interface
+          const profileUser = data.user;
+          setUser((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  level: profileUser.level,
+                  experience: profileUser.experience,
+                  currentDiamonds: profileUser.currentDiamonds,
+                  totalDiamonds: profileUser.totalDiamonds,
+                  dailyDiamonds: profileUser.dailyDiamonds,
+                  firstName: profileUser.firstName || prev.firstName,
+                  lastName: profileUser.lastName || prev.lastName,
+                  avatar: profileUser.avatar || prev.avatar,
+                  bio: profileUser.bio || prev.bio,
+                  isPremium: profileUser.isPremium,
+                  premiumExpiresAt: profileUser.premiumExpiresAt,
+                  loginStreak:
+                    profileUser.stats?.currentStreak || prev.loginStreak,
+                  maxLoginStreak:
+                    profileUser.stats?.maxStreak || prev.maxLoginStreak,
+                  codeArenasCompleted:
+                    profileUser.stats?.completedLessons ||
+                    prev.codeArenasCompleted,
+                  quizzesCompleted:
+                    profileUser.stats?.completedQuizzes ||
+                    prev.quizzesCompleted,
+                  codeSubmissionCount:
+                    profileUser.stats?.codeSubmissions ||
+                    prev.codeSubmissionCount,
+                  lastLoginDate:
+                    profileUser.lastLoginDate || prev.lastLoginDate,
+                  emailVerified: profileUser.emailVerified,
+                  isActive: profileUser.isActive,
+                  createdAt: profileUser.createdAt || prev.createdAt,
+                  updatedAt: new Date().toISOString(),
+                }
+              : null
+          );
           setAuthError(null);
         }
       }
@@ -164,6 +211,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAuthError("Failed to refresh user data");
     }
   };
+
+  const refreshUser = refreshUserFromAPI;
 
   const updateProfile = async (
     updates: Partial<User>
@@ -212,8 +261,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               "User",
             email: newSession.user.email || "",
             role: newSession.user.role || "user",
-            level: newSession.user.level || 1,
             experience: newSession.user.experience || 0,
+            level: calculateLevel(newSession.user.experience || 0),
             currentDiamonds: newSession.user.currentDiamonds || 100,
             totalDiamonds: newSession.user.totalDiamonds || 100,
             dailyDiamonds: 0,

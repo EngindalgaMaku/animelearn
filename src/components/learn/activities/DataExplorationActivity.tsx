@@ -55,23 +55,8 @@ export default function DataExplorationActivity({
     practiceExercises = [],
   } = activity.content;
 
-  useEffect(() => {
-    // Auto-complete when all explorations are viewed
-    if (explorations.length > 0 && exploredItems.size === explorations.length) {
-      setTimeout(() => {
-        const score = 85 + exploredItems.size * 3; // Bonus for thorough exploration
-        onComplete(Math.min(100, score), 100, true);
-      }, 2000);
-    } else if (
-      structures.length > 0 &&
-      exploredItems.size >= Math.ceil(structures.length * 0.7)
-    ) {
-      setTimeout(() => {
-        const score = 80 + exploredItems.size * 2;
-        onComplete(Math.min(100, score), 100, true);
-      }, 2000);
-    }
-  }, [exploredItems, explorations.length, structures.length, onComplete]);
+  // Removed auto-completion - users should manually complete via button
+  // This prevents the modal from closing automatically without user interaction
 
   const runExploration = (index: number) => {
     setShowResult((prev) => ({ ...prev, [index]: true }));

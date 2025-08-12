@@ -80,6 +80,13 @@ export default function FillBlanksActivity({
     const finalScore = Math.round((correctCount / blanks.length) * 100);
     setScore(finalScore);
 
+    // Don't auto-complete - let user manually complete
+  };
+
+  const handleManualComplete = () => {
+    const finalScore = Math.round(
+      (Object.values(results).filter(Boolean).length / blanks.length) * 100
+    );
     const success = finalScore >= 70;
     onComplete(finalScore, 100, success);
   };
@@ -346,6 +353,27 @@ export default function FillBlanksActivity({
           >
             Check Answers
           </button>
+        ) : score >= 70 ? (
+          <div className="text-center">
+            <div className="mb-3 rounded-lg border border-green-200 bg-green-50 p-3">
+              <div className="mb-2 flex items-center justify-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                <span className="text-sm font-semibold text-green-900">
+                  Exercise Complete!
+                </span>
+              </div>
+              <p className="mb-3 text-xs text-green-800">
+                You've successfully completed the fill-in-the-blanks exercise.
+                Review your results above and claim your rewards!
+              </p>
+              <button
+                onClick={handleManualComplete}
+                className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700"
+              >
+                🎉 Complete Exercise & Claim Rewards
+              </button>
+            </div>
+          </div>
         ) : (
           <button
             onClick={resetActivity}
