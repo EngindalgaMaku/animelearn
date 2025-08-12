@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 interface ProfileData {
   id: string;
@@ -118,15 +119,30 @@ export default function ProfilePage() {
   const transactionsPerPage = 5;
 
   const { isAuthenticated, user, refreshUser } = useAuth();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    // Enhanced authentication check for production compatibility
+    const isActuallyAuthenticated =
+      isAuthenticated || (status === "authenticated" && session?.user);
+
+    if (status === "loading") {
+      return; // Still loading, don't redirect yet
+    }
+
+    if (!isActuallyAuthenticated) {
+      console.log("Profile page: User not authenticated", {
+        isAuthenticated,
+        status,
+        hasSession: !!session?.user,
+      });
       router.push("/login");
       return;
     }
+
     fetchProfile();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, status, session]);
 
   const fetchProfile = async () => {
     try {

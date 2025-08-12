@@ -8,9 +8,12 @@ import { authOptions } from "@/lib/auth";
 async function getUserFromSession(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    return session?.user || null;
+    if (session?.user?.id) {
+      return session.user;
+    }
+    return null;
   } catch (error) {
-    console.error("Error getting session:", error);
+    console.error("Error getting session in profile API:", error);
     return null;
   }
 }
@@ -52,8 +55,9 @@ export async function GET(request: NextRequest) {
     const sessionUser = await getUserFromSession(request);
 
     if (!sessionUser?.id) {
+      console.log("Profile API: No valid session found", { sessionUser });
       return NextResponse.json(
-        { error: "Oturum açmanız gerekli" },
+        { error: "Oturum açmanız gerekli", debug: "No session user ID" },
         { status: 401 }
       );
     }

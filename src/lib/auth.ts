@@ -309,12 +309,8 @@ export const authOptions: NextAuthOptions = {
         sameSite: "lax",
         path: "/",
         secure: process.env.NODE_ENV === "production",
-        // Only set domain for zumenzu.com, not for other deployments
-        domain:
-          process.env.NODE_ENV === "production" &&
-          process.env.NEXTAUTH_URL?.includes("zumenzu.com")
-            ? ".zumenzu.com"
-            : undefined,
+        // Remove domain restriction for better compatibility
+        domain: undefined,
         maxAge: 7 * 24 * 60 * 60, // 7 days
       },
     },
@@ -328,11 +324,8 @@ export const authOptions: NextAuthOptions = {
         sameSite: "lax",
         path: "/",
         secure: process.env.NODE_ENV === "production",
-        domain:
-          process.env.NODE_ENV === "production" &&
-          process.env.NEXTAUTH_URL?.includes("zumenzu.com")
-            ? ".zumenzu.com"
-            : undefined,
+        // Remove domain restriction for better compatibility
+        domain: undefined,
       },
     },
     csrfToken: {

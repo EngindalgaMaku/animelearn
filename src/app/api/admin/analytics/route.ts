@@ -12,199 +12,370 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const cardId = searchParams.get("cardId");
     const dateFrom = searchParams.get("dateFrom");
     const dateTo = searchParams.get("dateTo");
 
-    const skip = (page - 1) * limit;
-
-    // Build where condition
-    const where: any = {};
-
-    if (cardId) {
-      where.cardId = cardId;
+    // Build date filter
+    const dateFilter: any = {};
+    if (dateFrom) {
+      dateFilter.gte = new Date(dateFrom);
+    }
+    if (dateTo) {
+      dateFilter.lte = new Date(dateTo);
     }
 
-    if (dateFrom || dateTo) {
-      where.date = {};
-      if (dateFrom) {
-        where.date.gte = new Date(dateFrom);
-      }
-      if (dateTo) {
-        where.date.lte = new Date(dateTo);
-      }
-    }
+    // Get current date ranges
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    // Get analytics data
-    const [analytics, total] = await Promise.all([
-      prisma.analytics.findMany({
-        where,
-        include: {
-          card: {
-            select: {
-              id: true,
-              name: true,
-              series: true,
-              character: true,
-              rarity: true,
-              category: true,
-              diamondPrice: true,
-              thumbnailUrl: true,
-            },
-          },
+    // **QUIZ ANALYTICS**
+    const [quizStats, quizAttempts] = await Promise.all([
+      prisma.quizAttempt.aggregate({
+        where: {
+          completedAt: Object.keys(dateFilter).length
+            ? dateFilter
+            : { gte: thirtyDaysAgo },
         },
-        orderBy: {
-          date: "desc",
-        },
-        skip,
-        take: limit,
+        _count: { id: true },
+        _avg: { score: true, timeSpent: true },
+        _sum: { score: true, timeSpent: true },
       }),
-      prisma.analytics.count({ where }),
+      prisma.quizAttempt.findMany({
+        where: {
+          completedAt: Object.keys(dateFilter).length
+            ? dateFilter
+            : { gte: sevenDaysAgo },
+        },
+        include: {
+          quiz: { select: { title: true, difficulty: true } },
+          user: { select: { username: true, level: true } },
+        },
+        orderBy: { completedAt: "desc" },
+        take: 10,
+      }),
     ]);
 
-    // Get summary statistics
-    const summaryStats = await prisma.analytics.aggregate({
-      where,
-      _sum: {
-        views: true,
-        searches: true,
-      },
-      _avg: {
-        estimatedValue: true,
-        marketValue: true,
-        priceChange: true,
-      },
-      _count: {
-        id: true,
-      },
-    });
-
-    // Get top viewed cards
-    const topViewedCards = await prisma.analytics.groupBy({
-      by: ["cardId"],
-      _sum: {
-        views: true,
-        searches: true,
-      },
-      orderBy: {
-        _sum: {
-          views: "desc",
-        },
-      },
-      take: 10,
-    });
-
-    // Get card details for top viewed
-    const topCardIds = topViewedCards.map((item) => item.cardId);
-    const topCards = await prisma.card.findMany({
+    // Top performing quizzes
+    const topQuizzes = await prisma.quizAttempt.groupBy({
+      by: ["quizId"],
       where: {
-        id: {
-          in: topCardIds,
+        completedAt: Object.keys(dateFilter).length
+          ? dateFilter
+          : { gte: thirtyDaysAgo },
+      },
+      _count: { id: true },
+      _avg: { score: true },
+      orderBy: { _count: { id: "desc" } },
+      take: 5,
+    });
+
+    const quizDetails = await prisma.quiz.findMany({
+      where: { id: { in: topQuizzes.map((q) => q.quizId) } },
+      select: { id: true, title: true, difficulty: true },
+    });
+
+    const topQuizzesWithDetails = topQuizzes.map((quiz) => ({
+      ...quiz,
+      quiz: quizDetails.find((q) => q.id === quiz.quizId),
+    }));
+
+    // **CODE ARENA ANALYTICS**
+    const [codeArenaStats, codeSubmissions] = await Promise.all([
+      prisma.codeArenaProgress.aggregate({
+        where: {
+          completedAt: Object.keys(dateFilter).length
+            ? dateFilter
+            : { gte: thirtyDaysAgo },
+          isCompleted: true,
         },
-      },
-      select: {
-        id: true,
-        name: true,
-        series: true,
-        character: true,
-        rarity: true,
-        thumbnailUrl: true,
-      },
-    });
+        _count: { id: true },
+        _avg: { score: true, timeSpent: true },
+        _sum: { timeSpent: true },
+      }),
+      prisma.codeSubmission.findMany({
+        where: {
+          submittedAt: Object.keys(dateFilter).length
+            ? dateFilter
+            : { gte: sevenDaysAgo },
+        },
+        include: {
+          user: { select: { username: true, level: true } },
+        },
+        orderBy: { submittedAt: "desc" },
+        take: 10,
+      }),
+    ]);
 
-    // Combine top viewed data with card details
-    const topViewedWithDetails = topViewedCards.map((analytics) => {
-      const card = topCards.find((c) => c.id === analytics.cardId);
-      return {
-        ...analytics,
-        card,
-      };
-    });
-
-    // Get analytics by date (last 30 days)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const analyticsTimeline = await prisma.analytics.groupBy({
-      by: ["date"],
+    // Top Code Arena challenges
+    const topCodeArenas = await prisma.codeArenaProgress.groupBy({
+      by: ["codeArenaId"],
       where: {
-        date: {
-          gte: thirtyDaysAgo,
+        completedAt: Object.keys(dateFilter).length
+          ? dateFilter
+          : { gte: thirtyDaysAgo },
+        isCompleted: true,
+      },
+      _count: { id: true },
+      _avg: { score: true },
+      orderBy: { _count: { id: "desc" } },
+      take: 5,
+    });
+
+    const arenaDetails = await prisma.codeArena.findMany({
+      where: { id: { in: topCodeArenas.map((a) => a.codeArenaId) } },
+      select: { id: true, title: true, difficulty: true, category: true },
+    });
+
+    const topCodeArenasWithDetails = topCodeArenas.map((arena) => ({
+      ...arena,
+      codeArena: arenaDetails.find((a) => a.id === arena.codeArenaId),
+    }));
+
+    // **LEARNING ACTIVITIES ANALYTICS**
+    const [learningStats, learningAttempts] = await Promise.all([
+      prisma.activityAttempt.aggregate({
+        where: {
+          completedAt: Object.keys(dateFilter).length
+            ? dateFilter
+            : { gte: thirtyDaysAgo },
+          completed: true,
         },
-      },
-      _sum: {
-        views: true,
-        searches: true,
-      },
-      _avg: {
-        estimatedValue: true,
-        marketValue: true,
-      },
-      orderBy: {
-        date: "asc",
-      },
-    });
+        _count: { id: true },
+        _avg: { score: true, timeSpent: true },
+        _sum: { timeSpent: true },
+      }),
+      prisma.activityAttempt.findMany({
+        where: {
+          completedAt: Object.keys(dateFilter).length
+            ? dateFilter
+            : { gte: sevenDaysAgo },
+          completed: true,
+        },
+        include: {
+          activity: {
+            select: { title: true, activityType: true, difficulty: true },
+          },
+          user: { select: { username: true, level: true } },
+        },
+        orderBy: { completedAt: "desc" },
+        take: 10,
+      }),
+    ]);
 
-    // Get rarity distribution in analytics
-    const rarityDistribution = await prisma.analytics.groupBy({
-      by: ["cardId"],
-      _sum: {
-        views: true,
-      },
-    });
+    // **BLOG POST ANALYTICS**
+    const [blogStats, blogInteractions] = await Promise.all([
+      prisma.blogPostInteraction.aggregate({
+        where: {
+          firstViewedAt: Object.keys(dateFilter).length
+            ? dateFilter
+            : { gte: thirtyDaysAgo },
+          hasViewed: true,
+        },
+        _count: { id: true },
+        _avg: { timeSpent: true },
+        _sum: { timeSpent: true },
+      }),
+      prisma.blogPostInteraction.findMany({
+        where: {
+          firstViewedAt: Object.keys(dateFilter).length
+            ? dateFilter
+            : { gte: sevenDaysAgo },
+          hasViewed: true,
+        },
+        include: {
+          post: {
+            select: { title: true, category: true, estimatedMinutes: true },
+          },
+          user: { select: { username: true, level: true } },
+        },
+        orderBy: { firstViewedAt: "desc" },
+        take: 10,
+      }),
+    ]);
 
-    const cardIds = rarityDistribution.map((item) => item.cardId);
-    const cardsWithRarity = await prisma.card.findMany({
+    // Top blog posts
+    const topBlogPosts = await prisma.blogPostInteraction.groupBy({
+      by: ["postId"],
       where: {
-        id: {
-          in: cardIds,
-        },
+        firstViewedAt: Object.keys(dateFilter).length
+          ? dateFilter
+          : { gte: thirtyDaysAgo },
+        hasViewed: true,
       },
-      select: {
-        id: true,
-        rarity: true,
+      _count: { id: true },
+      _avg: { timeSpent: true },
+      orderBy: { _count: { id: "desc" } },
+      take: 5,
+    });
+
+    const blogDetails = await prisma.blogPost.findMany({
+      where: { id: { in: topBlogPosts.map((b) => b.postId) } },
+      select: { id: true, title: true, category: true, readTime: true },
+    });
+
+    const topBlogPostsWithDetails = topBlogPosts.map((blog) => ({
+      ...blog,
+      post: blogDetails.find((b) => b.id === blog.postId),
+    }));
+
+    // **PYTHON TIPS ANALYTICS**
+    const [pythonTipStats, pythonTipInteractions] = await Promise.all([
+      prisma.userPythonTipInteraction.aggregate({
+        where: {
+          firstViewedAt: Object.keys(dateFilter).length
+            ? dateFilter
+            : { gte: thirtyDaysAgo },
+          hasViewed: true,
+        },
+        _count: { id: true },
+        _avg: { timeSpent: true },
+        _sum: { timeSpent: true, xpEarned: true },
+      }),
+      prisma.userPythonTipInteraction.findMany({
+        where: {
+          firstViewedAt: Object.keys(dateFilter).length
+            ? dateFilter
+            : { gte: sevenDaysAgo },
+          hasViewed: true,
+        },
+        include: {
+          tip: { select: { title: true, difficulty: true } },
+          user: { select: { username: true, level: true } },
+        },
+        orderBy: { firstViewedAt: "desc" },
+        take: 10,
+      }),
+    ]);
+
+    // **ACHIEVEMENT ANALYTICS**
+    const [achievementStats, recentAchievements] = await Promise.all([
+      prisma.userBadge.aggregate({
+        where: {
+          earnedAt: Object.keys(dateFilter).length
+            ? dateFilter
+            : { gte: thirtyDaysAgo },
+          isCompleted: true,
+        },
+        _count: { id: true },
+      }),
+      prisma.userBadge.findMany({
+        where: {
+          earnedAt: Object.keys(dateFilter).length
+            ? dateFilter
+            : { gte: sevenDaysAgo },
+          isCompleted: true,
+        },
+        include: {
+          badge: {
+            select: { name: true, title: true, category: true, rarity: true },
+          },
+          user: { select: { username: true, level: true } },
+        },
+        orderBy: { earnedAt: "desc" },
+        take: 10,
+      }),
+    ]);
+
+    // **USER ENGAGEMENT TIMELINE**
+    const engagementTimeline = await prisma.$queryRaw`
+      SELECT
+        DATE(created_at) as date,
+        COUNT(CASE WHEN created_at IS NOT NULL THEN 1 END) as daily_activities
+      FROM (
+        SELECT created_at FROM quiz_attempts WHERE completed_at >= ${thirtyDaysAgo}
+        UNION ALL
+        SELECT completed_at as created_at FROM code_arena_progress WHERE completed_at >= ${thirtyDaysAgo} AND is_completed = true
+        UNION ALL
+        SELECT completed_at as created_at FROM activity_attempts WHERE completed_at >= ${thirtyDaysAgo} AND completed = true
+        UNION ALL
+        SELECT first_viewed_at as created_at FROM blog_post_interactions WHERE first_viewed_at >= ${thirtyDaysAgo} AND has_viewed = true
+      ) combined_activities
+      GROUP BY DATE(created_at)
+      ORDER BY date ASC
+    `;
+
+    // **OVERALL SUMMARY**
+    const totalUsers = await prisma.user.count({
+      where: {
+        createdAt: Object.keys(dateFilter).length ? dateFilter : undefined,
       },
     });
 
-    const rarityStats = cardsWithRarity.reduce((acc: any, card) => {
-      if (!acc[card.rarity || "unknown"]) {
-        acc[card.rarity || "unknown"] = 0;
-      }
-      const analyticsData = rarityDistribution.find(
-        (a) => a.cardId === card.id
-      );
-      acc[card.rarity || "unknown"] += analyticsData?._sum?.views || 0;
-      return acc;
-    }, {});
-
-    const totalPages = Math.ceil(total / limit);
+    const activeUsers = await prisma.user.count({
+      where: {
+        OR: [
+          { quizAttempts: { some: { completedAt: { gte: sevenDaysAgo } } } },
+          {
+            codeArenaProgress: { some: { completedAt: { gte: sevenDaysAgo } } },
+          },
+          {
+            activityAttempts: { some: { completedAt: { gte: sevenDaysAgo } } },
+          },
+          {
+            blogInteractions: {
+              some: { firstViewedAt: { gte: sevenDaysAgo } },
+            },
+          },
+        ],
+      },
+    });
 
     return NextResponse.json({
-      analytics,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-      },
       summary: {
-        totalViews: summaryStats._sum.views || 0,
-        totalSearches: summaryStats._sum.searches || 0,
-        averageEstimatedValue: summaryStats._avg.estimatedValue || 0,
-        averageMarketValue: summaryStats._avg.marketValue || 0,
-        averagePriceChange: summaryStats._avg.priceChange || 0,
-        totalRecords: summaryStats._count.id || 0,
+        totalUsers,
+        activeUsers,
+        totalQuizzes: quizStats._count.id || 0,
+        totalCodeSubmissions: codeArenaStats._count.id || 0,
+        totalLearningActivities: learningStats._count.id || 0,
+        totalBlogViews: blogStats._count.id || 0,
+        totalPythonTipViews: pythonTipStats._count.id || 0,
+        totalAchievements: achievementStats._count.id || 0,
+        averageQuizScore: quizStats._avg.score || 0,
+        averageCodeArenaScore: codeArenaStats._avg.score || 0,
+        totalLearningTime:
+          (quizStats._sum.timeSpent || 0) +
+          (codeArenaStats._sum.timeSpent || 0) +
+          (learningStats._sum.timeSpent || 0),
       },
-      topViewedCards: topViewedWithDetails,
-      timeline: analyticsTimeline,
-      rarityDistribution: rarityStats,
+      quiz: {
+        stats: quizStats,
+        recentAttempts: quizAttempts,
+        topQuizzes: topQuizzesWithDetails,
+      },
+      codeArena: {
+        stats: codeArenaStats,
+        recentSubmissions: codeSubmissions,
+        topChallenges: topCodeArenasWithDetails,
+      },
+      learningActivities: {
+        stats: learningStats,
+        recentAttempts: learningAttempts,
+      },
+      blog: {
+        stats: blogStats,
+        recentViews: blogInteractions,
+        topPosts: topBlogPostsWithDetails,
+      },
+      pythonTips: {
+        stats: pythonTipStats,
+        recentInteractions: pythonTipInteractions,
+      },
+      achievements: {
+        stats: achievementStats,
+        recentEarned: recentAchievements,
+      },
+      engagementTimeline,
+      // Keep card analytics for backwards compatibility but make it optional
+      cardAnalytics: {
+        available: true,
+        message: "Card analytics moved to separate endpoint",
+      },
     });
   } catch (error) {
-    console.error("Analytics fetch error:", error);
+    console.error("Education Analytics fetch error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch analytics data" },
+      { error: "Failed to fetch education analytics data" },
       { status: 500 }
     );
   }
