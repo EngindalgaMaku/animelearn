@@ -9,17 +9,19 @@ import { pbkdf2Sync } from "crypto";
 
 // Dynamic URL detection for production compatibility
 const getBaseUrl = () => {
-  // For production, always use the production domain
-  if (process.env.NODE_ENV === "production") {
-    return "https://zumenzu.com";
-  }
-
+  // Always prioritize NEXTAUTH_URL if set
   if (process.env.NEXTAUTH_URL) {
     return process.env.NEXTAUTH_URL;
   }
 
+  // For Vercel deployments
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
+  }
+
+  // For production, use the production domain
+  if (process.env.NODE_ENV === "production") {
+    return "https://zumenzu.com";
   }
 
   return "http://localhost:3000";
@@ -307,9 +309,12 @@ export const authOptions: NextAuthOptions = {
         sameSite: "lax",
         path: "/",
         secure: process.env.NODE_ENV === "production",
-        // Remove domain restriction for localhost development
+        // Only set domain for zumenzu.com, not for other deployments
         domain:
-          process.env.NODE_ENV === "production" ? ".zumenzu.com" : undefined,
+          process.env.NODE_ENV === "production" &&
+          process.env.NEXTAUTH_URL?.includes("zumenzu.com")
+            ? ".zumenzu.com"
+            : undefined,
         maxAge: 7 * 24 * 60 * 60, // 7 days
       },
     },
@@ -324,7 +329,10 @@ export const authOptions: NextAuthOptions = {
         path: "/",
         secure: process.env.NODE_ENV === "production",
         domain:
-          process.env.NODE_ENV === "production" ? ".zumenzu.com" : undefined,
+          process.env.NODE_ENV === "production" &&
+          process.env.NEXTAUTH_URL?.includes("zumenzu.com")
+            ? ".zumenzu.com"
+            : undefined,
       },
     },
     csrfToken: {
