@@ -657,7 +657,7 @@ export default function LearningActivitiesAdmin() {
                                   <span>Edit</span>
                                 </Link>
                                 <Link
-                                  href={`/code-arena-v2`}
+                                  href={`/code-arena`}
                                   className="flex items-center space-x-1 rounded-md bg-green-100 px-2 py-1 text-xs text-green-700 transition-colors hover:bg-green-200"
                                 >
                                   <Play className="h-3 w-3" />

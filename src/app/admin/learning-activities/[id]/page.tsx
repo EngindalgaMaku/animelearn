@@ -305,7 +305,7 @@ export default function ViewLearningActivity({
                     <span>Edit</span>
                   </Link>
                   <Link
-                    href="/code-arena-v2"
+                    href="/code-arena"
                     className="flex items-center space-x-2 rounded-xl bg-green-100 px-4 py-2 text-green-700 transition-colors hover:bg-green-200"
                   >
                     <Play className="h-5 w-5" />
@@ -664,7 +664,7 @@ export default function ViewLearningActivity({
                   </Link>
 
                   <Link
-                    href="/code-arena-v2"
+                    href="/code-arena"
                     className="flex items-center justify-between rounded-lg bg-green-50 p-3 text-green-700 transition-colors hover:bg-green-100"
                   >
                     <div className="flex items-center space-x-2">
@@ -676,7 +676,7 @@ export default function ViewLearningActivity({
 
                   <button
                     onClick={() =>
-                      copyToClipboard(`${window.location.origin}/code-arena-v2`)
+                      copyToClipboard(`${window.location.origin}/code-arena`)
                     }
                     className="flex w-full items-center justify-between rounded-lg bg-gray-50 p-3 text-gray-700 transition-colors hover:bg-gray-100"
                   >

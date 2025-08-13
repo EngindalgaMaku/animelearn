@@ -1,28 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 interface AuthUser {
   userId: string;
   username: string;
 }
 
-// Get user from NextAuth session
-async function getUserFromSession(): Promise<AuthUser | null> {
+function getUserFromToken(request: NextRequest): AuthUser | null {
+  const token = request.cookies.get("auth-token")?.value;
+
+  if (!token) {
+    return null;
+  }
+
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return null;
-    }
-
-    return {
-      userId: session.user.id,
-      username: session.user.username || session.user.email || "Unknown",
-    };
+    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
+    return decoded;
   } catch (error) {
-    console.error("Error getting user from session:", error);
     return null;
   }
 }
@@ -34,7 +31,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const authUser = await getUserFromSession();
+    const authUser = getUserFromToken(request);
 
     const activity = await prisma.learningActivity.findFirst({
       where: {
@@ -139,7 +136,7 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const authUser = await getUserFromSession();
+    const authUser = getUserFromToken(request);
 
     if (!authUser) {
       return NextResponse.json(
@@ -233,7 +230,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const authUser = await getUserFromSession();
+    const authUser = getUserFromToken(request);
 
     if (!authUser) {
       return NextResponse.json(

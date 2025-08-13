@@ -79,7 +79,7 @@ export default function Footer() {
                 Python Blog
               </Link>
               <Link
-                href="/code-arena-v2"
+                href="/code-arena"
                 className="-mx-2 block rounded px-2 py-1 text-sm text-gray-300 transition-colors hover:bg-white/5 hover:text-white"
               >
                 Code Arena

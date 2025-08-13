@@ -193,7 +193,7 @@ const WikiPage = () => {
             </p>
             <div className="flex justify-center space-x-4">
               <Link
-                href="/code-arena-v2"
+                href="/code-arena"
                 className="rounded-2xl bg-gradient-to-r from-green-400 to-emerald-500 px-8 py-4 font-bold text-white shadow-xl transition-all hover:scale-105 hover:shadow-2xl"
               >
                 🚀 Start Learning
@@ -503,7 +503,7 @@ const WikiPage = () => {
             </p>
             <div className="flex justify-center space-x-4">
               <Link
-                href="/code-arena-v2"
+                href="/code-arena"
                 className="rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 px-8 py-4 font-bold text-purple-900 shadow-xl transition-all hover:scale-105 hover:shadow-2xl"
               >
                 🚀 Start Learning Now
@@ -528,7 +528,7 @@ const WikiPage = () => {
               <ul className="space-y-2">
                 <li>
                   <Link
-                    href="/code-arena-v2"
+                    href="/code-arena"
                     className="text-slate-600 hover:text-indigo-600"
                   >
                     Interactive Challenges
