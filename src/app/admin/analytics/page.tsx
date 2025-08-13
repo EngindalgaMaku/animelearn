@@ -162,6 +162,7 @@ export default function EducationAnalyticsPage() {
   const [analyticsData, setAnalyticsData] =
     useState<EducationAnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
@@ -182,20 +183,34 @@ export default function EducationAnalyticsPage() {
 
   const fetchAnalytics = async () => {
     setLoading(true);
+    setError(null);
     try {
       const params = new URLSearchParams();
       if (dateFrom) params.append("dateFrom", dateFrom);
       if (dateTo) params.append("dateTo", dateTo);
 
-      const response = await fetch(`/api/admin/analytics?${params}`);
+      const response = await fetch(`/api/admin/analytics?${params}`, {
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+      });
+
       if (!response.ok) {
-        throw new Error("Failed to fetch analytics");
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
+      if (!data) {
+        throw new Error("No data received");
+      }
+
       setAnalyticsData(data);
+      setError(null);
     } catch (error) {
       console.error("Error fetching analytics:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      setError(errorMessage);
       showNotification("error", "Error loading education analytics data");
     } finally {
       setLoading(false);
@@ -262,7 +277,7 @@ export default function EducationAnalyticsPage() {
     return colors[rarity?.toLowerCase()] || "bg-gray-100 text-gray-800";
   };
 
-  if (loading && !analyticsData) {
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -270,6 +285,50 @@ export default function EducationAnalyticsPage() {
           <p className="mt-4 text-gray-600">
             Loading education analytics data...
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !analyticsData) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <AlertTriangle className="mx-auto h-12 w-12 text-red-500" />
+          <h2 className="mt-4 text-xl font-semibold text-gray-900">
+            Failed to Load Analytics
+          </h2>
+          <p className="mt-2 text-gray-600">{error}</p>
+          <button
+            onClick={fetchAnalytics}
+            className="mt-4 inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!analyticsData) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <AlertTriangle className="mx-auto h-12 w-12 text-yellow-500" />
+          <h2 className="mt-4 text-xl font-semibold text-gray-900">
+            No Data Available
+          </h2>
+          <p className="mt-2 text-gray-600">
+            Unable to load analytics data. Please try refreshing the page.
+          </p>
+          <button
+            onClick={fetchAnalytics}
+            className="mt-4 inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Reload Data
+          </button>
         </div>
       </div>
     );
