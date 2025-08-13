@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Only match non-static files
-    "/((?!_next|api|static|.*\\..*|favicon.ico).*)",
+    // Only match non-static files, but ALLOW api routes
+    "/((?!_next|static|.*\\..*|favicon.ico).*)",
   ],
 };
