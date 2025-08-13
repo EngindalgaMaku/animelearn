@@ -87,7 +87,7 @@ const ActivityTable = memo(
             <table className="w-full">
               <thead className="bg-gradient-to-r from-slate-50 to-slate-100">
                 <tr>
-                  <th className="w-1/3 px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700">
+                  <th className="w-1/4 px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700">
                     Challenge
                   </th>
                   <th className="w-1/8 px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700">
@@ -138,12 +138,12 @@ const ActivityTable = memo(
                             </div>
                             <div className="relative">
                               <p className="cursor-help truncate text-xs text-slate-500">
-                                {activity.description.length > 50
-                                  ? `${activity.description.slice(0, 50)}...`
+                                {activity.description.length > 25
+                                  ? `${activity.description.slice(0, 25)}...`
                                   : activity.description}
                               </p>
                               {/* Tooltip */}
-                              {activity.description.length > 50 && (
+                              {activity.description.length > 25 && (
                                 <div className="absolute bottom-full left-0 z-50 mb-2 hidden w-80 max-w-sm group-hover:block">
                                   <div className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white shadow-xl">
                                     <div className="mb-1 font-semibold">
@@ -266,12 +266,12 @@ const ActivityTable = memo(
                       </div>
                       <div className="relative">
                         <p className="cursor-help truncate text-xs text-slate-500">
-                          {activity.description.length > 60
-                            ? `${activity.description.slice(0, 60)}...`
+                          {activity.description.length > 35
+                            ? `${activity.description.slice(0, 35)}...`
                             : activity.description}
                         </p>
                         {/* Mobile Tooltip */}
-                        {activity.description.length > 60 && (
+                        {activity.description.length > 35 && (
                           <div className="absolute bottom-full left-0 z-50 mb-2 hidden w-72 max-w-sm group-hover:block">
                             <div className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white shadow-xl">
                               <div className="mb-1 font-semibold">
