@@ -478,7 +478,7 @@ function CodeArenaContent() {
       {/* Profile Stats Header */}
       {isAuthenticated && (
         <div className="sticky top-16 z-40 border-b border-indigo-200/30 bg-gradient-to-r from-white/95 to-indigo-50/95 backdrop-blur-xl">
-          <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-3 py-3 sm:px-4 sm:px-6 sm:py-4 lg:px-8">
             <AnimatedProfileStats
               stats={animatedStats}
               variant="header"
@@ -491,13 +491,13 @@ function CodeArenaContent() {
 
       {/* Enhanced Hero Section with Integrated Topic Selection */}
       <section
-        className={`relative overflow-hidden bg-gradient-to-br ${uiConfig.headerGradient} py-20`}
+        className={`relative overflow-hidden bg-gradient-to-br ${uiConfig.headerGradient} py-12 sm:py-16 md:py-20`}
       >
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-30"></div>
         {enableAnimations && uiConfig.enableAnimations && (
           <div className="absolute inset-0">
-            <div className="absolute left-1/4 top-1/4 h-96 w-96 animate-pulse rounded-full bg-cyan-400/20 blur-3xl"></div>
-            <div className="absolute bottom-1/4 right-1/4 h-96 w-96 animate-pulse rounded-full bg-pink-400/20 blur-3xl"></div>
+            <div className="absolute left-1/4 top-1/4 h-64 w-64 animate-pulse rounded-full bg-cyan-400/20 blur-3xl sm:h-96 sm:w-96"></div>
+            <div className="absolute bottom-1/4 right-1/4 h-64 w-64 animate-pulse rounded-full bg-pink-400/20 blur-3xl sm:h-96 sm:w-96"></div>
           </div>
         )}
 
@@ -508,12 +508,12 @@ function CodeArenaContent() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
             >
-              <div className="mb-6 flex justify-center">
-                <div className="rounded-3xl bg-gradient-to-r from-yellow-400 to-orange-400 px-6 py-2 text-sm font-black text-purple-900 shadow-2xl">
+              <div className="mb-4 flex justify-center sm:mb-6">
+                <div className="rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 px-4 py-2 text-xs font-black text-purple-900 shadow-2xl sm:rounded-3xl sm:px-6 sm:text-sm">
                   🚀 INTERACTIVE CODING CHALLENGES
                 </div>
               </div>
-              <h1 className="mb-8 text-5xl font-black md:text-7xl">
+              <h1 className="mb-6 text-3xl font-black leading-tight sm:mb-8 sm:text-4xl md:text-5xl lg:text-7xl">
                 <span className="block bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent drop-shadow-2xl">
                   {uiConfig.heroTitle}
                 </span>
@@ -523,17 +523,17 @@ function CodeArenaContent() {
               </h1>
 
               {/* Integrated Topic Selection */}
-              <div className="mb-8 flex flex-col items-center space-y-6 md:flex-row md:justify-center md:space-x-8 md:space-y-0">
+              <div className="mb-6 flex flex-col items-center space-y-4 sm:mb-8 sm:space-y-6 md:flex-row md:justify-center md:space-x-8 md:space-y-0">
                 {/* Topic Selector */}
-                <div className="flex items-center space-x-4">
-                  <span className="text-xl font-bold text-white">
+                <div className="flex w-full flex-col items-center space-y-2 sm:w-auto sm:flex-row sm:space-x-4 sm:space-y-0">
+                  <span className="text-center text-lg font-bold text-white sm:text-left sm:text-xl">
                     Choose Your Path:
                   </span>
-                  <div className="relative">
+                  <div className="relative w-full sm:w-auto">
                     <select
                       value={selectedTopic}
                       onChange={(e) => setSelectedTopic(e.target.value)}
-                      className="hover:shadow-3xl appearance-none rounded-3xl border-2 border-white/30 bg-slate-800 px-8 py-4 pr-16 text-xl font-bold text-white shadow-2xl backdrop-blur-xl transition-all hover:border-white/50 focus:border-white/70 focus:outline-none focus:ring-4 focus:ring-white/30"
+                      className="hover:shadow-3xl w-full appearance-none rounded-2xl border-2 border-white/30 bg-slate-800 px-4 py-3 pr-12 text-base font-bold text-white shadow-2xl backdrop-blur-xl transition-all hover:border-white/50 focus:border-white/70 focus:outline-none focus:ring-4 focus:ring-white/30 sm:w-auto sm:rounded-3xl sm:px-6 sm:py-4 sm:pr-16 sm:text-lg lg:px-8 lg:text-xl"
                     >
                       <option
                         value="Python Fundamentals"
@@ -572,9 +572,9 @@ function CodeArenaContent() {
                         📈 Data Science
                       </option>
                     </select>
-                    <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
+                    <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 sm:right-4">
                       <svg
-                        className="h-6 w-6 text-white"
+                        className="h-5 w-5 text-white sm:h-6 sm:w-6"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -591,12 +591,12 @@ function CodeArenaContent() {
                 </div>
 
                 {/* Activity count and Filter */}
-                <div className="flex items-center space-x-4">
-                  <div className="rounded-3xl border border-white/30 bg-gradient-to-r from-white/20 to-white/10 px-6 py-3 text-white shadow-2xl backdrop-blur-xl">
-                    <span className="text-xl font-black">
+                <div className="flex w-full items-center justify-center space-x-3 sm:w-auto sm:space-x-4">
+                  <div className="rounded-2xl border border-white/30 bg-gradient-to-r from-white/20 to-white/10 px-4 py-2 text-white shadow-2xl backdrop-blur-xl sm:rounded-3xl sm:px-6 sm:py-3">
+                    <span className="text-lg font-black sm:text-xl">
                       {activities.length}
                     </span>
-                    <span className="ml-2 text-sm font-medium opacity-90">
+                    <span className="ml-1 text-xs font-medium opacity-90 sm:ml-2 sm:text-sm">
                       challenges
                     </span>
                   </div>
@@ -604,20 +604,20 @@ function CodeArenaContent() {
                   {uiConfig.showFilters && (
                     <button
                       onClick={() => setShowFilters(!showFilters)}
-                      className={`hover:shadow-3xl rounded-3xl p-4 shadow-2xl transition-all hover:scale-105 ${
+                      className={`hover:shadow-3xl rounded-2xl p-3 shadow-2xl transition-all hover:scale-105 sm:rounded-3xl sm:p-4 ${
                         showFilters
                           ? "border-2 border-white/50 bg-gradient-to-r from-white/30 to-white/20 text-white"
                           : "border-2 border-white/20 bg-gradient-to-r from-white/10 to-white/5 text-white/80"
                       } backdrop-blur-xl`}
                     >
-                      <Filter className="h-6 w-6" />
+                      <Filter className="h-5 w-5 sm:h-6 sm:w-6" />
                     </button>
                   )}
                 </div>
               </div>
 
               {/* Dynamic description based on selected topic */}
-              <p className="mx-auto mb-10 max-w-3xl text-xl font-medium text-indigo-100">
+              <p className="mx-auto mb-6 max-w-3xl px-4 text-base font-medium text-indigo-100 sm:mb-8 sm:px-0 sm:text-lg lg:mb-10 lg:text-xl">
                 {categoryConfigs[selectedTopic]
                   ? `${categoryConfigs[selectedTopic].description} - ${uiConfig.heroDescription}`
                   : uiConfig.heroDescription.replace(
@@ -628,12 +628,12 @@ function CodeArenaContent() {
             </motion.div>
           ) : (
             <div>
-              <div className="mb-6 flex justify-center">
-                <div className="rounded-3xl bg-gradient-to-r from-yellow-400 to-orange-400 px-6 py-2 text-sm font-black text-purple-900 shadow-2xl">
+              <div className="mb-4 flex justify-center sm:mb-6">
+                <div className="rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 px-4 py-2 text-xs font-black text-purple-900 shadow-2xl sm:rounded-3xl sm:px-6 sm:text-sm">
                   🚀 INTERACTIVE CODING CHALLENGES
                 </div>
               </div>
-              <h1 className="mb-8 text-5xl font-black md:text-7xl">
+              <h1 className="mb-6 text-3xl font-black leading-tight sm:mb-8 sm:text-4xl md:text-5xl lg:text-7xl">
                 <span className="block bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent drop-shadow-2xl">
                   {uiConfig.heroTitle}
                 </span>
@@ -643,16 +643,16 @@ function CodeArenaContent() {
               </h1>
 
               {/* Integrated Topic Selection - Non-animated */}
-              <div className="mb-8 flex flex-col items-center space-y-6 md:flex-row md:justify-center md:space-x-8 md:space-y-0">
-                <div className="flex items-center space-x-4">
-                  <span className="text-xl font-bold text-white">
+              <div className="mb-6 flex flex-col items-center space-y-4 sm:mb-8 sm:space-y-6 md:flex-row md:justify-center md:space-x-8 md:space-y-0">
+                <div className="flex w-full flex-col items-center space-y-2 sm:w-auto sm:flex-row sm:space-x-4 sm:space-y-0">
+                  <span className="text-center text-lg font-bold text-white sm:text-left sm:text-xl">
                     Choose Your Path:
                   </span>
-                  <div className="relative">
+                  <div className="relative w-full sm:w-auto">
                     <select
                       value={selectedTopic}
                       onChange={(e) => setSelectedTopic(e.target.value)}
-                      className="hover:shadow-3xl appearance-none rounded-3xl border-2 border-white/30 bg-slate-800 px-8 py-4 pr-16 text-xl font-bold text-white shadow-2xl backdrop-blur-xl transition-all hover:border-white/50 focus:border-white/70 focus:outline-none focus:ring-4 focus:ring-white/30"
+                      className="hover:shadow-3xl w-full appearance-none rounded-2xl border-2 border-white/30 bg-slate-800 px-4 py-3 pr-12 text-base font-bold text-white shadow-2xl backdrop-blur-xl transition-all hover:border-white/50 focus:border-white/70 focus:outline-none focus:ring-4 focus:ring-white/30 sm:w-auto sm:rounded-3xl sm:px-6 sm:py-4 sm:pr-16 sm:text-lg lg:px-8 lg:text-xl"
                     >
                       <option
                         value="Python Fundamentals"
@@ -691,9 +691,9 @@ function CodeArenaContent() {
                         📈 Data Science
                       </option>
                     </select>
-                    <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
+                    <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 sm:right-4">
                       <svg
-                        className="h-6 w-6 text-white"
+                        className="h-5 w-5 text-white sm:h-6 sm:w-6"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -709,12 +709,12 @@ function CodeArenaContent() {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-4">
-                  <div className="rounded-3xl border border-white/30 bg-gradient-to-r from-white/20 to-white/10 px-6 py-3 text-white shadow-2xl backdrop-blur-xl">
-                    <span className="text-xl font-black">
+                <div className="flex w-full items-center justify-center space-x-3 sm:w-auto sm:space-x-4">
+                  <div className="rounded-2xl border border-white/30 bg-gradient-to-r from-white/20 to-white/10 px-4 py-2 text-white shadow-2xl backdrop-blur-xl sm:rounded-3xl sm:px-6 sm:py-3">
+                    <span className="text-lg font-black sm:text-xl">
                       {activities.length}
                     </span>
-                    <span className="ml-2 text-sm font-medium opacity-90">
+                    <span className="ml-1 text-xs font-medium opacity-90 sm:ml-2 sm:text-sm">
                       challenges
                     </span>
                   </div>
@@ -722,19 +722,19 @@ function CodeArenaContent() {
                   {uiConfig.showFilters && (
                     <button
                       onClick={() => setShowFilters(!showFilters)}
-                      className={`hover:shadow-3xl rounded-3xl p-4 shadow-2xl transition-all hover:scale-105 ${
+                      className={`hover:shadow-3xl rounded-2xl p-3 shadow-2xl transition-all hover:scale-105 sm:rounded-3xl sm:p-4 ${
                         showFilters
                           ? "border-2 border-white/50 bg-gradient-to-r from-white/30 to-white/20 text-white"
                           : "border-2 border-white/20 bg-gradient-to-r from-white/10 to-white/5 text-white/80"
                       } backdrop-blur-xl`}
                     >
-                      <Filter className="h-6 w-6" />
+                      <Filter className="h-5 w-5 sm:h-6 sm:w-6" />
                     </button>
                   )}
                 </div>
               </div>
 
-              <p className="mx-auto mb-10 max-w-3xl text-xl font-medium text-indigo-100">
+              <p className="mx-auto mb-6 max-w-3xl px-4 text-base font-medium text-indigo-100 sm:mb-8 sm:px-0 sm:text-lg lg:mb-10 lg:text-xl">
                 {categoryConfigs[selectedTopic]
                   ? `${categoryConfigs[selectedTopic].description} - ${uiConfig.heroDescription}`
                   : uiConfig.heroDescription.replace(
@@ -747,32 +747,38 @@ function CodeArenaContent() {
 
           {/* Topic-Specific Stats */}
           {uiConfig.showStats && (
-            <div className="mx-auto grid max-w-5xl grid-cols-2 gap-6 md:grid-cols-4">
-              <div className="rounded-3xl border border-white/30 bg-gradient-to-br from-white/20 to-white/5 p-6 shadow-2xl backdrop-blur-xl">
-                <div className="text-4xl font-black text-yellow-300">
+            <div className="mx-auto grid max-w-5xl grid-cols-2 gap-3 px-4 sm:gap-4 sm:px-0 md:grid-cols-4 md:gap-6">
+              <div className="rounded-2xl border border-white/30 bg-gradient-to-br from-white/20 to-white/5 p-4 shadow-2xl backdrop-blur-xl sm:rounded-3xl sm:p-6">
+                <div className="text-2xl font-black text-yellow-300 sm:text-3xl lg:text-4xl">
                   {stats.total}
                 </div>
-                <div className="text-sm font-bold text-cyan-200">
+                <div className="text-xs font-bold text-cyan-200 sm:text-sm">
                   Epic Challenges
                 </div>
               </div>
-              <div className="rounded-3xl border border-white/30 bg-gradient-to-br from-white/20 to-white/5 p-6 shadow-2xl backdrop-blur-xl">
-                <div className="text-4xl font-black text-green-300">
+              <div className="rounded-2xl border border-white/30 bg-gradient-to-br from-white/20 to-white/5 p-4 shadow-2xl backdrop-blur-xl sm:rounded-3xl sm:p-6">
+                <div className="text-2xl font-black text-green-300 sm:text-3xl lg:text-4xl">
                   {isAuthenticated ? stats.completed : 0}
                 </div>
-                <div className="text-sm font-bold text-cyan-200">Conquered</div>
+                <div className="text-xs font-bold text-cyan-200 sm:text-sm">
+                  Conquered
+                </div>
               </div>
-              <div className="rounded-3xl border border-white/30 bg-gradient-to-br from-white/20 to-white/5 p-6 shadow-2xl backdrop-blur-xl">
-                <div className="text-4xl font-black text-orange-300">
+              <div className="rounded-2xl border border-white/30 bg-gradient-to-br from-white/20 to-white/5 p-4 shadow-2xl backdrop-blur-xl sm:rounded-3xl sm:p-6">
+                <div className="text-2xl font-black text-orange-300 sm:text-3xl lg:text-4xl">
                   {stats.percentage}%
                 </div>
-                <div className="text-sm font-bold text-cyan-200">Mastery</div>
+                <div className="text-xs font-bold text-cyan-200 sm:text-sm">
+                  Mastery
+                </div>
               </div>
-              <div className="rounded-3xl border border-white/30 bg-gradient-to-br from-white/20 to-white/5 p-6 shadow-2xl backdrop-blur-xl">
-                <div className="text-4xl font-black text-pink-300">
+              <div className="rounded-2xl border border-white/30 bg-gradient-to-br from-white/20 to-white/5 p-4 shadow-2xl backdrop-blur-xl sm:rounded-3xl sm:p-6">
+                <div className="text-2xl font-black text-pink-300 sm:text-3xl lg:text-4xl">
                   {Object.keys(groupedActivities).length}
                 </div>
-                <div className="text-sm font-bold text-cyan-200">Domains</div>
+                <div className="text-xs font-bold text-cyan-200 sm:text-sm">
+                  Domains
+                </div>
               </div>
             </div>
           )}
@@ -789,23 +795,23 @@ function CodeArenaContent() {
             transition={{ duration: 0.2, ease: "easeInOut" }}
             className="overflow-hidden border-b border-slate-200 bg-white"
           >
-            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                <div className="relative">
+            <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+                <div className="relative sm:col-span-2 lg:col-span-1">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-slate-400" />
                   <input
                     type="text"
                     placeholder="Search activities..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 py-3 pl-10 pr-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    className="w-full rounded-lg border border-slate-200 py-3 pl-10 pr-4 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 sm:rounded-xl sm:text-base"
                   />
                 </div>
 
                 <select
                   value={selectedTopic}
                   onChange={(e) => setSelectedTopic(e.target.value)}
-                  className="rounded-xl border border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  className="rounded-lg border border-slate-200 px-3 py-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 sm:rounded-xl sm:px-4 sm:text-base"
                 >
                   <option value="">All Categories</option>
                   <option value="Python Fundamentals">
@@ -821,7 +827,7 @@ function CodeArenaContent() {
                 <select
                   value={selectedDifficulty}
                   onChange={(e) => setSelectedDifficulty(e.target.value)}
-                  className="rounded-xl border border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  className="rounded-lg border border-slate-200 px-3 py-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 sm:rounded-xl sm:px-4 sm:text-base"
                 >
                   <option value="">All Difficulties</option>
                   {Object.entries(difficultyConfigs).map(([level, config]) => (
@@ -837,7 +843,7 @@ function CodeArenaContent() {
                     setSelectedTopic("Python Fundamentals");
                     setSelectedDifficulty("");
                   }}
-                  className="rounded-xl bg-slate-100 px-4 py-3 font-medium text-slate-700 transition-colors hover:bg-slate-200"
+                  className="rounded-lg bg-slate-100 px-3 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200 sm:col-span-2 sm:rounded-xl sm:px-4 sm:text-base lg:col-span-1"
                 >
                   Clear Filters
                 </button>
@@ -854,7 +860,7 @@ function CodeArenaContent() {
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -100, opacity: 0 }}
-            className="fixed left-1/2 top-20 z-50 -translate-x-1/2 transform rounded-xl bg-green-500 px-6 py-3 text-white shadow-lg"
+            className="fixed left-1/2 top-20 z-50 max-w-[90vw] -translate-x-1/2 transform rounded-lg bg-green-500 px-4 py-2 text-center text-sm text-white shadow-lg sm:rounded-xl sm:px-6 sm:py-3 sm:text-base"
           >
             {showSuccessMessage}
           </motion.div>
@@ -868,7 +874,7 @@ function CodeArenaContent() {
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform"
+            className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 transform px-4 sm:bottom-6 sm:px-0"
           >
             <RewardClaimButton
               rewards={rewardClaimData}
@@ -922,7 +928,7 @@ function CodeArenaContent() {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <Suspense
           fallback={
             <div className="space-y-4">
@@ -972,12 +978,12 @@ function CodeArenaContent() {
 
         {/* No activities message */}
         {activities.length === 0 && !loading && (
-          <div className="py-16 text-center">
-            <div className="mb-4 text-6xl">🔍</div>
-            <h3 className="mb-2 text-2xl font-bold text-slate-900">
+          <div className="px-4 py-12 text-center sm:py-16">
+            <div className="mb-4 text-4xl sm:text-6xl">🔍</div>
+            <h3 className="mb-2 text-xl font-bold text-slate-900 sm:text-2xl">
               No Activities Found
             </h3>
-            <p className="text-lg text-slate-600">
+            <p className="mx-auto max-w-md text-base text-slate-600 sm:text-lg">
               No activities available for this topic yet. Try selecting a
               different topic!
             </p>
@@ -1002,29 +1008,29 @@ function CodeArenaContent() {
               display: "flex",
               alignItems: "flex-start",
               justifyContent: "center",
-              padding: "1rem",
-              paddingTop: "5rem",
+              padding: "0.5rem",
+              paddingTop: "2rem",
             }}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-4xl overflow-hidden rounded-3xl bg-white shadow-2xl"
+              className="relative w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl sm:rounded-3xl"
               style={{
-                maxHeight: "90vh",
+                maxHeight: "95vh",
               }}
             >
-              <header className="flex items-center justify-end border-b border-slate-200 bg-gradient-to-r from-blue-50 to-purple-50 p-6">
+              <header className="flex items-center justify-end border-b border-slate-200 bg-gradient-to-r from-blue-50 to-purple-50 p-4 sm:p-6">
                 <button
                   onClick={closeActivity}
-                  className="rounded-xl bg-white p-2 shadow-sm transition-shadow hover:shadow-md"
+                  className="rounded-lg bg-white p-2 shadow-sm transition-shadow hover:shadow-md sm:rounded-xl"
                 >
                   <X className="h-5 w-5 text-slate-600" />
                 </button>
               </header>
 
-              <div className="max-h-[calc(90vh-100px)] overflow-y-auto">
+              <div className="max-h-[calc(95vh-80px)] overflow-y-auto sm:max-h-[calc(95vh-100px)]">
                 <Suspense
                   fallback={
                     <div className="flex h-64 items-center justify-center">

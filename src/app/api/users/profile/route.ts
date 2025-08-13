@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Kullanıcı bilgilerini getir (ilişkili verilerle)
-    const user = await db.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: sessionUser.id },
       include: {
         userCards: {
@@ -252,7 +252,7 @@ export async function PUT(request: NextRequest) {
     } = body;
 
     // Kullanıcıyı al
-    const user = await db.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: sessionUser.id },
     });
 
@@ -322,7 +322,7 @@ export async function PUT(request: NextRequest) {
       const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
       // Şifreyi güncelle
-      await db.user.update({
+      await prisma.user.update({
         where: { id: sessionUser.id },
         data: {
           passwordHash: hashedNewPassword,
@@ -361,7 +361,7 @@ export async function PUT(request: NextRequest) {
       }
 
       // Kullanıcı adı kullanımda mı kontrol et
-      const existingUser = await db.user.findFirst({
+      const existingUser = await prisma.user.findFirst({
         where: {
           username: username,
           id: { not: sessionUser.id },
@@ -376,7 +376,7 @@ export async function PUT(request: NextRequest) {
       }
 
       // Kullanıcı adını güncelle
-      const updatedUser = await db.user.update({
+      const updatedUser = await prisma.user.update({
         where: { id: sessionUser.id },
         data: {
           username: username,
@@ -414,7 +414,7 @@ export async function PUT(request: NextRequest) {
     if (avatar !== undefined) updateData.avatar = avatar;
 
     // Kullanıcıyı güncelle
-    const updatedUser = await db.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: sessionUser.id },
       data: {
         ...updateData,
@@ -465,7 +465,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { action } = body;
 
-    const user = await db.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: sessionUser.id },
     });
 
@@ -483,7 +483,7 @@ export async function POST(request: NextRequest) {
         const lastReset = new Date(user.lastDailyReset);
 
         if (today.toDateString() !== lastReset.toDateString()) {
-          await db.user.update({
+          await prisma.user.update({
             where: { id: sessionUser.id },
             data: {
               dailyDiamonds: 0,
@@ -507,7 +507,7 @@ export async function POST(request: NextRequest) {
         const newLevel = calculateLevel(user.experience);
 
         if (newLevel !== user.level) {
-          await db.user.update({
+          await prisma.user.update({
             where: { id: sessionUser.id },
             data: { level: newLevel },
           });
@@ -516,7 +516,7 @@ export async function POST(request: NextRequest) {
           if (newLevel > user.level) {
             const levelReward = newLevel * 50; // Her seviye için 50 elmas
 
-            await db.user.update({
+            await prisma.user.update({
               where: { id: sessionUser.id },
               data: {
                 currentDiamonds: { increment: levelReward },
@@ -525,7 +525,7 @@ export async function POST(request: NextRequest) {
             });
 
             // İşlem kaydı
-            await db.diamondTransaction.create({
+            await prisma.diamondTransaction.create({
               data: {
                 userId: sessionUser.id,
                 amount: levelReward,
