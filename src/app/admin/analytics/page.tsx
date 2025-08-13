@@ -196,10 +196,7 @@ export default function EducationAnalyticsPage() {
       setAnalyticsData(data);
     } catch (error) {
       console.error("Error fetching analytics:", error);
-      showNotification(
-        "error",
-        "Eğitim analytics verileri yüklenirken hata oluştu"
-      );
+      showNotification("error", "Error loading education analytics data");
     } finally {
       setLoading(false);
     }
@@ -219,20 +216,20 @@ export default function EducationAnalyticsPage() {
   };
 
   const formatNumber = (value: number) => {
-    return new Intl.NumberFormat("tr-TR").format(value);
+    return new Intl.NumberFormat("en-US").format(value);
   };
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     if (hours > 0) {
-      return `${hours}s ${minutes}d`;
+      return `${hours}h ${minutes}m`;
     }
-    return `${minutes} dakika`;
+    return `${minutes} minutes`;
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("tr-TR", {
+    return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -271,7 +268,7 @@ export default function EducationAnalyticsPage() {
         <div className="text-center">
           <RefreshCw className="mx-auto h-12 w-12 animate-spin text-blue-600" />
           <p className="mt-4 text-gray-600">
-            Eğitim analytics verileri yükleniyor...
+            Loading education analytics data...
           </p>
         </div>
       </div>
@@ -286,10 +283,10 @@ export default function EducationAnalyticsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                📊 Eğitim Analytics
+                📊 Education Analytics
               </h1>
               <p className="mt-2 text-gray-600">
-                Öğrenci performansı ve platform kullanım istatistikleri
+                Student performance and platform usage statistics
               </p>
             </div>
             <div className="flex items-center space-x-4">
@@ -301,11 +298,11 @@ export default function EducationAnalyticsPage() {
                 <RefreshCw
                   className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
                 />
-                Yenile
+                Refresh
               </button>
               <button className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500">
                 <Download className="mr-2 h-4 w-4" />
-                Rapor İndir
+                Download Report
               </button>
             </div>
           </div>
@@ -354,14 +351,14 @@ export default function EducationAnalyticsPage() {
           <div className="border-b border-gray-200 px-6 py-4">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
               <Filter className="h-5 w-5" />
-              Filtreler
+              Filters
             </h2>
           </div>
           <div className="p-6">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Başlangıç Tarihi
+                  Start Date
                 </label>
                 <input
                   type="date"
@@ -372,7 +369,7 @@ export default function EducationAnalyticsPage() {
               </div>
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Bitiş Tarihi
+                  End Date
                 </label>
                 <input
                   type="date"
@@ -386,7 +383,7 @@ export default function EducationAnalyticsPage() {
                   onClick={handleClearFilters}
                   className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500"
                 >
-                  Filtreleri Temizle
+                  Clear Filters
                 </button>
               </div>
             </div>
@@ -398,16 +395,17 @@ export default function EducationAnalyticsPage() {
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               {[
-                { id: "overview", name: "Genel Bakış", icon: BarChart3 },
-                { id: "quiz", name: "Quiz Performansı", icon: Brain },
+                { id: "overview", name: "Overview", icon: BarChart3 },
+                { id: "quiz", name: "Quiz Performance", icon: Brain },
                 { id: "code", name: "Code Arena", icon: Code2 },
                 {
                   id: "learning",
-                  name: "Öğrenme Aktiviteleri",
+                  name: "Learning Activities",
                   icon: BookOpen,
                 },
-                { id: "content", name: "İçerik Etkileşimi", icon: FileText },
-                { id: "achievements", name: "Başarımlar", icon: Trophy },
+                { id: "content", name: "Content Interaction", icon: FileText },
+                { id: "achievements", name: "Achievements", icon: Trophy },
+                { id: "cards", name: "Card Analytics", icon: Search },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -437,7 +435,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Toplam Kullanıcı
+                      Total Users
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatNumber(analyticsData.summary.totalUsers)}
@@ -453,7 +451,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Aktif Kullanıcı
+                      Active Users
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatNumber(analyticsData.summary.activeUsers)}
@@ -469,7 +467,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Toplam Quiz
+                      Total Quizzes
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatNumber(analyticsData.summary.totalQuizzes)}
@@ -485,7 +483,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Toplam Öğrenme Süresi
+                      Total Learning Time
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatTime(analyticsData.summary.totalLearningTime)}
@@ -503,7 +501,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Kod Gönderimi
+                      Code Submissions
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatNumber(analyticsData.summary.totalCodeSubmissions)}
@@ -519,7 +517,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Öğrenme Aktivitesi
+                      Learning Activities
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatNumber(
@@ -537,7 +535,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Blog Görüntülenme
+                      Blog Views
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatNumber(analyticsData.summary.totalBlogViews)}
@@ -553,7 +551,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Başarım Kazanımı
+                      Achievements Earned
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatNumber(analyticsData.summary.totalAchievements)}
@@ -576,7 +574,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Ortalama Puan
+                      Average Score
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {analyticsData.quiz.stats._avg.score?.toFixed(1) || 0}%
@@ -592,7 +590,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Ortalama Süre
+                      Average Duration
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatTime(analyticsData.quiz.stats._avg.timeSpent || 0)}
@@ -608,7 +606,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Toplam Deneme
+                      Total Attempts
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatNumber(analyticsData.quiz.stats._count.id)}
@@ -624,7 +622,7 @@ export default function EducationAnalyticsPage() {
                 <div className="border-b border-gray-200 px-6 py-4">
                   <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
                     <TrendingUp className="h-5 w-5" />
-                    En Popüler Quizler
+                    Most Popular Quizzes
                   </h2>
                 </div>
                 <div className="p-6">
@@ -642,10 +640,10 @@ export default function EducationAnalyticsPage() {
                             </div>
                             <div>
                               <h4 className="font-medium">
-                                {item.quiz?.title || "Bilinmeyen Quiz"}
+                                {item.quiz?.title || "Unknown Quiz"}
                               </h4>
                               <p className="text-sm text-gray-600">
-                                Zorluk:
+                                Difficulty:
                                 <span
                                   className={`ml-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getDifficultyColor(item.quiz?.difficulty || 1)}`}
                                 >
@@ -656,10 +654,10 @@ export default function EducationAnalyticsPage() {
                           </div>
                           <div className="text-right">
                             <div className="text-lg font-bold text-gray-900">
-                              {formatNumber(item._count.id)} deneme
+                              {formatNumber(item._count.id)} attempts
                             </div>
                             <div className="text-sm text-gray-600">
-                              Ort. Puan: {item._avg.score?.toFixed(1) || 0}%
+                              Avg. Score: {item._avg.score?.toFixed(1) || 0}%
                             </div>
                           </div>
                         </div>
@@ -675,7 +673,7 @@ export default function EducationAnalyticsPage() {
                 <div className="border-b border-gray-200 px-6 py-4">
                   <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
                     <Activity className="h-5 w-5" />
-                    Son Quiz Denemeleri
+                    Recent Quiz Attempts
                   </h2>
                 </div>
                 <div className="p-6">
@@ -683,13 +681,13 @@ export default function EducationAnalyticsPage() {
                     <table className="w-full border-collapse">
                       <thead>
                         <tr className="border-b">
-                          <th className="p-3 text-left font-medium">
-                            Kullanıcı
-                          </th>
+                          <th className="p-3 text-left font-medium">User</th>
                           <th className="p-3 text-left font-medium">Quiz</th>
-                          <th className="p-3 text-left font-medium">Puan</th>
-                          <th className="p-3 text-left font-medium">Süre</th>
-                          <th className="p-3 text-left font-medium">Tarih</th>
+                          <th className="p-3 text-left font-medium">Score</th>
+                          <th className="p-3 text-left font-medium">
+                            Duration
+                          </th>
+                          <th className="p-3 text-left font-medium">Date</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -704,7 +702,7 @@ export default function EducationAnalyticsPage() {
                                   {attempt.user.username}
                                 </div>
                                 <div className="text-sm text-gray-600">
-                                  Seviye {attempt.user.level}
+                                  Level {attempt.user.level}
                                 </div>
                               </div>
                             </td>
@@ -716,7 +714,7 @@ export default function EducationAnalyticsPage() {
                                 <span
                                   className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getDifficultyColor(attempt.quiz.difficulty)}`}
                                 >
-                                  Zorluk {attempt.quiz.difficulty}/5
+                                  Difficulty {attempt.quiz.difficulty}/5
                                 </span>
                               </div>
                             </td>
@@ -761,7 +759,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Ortalama Puan
+                      Average Score
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {analyticsData.codeArena.stats._avg.score?.toFixed(1) ||
@@ -779,7 +777,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Ortalama Süre
+                      Average Duration
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatTime(
@@ -797,7 +795,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Toplam Çözüm
+                      Total Solutions
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatNumber(analyticsData.codeArena.stats._count.id)}
@@ -813,7 +811,7 @@ export default function EducationAnalyticsPage() {
                 <div className="border-b border-gray-200 px-6 py-4">
                   <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
                     <TrendingUp className="h-5 w-5" />
-                    En Popüler Code Arena Challenges
+                    Most Popular Code Arena Challenges
                   </h2>
                 </div>
                 <div className="p-6">
@@ -831,28 +829,27 @@ export default function EducationAnalyticsPage() {
                             </div>
                             <div>
                               <h4 className="font-medium">
-                                {item.codeArena?.title ||
-                                  "Bilinmeyen Challenge"}
+                                {item.codeArena?.title || "Unknown Challenge"}
                               </h4>
                               <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <span
                                   className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getDifficultyColor(item.codeArena?.difficulty || 1)}`}
                                 >
-                                  Zorluk {item.codeArena?.difficulty || 1}/5
+                                  Difficulty {item.codeArena?.difficulty || 1}/5
                                 </span>
                                 <span className="text-gray-400">•</span>
                                 <span>
-                                  {item.codeArena?.category || "Genel"}
+                                  {item.codeArena?.category || "General"}
                                 </span>
                               </div>
                             </div>
                           </div>
                           <div className="text-right">
                             <div className="text-lg font-bold text-gray-900">
-                              {formatNumber(item._count.id)} çözüm
+                              {formatNumber(item._count.id)} solutions
                             </div>
                             <div className="text-sm text-gray-600">
-                              Ort. Puan: {item._avg.score?.toFixed(1) || 0}%
+                              Avg. Score: {item._avg.score?.toFixed(1) || 0}%
                             </div>
                           </div>
                         </div>
@@ -868,7 +865,7 @@ export default function EducationAnalyticsPage() {
                 <div className="border-b border-gray-200 px-6 py-4">
                   <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
                     <Activity className="h-5 w-5" />
-                    Son Kod Gönderimleri
+                    Recent Code Submissions
                   </h2>
                 </div>
                 <div className="p-6">
@@ -876,12 +873,10 @@ export default function EducationAnalyticsPage() {
                     <table className="w-full border-collapse">
                       <thead>
                         <tr className="border-b">
-                          <th className="p-3 text-left font-medium">
-                            Kullanıcı
-                          </th>
-                          <th className="p-3 text-left font-medium">Durum</th>
-                          <th className="p-3 text-left font-medium">Puan</th>
-                          <th className="p-3 text-left font-medium">Tarih</th>
+                          <th className="p-3 text-left font-medium">User</th>
+                          <th className="p-3 text-left font-medium">Status</th>
+                          <th className="p-3 text-left font-medium">Score</th>
+                          <th className="p-3 text-left font-medium">Date</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -897,7 +892,7 @@ export default function EducationAnalyticsPage() {
                                     {submission.user.username}
                                   </div>
                                   <div className="text-sm text-gray-600">
-                                    Seviye {submission.user.level}
+                                    Level {submission.user.level}
                                   </div>
                                 </div>
                               </td>
@@ -910,8 +905,8 @@ export default function EducationAnalyticsPage() {
                                   }`}
                                 >
                                   {submission.isCorrect
-                                    ? "✓ Doğru"
-                                    : "✗ Yanlış"}
+                                    ? "✓ Correct"
+                                    : "✗ Incorrect"}
                                 </span>
                               </td>
                               <td className="p-3">
@@ -945,7 +940,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Ortalama Puan
+                      Average Score
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {analyticsData.learningActivities.stats._avg.score?.toFixed(
@@ -964,7 +959,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Ortalama Süre
+                      Average Duration
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatTime(
@@ -983,7 +978,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Tamamlanan
+                      Completed
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatNumber(
@@ -1001,7 +996,7 @@ export default function EducationAnalyticsPage() {
                 <div className="border-b border-gray-200 px-6 py-4">
                   <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
                     <Activity className="h-5 w-5" />
-                    Son Öğrenme Aktiviteleri
+                    Recent Learning Activities
                   </h2>
                 </div>
                 <div className="p-6">
@@ -1009,15 +1004,15 @@ export default function EducationAnalyticsPage() {
                     <table className="w-full border-collapse">
                       <thead>
                         <tr className="border-b">
+                          <th className="p-3 text-left font-medium">User</th>
                           <th className="p-3 text-left font-medium">
-                            Kullanıcı
+                            Activity
                           </th>
+                          <th className="p-3 text-left font-medium">Score</th>
                           <th className="p-3 text-left font-medium">
-                            Aktivite
+                            Duration
                           </th>
-                          <th className="p-3 text-left font-medium">Puan</th>
-                          <th className="p-3 text-left font-medium">Süre</th>
-                          <th className="p-3 text-left font-medium">Tarih</th>
+                          <th className="p-3 text-left font-medium">Date</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1033,7 +1028,7 @@ export default function EducationAnalyticsPage() {
                                     {attempt.user.username}
                                   </div>
                                   <div className="text-sm text-gray-600">
-                                    Seviye {attempt.user.level}
+                                    Level {attempt.user.level}
                                   </div>
                                 </div>
                               </td>
@@ -1050,7 +1045,7 @@ export default function EducationAnalyticsPage() {
                                     <span
                                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getDifficultyColor(attempt.activity.difficulty)}`}
                                     >
-                                      Zorluk {attempt.activity.difficulty}/5
+                                      Difficulty {attempt.activity.difficulty}/5
                                     </span>
                                   </div>
                                 </div>
@@ -1103,16 +1098,14 @@ export default function EducationAnalyticsPage() {
                     <div className="text-2xl font-bold text-gray-900">
                       {formatNumber(analyticsData.blog.stats._count.id)}
                     </div>
-                    <div className="text-sm text-gray-600">
-                      Toplam Görüntülenme
-                    </div>
+                    <div className="text-sm text-gray-600">Total Views</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900">
                       {formatTime(analyticsData.blog.stats._avg.timeSpent || 0)}
                     </div>
                     <div className="text-sm text-gray-600">
-                      Ortalama Okuma Süresi
+                      Average Reading Time
                     </div>
                   </div>
                   <div className="text-center">
@@ -1120,7 +1113,7 @@ export default function EducationAnalyticsPage() {
                       {formatTime(analyticsData.blog.stats._sum.timeSpent || 0)}
                     </div>
                     <div className="text-sm text-gray-600">
-                      Toplam Okuma Süresi
+                      Total Reading Time
                     </div>
                   </div>
                 </div>
@@ -1129,7 +1122,7 @@ export default function EducationAnalyticsPage() {
                 {analyticsData.blog.topPosts.length > 0 && (
                   <div>
                     <h3 className="mb-4 text-lg font-medium">
-                      En Popüler Blog Yazıları
+                      Most Popular Blog Posts
                     </h3>
                     <div className="space-y-3">
                       {analyticsData.blog.topPosts
@@ -1145,10 +1138,12 @@ export default function EducationAnalyticsPage() {
                               </div>
                               <div>
                                 <h4 className="font-medium">
-                                  {item.post?.title || "Bilinmeyen Post"}
+                                  {item.post?.title || "Unknown Post"}
                                 </h4>
                                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                                  <span>{item.post?.category || "Genel"}</span>
+                                  <span>
+                                    {item.post?.category || "General"}
+                                  </span>
                                   <span className="text-gray-400">•</span>
                                   <span>{item.post?.readTime || "5 min"}</span>
                                 </div>
@@ -1156,10 +1151,10 @@ export default function EducationAnalyticsPage() {
                             </div>
                             <div className="text-right">
                               <div className="text-lg font-bold text-gray-900">
-                                {formatNumber(item._count.id)} görüntülenme
+                                {formatNumber(item._count.id)} views
                               </div>
                               <div className="text-sm text-gray-600">
-                                Ort. Süre:{" "}
+                                Avg. Time:{" "}
                                 {formatTime(item._avg.timeSpent || 0)}
                               </div>
                             </div>
@@ -1185,9 +1180,7 @@ export default function EducationAnalyticsPage() {
                     <div className="text-2xl font-bold text-gray-900">
                       {formatNumber(analyticsData.pythonTips.stats._count.id)}
                     </div>
-                    <div className="text-sm text-gray-600">
-                      Tip Görüntülenme
-                    </div>
+                    <div className="text-sm text-gray-600">Tip Views</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900">
@@ -1195,7 +1188,7 @@ export default function EducationAnalyticsPage() {
                         analyticsData.pythonTips.stats._avg.timeSpent || 0
                       )}
                     </div>
-                    <div className="text-sm text-gray-600">Ortalama Süre</div>
+                    <div className="text-sm text-gray-600">Average Time</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900">
@@ -1203,7 +1196,7 @@ export default function EducationAnalyticsPage() {
                         analyticsData.pythonTips.stats._sum.xpEarned || 0
                       )}
                     </div>
-                    <div className="text-sm text-gray-600">Kazanılan XP</div>
+                    <div className="text-sm text-gray-600">XP Earned</div>
                   </div>
                 </div>
               </div>
@@ -1222,7 +1215,7 @@ export default function EducationAnalyticsPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Toplam Başarım Kazanımı
+                      Total Achievements Earned
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {formatNumber(analyticsData.achievements.stats._count.id)}
@@ -1238,7 +1231,7 @@ export default function EducationAnalyticsPage() {
                 <div className="border-b border-gray-200 px-6 py-4">
                   <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
                     <Activity className="h-5 w-5" />
-                    Son Kazanılan Başarımlar
+                    Recently Earned Achievements
                   </h2>
                 </div>
                 <div className="p-6">
@@ -1246,14 +1239,14 @@ export default function EducationAnalyticsPage() {
                     <table className="w-full border-collapse">
                       <thead>
                         <tr className="border-b">
+                          <th className="p-3 text-left font-medium">User</th>
                           <th className="p-3 text-left font-medium">
-                            Kullanıcı
+                            Achievement
                           </th>
-                          <th className="p-3 text-left font-medium">Başarım</th>
                           <th className="p-3 text-left font-medium">
-                            Kategori
+                            Category
                           </th>
-                          <th className="p-3 text-left font-medium">Tarih</th>
+                          <th className="p-3 text-left font-medium">Date</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1269,7 +1262,7 @@ export default function EducationAnalyticsPage() {
                                     {achievement.user.username}
                                   </div>
                                   <div className="text-sm text-gray-600">
-                                    Seviye {achievement.user.level}
+                                    Level {achievement.user.level}
                                   </div>
                                 </div>
                               </td>
@@ -1305,21 +1298,70 @@ export default function EducationAnalyticsPage() {
           </div>
         )}
 
-        {/* Card Analytics Notice */}
-        {analyticsData && analyticsData.cardAnalytics.available && (
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-6 shadow-sm">
-            <div className="flex items-center gap-3">
-              <Info className="h-5 w-5 text-blue-600" />
-              <div>
-                <h3 className="font-medium text-blue-900">Kart Analytics</h3>
-                <p className="text-sm text-blue-700">
-                  {analyticsData.cardAnalytics.message}. Kart analytics'i
-                  görüntülemek için ayrı bir sekme eklendi.
-                </p>
+        {/* Card Analytics */}
+        {analyticsData && activeTab === "cards" && (
+          <div className="space-y-8">
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-6 shadow-sm">
+              <div className="flex items-center gap-3">
+                <Info className="h-5 w-5 text-blue-600" />
+                <div>
+                  <h3 className="font-medium text-blue-900">Card Analytics</h3>
+                  <p className="text-sm text-blue-700">
+                    {analyticsData.cardAnalytics.message}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+              <div className="border-b border-gray-200 px-6 py-4">
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                  <Search className="h-5 w-5" />
+                  Card Analytics Dashboard
+                </h2>
+              </div>
+              <div className="p-6">
+                <div className="py-12 text-center">
+                  <Search className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                  <h3 className="mb-2 text-lg font-medium text-gray-900">
+                    Card Analytics Available
+                  </h3>
+                  <p className="mb-4 text-gray-600">
+                    Card analytics functionality has been moved to a dedicated
+                    endpoint for better performance.
+                  </p>
+                  <button
+                    onClick={() =>
+                      window.open("/api/admin/analytics/cards", "_blank")
+                    }
+                    className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    View Card Analytics
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
+
+        {/* Card Analytics Notice for other tabs */}
+        {analyticsData &&
+          activeTab !== "cards" &&
+          analyticsData.cardAnalytics.available && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-6 shadow-sm">
+              <div className="flex items-center gap-3">
+                <Info className="h-5 w-5 text-blue-600" />
+                <div>
+                  <h3 className="font-medium text-blue-900">Card Analytics</h3>
+                  <p className="text-sm text-blue-700">
+                    {analyticsData.cardAnalytics.message}. Check the "Card
+                    Analytics" tab for detailed card statistics.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
       </div>
     </div>
   );

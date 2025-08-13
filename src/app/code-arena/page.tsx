@@ -1,46 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  lazy,
+  Suspense,
+} from "react";
 import {
   BookOpen,
-  Clock,
   Diamond,
   Star,
-  Play,
-  CheckCircle,
-  Lock,
   Search,
   Filter,
   ArrowRight,
-  Trophy,
-  Target,
-  Brain,
-  Users,
-  Zap,
-  Award,
-  Home,
-  User,
-  Settings,
-  ChevronDown,
-  ChevronRight,
-  Code,
-  Sparkles,
-  Flame,
-  Shield,
-  TrendingUp,
   BarChart3,
-  Gamepad2,
-  ArrowLeft,
   X,
   Map,
-  Compass,
+  CheckCircle,
+  Clock,
+  Trophy,
   Rocket,
-  GraduationCap,
 } from "lucide-react";
-import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-import ActivityRenderer from "@/components/learn/ActivityRenderer";
 import {
   RewardNotificationProvider,
   useRewardHelpers,
@@ -50,93 +34,20 @@ import {
   useAnimatedStats,
 } from "@/components/gamification/animated-profile-stats";
 import { RewardClaimButton } from "@/components/gamification/reward-claim-button";
+import {
+  LearningActivity,
+  ArenaConfig,
+  ActivitiesResponse,
+} from "@/types/learning-activity";
 
-interface ArenaConfig {
-  difficultyConfigs: {
-    [key: number]: {
-      label: string;
-      color: string;
-      icon: string;
-      bgColor: string;
-      textColor: string;
-      borderColor: string;
-    };
-  };
-  categoryConfigs: {
-    [key: string]: {
-      title: string;
-      description: string;
-      icon: string;
-      gradient: string;
-      bgGradient: string;
-      iconBg: string;
-    };
-  };
-  activityTypeConfigs: {
-    [key: string]: {
-      name: string;
-      icon: string;
-      color: string;
-    };
-  };
-  uiConfig: {
-    heroTitle: string;
-    heroSubtitle: string;
-    heroDescription: string;
-    primaryColor: string;
-    secondaryColor: string;
-    accentColor: string;
-    backgroundColor: string;
-    headerGradient: string;
-    showStats: boolean;
-    showFilters: boolean;
-    enableAnimations: boolean;
-  };
-}
-
-interface LearningActivity {
-  id: string;
-  title: string;
-  description: string;
-  activityType: string;
-  difficulty: number;
-  category: string;
-  sortOrder: number;
-  isLocked: boolean;
-  prerequisiteId?: string;
-  diamondReward: number;
-  experienceReward: number;
-  estimatedMinutes: number;
-  isActive: boolean;
-  content: any;
-  settings?: any;
-  tags: string[];
-  totalAttempts: number;
-  userProgress?: {
-    score: number;
-    maxScore: number;
-    completed: boolean;
-    timeSpent: number;
-    hintsUsed: number;
-    mistakes: number;
-    startedAt: string;
-    completedAt?: string;
-    percentage: number;
-  };
-}
-
-interface ActivitiesResponse {
-  success: boolean;
-  activities: LearningActivity[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    pages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
-}
+// Lazy load heavy components for better performance
+const ActivityRenderer = lazy(
+  () => import("@/components/learn/ActivityRenderer")
+);
+const ActivityCard = lazy(() => import("@/components/code-arena/ActivityCard"));
+const CategorySection = lazy(
+  () => import("@/components/code-arena/CategorySection")
+);
 
 function CodeArenaContent() {
   // Core states
@@ -152,28 +63,44 @@ function CodeArenaContent() {
     useState<LearningActivity | null>(null);
 
   // UI states
-  const [viewMode, setViewMode] = useState<"path" | "grid" | "categories">(
-    "path"
-  );
-  const [selectedTopic, setSelectedTopic] = useState("Python Fundamentals"); // Default to Python Fundamentals
+  const [selectedTopic, setSelectedTopic] = useState("Python Fundamentals");
   const [selectedDifficulty, setSelectedDifficulty] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<{
     [key: string]: boolean;
   }>({
-    "Python Fundamentals": true, // Default topic expanded on load
+    "Python Fundamentals": true,
   });
 
   // Notification states
   const [showSuccessMessage, setShowSuccessMessage] = useState("");
 
-  // Reward claim states - direct implementation
+  // Reward claim states
   const [showRewardButton, setShowRewardButton] = useState(false);
   const [rewardClaimData, setRewardClaimData] = useState<any>(null);
 
   const { isAuthenticated, user } = useAuth();
   const { showCodeArenaComplete } = useRewardHelpers();
+
+  // Performance optimizations
+  const [enableAnimations, setEnableAnimations] = useState(true);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  // Detect user preference for reduced motion
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReducedMotion(mediaQuery.matches);
+    setEnableAnimations(!mediaQuery.matches);
+
+    const handler = (e: MediaQueryListEvent) => {
+      setReducedMotion(e.matches);
+      setEnableAnimations(!e.matches);
+    };
+
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
+  }, []);
 
   // Profile stats management
   const [userStats, setUserStats] = useState({
@@ -211,10 +138,16 @@ function CodeArenaContent() {
     }
   }, [user]);
 
+  // Optimize initial data fetching - combine API calls
   useEffect(() => {
-    fetchConfig();
-    fetchAllActivities(); // Fetch all activities for card counts
-    fetchActivities(); // Fetch filtered activities for display
+    const initializeData = async () => {
+      await Promise.all([
+        fetchConfig(),
+        fetchAllActivities(),
+        fetchActivities(),
+      ]);
+    };
+    initializeData();
   }, []);
 
   useEffect(() => {
@@ -481,7 +414,8 @@ function CodeArenaContent() {
     fetchActivities();
   };
 
-  const getActivityStats = () => {
+  // Memoize heavy calculations to prevent re-computation on every render
+  const activityStats = useMemo(() => {
     const total = activities.length;
     const completed = activities.filter(
       (a) => a.userProgress?.completed
@@ -501,40 +435,39 @@ function CodeArenaContent() {
       earnedDiamonds,
       percentage: total > 0 ? Math.round((completed / total) * 100) : 0,
     };
-  };
+  }, [activities]);
 
-  const getCategoryProgress = (category: string) => {
-    const categoryActivities = groupedActivities[category] || [];
-    const completed = categoryActivities.filter(
-      (a) => a.userProgress?.completed
-    ).length;
-    const total = categoryActivities.length;
+  const getCategoryProgress = useCallback(
+    (category: string) => {
+      const categoryActivities = groupedActivities[category] || [];
+      const completed = categoryActivities.filter(
+        (a) => a.userProgress?.completed
+      ).length;
+      const total = categoryActivities.length;
 
-    return {
-      completed,
-      total,
-      percentage: total > 0 ? Math.round((completed / total) * 100) : 0,
-    };
-  };
+      return {
+        completed,
+        total,
+        percentage: total > 0 ? Math.round((completed / total) * 100) : 0,
+      };
+    },
+    [groupedActivities]
+  );
 
   if (loading || configLoading || !config) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50">
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="text-center"
-        >
+        <div className="text-center">
           <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
           <p className="mt-4 text-lg text-slate-600">
             Loading your coding adventure...
           </p>
-        </motion.div>
+        </div>
       </div>
     );
   }
 
-  const stats = getActivityStats();
+  const stats = activityStats;
   const { difficultyConfigs, categoryConfigs, activityTypeConfigs, uiConfig } =
     config;
 
@@ -556,141 +489,265 @@ function CodeArenaContent() {
         </div>
       )}
 
-      {/* View Mode Toggle Bar */}
-      <div className="sticky top-32 z-30 border-b border-indigo-200/50 bg-white/95 backdrop-blur-xl">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            {/* View Mode Toggle */}
-            <div className="flex items-center space-x-1 rounded-2xl bg-gradient-to-r from-slate-100 to-slate-200 p-1 shadow-inner">
-              <button
-                onClick={() => setViewMode("path")}
-                className={`flex items-center space-x-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
-                  viewMode === "path"
-                    ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg"
-                    : "text-slate-600 hover:bg-white hover:text-indigo-600 hover:shadow-md"
-                }`}
-              >
-                <Map className="h-4 w-4" />
-                <span className="hidden sm:inline">Learning Path</span>
-              </button>
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`flex items-center space-x-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
-                  viewMode === "grid"
-                    ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg"
-                    : "text-slate-600 hover:bg-white hover:text-indigo-600 hover:shadow-md"
-                }`}
-              >
-                <BarChart3 className="h-4 w-4" />
-                <span className="hidden sm:inline">All Activities</span>
-              </button>
-              <button
-                onClick={() => setViewMode("categories")}
-                className={`flex items-center space-x-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
-                  viewMode === "categories"
-                    ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg"
-                    : "text-slate-600 hover:bg-white hover:text-indigo-600 hover:shadow-md"
-                }`}
-              >
-                <BookOpen className="h-4 w-4" />
-                <span className="hidden sm:inline">Categories</span>
-              </button>
-            </div>
-
-            {/* Topic Selector & Filter Button */}
-            <div className="flex items-center space-x-4">
-              {/* Topic Selector */}
-              <div className="flex items-center space-x-3">
-                <label
-                  htmlFor="topic-select"
-                  className="text-sm font-medium text-slate-700"
-                >
-                  Topic:
-                </label>
-                <select
-                  id="topic-select"
-                  value={selectedTopic}
-                  onChange={(e) => setSelectedTopic(e.target.value)}
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                >
-                  <option value="Python Fundamentals">
-                    🐍 Python Fundamentals
-                  </option>
-                  <option value="Data Structures">📊 Data Structures</option>
-                  <option value="Algorithms">🧮 Algorithms</option>
-                  <option value="Functions & OOP">🏗️ Functions & OOP</option>
-                  <option value="Web Development">🌐 Web Development</option>
-                  <option value="Data Science">📈 Data Science</option>
-                </select>
-
-                {/* Activity count */}
-                <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
-                  {activities.length} activities
-                </span>
-              </div>
-
-              {/* Filter Button */}
-              {uiConfig.showFilters && (
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="rounded-xl bg-gradient-to-r from-slate-100 to-slate-200 p-3 text-slate-600 shadow-lg transition-all hover:scale-105 hover:shadow-xl"
-                >
-                  <Filter className="h-5 w-5" />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Enhanced Hero Section */}
+      {/* Enhanced Hero Section with Integrated Topic Selection */}
       <section
         className={`relative overflow-hidden bg-gradient-to-br ${uiConfig.headerGradient} py-20`}
       >
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-30"></div>
-        {uiConfig.enableAnimations && (
+        {enableAnimations && uiConfig.enableAnimations && (
           <div className="absolute inset-0">
-            <div className="absolute left-1/4 top-1/4 h-96 w-96 animate-pulse rounded-full bg-cyan-400/30 blur-3xl"></div>
-            <div className="absolute bottom-1/4 right-1/4 h-96 w-96 animate-pulse rounded-full bg-pink-400/30 blur-3xl"></div>
-            <div className="absolute left-1/2 top-1/2 h-64 w-64 animate-bounce rounded-full bg-yellow-400/20 blur-2xl"></div>
+            <div className="absolute left-1/4 top-1/4 h-96 w-96 animate-pulse rounded-full bg-cyan-400/20 blur-3xl"></div>
+            <div className="absolute bottom-1/4 right-1/4 h-96 w-96 animate-pulse rounded-full bg-pink-400/20 blur-3xl"></div>
           </div>
         )}
 
         <div className="relative mx-auto max-w-7xl px-4 text-center text-white sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="mb-6 flex justify-center">
-              <div className="rounded-3xl bg-gradient-to-r from-yellow-400 to-orange-400 px-6 py-2 text-sm font-black text-purple-900 shadow-2xl">
-                🚀 INTERACTIVE CODING CHALLENGES
-              </div>
-            </div>
-            <h1 className="mb-8 text-5xl font-black md:text-7xl">
-              <span className="block bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent drop-shadow-2xl">
-                {uiConfig.heroTitle}
-              </span>
-              <span className="block bg-gradient-to-r from-yellow-300 via-orange-300 to-red-300 bg-clip-text text-transparent drop-shadow-2xl">
-                {uiConfig.heroSubtitle}
-              </span>
-            </h1>
-            <p className="mx-auto mb-10 max-w-3xl text-xl font-medium text-indigo-100">
-              {uiConfig.heroDescription.replace(
-                "{stats.total}",
-                stats.total.toString()
-              )}
-            </p>
-          </motion.div>
-
-          {/* Quick Stats */}
-          {uiConfig.showStats && (
+          {enableAnimations ? (
             <motion.div
-              initial={{ y: 30, opacity: 0 }}
+              initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="mx-auto grid max-w-5xl grid-cols-2 gap-6 md:grid-cols-4"
+              transition={{ duration: 0.6, ease: "easeOut" }}
             >
+              <div className="mb-6 flex justify-center">
+                <div className="rounded-3xl bg-gradient-to-r from-yellow-400 to-orange-400 px-6 py-2 text-sm font-black text-purple-900 shadow-2xl">
+                  🚀 INTERACTIVE CODING CHALLENGES
+                </div>
+              </div>
+              <h1 className="mb-8 text-5xl font-black md:text-7xl">
+                <span className="block bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent drop-shadow-2xl">
+                  {uiConfig.heroTitle}
+                </span>
+                <span className="block bg-gradient-to-r from-yellow-300 via-orange-300 to-red-300 bg-clip-text text-transparent drop-shadow-2xl">
+                  {uiConfig.heroSubtitle}
+                </span>
+              </h1>
+
+              {/* Integrated Topic Selection */}
+              <div className="mb-8 flex flex-col items-center space-y-6 md:flex-row md:justify-center md:space-x-8 md:space-y-0">
+                {/* Topic Selector */}
+                <div className="flex items-center space-x-4">
+                  <span className="text-xl font-bold text-white">
+                    Choose Your Path:
+                  </span>
+                  <div className="relative">
+                    <select
+                      value={selectedTopic}
+                      onChange={(e) => setSelectedTopic(e.target.value)}
+                      className="hover:shadow-3xl appearance-none rounded-3xl border-2 border-white/30 bg-slate-800 px-8 py-4 pr-16 text-xl font-bold text-white shadow-2xl backdrop-blur-xl transition-all hover:border-white/50 focus:border-white/70 focus:outline-none focus:ring-4 focus:ring-white/30"
+                    >
+                      <option
+                        value="Python Fundamentals"
+                        style={{ backgroundColor: "#1e293b", color: "white" }}
+                      >
+                        🐍 Python Fundamentals
+                      </option>
+                      <option
+                        value="Data Structures"
+                        style={{ backgroundColor: "#1e293b", color: "white" }}
+                      >
+                        📊 Data Structures
+                      </option>
+                      <option
+                        value="Algorithms"
+                        style={{ backgroundColor: "#1e293b", color: "white" }}
+                      >
+                        🧮 Algorithms
+                      </option>
+                      <option
+                        value="Functions & OOP"
+                        style={{ backgroundColor: "#1e293b", color: "white" }}
+                      >
+                        🏗️ Functions & OOP
+                      </option>
+                      <option
+                        value="Web Development"
+                        style={{ backgroundColor: "#1e293b", color: "white" }}
+                      >
+                        🌐 Web Development
+                      </option>
+                      <option
+                        value="Data Science"
+                        style={{ backgroundColor: "#1e293b", color: "white" }}
+                      >
+                        📈 Data Science
+                      </option>
+                    </select>
+                    <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
+                      <svg
+                        className="h-6 w-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Activity count and Filter */}
+                <div className="flex items-center space-x-4">
+                  <div className="rounded-3xl border border-white/30 bg-gradient-to-r from-white/20 to-white/10 px-6 py-3 text-white shadow-2xl backdrop-blur-xl">
+                    <span className="text-xl font-black">
+                      {activities.length}
+                    </span>
+                    <span className="ml-2 text-sm font-medium opacity-90">
+                      challenges
+                    </span>
+                  </div>
+
+                  {uiConfig.showFilters && (
+                    <button
+                      onClick={() => setShowFilters(!showFilters)}
+                      className={`hover:shadow-3xl rounded-3xl p-4 shadow-2xl transition-all hover:scale-105 ${
+                        showFilters
+                          ? "border-2 border-white/50 bg-gradient-to-r from-white/30 to-white/20 text-white"
+                          : "border-2 border-white/20 bg-gradient-to-r from-white/10 to-white/5 text-white/80"
+                      } backdrop-blur-xl`}
+                    >
+                      <Filter className="h-6 w-6" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Dynamic description based on selected topic */}
+              <p className="mx-auto mb-10 max-w-3xl text-xl font-medium text-indigo-100">
+                {categoryConfigs[selectedTopic]
+                  ? `${categoryConfigs[selectedTopic].description} - ${uiConfig.heroDescription}`
+                  : uiConfig.heroDescription.replace(
+                      "{stats.total}",
+                      stats.total.toString()
+                    )}
+              </p>
+            </motion.div>
+          ) : (
+            <div>
+              <div className="mb-6 flex justify-center">
+                <div className="rounded-3xl bg-gradient-to-r from-yellow-400 to-orange-400 px-6 py-2 text-sm font-black text-purple-900 shadow-2xl">
+                  🚀 INTERACTIVE CODING CHALLENGES
+                </div>
+              </div>
+              <h1 className="mb-8 text-5xl font-black md:text-7xl">
+                <span className="block bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent drop-shadow-2xl">
+                  {uiConfig.heroTitle}
+                </span>
+                <span className="block bg-gradient-to-r from-yellow-300 via-orange-300 to-red-300 bg-clip-text text-transparent drop-shadow-2xl">
+                  {uiConfig.heroSubtitle}
+                </span>
+              </h1>
+
+              {/* Integrated Topic Selection - Non-animated */}
+              <div className="mb-8 flex flex-col items-center space-y-6 md:flex-row md:justify-center md:space-x-8 md:space-y-0">
+                <div className="flex items-center space-x-4">
+                  <span className="text-xl font-bold text-white">
+                    Choose Your Path:
+                  </span>
+                  <div className="relative">
+                    <select
+                      value={selectedTopic}
+                      onChange={(e) => setSelectedTopic(e.target.value)}
+                      className="hover:shadow-3xl appearance-none rounded-3xl border-2 border-white/30 bg-slate-800 px-8 py-4 pr-16 text-xl font-bold text-white shadow-2xl backdrop-blur-xl transition-all hover:border-white/50 focus:border-white/70 focus:outline-none focus:ring-4 focus:ring-white/30"
+                    >
+                      <option
+                        value="Python Fundamentals"
+                        style={{ backgroundColor: "#1e293b", color: "white" }}
+                      >
+                        🐍 Python Fundamentals
+                      </option>
+                      <option
+                        value="Data Structures"
+                        style={{ backgroundColor: "#1e293b", color: "white" }}
+                      >
+                        📊 Data Structures
+                      </option>
+                      <option
+                        value="Algorithms"
+                        style={{ backgroundColor: "#1e293b", color: "white" }}
+                      >
+                        🧮 Algorithms
+                      </option>
+                      <option
+                        value="Functions & OOP"
+                        style={{ backgroundColor: "#1e293b", color: "white" }}
+                      >
+                        🏗️ Functions & OOP
+                      </option>
+                      <option
+                        value="Web Development"
+                        style={{ backgroundColor: "#1e293b", color: "white" }}
+                      >
+                        🌐 Web Development
+                      </option>
+                      <option
+                        value="Data Science"
+                        style={{ backgroundColor: "#1e293b", color: "white" }}
+                      >
+                        📈 Data Science
+                      </option>
+                    </select>
+                    <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
+                      <svg
+                        className="h-6 w-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-4">
+                  <div className="rounded-3xl border border-white/30 bg-gradient-to-r from-white/20 to-white/10 px-6 py-3 text-white shadow-2xl backdrop-blur-xl">
+                    <span className="text-xl font-black">
+                      {activities.length}
+                    </span>
+                    <span className="ml-2 text-sm font-medium opacity-90">
+                      challenges
+                    </span>
+                  </div>
+
+                  {uiConfig.showFilters && (
+                    <button
+                      onClick={() => setShowFilters(!showFilters)}
+                      className={`hover:shadow-3xl rounded-3xl p-4 shadow-2xl transition-all hover:scale-105 ${
+                        showFilters
+                          ? "border-2 border-white/50 bg-gradient-to-r from-white/30 to-white/20 text-white"
+                          : "border-2 border-white/20 bg-gradient-to-r from-white/10 to-white/5 text-white/80"
+                      } backdrop-blur-xl`}
+                    >
+                      <Filter className="h-6 w-6" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <p className="mx-auto mb-10 max-w-3xl text-xl font-medium text-indigo-100">
+                {categoryConfigs[selectedTopic]
+                  ? `${categoryConfigs[selectedTopic].description} - ${uiConfig.heroDescription}`
+                  : uiConfig.heroDescription.replace(
+                      "{stats.total}",
+                      stats.total.toString()
+                    )}
+              </p>
+            </div>
+          )}
+
+          {/* Topic-Specific Stats */}
+          {uiConfig.showStats && (
+            <div className="mx-auto grid max-w-5xl grid-cols-2 gap-6 md:grid-cols-4">
               <div className="rounded-3xl border border-white/30 bg-gradient-to-br from-white/20 to-white/5 p-6 shadow-2xl backdrop-blur-xl">
                 <div className="text-4xl font-black text-yellow-300">
                   {stats.total}
@@ -717,18 +774,19 @@ function CodeArenaContent() {
                 </div>
                 <div className="text-sm font-bold text-cyan-200">Domains</div>
               </div>
-            </motion.div>
+            </div>
           )}
         </div>
       </section>
 
       {/* Filters Section */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {showFilters && uiConfig.showFilters && (
           <motion.section
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
             className="overflow-hidden border-b border-slate-200 bg-white"
           >
             <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -865,438 +923,52 @@ function CodeArenaContent() {
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Learning Path View */}
-        {viewMode === "path" && (
-          <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="mb-2 text-3xl font-bold text-slate-900">
-                Your Learning Journey
-              </h2>
-              <p className="text-lg text-slate-600">
-                Follow the structured path to master programming concepts
-              </p>
+        <Suspense
+          fallback={
+            <div className="space-y-4">
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={i}
+                  className="h-20 animate-pulse rounded-2xl bg-slate-200"
+                ></div>
+              ))}
             </div>
-
-            {Object.entries(groupedActivities).map(
-              ([category, categoryActivities], categoryIndex) => {
-                const progress = getCategoryProgress(category);
-                const configData = categoryConfigs[category] || {
-                  title: category,
-                  description: "Programming challenges",
-                  icon: "💻",
-                  gradient: "from-slate-500 to-slate-600",
-                  bgGradient: "from-slate-50 to-slate-50",
-                  iconBg: "bg-slate-500",
-                };
+          }
+        >
+          <div className="space-y-4">
+            {activities
+              .filter(
+                (activity) =>
+                  activity.title
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase()) ||
+                  activity.description
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase())
+              )
+              .map((activity, index) => {
+                const difficultyConfig =
+                  difficultyConfigs[activity.difficulty] ||
+                  difficultyConfigs[1];
+                const activityTypeConfig =
+                  activityTypeConfigs[activity.activityType] ||
+                  activityTypeConfigs.quiz;
 
                 return (
-                  <motion.section
-                    key={category}
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: categoryIndex * 0.1 }}
-                    className="rounded-3xl border border-indigo-100 bg-gradient-to-br from-white via-slate-50 to-indigo-50 p-8 shadow-2xl"
-                  >
-                    {/* Category Header */}
-                    <div
-                      className="group mb-6 flex cursor-pointer items-center justify-between"
-                      onClick={() =>
-                        setExpandedCategories((prev) => ({
-                          ...prev,
-                          [category]: !prev[category],
-                        }))
-                      }
-                    >
-                      <div className="flex items-center space-x-6">
-                        <div
-                          className={`h-20 w-20 rounded-3xl ${configData.iconBg} flex items-center justify-center text-3xl text-white shadow-2xl transition-transform duration-300 group-hover:scale-110`}
-                        >
-                          {configData.icon}
-                        </div>
-                        <div>
-                          <h3 className="text-3xl font-black text-slate-900 transition-colors group-hover:text-indigo-600">
-                            {configData.title}
-                          </h3>
-                          <p className="text-lg font-medium text-slate-600">
-                            {configData.description}
-                          </p>
-                          <div className="mt-3 flex items-center space-x-6">
-                            <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-bold text-slate-700">
-                              {progress.completed}/{progress.total} completed
-                            </span>
-                            <div className="h-3 w-40 rounded-full bg-slate-200 shadow-inner">
-                              <div
-                                className={`h-3 rounded-full bg-gradient-to-r ${configData.gradient} shadow-lg transition-all duration-500`}
-                                style={{ width: `${progress.percentage}%` }}
-                              />
-                            </div>
-                            <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-lg font-black text-slate-900 text-transparent">
-                              {progress.percentage}%
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 p-3">
-                        <ChevronDown
-                          className={`h-6 w-6 text-indigo-600 transition-transform ${expandedCategories[category] ? "rotate-180" : ""}`}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Activities */}
-                    <AnimatePresence>
-                      {expandedCategories[category] && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
-                        >
-                          {categoryActivities.map((activity, index) => {
-                            const difficultyConfig =
-                              difficultyConfigs[activity.difficulty] ||
-                              difficultyConfigs[1];
-                            const activityTypeConfig =
-                              activityTypeConfigs[activity.activityType] ||
-                              activityTypeConfigs.quiz;
-
-                            return (
-                              <motion.div
-                                key={activity.id}
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                transition={{ delay: index * 0.05 }}
-                                className="group rounded-3xl border-2 border-transparent bg-gradient-to-br from-white via-slate-50 to-indigo-50 p-6 transition-all duration-300 hover:scale-105 hover:border-indigo-300 hover:shadow-2xl"
-                              >
-                                {/* Activity content - same as grid view */}
-                                <div className="mb-4 flex items-start justify-between">
-                                  <div
-                                    className={`h-16 w-16 rounded-2xl ${difficultyConfig.bgColor} flex items-center justify-center text-2xl shadow-xl transition-transform group-hover:scale-110`}
-                                  >
-                                    {difficultyConfig.icon}
-                                  </div>
-                                  {activity.userProgress?.completed && (
-                                    <div className="rounded-full bg-gradient-to-r from-green-400 to-emerald-500 p-2 text-white shadow-lg">
-                                      <CheckCircle className="h-5 w-5" />
-                                    </div>
-                                  )}
-                                </div>
-
-                                <h4 className="mb-3 text-xl font-black text-slate-900 transition-colors group-hover:text-indigo-600">
-                                  {activity.title}
-                                </h4>
-
-                                <p className="mb-5 line-clamp-2 text-base font-medium text-slate-600">
-                                  {activity.description}
-                                </p>
-
-                                <div className="mb-5 flex items-center justify-between">
-                                  <span
-                                    className={`rounded-2xl px-4 py-2 text-sm font-bold ${activityTypeConfig.color} bg-gradient-to-r from-slate-100 to-slate-200 shadow-md`}
-                                  >
-                                    {activityTypeConfig.icon}{" "}
-                                    {activityTypeConfig.name}
-                                  </span>
-                                  <span
-                                    className={`rounded-2xl px-4 py-2 text-sm font-bold ${difficultyConfig.textColor} ${difficultyConfig.bgColor} ${difficultyConfig.borderColor} border-2 shadow-md`}
-                                  >
-                                    {difficultyConfig.label}
-                                  </span>
-                                </div>
-
-                                <div className="mb-5 grid grid-cols-3 gap-3 text-sm">
-                                  <div className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-yellow-100 to-orange-100 p-2">
-                                    <Diamond className="h-5 w-5 text-yellow-600" />
-                                    <span className="font-black text-yellow-700">
-                                      +{activity.diamondReward}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-purple-100 to-pink-100 p-2">
-                                    <Star className="h-5 w-5 text-purple-600" />
-                                    <span className="font-black text-purple-700">
-                                      +{activity.experienceReward} XP
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-slate-100 to-slate-200 p-2">
-                                    <Clock className="h-5 w-5 text-slate-600" />
-                                    <span className="font-black text-slate-700">
-                                      {activity.estimatedMinutes}m
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {activity.userProgress && (
-                                  <div className="mb-5">
-                                    <div className="h-3 rounded-full bg-slate-200 shadow-inner">
-                                      <div
-                                        className={`h-3 rounded-full shadow-lg transition-all duration-500 ${
-                                          activity.userProgress.completed
-                                            ? "bg-gradient-to-r from-green-400 to-emerald-500"
-                                            : "bg-gradient-to-r from-blue-400 to-indigo-500"
-                                        }`}
-                                        style={{
-                                          width: `${activity.userProgress.percentage}%`,
-                                        }}
-                                      />
-                                    </div>
-                                  </div>
-                                )}
-
-                                <button
-                                  onClick={() => launchActivity(activity)}
-                                  className={`flex w-full transform items-center justify-center space-x-3 rounded-2xl py-4 text-lg font-black transition-all hover:scale-105 ${
-                                    activity.userProgress?.completed
-                                      ? "bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-xl hover:shadow-2xl"
-                                      : "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-xl hover:shadow-2xl"
-                                  }`}
-                                >
-                                  {activity.userProgress?.completed ? (
-                                    <>
-                                      <Trophy className="h-5 w-5" />
-                                      <span>🏆 REVIEW</span>
-                                    </>
-                                  ) : activity.userProgress ? (
-                                    <>
-                                      <Play className="h-5 w-5" />
-                                      <span>⚡ CONTINUE</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Rocket className="h-5 w-5" />
-                                      <span>🚀 START CHALLENGE</span>
-                                    </>
-                                  )}
-                                </button>
-                              </motion.div>
-                            );
-                          })}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.section>
+                  <ActivityCard
+                    key={activity.id}
+                    activity={activity}
+                    difficultyConfig={difficultyConfig}
+                    activityTypeConfig={activityTypeConfig}
+                    onLaunch={launchActivity}
+                    index={index}
+                    enableAnimations={enableAnimations}
+                    layout="horizontal"
+                  />
                 );
-              }
-            )}
+              })}
           </div>
-        )}
-
-        {/* Grid View */}
-        {viewMode === "grid" && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="mb-2 text-3xl font-bold text-slate-900">
-                All Activities
-              </h2>
-              <p className="text-lg text-slate-600">
-                Browse all available coding challenges
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {activities
-                .filter(
-                  (activity) =>
-                    activity.title
-                      .toLowerCase()
-                      .includes(searchTerm.toLowerCase()) ||
-                    activity.description
-                      .toLowerCase()
-                      .includes(searchTerm.toLowerCase())
-                )
-                .map((activity, index) => {
-                  const difficultyConfig =
-                    difficultyConfigs[activity.difficulty] ||
-                    difficultyConfigs[1];
-                  const activityTypeConfig =
-                    activityTypeConfigs[activity.activityType] ||
-                    activityTypeConfigs.quiz;
-
-                  return (
-                    <motion.div
-                      key={activity.id}
-                      initial={{ scale: 0.9, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="group rounded-3xl border-2 border-transparent bg-gradient-to-br from-white via-slate-50 to-indigo-50 p-6 transition-all duration-300 hover:scale-105 hover:border-indigo-300 hover:shadow-2xl"
-                    >
-                      {/* Enhanced activity card content */}
-                      <div className="mb-4 flex items-start justify-between">
-                        <div
-                          className={`h-16 w-16 rounded-2xl ${difficultyConfig.bgColor} flex items-center justify-center text-2xl shadow-xl transition-transform group-hover:scale-110`}
-                        >
-                          {difficultyConfig.icon}
-                        </div>
-                        {activity.userProgress?.completed && (
-                          <div className="rounded-full bg-gradient-to-r from-green-400 to-emerald-500 p-2 text-white shadow-lg">
-                            <CheckCircle className="h-5 w-5" />
-                          </div>
-                        )}
-                      </div>
-
-                      <h4 className="mb-3 text-xl font-black text-slate-900 transition-colors group-hover:text-indigo-600">
-                        {activity.title}
-                      </h4>
-
-                      <p className="mb-5 line-clamp-2 text-base font-medium text-slate-600">
-                        {activity.description}
-                      </p>
-
-                      <div className="mb-5 flex items-center justify-between">
-                        <span
-                          className={`rounded-2xl px-4 py-2 text-sm font-bold ${activityTypeConfig.color} bg-gradient-to-r from-slate-100 to-slate-200 shadow-md`}
-                        >
-                          {activityTypeConfig.icon} {activityTypeConfig.name}
-                        </span>
-                        <span
-                          className={`rounded-2xl px-4 py-2 text-sm font-bold ${difficultyConfig.textColor} ${difficultyConfig.bgColor} ${difficultyConfig.borderColor} border-2 shadow-md`}
-                        >
-                          {difficultyConfig.label}
-                        </span>
-                      </div>
-
-                      <div className="mb-5 grid grid-cols-3 gap-3 text-sm">
-                        <div className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-yellow-100 to-orange-100 p-2">
-                          <Diamond className="h-5 w-5 text-yellow-600" />
-                          <span className="font-black text-yellow-700">
-                            +{activity.diamondReward}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-purple-100 to-pink-100 p-2">
-                          <Star className="h-5 w-5 text-purple-600" />
-                          <span className="font-black text-purple-700">
-                            +{activity.experienceReward} XP
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-slate-100 to-slate-200 p-2">
-                          <Clock className="h-5 w-5 text-slate-600" />
-                          <span className="font-black text-slate-700">
-                            {activity.estimatedMinutes}m
-                          </span>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => launchActivity(activity)}
-                        className={`flex w-full transform items-center justify-center space-x-3 rounded-2xl py-4 text-lg font-black transition-all hover:scale-105 ${
-                          activity.userProgress?.completed
-                            ? "bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-xl hover:shadow-2xl"
-                            : "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white shadow-xl hover:shadow-2xl"
-                        }`}
-                      >
-                        {activity.userProgress?.completed ? (
-                          <>
-                            <Trophy className="h-5 w-5" />
-                            <span>🏆 REVIEW</span>
-                          </>
-                        ) : (
-                          <>
-                            <Rocket className="h-5 w-5" />
-                            <span>🚀 START CHALLENGE</span>
-                          </>
-                        )}
-                      </button>
-                    </motion.div>
-                  );
-                })}
-            </div>
-          </div>
-        )}
-
-        {/* Categories View */}
-        {viewMode === "categories" && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="mb-2 text-3xl font-bold text-slate-900">
-                Learning Categories
-              </h2>
-              <p className="text-lg text-slate-600">
-                Explore different programming topics
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {Object.entries(groupedActivities).map(
-                ([category, categoryActivities], index) => {
-                  const progress = getCategoryProgress(category);
-                  const configData = categoryConfigs[category] || {
-                    title: category,
-                    description: "Programming challenges",
-                    icon: "💻",
-                    gradient: "from-slate-500 to-slate-600",
-                    bgGradient: "from-slate-50 to-slate-50",
-                    iconBg: "bg-slate-500",
-                  };
-
-                  return (
-                    <motion.div
-                      key={category}
-                      initial={{ y: 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: index * 0.1 }}
-                      className={`relative overflow-hidden rounded-3xl bg-gradient-to-br p-8 ${configData.bgGradient} group cursor-pointer border-2 border-indigo-200 transition-all duration-300 hover:scale-105 hover:shadow-2xl`}
-                      onClick={() => setSelectedTopic(category)}
-                    >
-                      <div className="mb-6 flex items-start justify-between">
-                        <div
-                          className={`h-20 w-20 rounded-3xl ${configData.iconBg} flex items-center justify-center text-3xl text-white shadow-2xl transition-transform group-hover:rotate-12 group-hover:scale-110`}
-                        >
-                          {configData.icon}
-                        </div>
-                        <div className="text-right">
-                          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-4xl font-black text-transparent">
-                            {progress.percentage}%
-                          </div>
-                          <div className="rounded-full bg-slate-100 px-2 py-1 text-sm font-bold text-slate-700">
-                            Complete
-                          </div>
-                        </div>
-                      </div>
-
-                      <h3 className="mb-3 text-3xl font-black text-slate-900 transition-colors group-hover:text-indigo-600">
-                        {configData.title}
-                      </h3>
-                      <p className="mb-6 text-lg font-medium text-slate-600">
-                        {configData.description}
-                      </p>
-
-                      <div className="space-y-5">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="rounded-full bg-slate-100 px-3 py-1 font-bold text-slate-700">
-                            {progress.completed}/{progress.total} activities
-                          </span>
-                          <div className="flex items-center space-x-2 rounded-full bg-gradient-to-r from-yellow-100 to-orange-100 px-3 py-1">
-                            <Diamond className="h-5 w-5 text-yellow-600" />
-                            <span className="font-black text-yellow-700">
-                              {categoryActivities.reduce(
-                                (sum, a) => sum + a.diamondReward,
-                                0
-                              )}{" "}
-                              diamonds
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="h-4 w-full rounded-full bg-white/70 shadow-inner">
-                          <div
-                            className={`h-4 rounded-full bg-gradient-to-r ${configData.gradient} shadow-lg transition-all duration-500`}
-                            style={{ width: `${progress.percentage}%` }}
-                          />
-                        </div>
-
-                        <button className="flex w-full items-center justify-center space-x-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-500 py-4 text-lg font-black text-white shadow-xl transition-all hover:scale-105 hover:shadow-2xl">
-                          <span>
-                            🎯 Explore {categoryActivities.length} Activities
-                          </span>
-                          <ArrowRight className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </motion.div>
-                  );
-                }
-              )}
-            </div>
-          </div>
-        )}
+        </Suspense>
 
         {/* No activities message */}
         {activities.length === 0 && !loading && (
@@ -1353,101 +1025,121 @@ function CodeArenaContent() {
               </header>
 
               <div className="max-h-[calc(90vh-100px)] overflow-y-auto">
-                <ActivityRenderer
-                  activity={selectedActivity}
-                  onComplete={async (score, timeSpent, success) => {
-                    // Handle activity completion with enhanced API
-                    console.log("Activity completed:", {
-                      score,
-                      timeSpent,
-                      success,
-                    });
+                <Suspense
+                  fallback={
+                    <div className="flex h-64 items-center justify-center">
+                      <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                    </div>
+                  }
+                >
+                  <ActivityRenderer
+                    activity={selectedActivity}
+                    onComplete={async (score, timeSpent, success) => {
+                      // Handle activity completion with enhanced API
+                      console.log("Activity completed:", {
+                        score,
+                        timeSpent,
+                        success,
+                      });
 
-                    try {
-                      // Call enhanced completion API
-                      const response = await fetch(
-                        "/api/learning-activities/complete",
-                        {
-                          method: "POST",
-                          headers: {
-                            "Content-Type": "application/json",
-                          },
-                          body: JSON.stringify({
-                            activityType: "learning_activity",
-                            activityId: selectedActivity.id,
-                            score: score,
-                            timeSpent: timeSpent,
-                            diamondReward: selectedActivity.diamondReward,
-                            experienceReward: selectedActivity.experienceReward,
-                            activityTitle: selectedActivity.title,
-                          }),
-                        }
-                      );
-
-                      if (response.ok) {
-                        const completionData = await response.json();
-                        console.log(
-                          "✅ Activity completion response:",
-                          completionData
+                      try {
+                        // Call enhanced completion API
+                        const response = await fetch(
+                          "/api/learning-activities/complete",
+                          {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                              activityType: "learning_activity",
+                              activityId: selectedActivity.id,
+                              score: score,
+                              timeSpent: timeSpent,
+                              diamondReward: selectedActivity.diamondReward,
+                              experienceReward:
+                                selectedActivity.experienceReward,
+                              activityTitle: selectedActivity.title,
+                            }),
+                          }
                         );
 
-                        // Prepare reward data for claim button - fix response mapping
-                        const rewardData = {
-                          diamonds:
-                            completionData.rewards?.diamonds ||
-                            selectedActivity.diamondReward,
-                          experience:
-                            completionData.rewards?.experience ||
-                            selectedActivity.experienceReward,
-                          levelUp: completionData.rewards?.levelUp || false,
-                          newLevel: completionData.rewards?.newLevel,
-                          badges: completionData.rewards?.badges || [],
-                          activityTitle: selectedActivity.title,
-                          score: score,
-                        };
-
-                        console.log("🎁 Prepared reward data:", rewardData);
-                        console.log(
-                          "🔍 showRewardButton state before:",
-                          showRewardButton
-                        );
-
-                        // Show reward claim button - direct state update
-                        setRewardClaimData(rewardData);
-                        setShowRewardButton(true);
-
-                        // Check state after React state update
-                        setTimeout(() => {
+                        if (response.ok) {
+                          const completionData = await response.json();
                           console.log(
-                            "🔍 showRewardButton state after timeout:",
+                            "✅ Activity completion response:",
+                            completionData
+                          );
+
+                          // Prepare reward data for claim button - fix response mapping
+                          const rewardData = {
+                            diamonds:
+                              completionData.rewards?.diamonds ||
+                              selectedActivity.diamondReward,
+                            experience:
+                              completionData.rewards?.experience ||
+                              selectedActivity.experienceReward,
+                            levelUp: completionData.rewards?.levelUp || false,
+                            newLevel: completionData.rewards?.newLevel,
+                            badges: completionData.rewards?.badges || [],
+                            activityTitle: selectedActivity.title,
+                            score: score,
+                          };
+
+                          console.log("🎁 Prepared reward data:", rewardData);
+                          console.log(
+                            "🔍 showRewardButton state before:",
                             showRewardButton
                           );
-                          console.log(
-                            "🔍 rewardClaimData after timeout:",
-                            rewardClaimData
-                          );
-                        }, 100);
 
-                        // Store completion data for later use when claiming rewards
-                        (window as any)._pendingCompletionData = completionData;
+                          // Show reward claim button - direct state update
+                          setRewardClaimData(rewardData);
+                          setShowRewardButton(true);
 
-                        // Show completion message
-                        if (success) {
-                          setShowSuccessMessage(
-                            `🎉 Great job! You scored ${score}%! Click the reward button to claim your rewards!`
-                          );
+                          // Check state after React state update
+                          setTimeout(() => {
+                            console.log(
+                              "🔍 showRewardButton state after timeout:",
+                              showRewardButton
+                            );
+                            console.log(
+                              "🔍 rewardClaimData after timeout:",
+                              rewardClaimData
+                            );
+                          }, 100);
+
+                          // Store completion data for later use when claiming rewards
+                          (window as any)._pendingCompletionData =
+                            completionData;
+
+                          // Show completion message
+                          if (success) {
+                            setShowSuccessMessage(
+                              `🎉 Great job! You scored ${score}%! Click the reward button to claim your rewards!`
+                            );
+                          } else {
+                            setShowSuccessMessage(
+                              `Good effort! You scored ${score}%. Click the reward button to claim your rewards!`
+                            );
+                          }
+
+                          // Close the activity but keep reward claim visible
+                          setTimeout(() => {
+                            closeActivity();
+                          }, 2000);
                         } else {
+                          // Fallback to basic message if API fails
                           setShowSuccessMessage(
-                            `Good effort! You scored ${score}%. Click the reward button to claim your rewards!`
+                            `Activity completed with ${score}% score!`
                           );
+                          setTimeout(() => {
+                            closeActivity();
+                            setShowSuccessMessage("");
+                          }, 3000);
                         }
-
-                        // Close the activity but keep reward claim visible
-                        setTimeout(() => {
-                          closeActivity();
-                        }, 2000);
-                      } else {
-                        // Fallback to basic message if API fails
+                      } catch (error) {
+                        console.error("Error completing activity:", error);
+                        // Fallback to basic message
                         setShowSuccessMessage(
                           `Activity completed with ${score}% score!`
                         );
@@ -1456,19 +1148,9 @@ function CodeArenaContent() {
                           setShowSuccessMessage("");
                         }, 3000);
                       }
-                    } catch (error) {
-                      console.error("Error completing activity:", error);
-                      // Fallback to basic message
-                      setShowSuccessMessage(
-                        `Activity completed with ${score}% score!`
-                      );
-                      setTimeout(() => {
-                        closeActivity();
-                        setShowSuccessMessage("");
-                      }, 3000);
-                    }
-                  }}
-                />
+                    }}
+                  />
+                </Suspense>
               </div>
             </motion.div>
           </motion.div>

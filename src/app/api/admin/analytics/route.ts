@@ -278,22 +278,28 @@ export async function GET(request: NextRequest) {
     ]);
 
     // **USER ENGAGEMENT TIMELINE**
-    const engagementTimeline = await prisma.$queryRaw`
+    const rawEngagementTimeline = await prisma.$queryRaw`
       SELECT
-        DATE(created_at) as date,
-        COUNT(CASE WHEN created_at IS NOT NULL THEN 1 END) as daily_activities
+        DATE(activity_date) as date,
+        COUNT(CASE WHEN activity_date IS NOT NULL THEN 1 END) as daily_activities
       FROM (
-        SELECT created_at FROM quiz_attempts WHERE completed_at >= ${thirtyDaysAgo}
+        SELECT "completedAt" as activity_date FROM "quiz_attempts" WHERE "completedAt" >= ${thirtyDaysAgo}
         UNION ALL
-        SELECT completed_at as created_at FROM code_arena_progress WHERE completed_at >= ${thirtyDaysAgo} AND is_completed = true
+        SELECT "completedAt" as activity_date FROM "code_arena_progress" WHERE "completedAt" >= ${thirtyDaysAgo} AND "isCompleted" = true
         UNION ALL
-        SELECT completed_at as created_at FROM activity_attempts WHERE completed_at >= ${thirtyDaysAgo} AND completed = true
+        SELECT "completedAt" as activity_date FROM "activity_attempts" WHERE "completedAt" >= ${thirtyDaysAgo} AND "completed" = true
         UNION ALL
-        SELECT first_viewed_at as created_at FROM blog_post_interactions WHERE first_viewed_at >= ${thirtyDaysAgo} AND has_viewed = true
+        SELECT "firstViewedAt" as activity_date FROM "blog_post_interactions" WHERE "firstViewedAt" >= ${thirtyDaysAgo} AND "hasViewed" = true
       ) combined_activities
-      GROUP BY DATE(created_at)
+      GROUP BY DATE(activity_date)
       ORDER BY date ASC
     `;
+
+    // Convert BigInt to Number for JSON serialization
+    const engagementTimeline = (rawEngagementTimeline as any[]).map((row) => ({
+      date: row.date,
+      daily_activities: Number(row.daily_activities),
+    }));
 
     // **OVERALL SUMMARY**
     const totalUsers = await prisma.user.count({
