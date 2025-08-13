@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     };
 
     // Session kontrolü
-    let sessionInfo = null;
+    let sessionInfo: any = null;
     try {
       const session = await getServerSession(authOptions);
       sessionInfo = {
@@ -23,7 +23,22 @@ export async function GET(request: NextRequest) {
         hasUser: !!session?.user,
         userId: session?.user?.id || null,
         userEmail: session?.user?.email || null,
+        username: session?.user?.username || null,
+        fullSession: session, // Tam session objesi
+        userExistsInDB: false,
+        dbUser: null,
       };
+
+      // Eğer user ID varsa veritabanında kontrol et
+      if (session?.user?.id) {
+        const { prisma } = await import("@/lib/prisma");
+        const dbUser = await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { id: true, email: true, username: true },
+        });
+        sessionInfo.userExistsInDB = !!dbUser;
+        sessionInfo.dbUser = dbUser;
+      }
     } catch (error) {
       sessionInfo = {
         error: "Session check failed",

@@ -243,19 +243,43 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
-        // İlk login'de user bilgilerini token'a kaydet
-        token.id = user.id;
-        token.username = user.username;
-        token.role = user.role;
-        token.level = user.level;
-        token.experience = user.experience;
-        token.currentDiamonds = user.currentDiamonds;
-        token.totalDiamonds = user.totalDiamonds;
-        token.loginStreak = user.loginStreak;
-        token.maxLoginStreak = user.maxLoginStreak;
-        token.isPremium = user.isPremium;
+        // Google OAuth için email ile doğru user'ı bul
+        if (account?.provider === "google") {
+          try {
+            const dbUser = await prisma.user.findUnique({
+              where: { email: user.email! },
+            });
+
+            if (dbUser) {
+              token.id = dbUser.id;
+              token.username = dbUser.username;
+              token.role = dbUser.role;
+              token.level = dbUser.level;
+              token.experience = dbUser.experience;
+              token.currentDiamonds = dbUser.currentDiamonds;
+              token.totalDiamonds = dbUser.totalDiamonds;
+              token.loginStreak = dbUser.loginStreak;
+              token.maxLoginStreak = dbUser.maxLoginStreak;
+              token.isPremium = dbUser.isPremium;
+            }
+          } catch (error) {
+            console.error("JWT callback DB lookup error:", error);
+          }
+        } else {
+          // Credentials login için direkt user objesini kullan
+          token.id = user.id;
+          token.username = user.username;
+          token.role = user.role;
+          token.level = user.level;
+          token.experience = user.experience;
+          token.currentDiamonds = user.currentDiamonds;
+          token.totalDiamonds = user.totalDiamonds;
+          token.loginStreak = user.loginStreak;
+          token.maxLoginStreak = user.maxLoginStreak;
+          token.isPremium = user.isPremium;
+        }
       }
 
       return token;
