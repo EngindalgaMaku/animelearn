@@ -1,40 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Next.js 15 specific configuration for static asset serving
   eslint: {
     ignoreDuringBuilds: true,
   },
 
-  // Force static optimization for better asset serving
-  experimental: {
-    // Disable optimizations that might interfere with asset serving
-    optimizePackageImports: [],
-  },
-
-  // Webpack configuration for Next.js 15
-  webpack: (config, { isServer, dev }) => {
-    // Ensure proper asset handling in Next.js 15
-    if (dev && !isServer) {
-      // Force filesystem cache for development
-      config.cache = {
-        type: "filesystem",
-        allowCollectingMemory: false,
-        buildDependencies: {
-          config: [__filename],
-        },
-      };
-
-      // Ensure static assets are properly resolved
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        "@": require("path").resolve(__dirname, "src"),
-      };
-    }
-
-    return config;
-  },
-
-  // Next.js 15 compatible image configuration
+  // Image configuration
   images: {
     remotePatterns: [
       {
@@ -48,7 +18,7 @@ const nextConfig = {
     ],
   },
 
-  // Static file serving configuration
+  // Proper static file serving configuration
   async headers() {
     return [
       {
@@ -56,7 +26,16 @@ const nextConfig = {
         headers: [
           {
             key: "Cache-Control",
-            value: "no-cache, no-store, must-revalidate",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/static/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
           },
         ],
       },
@@ -66,11 +45,21 @@ const nextConfig = {
   // Ensure proper trailing slash handling
   trailingSlash: false,
 
-  // Disable output optimization for development
-  ...(process.env.NODE_ENV !== "production" &&
-    {
-      // No output configuration in development
-    }),
+  // Production build optimization
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production",
+  },
+
+  // Webpack configuration
+  webpack: (config, { isServer, dev }) => {
+    // Ensure proper path resolution
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "@": require("path").resolve(__dirname, "src"),
+    };
+
+    return config;
+  },
 };
 
 module.exports = nextConfig;
