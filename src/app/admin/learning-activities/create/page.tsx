@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import VisualActivityEditor from "@/components/admin/learning-activities/visual-editors/VisualActivityEditor";
 
 interface ActivityContent {
   [key: string]: any;
@@ -248,6 +249,7 @@ export default function CreateLearningActivity() {
 
   const [newTag, setNewTag] = useState("");
   const [contentJson, setContentJson] = useState("");
+  const [useVisualEditor, setUseVisualEditor] = useState(true);
 
   useEffect(() => {
     // Initialize content when activity type changes
@@ -690,38 +692,81 @@ export default function CreateLearningActivity() {
 
             {/* Content Configuration */}
             <div className="rounded-xl border border-white/60 bg-white/90 p-6 shadow-lg backdrop-blur-sm">
-              <h2 className="mb-6 text-xl font-bold text-gray-900">
-                📝 Activity Content
-              </h2>
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">
+                  📝 Activity Content
+                </h2>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">Editor Mode:</span>
+                  <button
+                    onClick={() => setUseVisualEditor(!useVisualEditor)}
+                    className={`rounded-lg px-3 py-1 text-sm font-medium transition-colors ${
+                      useVisualEditor
+                        ? "bg-indigo-100 text-indigo-700"
+                        : "bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {useVisualEditor ? "Visual" : "JSON"}
+                  </button>
+                </div>
+              </div>
 
-              {selectedTypeConfig && (
-                <div className="mb-4 rounded-lg bg-blue-50 p-4">
-                  <h3 className="mb-2 font-semibold text-blue-900">
-                    Content Template for {selectedTypeConfig.name}
-                  </h3>
-                  <p className="text-sm text-blue-800">
-                    Edit the JSON below to customize the activity content. The
-                    template shows the expected structure.
-                  </p>
+              {useVisualEditor && formData.activityType ? (
+                <div className="space-y-4">
+                  {selectedTypeConfig && (
+                    <div className="rounded-lg bg-blue-50 p-4">
+                      <h3 className="mb-2 font-semibold text-blue-900">
+                        Visual Editor for {selectedTypeConfig.name}
+                      </h3>
+                      <p className="text-sm text-blue-800">
+                        Use the form-based editor below to configure your
+                        activity content easily.
+                      </p>
+                    </div>
+                  )}
+
+                  <VisualActivityEditor
+                    activityType={formData.activityType}
+                    initialContent={formData.content}
+                    onChange={(content) => {
+                      setFormData((prev) => ({ ...prev, content }));
+                    }}
+                    onJsonChange={(json) => setContentJson(json)}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {selectedTypeConfig && (
+                    <div className="rounded-lg bg-blue-50 p-4">
+                      <h3 className="mb-2 font-semibold text-blue-900">
+                        Content Template for {selectedTypeConfig.name}
+                      </h3>
+                      <p className="text-sm text-blue-800">
+                        Edit the JSON below to customize the activity content.
+                        Switch to Visual mode for a user-friendly editor.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Content JSON
+                    </label>
+                    <textarea
+                      value={contentJson}
+                      onChange={(e) => handleContentChange(e.target.value)}
+                      rows={12}
+                      className="w-full rounded-lg border border-gray-200 px-4 py-3 font-mono text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                      placeholder="Activity content in JSON format..."
+                    />
+                    <p className="text-sm text-gray-600">
+                      💡 Tip: The content structure varies by activity type.
+                      Switch to Visual mode for a user-friendly editor, or edit
+                      the JSON directly.
+                    </p>
+                  </div>
                 </div>
               )}
-
-              <div className="space-y-4">
-                <label className="block text-sm font-semibold text-gray-700">
-                  Content JSON
-                </label>
-                <textarea
-                  value={contentJson}
-                  onChange={(e) => handleContentChange(e.target.value)}
-                  rows={12}
-                  className="w-full rounded-lg border border-gray-200 px-4 py-3 font-mono text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-                  placeholder="Activity content in JSON format..."
-                />
-                <p className="text-sm text-gray-600">
-                  💡 Tip: The content structure varies by activity type. Edit
-                  the JSON above to match your specific needs.
-                </p>
-              </div>
             </div>
 
             {/* Preview */}

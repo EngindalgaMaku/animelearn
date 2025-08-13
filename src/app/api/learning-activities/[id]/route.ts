@@ -1,25 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 interface AuthUser {
   userId: string;
   username: string;
 }
 
-function getUserFromToken(request: NextRequest): AuthUser | null {
-  const token = request.cookies.get("auth-token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
+// Get user from NextAuth session
+async function getUserFromSession(): Promise<AuthUser | null> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return null;
+    }
+
+    return {
+      userId: session.user.id,
+      username: session.user.username || session.user.email || "Unknown",
+    };
   } catch (error) {
+    console.error("Error getting user from session:", error);
     return null;
   }
 }
@@ -31,7 +34,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const authUser = getUserFromToken(request);
+    const authUser = await getUserFromSession();
 
     const activity = await prisma.learningActivity.findFirst({
       where: {
@@ -77,7 +80,7 @@ export async function GET(
 
     // Check if prerequisite is completed (if any)
     let isUnlocked = !activity.isLocked;
-    
+
     if (authUser && activity.prerequisiteId && activity.isLocked) {
       const prerequisiteCompletion = await prisma.activityAttempt.findUnique({
         where: {
@@ -88,7 +91,7 @@ export async function GET(
         },
         select: { completed: true },
       });
-      
+
       isUnlocked = prerequisiteCompletion?.completed || false;
     }
 
@@ -99,17 +102,21 @@ export async function GET(
       tags: activity.tags ? JSON.parse(activity.tags) : [],
       totalAttempts: activity._count.attempts,
       isUnlocked,
-      userProgress: userAttempt ? {
-        score: userAttempt.score,
-        maxScore: userAttempt.maxScore,
-        completed: userAttempt.completed,
-        timeSpent: userAttempt.timeSpent,
-        hintsUsed: userAttempt.hintsUsed,
-        mistakes: userAttempt.mistakes,
-        startedAt: userAttempt.startedAt,
-        completedAt: userAttempt.completedAt,
-        percentage: Math.round((userAttempt.score / userAttempt.maxScore) * 100),
-      } : null,
+      userProgress: userAttempt
+        ? {
+            score: userAttempt.score,
+            maxScore: userAttempt.maxScore,
+            completed: userAttempt.completed,
+            timeSpent: userAttempt.timeSpent,
+            hintsUsed: userAttempt.hintsUsed,
+            mistakes: userAttempt.mistakes,
+            startedAt: userAttempt.startedAt,
+            completedAt: userAttempt.completedAt,
+            percentage: Math.round(
+              (userAttempt.score / userAttempt.maxScore) * 100
+            ),
+          }
+        : null,
     };
 
     return NextResponse.json({
@@ -132,7 +139,7 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const authUser = getUserFromToken(request);
+    const authUser = await getUserFromSession();
 
     if (!authUser) {
       return NextResponse.json(
@@ -166,10 +173,13 @@ export async function POST(
         },
         select: { completed: true },
       });
-      
+
       if (!prerequisiteCompletion?.completed) {
         return NextResponse.json(
-          { error: "Bu aktiviteyi oynamak için önce prerequisite aktiviteleri tamamlamalısınız" },
+          {
+            error:
+              "Bu aktiviteyi oynamak için önce prerequisite aktiviteleri tamamlamalısınız",
+          },
           { status: 403 }
         );
       }
@@ -223,7 +233,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const authUser = getUserFromToken(request);
+    const authUser = await getUserFromSession();
 
     if (!authUser) {
       return NextResponse.json(
@@ -260,10 +270,13 @@ export async function PUT(
         },
         select: { completed: true },
       });
-      
+
       if (!prerequisiteCompletion?.completed) {
         return NextResponse.json(
-          { error: "Bu aktiviteyi tamamlamak için önce prerequisite aktiviteleri tamamlamalısınız" },
+          {
+            error:
+              "Bu aktiviteyi tamamlamak için önce prerequisite aktiviteleri tamamlamalısınız",
+          },
           { status: 403 }
         );
       }
@@ -323,7 +336,10 @@ export async function PUT(
           mistakes: Math.max(mistakes || 0, existingAttempt.mistakes),
           answers: answers ? JSON.stringify(answers) : existingAttempt.answers,
           completed: score >= 70 ? true : existingAttempt.completed,
-          completedAt: score >= 70 && !existingAttempt.completed ? new Date() : existingAttempt.completedAt,
+          completedAt:
+            score >= 70 && !existingAttempt.completed
+              ? new Date()
+              : existingAttempt.completedAt,
         },
       });
 
@@ -375,9 +391,9 @@ export async function PUT(
       rewards: result.rewards,
       newCompletion: isFirstCompletion && score >= 70,
       scoreImproved: scoreImproved,
-      message: result.rewards 
+      message: result.rewards
         ? `Activity tamamlandı! +${result.rewards.diamonds} elmas, +${result.rewards.experience} XP kazandınız!`
-        : score >= 70 
+        : score >= 70
           ? "Activity tamamlandı!"
           : "Activity denendi, geçmek için en az %70 puan gerekli.",
     });
