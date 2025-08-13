@@ -253,7 +253,7 @@ export default function AdminLayout({
   const handleLogout = async () => {
     try {
       await logout();
-      router.push("/");
+      // No need for router.push("/") since logout() now handles redirect
     } catch (error) {
       console.error("Logout failed:", error);
     }

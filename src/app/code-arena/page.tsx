@@ -45,6 +45,9 @@ const ActivityRenderer = lazy(
   () => import("@/components/learn/ActivityRenderer")
 );
 const ActivityCard = lazy(() => import("@/components/code-arena/ActivityCard"));
+const ActivityTable = lazy(
+  () => import("@/components/code-arena/ActivityTable")
+);
 const CategorySection = lazy(
   () => import("@/components/code-arena/CategorySection")
 );
@@ -941,9 +944,9 @@ function CodeArenaContent() {
             </div>
           }
         >
-          <div className="space-y-4">
-            {activities
-              .filter(
+          {activities.length > 0 ? (
+            <ActivityTable
+              activities={activities.filter(
                 (activity) =>
                   activity.title
                     .toLowerCase()
@@ -951,44 +954,26 @@ function CodeArenaContent() {
                   activity.description
                     .toLowerCase()
                     .includes(searchTerm.toLowerCase())
-              )
-              .map((activity, index) => {
-                const difficultyConfig =
-                  difficultyConfigs[activity.difficulty] ||
-                  difficultyConfigs[1];
-                const activityTypeConfig =
-                  activityTypeConfigs[activity.activityType] ||
-                  activityTypeConfigs.quiz;
-
-                return (
-                  <ActivityCard
-                    key={activity.id}
-                    activity={activity}
-                    difficultyConfig={difficultyConfig}
-                    activityTypeConfig={activityTypeConfig}
-                    onLaunch={launchActivity}
-                    index={index}
-                    enableAnimations={enableAnimations}
-                    layout="horizontal"
-                  />
-                );
-              })}
-          </div>
+              )}
+              difficultyConfigs={difficultyConfigs}
+              activityTypeConfigs={activityTypeConfigs}
+              onLaunch={launchActivity}
+              enableAnimations={enableAnimations}
+              itemsPerPage={activities.length > 10 ? 10 : activities.length}
+            />
+          ) : !loading ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-xl">
+              <div className="mb-4 text-6xl">🔍</div>
+              <h3 className="mb-2 text-2xl font-bold text-slate-900">
+                No Activities Found
+              </h3>
+              <p className="mx-auto max-w-md text-lg text-slate-600">
+                No activities available for this topic yet. Try selecting a
+                different topic!
+              </p>
+            </div>
+          ) : null}
         </Suspense>
-
-        {/* No activities message */}
-        {activities.length === 0 && !loading && (
-          <div className="px-4 py-12 text-center sm:py-16">
-            <div className="mb-4 text-4xl sm:text-6xl">🔍</div>
-            <h3 className="mb-2 text-xl font-bold text-slate-900 sm:text-2xl">
-              No Activities Found
-            </h3>
-            <p className="mx-auto max-w-md text-base text-slate-600 sm:text-lg">
-              No activities available for this topic yet. Try selecting a
-              different topic!
-            </p>
-          </div>
-        )}
       </main>
 
       {/* Activity Modal */}

@@ -86,12 +86,41 @@ async function seedLearningActivities() {
       { current: 12, prerequisite: 11 }, // Sorting needs Binary Search
       { current: 13, prerequisite: 12 }, // Graph Traversal needs Sorting
 
+      // New Algorithm Visualizations progression
+      { current: 21, prerequisite: 10 }, // Bubble Sort needs Sets (basic algorithms start)
+      { current: 22, prerequisite: 21 }, // Linear Search needs Bubble Sort
+      { current: 23, prerequisite: 22 }, // Insertion Sort needs Linear Search
+      { current: 24, prerequisite: 23 }, // Selection Sort needs Insertion Sort
+      { current: 25, prerequisite: 24 }, // Quick Sort needs Selection Sort
+      { current: 26, prerequisite: 25 }, // Merge Sort needs Quick Sort
+      { current: 27, prerequisite: 26 }, // DFS needs Merge Sort
+      { current: 28, prerequisite: 27 }, // BFS needs DFS
+
+      // Advanced Sorting Algorithms progression
+      { current: 29, prerequisite: 28 }, // Heap Sort needs BFS (advanced sorting)
+      { current: 30, prerequisite: 29 }, // Counting Sort needs Heap Sort (non-comparison)
+      { current: 31, prerequisite: 30 }, // Radix Sort needs Counting Sort (builds on counting)
+      { current: 32, prerequisite: 31 }, // Shell Sort needs Radix Sort (gap-based sorting)
+      { current: 33, prerequisite: 32 }, // Bucket Sort needs Shell Sort (distribution sorting)
+      { current: 34, prerequisite: 33 }, // Cocktail Sort needs Bucket Sort (bidirectional bubble)
+      { current: 35, prerequisite: 34 }, // Comb Sort needs Cocktail Sort (improved bubble)
+
       // Functions & OOP progression (starts after fundamentals)
       { current: 14, prerequisite: 6 }, // Function Fundamentals needs Code Structure
       { current: 15, prerequisite: 14 }, // Class Design needs Functions
       { current: 16, prerequisite: 15 }, // Inheritance needs Classes
       { current: 17, prerequisite: 16 }, // Decorators need Inheritance
       { current: 18, prerequisite: 17 }, // Exception Handling needs Decorators
+
+      // Advanced Python Fundamentals progression (builds on core fundamentals)
+      { current: 36, prerequisite: 19 }, // Advanced List Comprehensions needs Memory Game (solid fundamentals)
+      { current: 37, prerequisite: 36 }, // Lambda Functions need List Comprehensions
+      { current: 38, prerequisite: 5 }, // File I/O needs String Methods (basic I/O understanding)
+      { current: 39, prerequisite: 18 }, // Exception Handling builds on existing exception quiz
+      { current: 40, prerequisite: 38 }, // Modules Quiz needs File I/O (module imports/usage)
+      { current: 41, prerequisite: 5 }, // String Formatting builds on String Methods
+      { current: 42, prerequisite: 37 }, // Generators need Lambda Functions (advanced concepts)
+      { current: 43, prerequisite: 41 }, // Regex needs String Formatting (text processing)
     ];
 
     for (const rule of prerequisiteRules) {

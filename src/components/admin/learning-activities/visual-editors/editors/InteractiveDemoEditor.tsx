@@ -64,11 +64,14 @@ export default function InteractiveDemoEditor({
         completionMessage: "Demo completed successfully!",
       },
     };
+
     return { ...defaultData, ...content };
   });
 
   useEffect(() => {
-    setData((prevData) => ({ ...prevData, ...content }));
+    if (content && JSON.stringify(content) !== JSON.stringify(data)) {
+      setData((prevData) => ({ ...prevData, ...content }));
+    }
   }, [content]);
 
   useEffect(() => {
@@ -76,7 +79,13 @@ export default function InteractiveDemoEditor({
       data.sections.length > 0 &&
       data.sections.every((s) => s.title && s.content);
     onValidation(isValid);
-    onChange(data);
+  }, [data, onValidation]);
+
+  // Only call onChange when data changes from user interaction, not prop updates
+  useEffect(() => {
+    if (content && JSON.stringify(content) !== JSON.stringify(data)) {
+      onChange(data);
+    }
   }, [data]);
 
   const updateData = (updates: Partial<InteractiveDemoContent>) => {

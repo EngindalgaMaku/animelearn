@@ -64,17 +64,25 @@ export default function MatchingEditor({
   });
 
   useEffect(() => {
-    setMatchingData((prevData) => ({
-      ...prevData,
-      ...content,
-      feedback: { ...prevData.feedback, ...content.feedback },
-    }));
+    if (content && JSON.stringify(content) !== JSON.stringify(matchingData)) {
+      setMatchingData((prevData) => ({
+        ...prevData,
+        ...content,
+        feedback: { ...prevData.feedback, ...content.feedback },
+      }));
+    }
   }, [content]);
 
   useEffect(() => {
     const isValid = validateMatching();
     onValidation(isValid);
-    onChange(matchingData);
+  }, [matchingData, onValidation]);
+
+  // Only call onChange when data changes from user interaction, not prop updates
+  useEffect(() => {
+    if (content && JSON.stringify(content) !== JSON.stringify(matchingData)) {
+      onChange(matchingData);
+    }
   }, [matchingData]);
 
   const validateMatching = (): boolean => {

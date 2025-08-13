@@ -120,17 +120,24 @@ export default function VisualActivityEditor({
 
   useEffect(() => {
     if (!showJsonView) {
-      setJsonString(JSON.stringify(content, null, 2));
-      onJsonChange(JSON.stringify(content, null, 2));
+      const newJsonString = JSON.stringify(content, null, 2);
+      if (newJsonString !== jsonString) {
+        setJsonString(newJsonString);
+        onJsonChange(newJsonString);
+      }
     }
-  }, [content, showJsonView, onJsonChange]);
+  }, [content, showJsonView]);
 
   const handleContentChange = (newContent: any) => {
-    setContent(newContent);
-    onChange(newContent);
-    if (!showJsonView) {
-      setJsonString(JSON.stringify(newContent, null, 2));
-      onJsonChange(JSON.stringify(newContent, null, 2));
+    // Prevent loops by checking if content actually changed
+    if (JSON.stringify(newContent) !== JSON.stringify(content)) {
+      setContent(newContent);
+      onChange(newContent);
+      if (!showJsonView) {
+        const newJsonString = JSON.stringify(newContent, null, 2);
+        setJsonString(newJsonString);
+        onJsonChange(newJsonString);
+      }
     }
   };
 

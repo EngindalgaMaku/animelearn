@@ -134,6 +134,18 @@ export default function LearningActivitiesAdmin() {
   const [selectedDifficulty, setSelectedDifficulty] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    show: boolean;
+    activity: LearningActivity | null;
+  }>({ show: false, activity: null });
+  const [deleting, setDeleting] = useState(false);
+  const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
+  const [topicDeleteConfirm, setTopicDeleteConfirm] = useState<{
+    show: boolean;
+    topic: string | null;
+    activities: LearningActivity[];
+  }>({ show: false, topic: null, activities: [] });
+  const [deletingTopic, setDeletingTopic] = useState(false);
 
   useEffect(() => {
     if (user?.role === "admin") {
@@ -241,6 +253,107 @@ export default function LearningActivitiesAdmin() {
     }
 
     setFilteredActivities(filtered);
+  };
+
+  const handleDeleteClick = (activity: LearningActivity) => {
+    setDeleteConfirm({ show: true, activity });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm.activity) return;
+
+    setDeleting(true);
+    try {
+      const response = await fetch(
+        `/api/admin/learning-activities/${deleteConfirm.activity.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        // Remove from local state
+        setActivities((prev) =>
+          prev.filter((a) => a.id !== deleteConfirm.activity!.id)
+        );
+        setDeleteConfirm({ show: false, activity: null });
+        alert("Activity deleted successfully!");
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        alert(
+          `Failed to delete activity: ${errorData.error || "Unknown error"}`
+        );
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("Failed to delete activity. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirm({ show: false, activity: null });
+  };
+
+  const toggleTopic = (topic: string) => {
+    setExpandedTopics((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(topic)) {
+        newSet.delete(topic);
+      } else {
+        newSet.add(topic);
+      }
+      return newSet;
+    });
+  };
+
+  const handleTopicDeleteClick = (
+    topic: string,
+    topicActivities: LearningActivity[]
+  ) => {
+    setTopicDeleteConfirm({ show: true, topic, activities: topicActivities });
+  };
+
+  const handleTopicDeleteConfirm = async () => {
+    if (!topicDeleteConfirm.topic || topicDeleteConfirm.activities.length === 0)
+      return;
+
+    setDeletingTopic(true);
+    try {
+      // Delete all activities in the topic
+      const deletePromises = topicDeleteConfirm.activities.map((activity) =>
+        fetch(`/api/admin/learning-activities/${activity.id}`, {
+          method: "DELETE",
+        })
+      );
+
+      const results = await Promise.all(deletePromises);
+      const allSuccessful = results.every((response) => response.ok);
+
+      if (allSuccessful) {
+        // Remove all activities in this topic from local state
+        const activityIds = topicDeleteConfirm.activities.map((a) => a.id);
+        setActivities((prev) =>
+          prev.filter((a) => !activityIds.includes(a.id))
+        );
+        setTopicDeleteConfirm({ show: false, topic: null, activities: [] });
+        alert(
+          `Topic "${topicDeleteConfirm.topic}" and all ${topicDeleteConfirm.activities.length} activities deleted successfully!`
+        );
+      } else {
+        alert("Some activities could not be deleted. Please try again.");
+      }
+    } catch (error) {
+      console.error("Topic delete error:", error);
+      alert("Failed to delete topic. Please try again.");
+    } finally {
+      setDeletingTopic(false);
+    }
+  };
+
+  const handleTopicDeleteCancel = () => {
+    setTopicDeleteConfirm({ show: false, topic: null, activities: [] });
   };
 
   const getActivityTypeStats = () => {
@@ -533,141 +646,159 @@ export default function LearningActivitiesAdmin() {
                           {topicActivities.filter((a) => a.isActive).length}{" "}
                           active
                         </span>
-                        <button className="rounded-lg bg-gray-100 p-2 text-gray-600 transition-colors hover:bg-gray-200">
-                          <ArrowRight className="h-5 w-5" />
+                        <button
+                          onClick={() => toggleTopic(topic)}
+                          className="rounded-lg bg-gray-100 p-2 text-gray-600 transition-all hover:bg-gray-200"
+                        >
+                          <ArrowRight
+                            className={`h-5 w-5 transition-transform ${
+                              expandedTopics.has(topic) ? "rotate-90" : ""
+                            }`}
+                          />
                         </button>
                       </div>
                     </div>
 
                     {/* Activities in this topic */}
-                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                      {topicActivities
-                        .sort((a, b) => a.sortOrder - b.sortOrder)
-                        .map((activity) => {
-                          const typeConfig =
-                            activityTypeConfig[
-                              activity.activityType as keyof typeof activityTypeConfig
-                            ];
-                          const diffConfig =
-                            difficultyConfig[
-                              activity.difficulty as keyof typeof difficultyConfig
-                            ];
+                    {expandedTopics.has(topic) && (
+                      <div className="grid grid-cols-1 gap-4">
+                        {topicActivities
+                          .sort((a, b) => a.sortOrder - b.sortOrder)
+                          .map((activity) => {
+                            const typeConfig =
+                              activityTypeConfig[
+                                activity.activityType as keyof typeof activityTypeConfig
+                              ];
+                            const diffConfig =
+                              difficultyConfig[
+                                activity.difficulty as keyof typeof difficultyConfig
+                              ];
 
-                          return (
-                            <div
-                              key={activity.id}
-                              className="group rounded-lg border border-gray-200 bg-gray-50/50 p-4 transition-all hover:bg-white hover:shadow-md"
-                            >
-                              {/* Activity Header */}
-                              <div className="mb-3 flex items-start justify-between">
-                                <div className="flex items-center space-x-3">
-                                  <div
-                                    className={`flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r ${typeConfig?.color} text-white shadow-md`}
-                                  >
-                                    <span className="text-lg">
-                                      {typeConfig?.icon}
+                            return (
+                              <div
+                                key={activity.id}
+                                className="group rounded-lg border border-gray-200 bg-gray-50/50 p-4 transition-all hover:bg-white hover:shadow-md"
+                              >
+                                {/* Activity Header */}
+                                <div className="mb-3 flex items-start justify-between">
+                                  <div className="flex items-center space-x-3">
+                                    <div
+                                      className={`flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r ${typeConfig?.color} text-white shadow-md`}
+                                    >
+                                      <span className="text-lg">
+                                        {typeConfig?.icon}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <h3 className="font-bold text-gray-900">
+                                        {activity.title}
+                                      </h3>
+                                      <p className="text-sm text-gray-600">
+                                        {typeConfig?.name} • Order:{" "}
+                                        {activity.sortOrder}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <span
+                                      className={`rounded-full px-2 py-1 text-xs font-semibold bg-${diffConfig?.color}-100 text-${diffConfig?.color}-700`}
+                                    >
+                                      {diffConfig?.icon} {diffConfig?.label}
                                     </span>
-                                  </div>
-                                  <div>
-                                    <h3 className="font-bold text-gray-900">
-                                      {activity.title}
-                                    </h3>
-                                    <p className="text-sm text-gray-600">
-                                      {typeConfig?.name} • Order:{" "}
-                                      {activity.sortOrder}
-                                    </p>
+                                    <div
+                                      className={`h-2 w-2 rounded-full ${activity.isActive ? "bg-green-500" : "bg-gray-400"}`}
+                                    ></div>
                                   </div>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                  <span
-                                    className={`rounded-full px-2 py-1 text-xs font-semibold bg-${diffConfig?.color}-100 text-${diffConfig?.color}-700`}
-                                  >
-                                    {diffConfig?.icon} {diffConfig?.label}
-                                  </span>
-                                  <div
-                                    className={`h-2 w-2 rounded-full ${activity.isActive ? "bg-green-500" : "bg-gray-400"}`}
-                                  ></div>
-                                </div>
-                              </div>
 
-                              {/* Description */}
-                              <p className="mb-3 line-clamp-2 text-sm text-gray-600">
-                                {activity.description}
-                              </p>
+                                {/* Description */}
+                                <p className="mb-3 line-clamp-2 text-sm text-gray-600">
+                                  {activity.description}
+                                </p>
 
-                              {/* Stats */}
-                              <div className="mb-3 grid grid-cols-3 gap-2 text-xs">
-                                <div className="text-center">
-                                  <div className="font-semibold text-yellow-600">
-                                    {activity.diamondReward} 💎
-                                  </div>
-                                </div>
-                                <div className="text-center">
-                                  <div className="font-semibold text-purple-600">
-                                    {activity.experienceReward} XP
-                                  </div>
-                                </div>
-                                <div className="text-center">
-                                  <div className="font-semibold text-blue-600">
-                                    {activity.estimatedMinutes}m
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Performance Stats */}
-                              {activity.totalAttempts && (
-                                <div className="mb-3 grid grid-cols-3 gap-2 rounded-md bg-white/80 p-2 text-xs">
+                                {/* Stats */}
+                                <div className="mb-3 grid grid-cols-3 gap-2 text-xs">
                                   <div className="text-center">
-                                    <div className="font-semibold text-gray-900">
-                                      {activity.totalAttempts}
-                                    </div>
-                                    <div className="text-gray-500">
-                                      Attempts
+                                    <div className="font-semibold text-yellow-600">
+                                      {activity.diamondReward} 💎
                                     </div>
                                   </div>
                                   <div className="text-center">
-                                    <div className="font-semibold text-green-600">
-                                      {activity.completionRate}%
+                                    <div className="font-semibold text-purple-600">
+                                      {activity.experienceReward} XP
                                     </div>
-                                    <div className="text-gray-500">Success</div>
                                   </div>
                                   <div className="text-center">
                                     <div className="font-semibold text-blue-600">
-                                      {activity.averageScore}%
+                                      {activity.estimatedMinutes}m
                                     </div>
-                                    <div className="text-gray-500">Score</div>
                                   </div>
                                 </div>
-                              )}
 
-                              {/* Actions */}
-                              <div className="flex items-center space-x-1">
-                                <Link
-                                  href={`/admin/learning-activities/${activity.id}`}
-                                  className="flex items-center space-x-1 rounded-md bg-indigo-100 px-2 py-1 text-xs text-indigo-700 transition-colors hover:bg-indigo-200"
-                                >
-                                  <Eye className="h-3 w-3" />
-                                  <span>View</span>
-                                </Link>
-                                <Link
-                                  href={`/admin/learning-activities/${activity.id}/edit`}
-                                  className="flex items-center space-x-1 rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700 transition-colors hover:bg-blue-200"
-                                >
-                                  <Edit className="h-3 w-3" />
-                                  <span>Edit</span>
-                                </Link>
-                                <Link
-                                  href={`/code-arena`}
-                                  className="flex items-center space-x-1 rounded-md bg-green-100 px-2 py-1 text-xs text-green-700 transition-colors hover:bg-green-200"
-                                >
-                                  <Play className="h-3 w-3" />
-                                  <span>Test</span>
-                                </Link>
+                                {/* Performance Stats */}
+                                {activity.totalAttempts && (
+                                  <div className="mb-3 grid grid-cols-3 gap-2 rounded-md bg-white/80 p-2 text-xs">
+                                    <div className="text-center">
+                                      <div className="font-semibold text-gray-900">
+                                        {activity.totalAttempts}
+                                      </div>
+                                      <div className="text-gray-500">
+                                        Attempts
+                                      </div>
+                                    </div>
+                                    <div className="text-center">
+                                      <div className="font-semibold text-green-600">
+                                        {activity.completionRate}%
+                                      </div>
+                                      <div className="text-gray-500">
+                                        Success
+                                      </div>
+                                    </div>
+                                    <div className="text-center">
+                                      <div className="font-semibold text-blue-600">
+                                        {activity.averageScore}%
+                                      </div>
+                                      <div className="text-gray-500">Score</div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Actions */}
+                                <div className="flex items-center space-x-1">
+                                  <Link
+                                    href={`/admin/learning-activities/${activity.id}`}
+                                    className="flex items-center space-x-1 rounded-md bg-indigo-100 px-2 py-1 text-xs text-indigo-700 transition-colors hover:bg-indigo-200"
+                                  >
+                                    <Eye className="h-3 w-3" />
+                                    <span>View</span>
+                                  </Link>
+                                  <Link
+                                    href={`/admin/learning-activities/${activity.id}/edit`}
+                                    className="flex items-center space-x-1 rounded-md bg-blue-100 px-2 py-1 text-xs text-blue-700 transition-colors hover:bg-blue-200"
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                    <span>Edit</span>
+                                  </Link>
+                                  <Link
+                                    href={`/code-arena`}
+                                    className="flex items-center space-x-1 rounded-md bg-green-100 px-2 py-1 text-xs text-green-700 transition-colors hover:bg-green-200"
+                                  >
+                                    <Play className="h-3 w-3" />
+                                    <span>Test</span>
+                                  </Link>
+                                  <button
+                                    onClick={() => handleDeleteClick(activity)}
+                                    className="flex items-center space-x-1 rounded-md bg-red-100 px-2 py-1 text-xs text-red-700 transition-colors hover:bg-red-200"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                    <span>Delete</span>
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                          );
-                        })}
-                    </div>
+                            );
+                          })}
+                      </div>
+                    )}
                   </div>
                 ))}
             </div>
@@ -703,6 +834,133 @@ export default function LearningActivitiesAdmin() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirm.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center space-x-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Delete Activity
+                </h3>
+                <p className="text-sm text-gray-600">
+                  This action cannot be undone
+                </p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-gray-700">
+                Are you sure you want to delete{" "}
+                <span className="font-semibold">
+                  "{deleteConfirm.activity?.title}"
+                </span>
+                ?
+              </p>
+              <p className="mt-2 text-sm text-gray-500">
+                This will permanently remove the activity and all associated
+                data.
+              </p>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={handleDeleteCancel}
+                disabled={deleting}
+                className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={deleting}
+                className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleting ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                    <span>Deleting...</span>
+                  </div>
+                ) : (
+                  "Delete"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Topic Delete Confirmation Dialog */}
+      {topicDeleteConfirm.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center space-x-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Delete Entire Topic
+                </h3>
+                <p className="text-sm text-gray-600">
+                  This will delete ALL activities in this topic
+                </p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-gray-700">
+                Are you sure you want to delete the entire{" "}
+                <span className="font-semibold">
+                  "{topicDeleteConfirm.topic}"
+                </span>{" "}
+                topic?
+              </p>
+              <div className="mt-3 rounded-lg bg-yellow-50 p-3">
+                <p className="text-sm font-medium text-yellow-800">
+                  ⚠️ This will permanently delete:
+                </p>
+                <ul className="mt-1 list-inside list-disc text-sm text-yellow-700">
+                  <li>{topicDeleteConfirm.activities.length} activities</li>
+                  <li>All associated user progress and attempts</li>
+                  <li>All rewards and statistics</li>
+                </ul>
+              </div>
+              <p className="mt-2 text-sm font-medium text-red-600">
+                This action cannot be undone!
+              </p>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={handleTopicDeleteCancel}
+                disabled={deletingTopic}
+                className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleTopicDeleteConfirm}
+                disabled={deletingTopic}
+                className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+              >
+                {deletingTopic ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                    <span>Deleting...</span>
+                  </div>
+                ) : (
+                  `Delete Topic (${topicDeleteConfirm.activities.length} activities)`
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

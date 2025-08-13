@@ -292,12 +292,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await signOut({ callbackUrl: "/" });
+      // Clear local state first
+      setIsAuthenticated(false);
+      setUser(null);
+      setAuthError(null);
+
+      // Then sign out with NextAuth
+      await signOut({
+        callbackUrl: "/",
+        redirect: true,
+      });
     } catch (error) {
       console.error("Logout failed:", error);
+      // Ensure state is cleared even if signOut fails
+      setIsAuthenticated(false);
+      setUser(null);
+      setAuthError(null);
     }
-    setIsAuthenticated(false);
-    setUser(null);
   };
 
   const register = async (

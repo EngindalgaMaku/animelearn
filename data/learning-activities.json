@@ -999,6 +999,1677 @@
           "Build a browser history using deque"
         ]
       }
+    },
+    {
+      "title": "Bubble Sort Visualization",
+      "description": "Learn bubble sort algorithm through step-by-step visualization and understand how adjacent elements are compared and swapped.",
+      "activityType": "algorithm_visualization",
+      "category": "Algorithms",
+      "difficulty": 3,
+      "diamondReward": 35,
+      "experienceReward": 70,
+      "estimatedMinutes": 15,
+      "sortOrder": 21,
+      "topicOrder": 4,
+      "isLocked": true,
+      "tags": ["bubble-sort", "sorting", "visualization", "beginner"],
+      "content": {
+        "steps": [
+          {
+            "id": 1,
+            "title": "Initialize Array",
+            "description": "Start with an unsorted array of numbers. Bubble sort will compare adjacent elements and swap them if they're in the wrong order.",
+            "code": "arr = [64, 34, 25, 12, 22, 11, 90]\nn = len(arr)\nprint(f'Original array: {arr}')",
+            "visualization": "array_display"
+          },
+          {
+            "id": 2,
+            "title": "Outer Loop Setup",
+            "description": "The outer loop runs n-1 times. Each pass guarantees that the largest unsorted element 'bubbles up' to its correct position.",
+            "code": "for i in range(n-1):\n    print(f'Pass {i+1}:')\n    swapped = False",
+            "visualization": "loop_indicator"
+          },
+          {
+            "id": 3,
+            "title": "Compare Adjacent Elements",
+            "description": "Compare each pair of adjacent elements. If the left element is greater than the right element, they are in the wrong order.",
+            "code": "for j in range(0, n-i-1):\n    if arr[j] > arr[j+1]:\n        print(f'Compare {arr[j]} > {arr[j+1]} - Swap needed')",
+            "visualization": "comparison_highlight"
+          },
+          {
+            "id": 4,
+            "title": "Swap Elements",
+            "description": "Swap the adjacent elements when they are in the wrong order. This moves the larger element one position to the right.",
+            "code": "        arr[j], arr[j+1] = arr[j+1], arr[j]\n        swapped = True\n        print(f'After swap: {arr}')",
+            "visualization": "swap_animation"
+          },
+          {
+            "id": 5,
+            "title": "Check for Early Termination",
+            "description": "If no swaps occurred in a complete pass, the array is already sorted and we can terminate early.",
+            "code": "    if not swapped:\n        print('No swaps made - array is sorted!')\n        break",
+            "visualization": "completion_check"
+          },
+          {
+            "id": 6,
+            "title": "Final Result",
+            "description": "After all passes, the array is completely sorted in ascending order.",
+            "code": "print(f'Sorted array: {arr}')\n# Output: [11, 12, 22, 25, 34, 64, 90]",
+            "visualization": "final_array"
+          }
+        ],
+        "visualizations": [
+          "array_display",
+          "comparison_highlight",
+          "swap_animation",
+          "loop_indicator",
+          "completion_check",
+          "final_array"
+        ],
+        "algorithm": "Bubble Sort",
+        "complexity": {
+          "time": "O(n²)",
+          "space": "O(1)"
+        },
+        "settings": {
+          "showCode": true,
+          "autoPlay": false,
+          "stepDelay": 1500
+        }
+      }
+    },
+    {
+      "title": "Linear Search Algorithm",
+      "description": "Master linear search by visualizing how we sequentially check each element until we find our target.",
+      "activityType": "algorithm_visualization",
+      "category": "Algorithms",
+      "difficulty": 2,
+      "diamondReward": 25,
+      "experienceReward": 50,
+      "estimatedMinutes": 12,
+      "sortOrder": 22,
+      "topicOrder": 5,
+      "isLocked": true,
+      "tags": ["linear-search", "search", "visualization", "beginner"],
+      "content": {
+        "steps": [
+          {
+            "id": 1,
+            "title": "Setup Search",
+            "description": "Initialize the array and define the target element we want to find.",
+            "code": "arr = [2, 4, 0, 1, 9, 7, 5, 3]\ntarget = 7\nprint(f'Array: {arr}')\nprint(f'Looking for: {target}')",
+            "visualization": "array_display"
+          },
+          {
+            "id": 2,
+            "title": "Start Sequential Search",
+            "description": "Begin checking elements from the first index (0) one by one.",
+            "code": "for i in range(len(arr)):\n    print(f'Checking index {i}: {arr[i]}')",
+            "visualization": "current_position"
+          },
+          {
+            "id": 3,
+            "title": "Compare Current Element",
+            "description": "Compare the current element with our target. If they match, we found our element!",
+            "code": "    if arr[i] == target:\n        print(f'Found {target} at index {i}!')\n        return i",
+            "visualization": "element_comparison"
+          },
+          {
+            "id": 4,
+            "title": "Continue if No Match",
+            "description": "If the current element doesn't match, move to the next element and repeat the comparison.",
+            "code": "    else:\n        print(f'{arr[i]} != {target}, continue searching...')",
+            "visualization": "search_continue"
+          },
+          {
+            "id": 5,
+            "title": "Element Found",
+            "description": "Success! We found the target element at index 5. Linear search returns the index of the found element.",
+            "code": "# Found 7 at index 5\nprint(f'Linear search complete: Found {target} at index 5')",
+            "visualization": "found_highlight"
+          },
+          {
+            "id": 6,
+            "title": "Search Complexity",
+            "description": "Linear search has O(n) time complexity because in worst case, we might need to check every element.",
+            "code": "# Best case: O(1) - target is first element\n# Average case: O(n/2) - target is in middle\n# Worst case: O(n) - target is last or not found",
+            "visualization": "complexity_analysis"
+          }
+        ],
+        "visualizations": [
+          "array_display",
+          "current_position",
+          "element_comparison",
+          "search_continue",
+          "found_highlight",
+          "complexity_analysis"
+        ],
+        "algorithm": "Linear Search",
+        "complexity": {
+          "time": "O(n)",
+          "space": "O(1)"
+        },
+        "settings": {
+          "showCode": true,
+          "autoPlay": false,
+          "stepDelay": 1200
+        }
+      }
+    },
+    {
+      "title": "Insertion Sort Step-by-Step",
+      "description": "Understand insertion sort by visualizing how elements are inserted into their correct positions in a sorted portion.",
+      "activityType": "algorithm_visualization",
+      "category": "Algorithms",
+      "difficulty": 3,
+      "diamondReward": 40,
+      "experienceReward": 75,
+      "estimatedMinutes": 18,
+      "sortOrder": 23,
+      "topicOrder": 6,
+      "isLocked": true,
+      "tags": ["insertion-sort", "sorting", "visualization", "intermediate"],
+      "content": {
+        "steps": [
+          {
+            "id": 1,
+            "title": "Initialize Array",
+            "description": "Start with an unsorted array. Insertion sort builds a sorted array one element at a time.",
+            "code": "arr = [5, 2, 4, 6, 1, 3]\nn = len(arr)\nprint(f'Original array: {arr}')",
+            "visualization": "array_display"
+          },
+          {
+            "id": 2,
+            "title": "Start from Second Element",
+            "description": "Begin from the second element (index 1) since a single element is already 'sorted'.",
+            "code": "for i in range(1, n):\n    key = arr[i]\n    print(f'Inserting {key} into sorted portion')",
+            "visualization": "current_key"
+          },
+          {
+            "id": 3,
+            "title": "Compare with Sorted Elements",
+            "description": "Compare the key with elements in the sorted portion (left side), moving from right to left.",
+            "code": "    j = i - 1\n    while j >= 0 and arr[j] > key:\n        print(f'Moving {arr[j]} one position right')",
+            "visualization": "comparison_shift"
+          },
+          {
+            "id": 4,
+            "title": "Shift Elements Right",
+            "description": "Shift larger elements one position to the right to make space for the key element.",
+            "code": "        arr[j + 1] = arr[j]\n        j -= 1\n        print(f'Array after shift: {arr}')",
+            "visualization": "element_shift"
+          },
+          {
+            "id": 5,
+            "title": "Insert Key in Correct Position",
+            "description": "Insert the key element in its correct position within the sorted portion.",
+            "code": "    arr[j + 1] = key\n    print(f'Inserted {key} at position {j + 1}')\n    print(f'Array: {arr}')",
+            "visualization": "key_insertion"
+          },
+          {
+            "id": 6,
+            "title": "Repeat Until Sorted",
+            "description": "Continue this process until all elements are processed and the entire array is sorted.",
+            "code": "print(f'Final sorted array: {arr}')\n# Output: [1, 2, 3, 4, 5, 6]",
+            "visualization": "final_sorted"
+          }
+        ],
+        "visualizations": [
+          "array_display",
+          "current_key",
+          "comparison_shift",
+          "element_shift",
+          "key_insertion",
+          "final_sorted"
+        ],
+        "algorithm": "Insertion Sort",
+        "complexity": {
+          "time": "O(n²)",
+          "space": "O(1)"
+        },
+        "settings": {
+          "showCode": true,
+          "autoPlay": false,
+          "stepDelay": 1800
+        }
+      }
+    },
+    {
+      "title": "Selection Sort Visualization",
+      "description": "Learn selection sort by visualizing how we repeatedly find the minimum element and place it at the beginning.",
+      "activityType": "algorithm_visualization",
+      "category": "Algorithms",
+      "difficulty": 3,
+      "diamondReward": 35,
+      "experienceReward": 65,
+      "estimatedMinutes": 16,
+      "sortOrder": 24,
+      "topicOrder": 7,
+      "isLocked": true,
+      "tags": ["selection-sort", "sorting", "visualization", "minimum"],
+      "content": {
+        "steps": [
+          {
+            "id": 1,
+            "title": "Initialize Array",
+            "description": "Start with an unsorted array. Selection sort finds the minimum element and swaps it with the first element.",
+            "code": "arr = [64, 25, 12, 22, 11]\nn = len(arr)\nprint(f'Original array: {arr}')",
+            "visualization": "array_display"
+          },
+          {
+            "id": 2,
+            "title": "Find Minimum Element",
+            "description": "For each position, find the minimum element in the remaining unsorted portion of the array.",
+            "code": "for i in range(n-1):\n    min_idx = i\n    print(f'Finding minimum in range [{i}:{n}]')",
+            "visualization": "search_range"
+          },
+          {
+            "id": 3,
+            "title": "Search for Minimum",
+            "description": "Compare each element with the current minimum to find the smallest element in the unsorted portion.",
+            "code": "    for j in range(i+1, n):\n        if arr[j] < arr[min_idx]:\n            min_idx = j\n            print(f'New minimum: {arr[j]} at index {j}')",
+            "visualization": "minimum_search"
+          },
+          {
+            "id": 4,
+            "title": "Swap with First Element",
+            "description": "Swap the found minimum element with the first element of the unsorted portion.",
+            "code": "    if min_idx != i:\n        arr[i], arr[min_idx] = arr[min_idx], arr[i]\n        print(f'Swapped {arr[min_idx]} with {arr[i]}')",
+            "visualization": "swap_minimum"
+          },
+          {
+            "id": 5,
+            "title": "Sorted Portion Grows",
+            "description": "After each iteration, the sorted portion at the beginning grows by one element.",
+            "code": "    print(f'Array after iteration {i+1}: {arr}')\n    print(f'Sorted portion: {arr[:i+2]}')",
+            "visualization": "sorted_progress"
+          },
+          {
+            "id": 6,
+            "title": "Complete Sorted Array",
+            "description": "After n-1 iterations, the entire array is sorted in ascending order.",
+            "code": "print(f'Final sorted array: {arr}')\n# Output: [11, 12, 22, 25, 64]",
+            "visualization": "final_result"
+          }
+        ],
+        "visualizations": [
+          "array_display",
+          "search_range",
+          "minimum_search",
+          "swap_minimum",
+          "sorted_progress",
+          "final_result"
+        ],
+        "algorithm": "Selection Sort",
+        "complexity": {
+          "time": "O(n²)",
+          "space": "O(1)"
+        },
+        "settings": {
+          "showCode": true,
+          "autoPlay": false,
+          "stepDelay": 1600
+        }
+      }
+    },
+    {
+      "title": "Quick Sort Divide & Conquer",
+      "description": "Master the quick sort algorithm by visualizing the partitioning process and recursive divide-and-conquer approach.",
+      "activityType": "algorithm_visualization",
+      "category": "Algorithms",
+      "difficulty": 4,
+      "diamondReward": 55,
+      "experienceReward": 100,
+      "estimatedMinutes": 25,
+      "sortOrder": 25,
+      "topicOrder": 8,
+      "isLocked": true,
+      "tags": ["quick-sort", "divide-conquer", "recursion", "advanced"],
+      "content": {
+        "steps": [
+          {
+            "id": 1,
+            "title": "Choose Pivot Element",
+            "description": "Select a pivot element from the array. We'll use the last element as the pivot for simplicity.",
+            "code": "def quicksort(arr, low, high):\n    if low < high:\n        pivot = arr[high]\n        print(f'Pivot: {pivot}')",
+            "visualization": "pivot_selection"
+          },
+          {
+            "id": 2,
+            "title": "Partition Around Pivot",
+            "description": "Rearrange elements so that elements smaller than pivot are on the left, and larger elements are on the right.",
+            "code": "        pi = partition(arr, low, high)\n        print(f'Partitioned at index {pi}')",
+            "visualization": "partition_process"
+          },
+          {
+            "id": 3,
+            "title": "Partition Function Details",
+            "description": "The partition function places the pivot in its correct position and returns its index.",
+            "code": "def partition(arr, low, high):\n    pivot = arr[high]\n    i = low - 1  # index of smaller element\n    \n    for j in range(low, high):\n        if arr[j] <= pivot:\n            i += 1\n            arr[i], arr[j] = arr[j], arr[i]",
+            "visualization": "partition_details"
+          },
+          {
+            "id": 4,
+            "title": "Place Pivot in Position",
+            "description": "After partitioning, place the pivot element in its final sorted position.",
+            "code": "    arr[i + 1], arr[high] = arr[high], arr[i + 1]\n    return i + 1",
+            "visualization": "pivot_placement"
+          },
+          {
+            "id": 5,
+            "title": "Recursive Calls",
+            "description": "Recursively apply quicksort to the subarrays on the left and right of the pivot.",
+            "code": "        # Recursively sort left subarray\n        quicksort(arr, low, pi - 1)\n        \n        # Recursively sort right subarray\n        quicksort(arr, pi + 1, high)",
+            "visualization": "recursive_calls"
+          },
+          {
+            "id": 6,
+            "title": "Complete Sorted Array",
+            "description": "When all recursive calls complete, the entire array is sorted.",
+            "code": "# Example usage:\narr = [10, 7, 8, 9, 1, 5]\nquicksort(arr, 0, len(arr)-1)\nprint(f'Sorted array: {arr}')",
+            "visualization": "final_sorted"
+          }
+        ],
+        "visualizations": [
+          "pivot_selection",
+          "partition_process",
+          "partition_details",
+          "pivot_placement",
+          "recursive_calls",
+          "final_sorted"
+        ],
+        "algorithm": "Quick Sort",
+        "complexity": {
+          "time": "O(n log n) average, O(n²) worst",
+          "space": "O(log n)"
+        },
+        "settings": {
+          "showCode": true,
+          "autoPlay": false,
+          "stepDelay": 2000
+        }
+      }
+    },
+    {
+      "title": "Merge Sort Divide & Conquer",
+      "description": "Understand merge sort through visualization of the divide phase and the merge process that combines sorted subarrays.",
+      "activityType": "algorithm_visualization",
+      "category": "Algorithms",
+      "difficulty": 4,
+      "diamondReward": 50,
+      "experienceReward": 95,
+      "estimatedMinutes": 22,
+      "sortOrder": 26,
+      "topicOrder": 9,
+      "isLocked": true,
+      "tags": ["merge-sort", "divide-conquer", "stable-sort", "advanced"],
+      "content": {
+        "steps": [
+          {
+            "id": 1,
+            "title": "Divide the Array",
+            "description": "Recursively divide the array into smaller subarrays until each subarray has only one element.",
+            "code": "def merge_sort(arr):\n    if len(arr) > 1:\n        mid = len(arr) // 2\n        left = arr[:mid]\n        right = arr[mid:]\n        print(f'Divide: {arr} -> {left} | {right}')",
+            "visualization": "array_division"
+          },
+          {
+            "id": 2,
+            "title": "Recursive Sorting",
+            "description": "Recursively sort the left and right subarrays.",
+            "code": "        merge_sort(left)\n        merge_sort(right)\n        print(f'Sorting subarrays: {left}, {right}')",
+            "visualization": "recursive_sort"
+          },
+          {
+            "id": 3,
+            "title": "Merge Process Setup",
+            "description": "Initialize pointers for merging the two sorted subarrays back together.",
+            "code": "        i = j = k = 0\n        print(f'Merging {left} and {right}')",
+            "visualization": "merge_setup"
+          },
+          {
+            "id": 4,
+            "title": "Compare and Merge",
+            "description": "Compare elements from both subarrays and place the smaller element into the merged array.",
+            "code": "        while i < len(left) and j < len(right):\n            if left[i] <= right[j]:\n                arr[k] = left[i]\n                i += 1\n            else:\n                arr[k] = right[j]\n                j += 1\n            k += 1",
+            "visualization": "element_comparison"
+          },
+          {
+            "id": 5,
+            "title": "Copy Remaining Elements",
+            "description": "Copy any remaining elements from the left or right subarray to the merged array.",
+            "code": "        while i < len(left):\n            arr[k] = left[i]\n            i += 1\n            k += 1\n            \n        while j < len(right):\n            arr[k] = right[j]\n            j += 1\n            k += 1",
+            "visualization": "copy_remaining"
+          },
+          {
+            "id": 6,
+            "title": "Merged Result",
+            "description": "The merge process produces a sorted array by combining two sorted subarrays.",
+            "code": "        print(f'Merged result: {arr}')\n        \n# Example: [38, 27, 43, 3, 9, 82, 10]\n# Final sorted: [3, 9, 10, 27, 38, 43, 82]",
+            "visualization": "merge_complete"
+          }
+        ],
+        "visualizations": [
+          "array_division",
+          "recursive_sort",
+          "merge_setup",
+          "element_comparison",
+          "copy_remaining",
+          "merge_complete"
+        ],
+        "algorithm": "Merge Sort",
+        "complexity": {
+          "time": "O(n log n)",
+          "space": "O(n)"
+        },
+        "settings": {
+          "showCode": true,
+          "autoPlay": false,
+          "stepDelay": 2200
+        }
+      }
+    },
+    {
+      "title": "Depth-First Search (DFS)",
+      "description": "Explore DFS algorithm by visualizing how it traverses a graph by going as deep as possible before backtracking.",
+      "activityType": "algorithm_visualization",
+      "category": "Algorithms",
+      "difficulty": 4,
+      "diamondReward": 45,
+      "experienceReward": 85,
+      "estimatedMinutes": 20,
+      "sortOrder": 27,
+      "topicOrder": 10,
+      "isLocked": true,
+      "tags": ["dfs", "graph-traversal", "recursion", "backtracking"],
+      "content": {
+        "steps": [
+          {
+            "id": 1,
+            "title": "Graph Representation",
+            "description": "Represent the graph using an adjacency list. Each vertex points to a list of its neighbors.",
+            "code": "graph = {\n    'A': ['B', 'C'],\n    'B': ['A', 'D', 'E'],\n    'C': ['A', 'F'],\n    'D': ['B'],\n    'E': ['B', 'F'],\n    'F': ['C', 'E']\n}",
+            "visualization": "graph_structure"
+          },
+          {
+            "id": 2,
+            "title": "Initialize DFS",
+            "description": "Start DFS from a given vertex and keep track of visited nodes to avoid cycles.",
+            "code": "def dfs(graph, start, visited=None):\n    if visited is None:\n        visited = set()\n    \n    print(f'Visiting: {start}')\n    visited.add(start)",
+            "visualization": "dfs_start"
+          },
+          {
+            "id": 3,
+            "title": "Explore Neighbors",
+            "description": "Visit each unvisited neighbor of the current vertex recursively.",
+            "code": "    for neighbor in graph[start]:\n        if neighbor not in visited:\n            print(f'{start} -> {neighbor}')\n            dfs(graph, neighbor, visited)",
+            "visualization": "neighbor_exploration"
+          },
+          {
+            "id": 4,
+            "title": "Recursive Depth-First",
+            "description": "DFS goes as deep as possible along each branch before backtracking to explore other branches.",
+            "code": "# DFS traversal from 'A':\n# A -> B -> D (dead end, backtrack)\n# B -> E -> F -> C (all connected nodes visited)",
+            "visualization": "depth_traversal"
+          },
+          {
+            "id": 5,
+            "title": "Backtracking Process",
+            "description": "When there are no more unvisited neighbors, DFS backtracks to the previous vertex and continues.",
+            "code": "# Backtrack when no unvisited neighbors\n# Continue from the last vertex with unvisited neighbors\nprint(f'Backtracking from dead end')",
+            "visualization": "backtrack_process"
+          },
+          {
+            "id": 6,
+            "title": "Complete Traversal",
+            "description": "DFS completes when all reachable vertices have been visited.",
+            "code": "# Complete DFS traversal order: A -> B -> D -> E -> F -> C\nprint(f'DFS completed. All reachable nodes visited.')",
+            "visualization": "traversal_complete"
+          }
+        ],
+        "visualizations": [
+          "graph_structure",
+          "dfs_start",
+          "neighbor_exploration",
+          "depth_traversal",
+          "backtrack_process",
+          "traversal_complete"
+        ],
+        "algorithm": "Depth-First Search",
+        "complexity": {
+          "time": "O(V + E)",
+          "space": "O(V)"
+        },
+        "settings": {
+          "showCode": true,
+          "autoPlay": false,
+          "stepDelay": 1800
+        }
+      }
+    },
+    {
+      "title": "Breadth-First Search (BFS)",
+      "description": "Learn BFS algorithm by visualizing how it explores all neighbors at the current depth before moving to the next depth level.",
+      "activityType": "algorithm_visualization",
+      "category": "Algorithms",
+      "difficulty": 4,
+      "diamondReward": 45,
+      "experienceReward": 85,
+      "estimatedMinutes": 20,
+      "sortOrder": 28,
+      "topicOrder": 11,
+      "isLocked": true,
+      "tags": ["bfs", "graph-traversal", "queue", "level-order"],
+      "content": {
+        "steps": [
+          {
+            "id": 1,
+            "title": "Graph and Queue Setup",
+            "description": "Set up the graph representation and initialize a queue for BFS traversal.",
+            "code": "from collections import deque\n\ngraph = {\n    'A': ['B', 'C'],\n    'B': ['A', 'D', 'E'],\n    'C': ['A', 'F'],\n    'D': ['B'],\n    'E': ['B', 'F'],\n    'F': ['C', 'E']\n}\n\nqueue = deque(['A'])\nvisited = set(['A'])",
+            "visualization": "bfs_setup"
+          },
+          {
+            "id": 2,
+            "title": "Process Current Level",
+            "description": "Remove a vertex from the front of the queue and process it (visit all its neighbors).",
+            "code": "def bfs(graph, start):\n    queue = deque([start])\n    visited = set([start])\n    \n    while queue:\n        vertex = queue.popleft()\n        print(f'Processing: {vertex}')",
+            "visualization": "level_processing"
+          },
+          {
+            "id": 3,
+            "title": "Add Unvisited Neighbors",
+            "description": "Add all unvisited neighbors of the current vertex to the end of the queue.",
+            "code": "        for neighbor in graph[vertex]:\n            if neighbor not in visited:\n                visited.add(neighbor)\n                queue.append(neighbor)\n                print(f'Added {neighbor} to queue')",
+            "visualization": "neighbor_queuing"
+          },
+          {
+            "id": 4,
+            "title": "Level-by-Level Exploration",
+            "description": "BFS explores all vertices at distance k before exploring vertices at distance k+1.",
+            "code": "# Level 0: A\n# Level 1: B, C (neighbors of A)\n# Level 2: D, E, F (neighbors of B and C)\nprint(f'Current queue: {list(queue)}')",
+            "visualization": "level_expansion"
+          },
+          {
+            "id": 5,
+            "title": "Queue Processing Order",
+            "description": "Continue processing vertices from the queue until it becomes empty.",
+            "code": "# Processing order: A -> B -> C -> D -> E -> F\n# Queue operations: FIFO (First In, First Out)\nprint(f'Processing vertex: {vertex}')",
+            "visualization": "queue_processing"
+          },
+          {
+            "id": 6,
+            "title": "BFS Complete",
+            "description": "BFS completes when the queue is empty, meaning all reachable vertices have been visited.",
+            "code": "    print('BFS traversal complete')\n    \n# BFS traversal order: A -> B -> C -> D -> E -> F\n# Explores by levels/layers",
+            "visualization": "bfs_complete"
+          }
+        ],
+        "visualizations": [
+          "bfs_setup",
+          "level_processing",
+          "neighbor_queuing",
+          "level_expansion",
+          "queue_processing",
+          "bfs_complete"
+        ],
+        "algorithm": "Breadth-First Search",
+        "complexity": {
+          "time": "O(V + E)",
+          "space": "O(V)"
+        },
+        "settings": {
+          "showCode": true,
+          "autoPlay": false,
+          "stepDelay": 1800
+        }
+      }
+    },
+    {
+      "title": "Heap Sort Algorithm",
+      "description": "Learn heap sort by understanding how to build a max heap and repeatedly extract the maximum element.",
+      "activityType": "algorithm_visualization",
+      "category": "Algorithms",
+      "difficulty": 4,
+      "diamondReward": 60,
+      "experienceReward": 110,
+      "estimatedMinutes": 28,
+      "sortOrder": 29,
+      "topicOrder": 12,
+      "isLocked": true,
+      "tags": ["heap-sort", "heap-data-structure", "sorting", "advanced"],
+      "content": {
+        "steps": [
+          {
+            "id": 1,
+            "title": "Build Max Heap",
+            "description": "Convert the array into a max heap where each parent node is greater than its children.",
+            "code": "def heapify(arr, n, i):\n    largest = i\n    left = 2 * i + 1\n    right = 2 * i + 2\n    \n    if left < n and arr[left] > arr[largest]:\n        largest = left\n    if right < n and arr[right] > arr[largest]:\n        largest = right",
+            "visualization": "heap_construction"
+          },
+          {
+            "id": 2,
+            "title": "Extract Maximum",
+            "description": "Move the maximum element (root) to the end of the array and reduce heap size.",
+            "code": "    if largest != i:\n        arr[i], arr[largest] = arr[largest], arr[i]\n        heapify(arr, n, largest)\n\n# Extract max and place at end\narr[0], arr[n-1] = arr[n-1], arr[0]",
+            "visualization": "max_extraction"
+          },
+          {
+            "id": 3,
+            "title": "Restore Heap Property",
+            "description": "After extraction, restore the max heap property by heapifying the reduced heap.",
+            "code": "def heap_sort(arr):\n    n = len(arr)\n    \n    # Build max heap\n    for i in range(n // 2 - 1, -1, -1):\n        heapify(arr, n, i)",
+            "visualization": "heap_restoration"
+          },
+          {
+            "id": 4,
+            "title": "Repeat Until Sorted",
+            "description": "Continuously extract the maximum and heapify until the entire array is sorted.",
+            "code": "    # Extract elements one by one\n    for i in range(n-1, 0, -1):\n        arr[0], arr[i] = arr[i], arr[0]\n        heapify(arr, i, 0)",
+            "visualization": "sorting_process"
+          },
+          {
+            "id": 5,
+            "title": "Heap Visualization",
+            "description": "Visualize the heap as a binary tree structure to understand parent-child relationships.",
+            "code": "# Heap as tree:\n#       9\n#      / \\\n#     4   7\n#    / \\\n#   1   3\n# Array: [9, 4, 7, 1, 3]",
+            "visualization": "tree_structure"
+          },
+          {
+            "id": 6,
+            "title": "Sorted Result",
+            "description": "Heap sort produces a sorted array with O(n log n) time complexity and O(1) space complexity.",
+            "code": "# Example: [4, 10, 3, 5, 1] → [1, 3, 4, 5, 10]\nprint('Heap sorted array:', arr)",
+            "visualization": "final_sorted"
+          }
+        ],
+        "visualizations": [
+          "heap_construction",
+          "max_extraction",
+          "heap_restoration",
+          "sorting_process",
+          "tree_structure",
+          "final_sorted"
+        ],
+        "algorithm": "Heap Sort",
+        "complexity": {
+          "time": "O(n log n)",
+          "space": "O(1)"
+        },
+        "settings": {
+          "showCode": true,
+          "autoPlay": false,
+          "stepDelay": 2500
+        }
+      }
+    },
+    {
+      "title": "Counting Sort Algorithm",
+      "description": "Learn counting sort, a non-comparison sorting algorithm that works by counting occurrences of each element.",
+      "activityType": "algorithm_visualization",
+      "category": "Algorithms",
+      "difficulty": 3,
+      "diamondReward": 40,
+      "experienceReward": 75,
+      "estimatedMinutes": 18,
+      "sortOrder": 30,
+      "topicOrder": 13,
+      "isLocked": true,
+      "tags": ["counting-sort", "non-comparison", "linear-time", "stable"],
+      "content": {
+        "steps": [
+          {
+            "id": 1,
+            "title": "Find Range",
+            "description": "Determine the range of input by finding the minimum and maximum values in the array.",
+            "code": "def counting_sort(arr):\n    if not arr:\n        return arr\n    \n    min_val = min(arr)\n    max_val = max(arr)\n    range_size = max_val - min_val + 1\n    print(f'Range: {min_val} to {max_val}, Size: {range_size}')",
+            "visualization": "range_detection"
+          },
+          {
+            "id": 2,
+            "title": "Create Count Array",
+            "description": "Create a count array to store the frequency of each element in the input range.",
+            "code": "    # Initialize count array with zeros\n    count = [0] * range_size\n    print(f'Count array initialized: {count}')",
+            "visualization": "count_array_init"
+          },
+          {
+            "id": 3,
+            "title": "Count Occurrences",
+            "description": "Count the occurrence of each element and store it in the count array.",
+            "code": "    # Count occurrences of each element\n    for num in arr:\n        count[num - min_val] += 1\n    print(f'After counting: {count}')",
+            "visualization": "counting_phase"
+          },
+          {
+            "id": 4,
+            "title": "Calculate Cumulative Counts",
+            "description": "Transform count array to store cumulative counts for stable sorting.",
+            "code": "    # Calculate cumulative counts\n    for i in range(1, len(count)):\n        count[i] += count[i - 1]\n    print(f'Cumulative counts: {count}')",
+            "visualization": "cumulative_calculation"
+          },
+          {
+            "id": 5,
+            "title": "Build Output Array",
+            "description": "Place elements in their correct positions using the cumulative count information.",
+            "code": "    # Build output array\n    output = [0] * len(arr)\n    \n    # Traverse input array from right to left for stability\n    for i in range(len(arr) - 1, -1, -1):\n        output_index = count[arr[i] - min_val] - 1\n        output[output_index] = arr[i]\n        count[arr[i] - min_val] -= 1",
+            "visualization": "output_construction"
+          },
+          {
+            "id": 6,
+            "title": "Copy Result",
+            "description": "Copy the sorted output array back to the original array.",
+            "code": "    # Copy output array to original array\n    for i in range(len(arr)):\n        arr[i] = output[i]\n    \n    print(f'Sorted array: {arr}')\n    return arr",
+            "visualization": "final_result"
+          }
+        ],
+        "visualizations": [
+          "range_detection",
+          "count_array_init",
+          "counting_phase",
+          "cumulative_calculation",
+          "output_construction",
+          "final_result"
+        ],
+        "algorithm": "Counting Sort",
+        "complexity": {
+          "time": "O(n + k)",
+          "space": "O(k)"
+        },
+        "settings": {
+          "showCode": true,
+          "autoPlay": false,
+          "stepDelay": 2000
+        }
+      }
+    },
+    {
+      "title": "Radix Sort Algorithm",
+      "description": "Master radix sort by understanding how to sort numbers digit by digit using counting sort as subroutine.",
+      "activityType": "algorithm_visualization",
+      "category": "Algorithms",
+      "difficulty": 4,
+      "diamondReward": 55,
+      "experienceReward": 100,
+      "estimatedMinutes": 25,
+      "sortOrder": 31,
+      "topicOrder": 14,
+      "isLocked": true,
+      "tags": ["radix-sort", "digit-sorting", "stable", "non-comparison"],
+      "content": {
+        "steps": [
+          {
+            "id": 1,
+            "title": "Find Maximum Number",
+            "description": "Find the maximum number to determine the number of digits for processing.",
+            "code": "def radix_sort(arr):\n    if not arr:\n        return arr\n    \n    max_num = max(arr)\n    exp = 1  # Current digit position (1s, 10s, 100s, etc.)\n    print(f'Maximum number: {max_num}')",
+            "visualization": "max_detection"
+          },
+          {
+            "id": 2,
+            "title": "Sort by Each Digit",
+            "description": "Process each digit position from least significant to most significant digit.",
+            "code": "    # Process each digit position\n    while max_num // exp > 0:\n        print(f'\\nSorting by digit at position {exp}')\n        counting_sort_by_digit(arr, exp)\n        print(f'After sorting by {exp}s place: {arr}')\n        exp *= 10",
+            "visualization": "digit_iteration"
+          },
+          {
+            "id": 3,
+            "title": "Counting Sort by Digit",
+            "description": "Use counting sort as a subroutine to sort by current digit position.",
+            "code": "def counting_sort_by_digit(arr, exp):\n    n = len(arr)\n    output = [0] * n\n    count = [0] * 10  # Digits 0-9\n    \n    # Count occurrences of each digit\n    for num in arr:\n        digit = (num // exp) % 10\n        count[digit] += 1",
+            "visualization": "digit_counting"
+          },
+          {
+            "id": 4,
+            "title": "Calculate Positions",
+            "description": "Calculate the actual positions where each digit should be placed.",
+            "code": "    # Calculate cumulative counts\n    for i in range(1, 10):\n        count[i] += count[i - 1]\n    \n    print(f'Digit counts for position {exp}: {count}')",
+            "visualization": "position_calculation"
+          },
+          {
+            "id": 5,
+            "title": "Build Sorted Output",
+            "description": "Place numbers in their correct positions based on current digit, maintaining stability.",
+            "code": "    # Build output array (traverse from right for stability)\n    for i in range(n - 1, -1, -1):\n        digit = (arr[i] // exp) % 10\n        output[count[digit] - 1] = arr[i]\n        count[digit] -= 1\n    \n    # Copy output to original array\n    for i in range(n):\n        arr[i] = output[i]",
+            "visualization": "stable_placement"
+          },
+          {
+            "id": 6,
+            "title": "Final Sorted Array",
+            "description": "After processing all digit positions, the array is completely sorted.",
+            "code": "# Example: [170, 45, 75, 90, 2, 802, 24, 66]\n# After sorting: [2, 24, 45, 66, 75, 90, 170, 802]\nprint(f'Final sorted array: {arr}')",
+            "visualization": "complete_sort"
+          }
+        ],
+        "visualizations": [
+          "max_detection",
+          "digit_iteration",
+          "digit_counting",
+          "position_calculation",
+          "stable_placement",
+          "complete_sort"
+        ],
+        "algorithm": "Radix Sort",
+        "complexity": {
+          "time": "O(d × (n + k))",
+          "space": "O(n + k)"
+        },
+        "settings": {
+          "showCode": true,
+          "autoPlay": false,
+          "stepDelay": 2300
+        }
+      }
+    },
+    {
+      "title": "Shell Sort Algorithm",
+      "description": "Learn Shell sort, an improved insertion sort that allows exchanges of far apart elements.",
+      "activityType": "algorithm_visualization",
+      "category": "Algorithms",
+      "difficulty": 3,
+      "diamondReward": 45,
+      "experienceReward": 80,
+      "estimatedMinutes": 20,
+      "sortOrder": 32,
+      "topicOrder": 15,
+      "isLocked": true,
+      "tags": [
+        "shell-sort",
+        "gap-sorting",
+        "insertion-improvement",
+        "diminishing-gaps"
+      ],
+      "content": {
+        "steps": [
+          {
+            "id": 1,
+            "title": "Initialize Gap Sequence",
+            "description": "Start with a large gap (typically n/2) and reduce it in each iteration.",
+            "code": "def shell_sort(arr):\n    n = len(arr)\n    gap = n // 2\n    \n    print(f'Array: {arr}')\n    print(f'Starting with gap: {gap}')",
+            "visualization": "gap_initialization"
+          },
+          {
+            "id": 2,
+            "title": "Sort Subarrays with Gap",
+            "description": "For each gap, sort subarrays formed by elements gap distance apart.",
+            "code": "    while gap > 0:\n        print(f'\\nSorting with gap {gap}:')\n        \n        # Sort subarrays formed by gap\n        for i in range(gap, n):\n            temp = arr[i]\n            j = i",
+            "visualization": "subarray_sorting"
+          },
+          {
+            "id": 3,
+            "title": "Insertion Sort with Gap",
+            "description": "Apply insertion sort logic but compare elements that are 'gap' distance apart.",
+            "code": "            # Insertion sort with gap\n            while j >= gap and arr[j - gap] > temp:\n                arr[j] = arr[j - gap]\n                j -= gap\n            \n            arr[j] = temp\n            print(f'After inserting {temp}: {arr}')",
+            "visualization": "gapped_insertion"
+          },
+          {
+            "id": 4,
+            "title": "Reduce Gap",
+            "description": "Reduce the gap (typically by half) and repeat until gap becomes 1.",
+            "code": "        # Reduce gap\n        gap //= 2\n        print(f'Reducing gap to: {gap}')",
+            "visualization": "gap_reduction"
+          },
+          {
+            "id": 5,
+            "title": "Final Pass (Gap = 1)",
+            "description": "When gap becomes 1, this performs a regular insertion sort on nearly sorted array.",
+            "code": "    # When gap = 1, it's regular insertion sort\n    # But array is nearly sorted, so it's very efficient\n    print('\\nFinal pass with gap = 1 (regular insertion sort)')",
+            "visualization": "final_insertion"
+          },
+          {
+            "id": 6,
+            "title": "Shell Sort Complete",
+            "description": "Shell sort achieves better performance than insertion sort by reducing inversions efficiently.",
+            "code": "# Example: [64, 34, 25, 12, 22, 11, 90]\n# After shell sort: [11, 12, 22, 25, 34, 64, 90]\nprint(f'Shell sorted array: {arr}')",
+            "visualization": "sorted_result"
+          }
+        ],
+        "visualizations": [
+          "gap_initialization",
+          "subarray_sorting",
+          "gapped_insertion",
+          "gap_reduction",
+          "final_insertion",
+          "sorted_result"
+        ],
+        "algorithm": "Shell Sort",
+        "complexity": {
+          "time": "O(n^1.5) to O(n²)",
+          "space": "O(1)"
+        },
+        "settings": {
+          "showCode": true,
+          "autoPlay": false,
+          "stepDelay": 2200
+        }
+      }
+    },
+    {
+      "title": "Bucket Sort Algorithm",
+      "description": "Learn bucket sort, a distribution sorting algorithm that divides elements into buckets and sorts them individually.",
+      "activityType": "algorithm_visualization",
+      "category": "Algorithms",
+      "difficulty": 3,
+      "diamondReward": 50,
+      "experienceReward": 90,
+      "estimatedMinutes": 22,
+      "sortOrder": 33,
+      "topicOrder": 16,
+      "isLocked": true,
+      "tags": ["bucket-sort", "distribution-sort", "divide-conquer", "stable"],
+      "content": {
+        "steps": [
+          {
+            "id": 1,
+            "title": "Create Empty Buckets",
+            "description": "Create a number of empty buckets (typically same as array size).",
+            "code": "def bucket_sort(arr):\n    if len(arr) <= 1:\n        return arr\n    \n    # Create empty buckets\n    bucket_count = len(arr)\n    buckets = [[] for _ in range(bucket_count)]\n    print(f'Created {bucket_count} empty buckets')",
+            "visualization": "bucket_creation"
+          },
+          {
+            "id": 2,
+            "title": "Find Range",
+            "description": "Determine the range of values to distribute elements uniformly across buckets.",
+            "code": "    # Find the range of values\n    min_val = min(arr)\n    max_val = max(arr)\n    range_val = max_val - min_val\n    print(f'Range: {min_val} to {max_val} (span: {range_val})')",
+            "visualization": "range_calculation"
+          },
+          {
+            "id": 3,
+            "title": "Distribute into Buckets",
+            "description": "Place each element into appropriate bucket based on its value.",
+            "code": "    # Put array elements into buckets\n    for num in arr:\n        if range_val == 0:\n            bucket_index = 0\n        else:\n            bucket_index = int((num - min_val) / range_val * (bucket_count - 1))\n        buckets[bucket_index].append(num)\n        print(f'Put {num} into bucket {bucket_index}')",
+            "visualization": "element_distribution"
+          },
+          {
+            "id": 4,
+            "title": "Sort Individual Buckets",
+            "description": "Sort each non-empty bucket individually using any sorting algorithm (typically insertion sort).",
+            "code": "    # Sort individual buckets\n    for i in range(bucket_count):\n        if buckets[i]:\n            buckets[i].sort()  # Using built-in sort (typically insertion sort)\n            print(f'Bucket {i} sorted: {buckets[i]}')",
+            "visualization": "bucket_sorting"
+          },
+          {
+            "id": 5,
+            "title": "Concatenate Buckets",
+            "description": "Concatenate all sorted buckets to get the final sorted array.",
+            "code": "    # Concatenate buckets\n    sorted_arr = []\n    for bucket in buckets:\n        sorted_arr.extend(bucket)\n    \n    print(f'Concatenated result: {sorted_arr}')",
+            "visualization": "concatenation"
+          },
+          {
+            "id": 6,
+            "title": "Bucket Sort Complete",
+            "description": "Bucket sort achieves linear time complexity when input is uniformly distributed.",
+            "code": "    return sorted_arr\n\n# Example: [0.42, 0.32, 0.33, 0.52, 0.37, 0.47, 0.51]\n# After bucket sort: [0.32, 0.33, 0.37, 0.42, 0.47, 0.51, 0.52]",
+            "visualization": "final_result"
+          }
+        ],
+        "visualizations": [
+          "bucket_creation",
+          "range_calculation",
+          "element_distribution",
+          "bucket_sorting",
+          "concatenation",
+          "final_result"
+        ],
+        "algorithm": "Bucket Sort",
+        "complexity": {
+          "time": "O(n + k) average, O(n²) worst",
+          "space": "O(n + k)"
+        },
+        "settings": {
+          "showCode": true,
+          "autoPlay": false,
+          "stepDelay": 2000
+        }
+      }
+    },
+    {
+      "title": "Cocktail Sort (Bidirectional Bubble)",
+      "description": "Learn cocktail sort, a bidirectional bubble sort that sorts in both directions alternately.",
+      "activityType": "algorithm_visualization",
+      "category": "Algorithms",
+      "difficulty": 2,
+      "diamondReward": 35,
+      "experienceReward": 65,
+      "estimatedMinutes": 16,
+      "sortOrder": 34,
+      "topicOrder": 17,
+      "isLocked": true,
+      "tags": [
+        "cocktail-sort",
+        "bidirectional",
+        "bubble-improvement",
+        "shaker-sort"
+      ],
+      "content": {
+        "steps": [
+          {
+            "id": 1,
+            "title": "Initialize Boundaries",
+            "description": "Set up start and end boundaries for the bidirectional sorting process.",
+            "code": "def cocktail_sort(arr):\n    n = len(arr)\n    start = 0\n    end = n - 1\n    swapped = True\n    \n    print(f'Array: {arr}')\n    print(f'Start: {start}, End: {end}')",
+            "visualization": "boundary_setup"
+          },
+          {
+            "id": 2,
+            "title": "Forward Pass (Left to Right)",
+            "description": "Bubble the largest element to the right end, like regular bubble sort.",
+            "code": "    while swapped:\n        swapped = False\n        \n        # Forward pass: left to right\n        for i in range(start, end):\n            if arr[i] > arr[i + 1]:\n                arr[i], arr[i + 1] = arr[i + 1], arr[i]\n                swapped = True\n                print(f'Forward swap: {arr[i+1]} <-> {arr[i]}')",
+            "visualization": "forward_pass"
+          },
+          {
+            "id": 3,
+            "title": "Update End Boundary",
+            "description": "After forward pass, the largest element is in place, so reduce the end boundary.",
+            "code": "        # Largest element is now at the end\n        end -= 1\n        print(f'End boundary reduced to: {end}')\n        \n        if not swapped:\n            break  # Array is sorted",
+            "visualization": "end_update"
+          },
+          {
+            "id": 4,
+            "title": "Backward Pass (Right to Left)",
+            "description": "Bubble the smallest element to the left end in the opposite direction.",
+            "code": "        # Backward pass: right to left\n        swapped = False\n        for i in range(end, start, -1):\n            if arr[i] < arr[i - 1]:\n                arr[i], arr[i - 1] = arr[i - 1], arr[i]\n                swapped = True\n                print(f'Backward swap: {arr[i-1]} <-> {arr[i]}')",
+            "visualization": "backward_pass"
+          },
+          {
+            "id": 5,
+            "title": "Update Start Boundary",
+            "description": "After backward pass, the smallest element is in place, so increase the start boundary.",
+            "code": "        # Smallest element is now at the start\n        start += 1\n        print(f'Start boundary increased to: {start}')\n        print(f'Array after round: {arr}')",
+            "visualization": "start_update"
+          },
+          {
+            "id": 6,
+            "title": "Cocktail Sort Complete",
+            "description": "Cocktail sort can be more efficient than bubble sort as it works from both ends.",
+            "code": "    print(f'Cocktail sorted array: {arr}')\n    return arr\n\n# Better performance than bubble sort for some inputs\n# Example: [5, 1, 4, 2, 8, 0, 2] → [0, 1, 2, 2, 4, 5, 8]",
+            "visualization": "final_sorted"
+          }
+        ],
+        "visualizations": [
+          "boundary_setup",
+          "forward_pass",
+          "end_update",
+          "backward_pass",
+          "start_update",
+          "final_sorted"
+        ],
+        "algorithm": "Cocktail Sort",
+        "complexity": {
+          "time": "O(n²)",
+          "space": "O(1)"
+        },
+        "settings": {
+          "showCode": true,
+          "autoPlay": false,
+          "stepDelay": 1800
+        }
+      }
+    },
+    {
+      "title": "Comb Sort Algorithm",
+      "description": "Learn comb sort, an improvement over bubble sort that eliminates small values at the end of the list.",
+      "activityType": "algorithm_visualization",
+      "category": "Algorithms",
+      "difficulty": 3,
+      "diamondReward": 40,
+      "experienceReward": 70,
+      "estimatedMinutes": 18,
+      "sortOrder": 35,
+      "topicOrder": 18,
+      "isLocked": true,
+      "tags": [
+        "comb-sort",
+        "gap-sorting",
+        "bubble-improvement",
+        "shrink-factor"
+      ],
+      "content": {
+        "steps": [
+          {
+            "id": 1,
+            "title": "Initialize Gap",
+            "description": "Start with a large gap (array size) and use shrink factor of 1.3 to reduce it.",
+            "code": "def comb_sort(arr):\n    n = len(arr)\n    gap = n\n    shrink_factor = 1.3\n    swapped = True\n    \n    print(f'Array: {arr}')\n    print(f'Initial gap: {gap}')",
+            "visualization": "gap_initialization"
+          },
+          {
+            "id": 2,
+            "title": "Calculate New Gap",
+            "description": "Reduce the gap by the shrink factor (1.3) in each iteration.",
+            "code": "    while gap > 1 or swapped:\n        # Calculate new gap\n        gap = int(gap / shrink_factor)\n        if gap < 1:\n            gap = 1\n        \n        print(f'New gap: {gap}')",
+            "visualization": "gap_calculation"
+          },
+          {
+            "id": 3,
+            "title": "Compare Elements with Gap",
+            "description": "Compare and swap elements that are 'gap' distance apart, similar to shell sort.",
+            "code": "        swapped = False\n        \n        # Compare elements with gap distance\n        for i in range(n - gap):\n            if arr[i] > arr[i + gap]:\n                arr[i], arr[i + gap] = arr[i + gap], arr[i]\n                swapped = True\n                print(f'Swapped {arr[i+gap]} and {arr[i]} (gap: {gap})')",
+            "visualization": "gap_comparison"
+          },
+          {
+            "id": 4,
+            "title": "Eliminate Turtles",
+            "description": "Large gaps help eliminate 'turtles' (small values near the end) quickly.",
+            "code": "        print(f'Array after gap {gap}: {arr}')\n        \n        # When gap becomes 1, it's like bubble sort\n        # but most inversions are already eliminated",
+            "visualization": "turtle_elimination"
+          },
+          {
+            "id": 5,
+            "title": "Final Bubble Sort Phase",
+            "description": "When gap becomes 1, perform final bubble sort pass on nearly sorted array.",
+            "code": "        # Gap = 1 means we're doing bubble sort\n        # But array is nearly sorted by now\n        if gap == 1:\n            print('Final bubble sort phase (gap = 1)')",
+            "visualization": "bubble_phase"
+          },
+          {
+            "id": 6,
+            "title": "Comb Sort Complete",
+            "description": "Comb sort achieves better performance than bubble sort by eliminating small values early.",
+            "code": "    print(f'Comb sorted array: {arr}')\n    return arr\n\n# Significantly better than bubble sort\n# Example: [8, 4, 1, 56, 3, -44, 23, -6, 28, 0]",
+            "visualization": "sorted_complete"
+          }
+        ],
+        "visualizations": [
+          "gap_initialization",
+          "gap_calculation",
+          "gap_comparison",
+          "turtle_elimination",
+          "bubble_phase",
+          "sorted_complete"
+        ],
+        "algorithm": "Comb Sort",
+        "complexity": {
+          "time": "O(n²) worst, O(n log n) average",
+          "space": "O(1)"
+        },
+        "settings": {
+          "showCode": true,
+          "autoPlay": false,
+          "stepDelay": 2000
+        }
+      }
+    },
+    {
+      "title": "Advanced List Comprehensions",
+      "description": "Master advanced list comprehension techniques including nested comprehensions, conditional logic, and complex transformations.",
+      "activityType": "interactive_coding",
+      "category": "Python Fundamentals",
+      "difficulty": 3,
+      "diamondReward": 40,
+      "experienceReward": 80,
+      "estimatedMinutes": 22,
+      "sortOrder": 36,
+      "topicOrder": 8,
+      "isLocked": true,
+      "tags": ["list-comprehensions", "advanced", "functional-programming"],
+      "content": {
+        "exercises": [
+          {
+            "title": "Nested List Comprehensions",
+            "instruction": "Create a 3x3 matrix using nested list comprehensions",
+            "starterCode": "# Create a 3x3 matrix with values i*j\nmatrix = \n\nprint(matrix)",
+            "solution": "matrix = [[i*j for j in range(3)] for i in range(3)]",
+            "testCases": [
+              {
+                "input": "",
+                "expected": "[[0, 0, 0], [0, 1, 2], [0, 2, 4]]",
+                "description": "3x3 multiplication matrix"
+              }
+            ]
+          },
+          {
+            "title": "Conditional List Comprehensions",
+            "instruction": "Filter and transform numbers in one comprehension",
+            "starterCode": "numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]\n# Get squares of even numbers only\neven_squares = \n\nprint(even_squares)",
+            "solution": "even_squares = [x**2 for x in numbers if x % 2 == 0]",
+            "testCases": [
+              {
+                "input": "",
+                "expected": "[4, 16, 36, 64, 100]",
+                "description": "Squares of even numbers"
+              }
+            ]
+          },
+          {
+            "title": "Dictionary Comprehensions",
+            "instruction": "Create a dictionary mapping words to their lengths",
+            "starterCode": "words = ['python', 'java', 'javascript', 'go', 'rust']\n# Create dict: word -> length\nword_lengths = \n\nprint(word_lengths)",
+            "solution": "word_lengths = {word: len(word) for word in words}",
+            "testCases": [
+              {
+                "input": "",
+                "expected": "{'python': 6, 'java': 4, 'javascript': 10, 'go': 2, 'rust': 4}",
+                "description": "Word to length mapping"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "title": "Lambda Functions & Functional Programming",
+      "description": "Build functional programming skills using lambda functions, map, filter, and reduce operations.",
+      "activityType": "code_builder",
+      "category": "Python Fundamentals",
+      "difficulty": 4,
+      "diamondReward": 55,
+      "experienceReward": 105,
+      "estimatedMinutes": 28,
+      "sortOrder": 37,
+      "topicOrder": 9,
+      "isLocked": true,
+      "tags": ["lambda", "functional-programming", "map", "filter", "reduce"],
+      "content": {
+        "project": "Data Processing Pipeline",
+        "description": "Build a functional data processing pipeline using lambda functions",
+        "modules": [
+          {
+            "name": "Lambda Basics",
+            "code": "# Define lambda functions for common operations\nsquare = lambda x: x ** 2\nis_even = lambda x: x % 2 == 0\nfull_name = lambda first, last: f'{first} {last}'",
+            "explanation": "Lambda functions are anonymous functions for simple operations"
+          },
+          {
+            "name": "Map Operations",
+            "code": "# Use map with lambda to transform data\nnumbers = [1, 2, 3, 4, 5]\nsquared = list(map(lambda x: x**2, numbers))\ntemperatures_c = [0, 20, 30, 40]\ntemperatures_f = list(map(lambda c: c * 9/5 + 32, temperatures_c))",
+            "explanation": "Map applies a function to every element in an iterable"
+          },
+          {
+            "name": "Filter Operations",
+            "code": "# Use filter with lambda to select data\nnumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]\nevens = list(filter(lambda x: x % 2 == 0, numbers))\nwords = ['apple', 'banana', 'cherry', 'date']\nlong_words = list(filter(lambda w: len(w) > 5, words))",
+            "explanation": "Filter selects elements that satisfy a condition"
+          },
+          {
+            "name": "Reduce Operations",
+            "code": "from functools import reduce\n\n# Use reduce for aggregation\nnumbers = [1, 2, 3, 4, 5]\nproduct = reduce(lambda x, y: x * y, numbers)\nmax_value = reduce(lambda x, y: x if x > y else y, numbers)",
+            "explanation": "Reduce applies a function cumulatively to reduce to a single value"
+          }
+        ],
+        "testScenarios": [
+          "Transform a list of temperatures from Celsius to Fahrenheit",
+          "Filter a list to find numbers divisible by 3",
+          "Calculate the product of all numbers in a list",
+          "Find the longest word in a list of strings"
+        ]
+      }
+    },
+    {
+      "title": "File I/O Operations Mastery",
+      "description": "Complete the missing parts to master Python file operations including reading, writing, and processing different file formats.",
+      "activityType": "fill_blanks",
+      "category": "Python Fundamentals",
+      "difficulty": 3,
+      "diamondReward": 45,
+      "experienceReward": 85,
+      "estimatedMinutes": 20,
+      "sortOrder": 38,
+      "topicOrder": 10,
+      "isLocked": true,
+      "tags": ["file-io", "files", "reading", "writing", "csv"],
+      "content": {
+        "code": "# Reading a text file\n_____ open('data.txt', '___') as file:\n    content = file.______()\n    print(content)\n\n# Writing to a file\ndata = ['apple', 'banana', 'cherry']\n_____ open('fruits.txt', '___') as file:\n    for fruit in data:\n        file.______(f'{fruit}\\n')\n\n# Reading CSV file\nimport ___\n_____ open('students.csv', '___') as file:\n    reader = csv._______(file)\n    for row in reader:\n        print(f'Name: {row[0]}, Age: {row[1]}')\n\n# Writing CSV file\nimport csv\nstudents = [['Alice', 20], ['Bob', 22], ['Charlie', 19]]\n_____ open('output.csv', '___', newline='') as file:\n    writer = csv._______(file)\n    writer._______(students)",
+        "blanks": [
+          {
+            "position": 1,
+            "answer": "with",
+            "hint": "Context manager keyword"
+          },
+          { "position": 2, "answer": "r", "hint": "Read mode" },
+          {
+            "position": 3,
+            "answer": "read",
+            "hint": "Method to read entire file"
+          },
+          {
+            "position": 4,
+            "answer": "with",
+            "hint": "Context manager for writing"
+          },
+          { "position": 5, "answer": "w", "hint": "Write mode" },
+          {
+            "position": 6,
+            "answer": "write",
+            "hint": "Method to write to file"
+          },
+          {
+            "position": 7,
+            "answer": "csv",
+            "hint": "Module for CSV operations"
+          },
+          {
+            "position": 8,
+            "answer": "with",
+            "hint": "Context manager for CSV"
+          },
+          { "position": 9, "answer": "r", "hint": "Read mode for CSV" },
+          { "position": 10, "answer": "reader", "hint": "CSV reader object" },
+          {
+            "position": 11,
+            "answer": "with",
+            "hint": "Context manager for writing CSV"
+          },
+          { "position": 12, "answer": "w", "hint": "Write mode for CSV" },
+          { "position": 13, "answer": "writer", "hint": "CSV writer object" },
+          {
+            "position": 14,
+            "answer": "writerows",
+            "hint": "Method to write multiple rows"
+          }
+        ],
+        "explanation": "File I/O operations use context managers (with) for safe file handling and automatic resource cleanup."
+      }
+    },
+    {
+      "title": "Exception Handling & Debugging",
+      "description": "Master Python error handling through interactive examples of try-except blocks, custom exceptions, and debugging techniques.",
+      "activityType": "interactive_demo",
+      "category": "Python Fundamentals",
+      "difficulty": 4,
+      "diamondReward": 50,
+      "experienceReward": 95,
+      "estimatedMinutes": 25,
+      "sortOrder": 39,
+      "topicOrder": 11,
+      "isLocked": true,
+      "tags": ["exceptions", "error-handling", "debugging", "try-except"],
+      "content": {
+        "steps": [
+          {
+            "title": "Basic Exception Handling",
+            "explanation": "Use try-except blocks to handle potential errors gracefully.",
+            "code": "try:\n    number = int(input('Enter a number: '))\n    result = 10 / number\n    print(f'Result: {result}')\nexcept ValueError:\n    print('Invalid input! Please enter a number.')\nexcept ZeroDivisionError:\n    print('Cannot divide by zero!')",
+            "interactive": true,
+            "hint": "Try entering different values: numbers, zero, and text"
+          },
+          {
+            "title": "Multiple Exception Types",
+            "explanation": "Handle different exception types with specific error messages.",
+            "code": "def safe_file_operation(filename):\n    try:\n        with open(filename, 'r') as file:\n            data = file.read()\n            return len(data)\n    except FileNotFoundError:\n        print(f'File {filename} not found!')\n    except PermissionError:\n        print(f'Permission denied to read {filename}')\n    except Exception as e:\n        print(f'Unexpected error: {e}')\n    return 0\n\nresult = safe_file_operation('test.txt')",
+            "interactive": true,
+            "hint": "This demonstrates handling multiple specific exceptions"
+          },
+          {
+            "title": "Custom Exceptions",
+            "explanation": "Create and raise custom exceptions for specific error conditions.",
+            "code": "class InsufficientFundsError(Exception):\n    def __init__(self, balance, amount):\n        self.balance = balance\n        self.amount = amount\n        super().__init__(f'Insufficient funds: {balance} < {amount}')\n\ndef withdraw(balance, amount):\n    if amount > balance:\n        raise InsufficientFundsError(balance, amount)\n    return balance - amount\n\ntry:\n    new_balance = withdraw(100, 150)\nexcept InsufficientFundsError as e:\n    print(f'Transaction failed: {e}')",
+            "interactive": true,
+            "hint": "Custom exceptions provide specific error information"
+          },
+          {
+            "title": "Finally Block",
+            "explanation": "Use finally blocks for cleanup code that must run regardless of exceptions.",
+            "code": "def process_file(filename):\n    file = None\n    try:\n        file = open(filename, 'r')\n        data = file.read()\n        # Simulate processing\n        if len(data) == 0:\n            raise ValueError('File is empty')\n        return data.upper()\n    except FileNotFoundError:\n        print('File not found')\n    except ValueError as e:\n        print(f'Processing error: {e}')\n    finally:\n        if file:\n            file.close()\n            print('File closed successfully')\n\nresult = process_file('example.txt')",
+            "interactive": true,
+            "hint": "Finally block always executes for cleanup"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Python Modules & Packages Quiz",
+      "description": "Test your understanding of Python modules, packages, imports, and the Python Standard Library.",
+      "activityType": "quiz",
+      "category": "Python Fundamentals",
+      "difficulty": 3,
+      "diamondReward": 35,
+      "experienceReward": 65,
+      "estimatedMinutes": 15,
+      "sortOrder": 40,
+      "topicOrder": 12,
+      "isLocked": true,
+      "tags": ["modules", "packages", "imports", "standard-library"],
+      "content": {
+        "questions": [
+          {
+            "question": "What is the difference between 'import math' and 'from math import sqrt'?",
+            "options": [
+              "No difference, both work the same way",
+              "First imports the module, second imports specific function",
+              "First is faster, second uses more memory",
+              "First is deprecated, second is preferred"
+            ],
+            "correct": 1,
+            "explanation": "'import math' imports the entire module (use math.sqrt), 'from math import sqrt' imports only the sqrt function (use sqrt directly)."
+          },
+          {
+            "question": "What does the __init__.py file do in a Python package?",
+            "options": [
+              "It contains the main code of the package",
+              "It marks the directory as a Python package",
+              "It stores package documentation",
+              "It's only needed for Python 2"
+            ],
+            "correct": 1,
+            "explanation": "__init__.py marks a directory as a Python package and can contain initialization code for the package."
+          },
+          {
+            "question": "Which statement about Python's sys module is correct?",
+            "options": [
+              "It's used for system administration only",
+              "It provides access to interpreter variables and functions",
+              "It's deprecated in Python 3",
+              "It only works on Unix systems"
+            ],
+            "correct": 1,
+            "explanation": "The sys module provides access to interpreter variables and functions, like sys.argv, sys.path, and sys.exit()."
+          },
+          {
+            "question": "What happens when you use 'import *' from a module?",
+            "options": [
+              "It imports only the most commonly used functions",
+              "It imports all public names from the module",
+              "It creates a copy of the entire module",
+              "It's not allowed in Python"
+            ],
+            "correct": 1,
+            "explanation": "'import *' imports all public names (not starting with _) from the module, but it's generally discouraged as it can pollute the namespace."
+          },
+          {
+            "question": "Which of these is a correct way to handle optional imports?",
+            "options": [
+              "if 'numpy' in sys.modules: import numpy",
+              "try: import numpy except: numpy = None",
+              "import numpy or None",
+              "from optional import numpy"
+            ],
+            "correct": 1,
+            "explanation": "Use try-except blocks to handle optional imports: try: import numpy except ImportError: numpy = None"
+          }
+        ],
+        "passingScore": 75,
+        "timeLimit": 300
+      }
+    },
+    {
+      "title": "Advanced String Formatting Explorer",
+      "description": "Explore advanced Python string formatting techniques including f-strings, format() method, and template strings.",
+      "activityType": "data_exploration",
+      "category": "Python Fundamentals",
+      "difficulty": 4,
+      "diamondReward": 45,
+      "experienceReward": 90,
+      "estimatedMinutes": 24,
+      "sortOrder": 41,
+      "topicOrder": 13,
+      "isLocked": true,
+      "tags": ["string-formatting", "f-strings", "advanced", "templates"],
+      "content": {
+        "techniques": [
+          {
+            "name": "F-String Formatting",
+            "code": "name = 'Alice'\nage = 30\nsalary = 75000.50\n\n# Basic f-string\nbasic = f'Hello, {name}!'\n\n# With expressions\nexpression = f'{name} is {age} years old'\n\n# Number formatting\nformatted = f'Salary: ${salary:,.2f}'",
+            "result": "Hello, Alice!\nAlice is 30 years old\nSalary: $75,000.50",
+            "explanation": "F-strings provide the most readable and efficient string formatting"
+          },
+          {
+            "name": "Advanced F-String Features",
+            "code": "import datetime\n\nnow = datetime.datetime.now()\npi = 3.14159265359\n\n# Date formatting\ndate_str = f'Today is {now:%Y-%m-%d %H:%M}'\n\n# Precision control\npi_str = f'Pi to 3 decimals: {pi:.3f}'\n\n# Padding and alignment\npadded = f'|{name:>10}|{age:<5}|'",
+            "result": "Today is 2024-01-15 14:30\nPi to 3 decimals: 3.142\n|     Alice|30   |",
+            "explanation": "F-strings support format specifiers for dates, numbers, and alignment"
+          },
+          {
+            "name": "Format Method",
+            "code": "template = 'Hello, {name}! You are {age} years old.'\nresult1 = template.format(name='Bob', age=25)\n\n# Positional arguments\ntemplate2 = 'Hello, {}! You are {} years old.'\nresult2 = template2.format('Charlie', 35)\n\n# Mixed positioning\nmixed = 'Hello, {0}! You are {age} years old.'\nresult3 = mixed.format('David', age=40)",
+            "result": "Hello, Bob! You are 25 years old.\nHello, Charlie! You are 35 years old.\nHello, David! You are 40 years old.",
+            "explanation": "The format() method provides flexible string formatting with named and positional arguments"
+          },
+          {
+            "name": "Template Strings",
+            "code": "from string import Template\n\n# Create template\ntemplate = Template('Hello, $name! Your score is $score.')\n\n# Safe substitution\ntry:\n    result = template.substitute(name='Eve', score=95)\nexcept KeyError:\n    result = 'Missing variables'\n\n# Safe substitution with defaults\nsafe_result = template.safe_substitute(name='Frank')",
+            "result": "Hello, Eve! Your score is 95.\nHello, Frank! Your score is $score.",
+            "explanation": "Template strings provide safe substitution and are useful when dealing with user input"
+          },
+          {
+            "name": "Format Specifications",
+            "code": "number = 1234567.89\npercentage = 0.785\n\n# Number formatting\nformatted_num = f'{number:,}'\nscientific = f'{number:.2e}'\nhex_num = f'{255:x}'\nbin_num = f'{255:b}'\n\n# Percentage\nperc_str = f'{percentage:.1%}'",
+            "result": "1,234,567.89\n1.23e+06\nff\n11111111\n78.5%",
+            "explanation": "Python supports various number formats: thousands separator, scientific, hex, binary, percentage"
+          }
+        ],
+        "interactiveExamples": true,
+        "practiceExercises": [
+          "Format a table of student grades with proper alignment",
+          "Create a financial report with currency formatting",
+          "Build a log message template with timestamps"
+        ]
+      }
+    },
+    {
+      "title": "Python Generators & Iterators",
+      "description": "Learn how Python generators work through visualization of memory-efficient iteration and lazy evaluation concepts.",
+      "activityType": "algorithm_visualization",
+      "category": "Python Fundamentals",
+      "difficulty": 5,
+      "diamondReward": 60,
+      "experienceReward": 115,
+      "estimatedMinutes": 30,
+      "sortOrder": 42,
+      "topicOrder": 14,
+      "isLocked": true,
+      "tags": [
+        "generators",
+        "iterators",
+        "yield",
+        "memory-efficiency",
+        "advanced"
+      ],
+      "content": {
+        "steps": [
+          {
+            "id": 1,
+            "title": "Generator Function Basics",
+            "description": "A generator function uses 'yield' instead of 'return' to produce values one at a time.",
+            "code": "def simple_generator():\n    print('Starting generator')\n    yield 1\n    print('After first yield')\n    yield 2\n    print('After second yield')\n    yield 3\n    print('Generator finished')\n\ngen = simple_generator()\nprint('Generator created')",
+            "visualization": "generator_creation"
+          },
+          {
+            "id": 2,
+            "title": "Lazy Evaluation",
+            "description": "Generators produce values on-demand, not all at once. Memory usage remains constant.",
+            "code": "# Generator function\ndef countdown(n):\n    while n > 0:\n        yield n\n        n -= 1\n\n# Create generator (no execution yet)\ncounter = countdown(5)\nprint('Generator object created')",
+            "visualization": "lazy_evaluation"
+          },
+          {
+            "id": 3,
+            "title": "Iterator Protocol",
+            "description": "Generators implement the iterator protocol with __iter__() and __next__() methods.",
+            "code": "gen = countdown(3)\n\n# Manual iteration using next()\nprint(f'First: {next(gen)}')\nprint(f'Second: {next(gen)}')\nprint(f'Third: {next(gen)}')\n\n# This would raise StopIteration\n# print(next(gen))",
+            "visualization": "iterator_protocol"
+          },
+          {
+            "id": 4,
+            "title": "Generator Expressions",
+            "description": "Generator expressions provide a concise way to create generators similar to list comprehensions.",
+            "code": "# Generator expression\nsquares_gen = (x**2 for x in range(5))\nprint('Generator expression created')\n\n# Compare memory usage\nsquares_list = [x**2 for x in range(1000000)]  # Uses lots of memory\nsquares_gen = (x**2 for x in range(1000000))   # Uses minimal memory",
+            "visualization": "generator_expressions"
+          },
+          {
+            "id": 5,
+            "title": "Generator Pipeline",
+            "description": "Chain generators together to create efficient data processing pipelines.",
+            "code": "def read_lines():\n    lines = ['line 1', 'line 2', 'line 3', 'line 4']\n    for line in lines:\n        yield line\n\ndef filter_lines(lines):\n    for line in lines:\n        if len(line) > 6:\n            yield line\n\ndef process_lines(lines):\n    for line in lines:\n        yield line.upper()\n\n# Pipeline\npipeline = process_lines(filter_lines(read_lines()))",
+            "visualization": "generator_pipeline"
+          },
+          {
+            "id": 6,
+            "title": "Infinite Generators",
+            "description": "Generators can produce infinite sequences without consuming infinite memory.",
+            "code": "def fibonacci():\n    a, b = 0, 1\n    while True:\n        yield a\n        a, b = b, a + b\n\n# Infinite Fibonacci sequence\nfib = fibonacci()\n\n# Take first 10 numbers\nfirst_10 = [next(fib) for _ in range(10)]\nprint(f'First 10 Fibonacci: {first_10}')",
+            "visualization": "infinite_generators"
+          }
+        ],
+        "visualizations": [
+          "generator_creation",
+          "lazy_evaluation",
+          "iterator_protocol",
+          "generator_expressions",
+          "generator_pipeline",
+          "infinite_generators"
+        ],
+        "algorithm": "Generator Pattern",
+        "complexity": {
+          "time": "O(1) per iteration",
+          "space": "O(1) constant memory"
+        },
+        "settings": {
+          "showCode": true,
+          "autoPlay": false,
+          "stepDelay": 2500
+        }
+      }
+    },
+    {
+      "title": "Regular Expressions Challenge",
+      "description": "Match regex patterns with their correct descriptions and learn pattern matching in Python.",
+      "activityType": "matching",
+      "category": "Python Fundamentals",
+      "difficulty": 4,
+      "diamondReward": 50,
+      "experienceReward": 95,
+      "estimatedMinutes": 25,
+      "sortOrder": 43,
+      "topicOrder": 15,
+      "isLocked": true,
+      "tags": ["regex", "pattern-matching", "text-processing", "advanced"],
+      "content": {
+        "pairs": [
+          {
+            "left": "r'\\d+'",
+            "right": "Matches one or more digits",
+            "explanation": "\\d matches any digit (0-9), + means one or more occurrences"
+          },
+          {
+            "left": "r'^[A-Za-z]+$'",
+            "right": "Matches strings containing only letters",
+            "explanation": "^ = start of string, [A-Za-z] = any letter, + = one or more, $ = end of string"
+          },
+          {
+            "left": "r'\\b\\w{3}\\b'",
+            "right": "Matches exactly 3-letter words",
+            "explanation": "\\b = word boundary, \\w = word character, {3} = exactly 3 times"
+          },
+          {
+            "left": "r'\\S+@\\S+\\.\\S+'",
+            "right": "Matches basic email pattern",
+            "explanation": "\\S+ = non-whitespace chars, @ = literal @, \\. = literal dot"
+          },
+          {
+            "left": "r'(?i)python'",
+            "right": "Case-insensitive match for 'python'",
+            "explanation": "(?i) is an inline flag for case-insensitive matching"
+          },
+          {
+            "left": "r'(\\d{3})-(\\d{3})-(\\d{4})'",
+            "right": "Captures phone number parts",
+            "explanation": "Parentheses create capture groups for the three parts of a phone number"
+          },
+          {
+            "left": "r'\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}'",
+            "right": "Matches IP address format",
+            "explanation": "\\d{1,3} = 1-3 digits, \\. = literal dot, repeated 4 times"
+          },
+          {
+            "left": "r'.*?(?=\\s)'",
+            "right": "Non-greedy match until whitespace",
+            "explanation": ".*? = non-greedy any character, (?=\\s) = positive lookahead for whitespace"
+          }
+        ]
+      }
     }
   ]
 }
