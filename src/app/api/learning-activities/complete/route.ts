@@ -158,6 +158,27 @@ export async function POST(req: NextRequest) {
         break;
     }
 
+    // Check if activity is already completed to prevent duplicate rewards
+    const existingCompletion = await prisma.activityAttempt.findUnique({
+      where: {
+        userId_activityId: {
+          userId: authUser!.userId,
+          activityId: activityId,
+        },
+      },
+    });
+
+    if (existingCompletion?.completed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Activity already completed",
+          message: "You have already completed this activity",
+        },
+        { status: 400 }
+      );
+    }
+
     // Begin transaction - ALL updates must be atomic
     const result = await prisma.$transaction(async (prisma) => {
       // Update user with main rewards
@@ -217,14 +238,14 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // Create main activity diamond transaction
+      // Create main activity diamond transaction with XP info
       await prisma.diamondTransaction.create({
         data: {
           userId: authUser!.userId,
           amount: diamondReward,
-          type: activityType.toUpperCase() + "_COMPLETE",
-          description: `${activityTitle} completed - Score: ${score}%`,
-          relatedType: activityType,
+          type: "LEARNING_ACTIVITY_COMPLETE",
+          description: `${activityTitle} completed - Score: ${score}% | +${experienceReward} XP`,
+          relatedType: "learning_activity",
           relatedId: activityId,
         },
       });
