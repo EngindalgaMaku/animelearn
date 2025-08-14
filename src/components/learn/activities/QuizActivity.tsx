@@ -10,6 +10,7 @@ import {
   Star,
   Gift,
   Sparkles,
+  Play,
 } from "lucide-react";
 
 interface Question {
@@ -241,24 +242,31 @@ export default function QuizActivity({
             <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
               <div className="flex items-center justify-center space-x-2">
                 <Trophy className="h-5 w-5 text-blue-600" />
-                <span>{questions.length} Questions</span>
+                <span className="font-medium text-black">
+                  {questions.length} Questions
+                </span>
               </div>
               <div className="flex items-center justify-center space-x-2">
                 <Clock className="h-5 w-5 text-blue-600" />
-                <span>{formatTime(timeLimit)} Time Limit</span>
+                <span className="font-medium text-black">
+                  {formatTime(timeLimit)} Time Limit
+                </span>
               </div>
               <div className="flex items-center justify-center space-x-2">
                 <CheckCircle className="h-5 w-5 text-blue-600" />
-                <span>{passingScore}% to Pass</span>
+                <span className="font-medium text-black">
+                  {passingScore}% to Pass
+                </span>
               </div>
             </div>
           </div>
 
           <button
             onClick={() => setQuizStarted(true)}
-            className="rounded-lg bg-blue-600 px-8 py-3 text-lg font-bold text-white transition-colors hover:bg-blue-700"
+            className="inline-flex items-center space-x-2 rounded-lg bg-blue-600 px-8 py-3 text-lg font-bold text-white transition-colors hover:bg-blue-700"
           >
-            Start Quiz
+            <Play className="h-6 w-6" />
+            <span>Start Quiz</span>
           </button>
         </div>
       </div>
@@ -526,7 +534,7 @@ export default function QuizActivity({
               className={`w-full rounded-lg border-2 p-4 text-left transition-all ${
                 selectedAnswers[currentQuestion] === index
                   ? "border-blue-500 bg-blue-50 text-blue-900"
-                  : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                  : "border-gray-200 bg-white text-gray-900 hover:border-gray-300 hover:bg-gray-50"
               }`}
             >
               <div className="flex items-center space-x-3">
@@ -534,12 +542,12 @@ export default function QuizActivity({
                   className={`flex h-6 w-6 items-center justify-center rounded-full border-2 text-sm font-bold ${
                     selectedAnswers[currentQuestion] === index
                       ? "border-blue-500 bg-blue-500 text-white"
-                      : "border-gray-300"
+                      : "border-gray-400 bg-white text-gray-700"
                   }`}
                 >
                   {String.fromCharCode(65 + index)}
                 </div>
-                <span>{option}</span>
+                <span className="font-medium text-black">{option}</span>
               </div>
             </button>
           ))}
@@ -551,7 +559,7 @@ export default function QuizActivity({
         <button
           onClick={handlePrevious}
           disabled={currentQuestion === 0}
-          className="rounded-lg border border-gray-300 px-6 py-2 text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg border border-gray-300 bg-white px-6 py-2 text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Previous
         </button>

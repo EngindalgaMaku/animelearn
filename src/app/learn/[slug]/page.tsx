@@ -324,7 +324,11 @@ export default function LessonPage() {
   // Time on content effect
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (activeSection === "introduction" || activeSection === "syntax" || activeSection === "examples") {
+    if (
+      activeSection === "introduction" ||
+      activeSection === "syntax" ||
+      activeSection === "examples"
+    ) {
       interval = setInterval(() => {
         setTimeOnContent((prev) => prev + 1);
       }, 1000);
@@ -828,7 +832,6 @@ export default function LessonPage() {
                     className={`flex flex-col items-center ${lessonStarted ? "text-green-600" : "text-gray-400"}`}
                   >
                     <BookOpen className="mb-1 h-6 w-6" />
-                    <span className="text-xs">Start</span>
                   </div>
                   <div
                     className={`flex flex-col items-center ${activeSection === "exercise" ? "text-blue-600" : "text-gray-400"}`}
@@ -915,11 +918,9 @@ export default function LessonPage() {
                 >
                   <div className="text-center">
                     <section.icon className="mx-auto mb-2 h-6 w-6" />
-                    <span className="font-bold text-sm">{section.label}</span>
+                    <span className="text-sm font-bold">{section.label}</span>
                     {!section.unlocked && (
-                      <div className="mt-1 text-xs text-gray-500">
-                        🔒
-                      </div>
+                      <div className="mt-1 text-xs text-gray-500">🔒</div>
                     )}
                     {activeSection === section.key && (
                       <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400">

@@ -1,26 +1,53 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle, Code, Play, RotateCcw, Trophy, Book } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Trophy,
+  Star,
+  Gift,
+  Plus,
+  Trash2,
+} from "lucide-react";
 
-interface Component {
+interface ClassAttribute {
   name: string;
-  code: string;
-  explanation: string;
+  type: string;
+  required: boolean;
+}
+
+interface ClassMethod {
+  name: string;
+  required: boolean;
+  params: string[];
+}
+
+interface ClassTemplate {
+  name: string;
+  attributes: ClassAttribute[];
+  methods: ClassMethod[];
 }
 
 interface ClassBuilderContent {
-  project: string;
-  description: string;
-  components: Component[];
-  testScenarios: string[];
+  instructions: string;
+  classTemplate: ClassTemplate;
+  requirements: string;
 }
 
 interface LearningActivity {
   id: string;
   title: string;
   description: string;
+  activityType: string;
+  difficulty: number;
+  category: string;
+  diamondReward: number;
+  experienceReward: number;
+  estimatedMinutes: number;
   content: ClassBuilderContent;
+  settings?: any;
+  tags: string[];
 }
 
 interface ClassBuilderActivityProps {
@@ -28,423 +55,622 @@ interface ClassBuilderActivityProps {
   onComplete: (score: number, maxScore: number, success: boolean) => void;
 }
 
+interface UserAttribute {
+  name: string;
+  type: string;
+}
+
+interface UserMethod {
+  name: string;
+  params: string[];
+}
+
 export default function ClassBuilderActivity({
   activity,
   onComplete,
 }: ClassBuilderActivityProps) {
-  const [currentComponent, setCurrentComponent] = useState(0);
-  const [completedComponents, setCompletedComponents] = useState<Set<number>>(
-    new Set()
+  const [selectedAttributes, setSelectedAttributes] = useState<UserAttribute[]>(
+    []
   );
-  const [builtClass, setBuiltClass] = useState<string[]>([]);
-  const [showOutput, setShowOutput] = useState(false);
-  const [testingScenario, setTestingScenario] = useState(0);
-  const [classCompleted, setClassCompleted] = useState(false);
+  const [selectedMethods, setSelectedMethods] = useState<UserMethod[]>([]);
+  const [customAttribute, setCustomAttribute] = useState({
+    name: "",
+    type: "",
+  });
+  const [customMethod, setCustomMethod] = useState({ name: "", params: "" });
+  const [showResults, setShowResults] = useState(false);
+  const [showRewardAnimation, setShowRewardAnimation] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const { project, description, components, testScenarios } = activity.content;
-
+  // Check authentication status
   useEffect(() => {
-    // Mark class as completed but don't auto-complete activity
-    if (completedComponents.size === components.length && !classCompleted) {
-      setClassCompleted(true);
-    }
-  }, [completedComponents, components.length, classCompleted]);
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/session");
+        const session = await response.json();
+        setIsAuthenticated(!!session?.user);
+      } catch (error) {
+        const userSession =
+          localStorage.getItem("user") ||
+          sessionStorage.getItem("user") ||
+          localStorage.getItem("next-auth.session-token") ||
+          document.cookie.includes("next-auth.session-token");
+        setIsAuthenticated(!!userSession);
+      }
+    };
+    checkAuth();
+  }, []);
 
-  const handleManualComplete = () => {
-    const score = 95; // High score for completing OOP class
-    onComplete(score, 100, true);
-  };
+  const { instructions, classTemplate, requirements } = activity.content;
 
-  const addComponent = (componentIndex: number) => {
-    const component = components[componentIndex];
-    setBuiltClass((prev) => [...prev, component.code]);
-    setCompletedComponents((prev) => new Set([...prev, componentIndex]));
-
-    // Move to next component if available
-    if (componentIndex < components.length - 1) {
-      setCurrentComponent(componentIndex + 1);
-    }
-  };
-
-  const removeComponent = (codeIndex: number) => {
-    setBuiltClass((prev) => prev.filter((_, index) => index !== codeIndex));
-    // Reset completed components that come after this one
-    const componentIndex = codeIndex;
-    const newCompleted = new Set([...completedComponents]);
-    for (let i = componentIndex; i < components.length; i++) {
-      newCompleted.delete(i);
-    }
-    setCompletedComponents(newCompleted);
-  };
-
-  const testClass = () => {
-    setShowOutput(true);
-    // Cycle through test scenarios
-    setTimeout(() => {
-      setTestingScenario((prev) => (prev + 1) % testScenarios.length);
-    }, 2000);
-  };
-
-  const resetClass = () => {
-    setCurrentComponent(0);
-    setCompletedComponents(new Set());
-    setBuiltClass([]);
-    setShowOutput(false);
-    setTestingScenario(0);
-    setClassCompleted(false);
-  };
-
-  const getFullClassCode = () => {
-    return builtClass.join("\n\n");
-  };
-
-  const simulateOutput = () => {
-    const scenario = testScenarios[testingScenario];
-
-    if (builtClass.length === components.length) {
-      return `Testing Scenario: ${scenario}
-
-# Creating student object
-student1 = Student("Alice", 20, "S001")
-print(student1)
-
-# Adding grades
-student1.add_grade(85)
-student1.add_grade(92)
-student1.add_grade(78)
-
-# Getting average
-print(f"Average grade: {student1.get_average():.2f}")
-
-Output:
-Student: Alice (ID: S001), Average: 85.00
-Average grade: 85.00
-
-✅ All tests passed! Class is working correctly.`;
-    } else {
-      return `❌ Class incomplete. Please add all components first.
-Missing components: ${components.length - builtClass.length}`;
+  const addAttribute = (attribute: ClassAttribute) => {
+    const userAttr = { name: attribute.name, type: attribute.type };
+    if (!selectedAttributes.find((a) => a.name === attribute.name)) {
+      setSelectedAttributes([...selectedAttributes, userAttr]);
     }
   };
+
+  const addCustomAttribute = () => {
+    if (customAttribute.name && customAttribute.type) {
+      if (!selectedAttributes.find((a) => a.name === customAttribute.name)) {
+        setSelectedAttributes([...selectedAttributes, { ...customAttribute }]);
+        setCustomAttribute({ name: "", type: "" });
+      }
+    }
+  };
+
+  const removeAttribute = (name: string) => {
+    setSelectedAttributes(selectedAttributes.filter((a) => a.name !== name));
+  };
+
+  const addMethod = (method: ClassMethod) => {
+    const userMethod = { name: method.name, params: method.params };
+    if (!selectedMethods.find((m) => m.name === method.name)) {
+      setSelectedMethods([...selectedMethods, userMethod]);
+    }
+  };
+
+  const addCustomMethod = () => {
+    if (customMethod.name) {
+      const params = customMethod.params
+        .split(",")
+        .map((p) => p.trim())
+        .filter((p) => p);
+      if (!selectedMethods.find((m) => m.name === customMethod.name)) {
+        setSelectedMethods([
+          ...selectedMethods,
+          { name: customMethod.name, params },
+        ]);
+        setCustomMethod({ name: "", params: "" });
+      }
+    }
+  };
+
+  const removeMethod = (name: string) => {
+    setSelectedMethods(selectedMethods.filter((m) => m.name !== name));
+  };
+
+  const checkClass = () => {
+    setShowResults(true);
+
+    // Check required attributes
+    const requiredAttributes = classTemplate.attributes.filter(
+      (a) => a.required
+    );
+    const hasRequiredAttrs = requiredAttributes.every((reqAttr) =>
+      selectedAttributes.some((selAttr) => selAttr.name === reqAttr.name)
+    );
+
+    // Check required methods
+    const requiredMethods = classTemplate.methods.filter((m) => m.required);
+    const hasRequiredMethods = requiredMethods.every((reqMethod) =>
+      selectedMethods.some((selMethod) => selMethod.name === reqMethod.name)
+    );
+
+    // Calculate score
+    let score = 0;
+    if (hasRequiredAttrs) score += 50;
+    if (hasRequiredMethods) score += 50;
+
+    // Bonus points for optional attributes/methods
+    const optionalAttrs = classTemplate.attributes.filter((a) => !a.required);
+    const optionalMethods = classTemplate.methods.filter((m) => !m.required);
+
+    optionalAttrs.forEach((optAttr) => {
+      if (selectedAttributes.some((selAttr) => selAttr.name === optAttr.name)) {
+        score += 5;
+      }
+    });
+
+    optionalMethods.forEach((optMethod) => {
+      if (
+        selectedMethods.some((selMethod) => selMethod.name === optMethod.name)
+      ) {
+        score += 5;
+      }
+    });
+
+    score = Math.min(100, score);
+    const success = score >= 70;
+
+    if (success) {
+      handleActivityCompletion(score);
+    }
+  };
+
+  const handleActivityCompletion = async (score: number) => {
+    if (!isAuthenticated) return;
+
+    const awardedActivities = JSON.parse(
+      localStorage.getItem("awardedActivities") || "[]"
+    );
+    const alreadyAwarded = awardedActivities.includes(activity.id);
+
+    if (!alreadyAwarded) {
+      try {
+        const response = await fetch("/api/learning-activities/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            activityType: "class_builder",
+            activityId: activity.id,
+            activityTitle: activity.title,
+            score: Math.max(70, score),
+            timeSpent: 500,
+            success: true,
+            diamondReward: activity.diamondReward || 45,
+            experienceReward: activity.experienceReward || 65,
+          }),
+        });
+
+        if (response.ok) {
+          setShowRewardAnimation(true);
+          awardedActivities.push(activity.id);
+          localStorage.setItem(
+            "awardedActivities",
+            JSON.stringify(awardedActivities)
+          );
+          setTimeout(() => setShowRewardAnimation(false), 3000);
+        }
+      } catch (error) {
+        console.error("Error awarding rewards:", error);
+      }
+    }
+  };
+
+  const generateClassCode = () => {
+    let code = `class ${classTemplate.name}:\n`;
+
+    if (selectedMethods.find((m) => m.name === "__init__")) {
+      const initMethod = selectedMethods.find((m) => m.name === "__init__");
+      code += `    def __init__(self${initMethod?.params.length ? ", " + initMethod.params.join(", ") : ""}):\n`;
+      selectedAttributes.forEach((attr) => {
+        code += `        self.${attr.name} = ${attr.name}\n`;
+      });
+      code += "\n";
+    }
+
+    selectedMethods
+      .filter((m) => m.name !== "__init__")
+      .forEach((method) => {
+        code += `    def ${method.name}(self${method.params.length ? ", " + method.params.join(", ") : ""}):\n`;
+        code += `        # TODO: Implement ${method.name}\n`;
+        code += `        pass\n\n`;
+      });
+
+    return code;
+  };
+
+  if (showResults) {
+    const requiredAttributes = classTemplate.attributes.filter(
+      (a) => a.required
+    );
+    const requiredMethods = classTemplate.methods.filter((m) => m.required);
+
+    const hasRequiredAttrs = requiredAttributes.every((reqAttr) =>
+      selectedAttributes.some((selAttr) => selAttr.name === reqAttr.name)
+    );
+    const hasRequiredMethods = requiredMethods.every((reqMethod) =>
+      selectedMethods.some((selMethod) => selMethod.name === reqMethod.name)
+    );
+
+    let score = 0;
+    if (hasRequiredAttrs) score += 50;
+    if (hasRequiredMethods) score += 50;
+    score = Math.min(
+      100,
+      score +
+        (selectedAttributes.length - requiredAttributes.length) * 5 +
+        (selectedMethods.length - requiredMethods.length) * 5
+    );
+
+    const passed = score >= 70;
+
+    return (
+      <div className="mx-auto max-w-4xl p-6">
+        <div className="text-center">
+          <div
+            className={`mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full ${
+              passed ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
+            }`}
+          >
+            {passed ? (
+              <Trophy className="h-10 w-10" />
+            ) : (
+              <XCircle className="h-10 w-10" />
+            )}
+          </div>
+
+          <h2 className="mb-2 text-3xl font-bold text-gray-900">
+            {passed ? "Class Designed Successfully!" : "Keep Designing!"}
+          </h2>
+          <p className="mb-8 text-lg text-gray-600">
+            Your {classTemplate.name} class is{" "}
+            {passed ? "well-designed" : "missing key components"}
+          </p>
+
+          <div className="mb-8 rounded-lg bg-gray-50 p-6">
+            <div className="mb-2 text-4xl font-bold text-gray-900">
+              {score}%
+            </div>
+            <div
+              className={`text-lg font-semibold ${passed ? "text-green-600" : "text-red-600"}`}
+            >
+              {passed ? "Great Class Design!" : "Review OOP Principles"}
+            </div>
+          </div>
+
+          <div className="mb-8 space-y-6">
+            <div className="text-left">
+              <h3 className="mb-4 text-xl font-semibold text-gray-900">
+                Your Class Code:
+              </h3>
+              <pre className="overflow-x-auto rounded-lg bg-gray-900 p-4 text-left text-sm text-green-400">
+                <code>{generateClassCode()}</code>
+              </pre>
+            </div>
+
+            <div className="text-left">
+              <h3 className="mb-4 text-xl font-semibold text-gray-900">
+                Requirements Check:
+              </h3>
+              <div className="space-y-2">
+                <div
+                  className={`flex items-center space-x-2 ${hasRequiredAttrs ? "text-green-600" : "text-red-600"}`}
+                >
+                  {hasRequiredAttrs ? (
+                    <CheckCircle className="h-5 w-5" />
+                  ) : (
+                    <XCircle className="h-5 w-5" />
+                  )}
+                  <span>
+                    Required attributes:{" "}
+                    {requiredAttributes.map((a) => a.name).join(", ")}
+                  </span>
+                </div>
+                <div
+                  className={`flex items-center space-x-2 ${hasRequiredMethods ? "text-green-600" : "text-red-600"}`}
+                >
+                  {hasRequiredMethods ? (
+                    <CheckCircle className="h-5 w-5" />
+                  ) : (
+                    <XCircle className="h-5 w-5" />
+                  )}
+                  <span>
+                    Required methods:{" "}
+                    {requiredMethods.map((m) => m.name).join(", ")}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onComplete(score, 100, passed)}
+            className="rounded-lg bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700"
+          >
+            Complete Class Design
+          </button>
+        </div>
+
+        {/* Reward Animation */}
+        {showRewardAnimation && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="relative rounded-2xl bg-gradient-to-br from-purple-900 via-blue-900 to-purple-900 p-8 text-center shadow-2xl">
+              <h3 className="mb-4 text-3xl font-bold text-white">
+                🎉 Class Designer! 🎉
+              </h3>
+              <div className="mb-6 space-y-3">
+                <div className="flex items-center justify-center space-x-3 rounded-lg bg-yellow-500/20 p-3">
+                  <span className="text-xl font-semibold text-yellow-300">
+                    +{activity.diamondReward || 45} Diamonds
+                  </span>
+                </div>
+                <div className="flex items-center justify-center space-x-3 rounded-lg bg-blue-500/20 p-3">
+                  <Star className="h-8 w-8 text-blue-400" />
+                  <span className="text-xl font-semibold text-blue-300">
+                    +{activity.experienceReward || 65} Experience
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-6xl p-6">
-      {/* Header */}
-      <div className="mb-8">
+      <div className="mb-8 text-center">
         <h2 className="mb-4 text-3xl font-bold text-gray-900">
           {activity.title}
         </h2>
-        <p className="mb-6 text-lg text-gray-600">{activity.description}</p>
-
-        <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
-          <h3 className="mb-2 font-semibold text-indigo-900">
-            🏗️ Project: {project}
-          </h3>
-          <p className="text-indigo-800">{description}</p>
-        </div>
+        <p className="text-lg text-gray-600">{activity.description}</p>
       </div>
 
-      {/* Progress */}
-      <div className="mb-8">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">
-            Class Construction Progress
-          </span>
-          <span className="text-sm text-gray-500">
-            {completedComponents.size}/{components.length} components built
-          </span>
-        </div>
-        <div className="h-2 w-full rounded-full bg-gray-200">
-          <div
-            className="h-2 rounded-full bg-indigo-600 transition-all duration-300"
-            style={{
-              width: `${(completedComponents.size / components.length) * 100}%`,
-            }}
-          ></div>
+      <div className="mb-8 rounded-lg bg-purple-50 p-6">
+        <h3 className="mb-4 text-xl font-semibold text-purple-900">
+          Instructions
+        </h3>
+        <p className="mb-4 text-purple-800">{instructions}</p>
+        <div className="rounded-lg bg-purple-100 p-4">
+          <h4 className="mb-2 font-semibold text-purple-900">Requirements:</h4>
+          <p className="text-purple-800">{requirements}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        {/* Left Panel - Component Selection */}
+        {/* Class Components */}
         <div className="space-y-6">
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
+          {/* Attributes Section */}
+          <div>
             <h3 className="mb-4 text-lg font-semibold text-gray-900">
-              Class Components
+              Attributes
             </h3>
-
-            <div className="space-y-4">
-              {components.map((component, index) => (
-                <div
-                  key={index}
-                  className={`rounded-lg border-2 p-4 transition-all ${
-                    completedComponents.has(index)
-                      ? "border-green-500 bg-green-50"
-                      : index === currentComponent
-                        ? "border-indigo-500 bg-indigo-50"
-                        : "border-gray-200 bg-white hover:border-gray-300"
-                  }`}
-                >
-                  <div className="mb-3 flex items-center justify-between">
-                    <h4 className="font-semibold text-gray-900">
-                      {component.name}
-                    </h4>
-                    {completedComponents.has(index) ? (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <button
-                        onClick={() => addComponent(index)}
-                        disabled={index > currentComponent}
-                        className="rounded bg-indigo-600 px-3 py-1 text-sm text-white transition-colors hover:bg-indigo-700 disabled:bg-gray-400"
-                      >
-                        Add Component
-                      </button>
-                    )}
-                  </div>
-
-                  <p className="mb-3 text-sm text-gray-600">
-                    {component.explanation}
-                  </p>
-
-                  <div className="rounded bg-gray-900 p-3">
-                    <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-xs text-green-300">
-                      {component.code}
-                    </pre>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* OOP Concepts Guide */}
-          <div className="rounded-lg border border-purple-200 bg-purple-50 p-4">
-            <div className="mb-3 flex items-center space-x-2">
-              <Book className="h-5 w-5 text-purple-600" />
-              <h4 className="font-semibold text-purple-900">
-                OOP Concepts in This Class
-              </h4>
-            </div>
-            <ul className="space-y-1 text-sm text-purple-800">
-              <li>
-                • <strong>Encapsulation:</strong> Data and methods bundled
-                together
-              </li>
-              <li>
-                • <strong>Constructor:</strong> __init__ method to initialize
-                objects
-              </li>
-              <li>
-                • <strong>Methods:</strong> Functions that operate on object
-                data
-              </li>
-              <li>
-                • <strong>Attributes:</strong> Data stored within the object
-              </li>
-              <li>
-                • <strong>String Representation:</strong> __str__ and __repr__
-                methods
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Right Panel - Built Class */}
-        <div className="space-y-6">
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Built Class
-              </h3>
-              <div className="flex space-x-2">
-                {builtClass.length > 0 && (
+            <div className="rounded-lg border border-gray-200 bg-white p-4">
+              <div className="mb-4 space-y-2">
+                {classTemplate.attributes.map((attr) => (
                   <button
-                    onClick={testClass}
-                    className="flex items-center space-x-2 rounded bg-green-600 px-4 py-2 text-sm text-white transition-colors hover:bg-green-700"
+                    key={attr.name}
+                    onClick={() => addAttribute(attr)}
+                    disabled={selectedAttributes.some(
+                      (a) => a.name === attr.name
+                    )}
+                    className={`w-full rounded-lg border p-3 text-left transition-all ${
+                      selectedAttributes.some((a) => a.name === attr.name)
+                        ? "border-green-300 bg-green-50 text-green-800"
+                        : attr.required
+                          ? "border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100"
+                          : "border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100"
+                    }`}
                   >
-                    <Play className="h-4 w-4" />
-                    <span>Test Class</span>
-                  </button>
-                )}
-                <button
-                  onClick={resetClass}
-                  className="flex items-center space-x-2 rounded bg-gray-600 px-4 py-2 text-sm text-white transition-colors hover:bg-gray-700"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  <span>Reset</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Class Editor */}
-            <div className="min-h-96 overflow-hidden rounded-lg bg-gray-900">
-              <div className="flex items-center space-x-2 border-b border-gray-700 p-4">
-                <Code className="h-5 w-5 text-gray-400" />
-                <span className="text-sm font-medium text-gray-400">
-                  student.py
-                </span>
-              </div>
-
-              <div className="p-4">
-                {builtClass.length > 0 ? (
-                  <div className="space-y-2">
-                    {builtClass.map((code, index) => (
-                      <div key={index} className="group relative">
-                        <button
-                          onClick={() => removeComponent(index)}
-                          className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
-                        >
-                          ×
-                        </button>
-                        <pre className="whitespace-pre-wrap pr-6 font-mono text-sm text-green-300">
-                          {code}
-                        </pre>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">
+                          {attr.name}: {attr.type}
+                        </div>
+                        <div className="text-sm opacity-75">
+                          {attr.required ? "Required" : "Optional"}
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="py-12 text-center">
-                    <Code className="mx-auto mb-4 h-12 w-12 text-gray-600" />
-                    <p className="text-gray-400">
-                      Add components to build your class
-                    </p>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Start with the class definition
-                    </p>
-                  </div>
-                )}
+                      {selectedAttributes.some((a) => a.name === attr.name) && (
+                        <CheckCircle className="h-5 w-5" />
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom Attribute */}
+              <div className="border-t pt-4">
+                <h4 className="mb-2 text-sm font-semibold text-gray-700">
+                  Add Custom Attribute:
+                </h4>
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    placeholder="Attribute name"
+                    value={customAttribute.name}
+                    onChange={(e) =>
+                      setCustomAttribute({
+                        ...customAttribute,
+                        name: e.target.value,
+                      })
+                    }
+                    className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Type"
+                    value={customAttribute.type}
+                    onChange={(e) =>
+                      setCustomAttribute({
+                        ...customAttribute,
+                        type: e.target.value,
+                      })
+                    }
+                    className="w-24 rounded border border-gray-300 px-3 py-2 text-sm"
+                  />
+                  <button
+                    onClick={addCustomAttribute}
+                    className="rounded bg-blue-600 px-3 py-2 text-white hover:bg-blue-700"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Output Panel */}
-          {showOutput && (
-            <div className="rounded-lg bg-black p-4">
-              <div className="mb-3 flex items-center space-x-2">
-                <div className="h-2 w-2 rounded-full bg-green-400"></div>
-                <span className="text-sm font-medium text-green-400">
-                  Class Testing Output
-                </span>
+          {/* Methods Section */}
+          <div>
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">
+              Methods
+            </h3>
+            <div className="rounded-lg border border-gray-200 bg-white p-4">
+              <div className="mb-4 space-y-2">
+                {classTemplate.methods.map((method) => (
+                  <button
+                    key={method.name}
+                    onClick={() => addMethod(method)}
+                    disabled={selectedMethods.some(
+                      (m) => m.name === method.name
+                    )}
+                    className={`w-full rounded-lg border p-3 text-left transition-all ${
+                      selectedMethods.some((m) => m.name === method.name)
+                        ? "border-green-300 bg-green-50 text-green-800"
+                        : method.required
+                          ? "border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100"
+                          : "border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">
+                          {method.name}({method.params.join(", ")})
+                        </div>
+                        <div className="text-sm opacity-75">
+                          {method.required ? "Required" : "Optional"}
+                        </div>
+                      </div>
+                      {selectedMethods.some((m) => m.name === method.name) && (
+                        <CheckCircle className="h-5 w-5" />
+                      )}
+                    </div>
+                  </button>
+                ))}
               </div>
-              <pre className="whitespace-pre-wrap font-mono text-sm text-green-300">
-                {simulateOutput()}
-              </pre>
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* Component Flow Diagram */}
-      <div className="mt-8 rounded-lg bg-gray-50 p-6">
-        <h3 className="mb-4 text-lg font-semibold text-gray-900">
-          Class Construction Steps
-        </h3>
-        <div className="flex items-center justify-center space-x-4 overflow-x-auto">
-          {components.map((component, index) => (
-            <div key={index} className="flex min-w-max items-center space-x-2">
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
-                  completedComponents.has(index)
-                    ? "bg-green-500 text-white"
-                    : index === currentComponent
-                      ? "bg-indigo-500 text-white"
-                      : "bg-gray-300 text-gray-600"
-                }`}
-              >
-                {index + 1}
+              {/* Custom Method */}
+              <div className="border-t pt-4">
+                <h4 className="mb-2 text-sm font-semibold text-gray-700">
+                  Add Custom Method:
+                </h4>
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    placeholder="Method name"
+                    value={customMethod.name}
+                    onChange={(e) =>
+                      setCustomMethod({ ...customMethod, name: e.target.value })
+                    }
+                    className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm"
+                  />
+                  <input
+                    type="text"
+                    placeholder="param1, param2"
+                    value={customMethod.params}
+                    onChange={(e) =>
+                      setCustomMethod({
+                        ...customMethod,
+                        params: e.target.value,
+                      })
+                    }
+                    className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm"
+                  />
+                  <button
+                    onClick={addCustomMethod}
+                    className="rounded bg-blue-600 px-3 py-2 text-white hover:bg-blue-700"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
-              <span
-                className={`text-sm font-medium ${
-                  completedComponents.has(index)
-                    ? "text-green-700"
-                    : "text-gray-600"
-                }`}
-              >
-                {component.name}
-              </span>
-              {index < components.length - 1 && (
-                <div className="h-0.5 w-8 bg-gray-300"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Class Preview */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">
+            Your {classTemplate.name} Class
+          </h3>
+
+          {/* Selected Attributes */}
+          <div className="mb-6">
+            <h4 className="text-md mb-2 font-medium text-gray-800">
+              Attributes ({selectedAttributes.length})
+            </h4>
+            <div className="min-h-20 rounded-lg bg-gray-50 p-4">
+              {selectedAttributes.length === 0 ? (
+                <div className="text-gray-500">No attributes selected</div>
+              ) : (
+                <div className="space-y-2">
+                  {selectedAttributes.map((attr) => (
+                    <div
+                      key={attr.name}
+                      className="flex items-center justify-between rounded bg-white p-2"
+                    >
+                      <span className="text-sm">
+                        {attr.name}: {attr.type}
+                      </span>
+                      <button
+                        onClick={() => removeAttribute(attr.name)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Test Scenarios */}
-      <div className="mt-8 rounded-lg bg-blue-50 p-6">
-        <h3 className="mb-4 text-lg font-semibold text-blue-900">
-          Test Scenarios
-        </h3>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {testScenarios.map((scenario, index) => (
-            <div
-              key={index}
-              className={`rounded border p-3 ${
-                index === testingScenario && showOutput
-                  ? "border-blue-500 bg-blue-100"
-                  : "border-blue-200 bg-white"
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-xs font-bold text-white">
-                  {index + 1}
-                </span>
-                <span className="text-sm text-blue-800">{scenario}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Completion Message */}
-      {classCompleted && (
-        <div className="mt-8 rounded-lg border border-green-200 bg-green-50 p-6 text-center">
-          <div className="mb-4 flex items-center justify-center space-x-2">
-            <Trophy className="h-8 w-8 text-green-600" />
-            <span className="text-2xl font-bold text-green-900">
-              Class Complete!
-            </span>
           </div>
-          <p className="mb-6 text-green-800">
-            Excellent! You've successfully built a complete {project} class with
-            all OOP concepts implemented.
-          </p>
-          <div className="mb-6 rounded-lg border border-green-200 bg-white p-4">
-            <h4 className="mb-2 font-semibold text-green-900">
-              OOP Mastery Achieved:
+
+          {/* Selected Methods */}
+          <div className="mb-6">
+            <h4 className="text-md mb-2 font-medium text-gray-800">
+              Methods ({selectedMethods.length})
             </h4>
-            <div className="grid grid-cols-2 gap-4 text-sm text-green-800">
-              <div>
-                <div className="font-medium">✅ Class Definition</div>
-                <div>✅ Constructor Method</div>
-                <div>✅ Instance Methods</div>
-              </div>
-              <div>
-                <div className="font-medium">✅ Data Encapsulation</div>
-                <div>✅ String Representation</div>
-                <div>✅ Error Handling</div>
-              </div>
+            <div className="min-h-20 rounded-lg bg-gray-50 p-4">
+              {selectedMethods.length === 0 ? (
+                <div className="text-gray-500">No methods selected</div>
+              ) : (
+                <div className="space-y-2">
+                  {selectedMethods.map((method) => (
+                    <div
+                      key={method.name}
+                      className="flex items-center justify-between rounded bg-white p-2"
+                    >
+                      <span className="text-sm">
+                        {method.name}({method.params.join(", ")})
+                      </span>
+                      <button
+                        onClick={() => removeMethod(method.name)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-          <button
-            onClick={handleManualComplete}
-            className="rounded-lg bg-green-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-700"
-          >
-            🎉 Complete Activity & Claim Rewards
-          </button>
-        </div>
-      )}
 
-      {/* Instructions */}
-      <div className="mt-8 rounded-lg border border-indigo-200 bg-indigo-50 p-4">
-        <h3 className="mb-2 font-semibold text-indigo-900">
-          🏛️ How to Build Your Class:
-        </h3>
-        <ul className="space-y-1 text-sm text-indigo-800">
-          <li>• Start with the class definition and constructor</li>
-          <li>• Add methods one by one in logical order</li>
-          <li>• Read explanations to understand each component's purpose</li>
-          <li>• Test your class after adding components to see it work</li>
-          <li>• Complete all components to master OOP concepts</li>
-        </ul>
+          {/* Code Preview */}
+          <div className="mb-6">
+            <h4 className="text-md mb-2 font-medium text-gray-800">
+              Generated Code
+            </h4>
+            <pre className="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-green-400">
+              <code>{generateClassCode()}</code>
+            </pre>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8 text-center">
+        <button
+          onClick={checkClass}
+          disabled={
+            selectedAttributes.length === 0 && selectedMethods.length === 0
+          }
+          className="rounded-lg bg-purple-600 px-8 py-3 text-lg font-bold text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Check Class Design
+        </button>
       </div>
     </div>
   );

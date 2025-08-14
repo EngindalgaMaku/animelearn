@@ -23,7 +23,7 @@ interface MemoryCard {
   isFlipped: boolean;
   isMatched: boolean;
   isHighlighted: boolean;
-  type: 'question' | 'answer';
+  type: "question" | "answer";
 }
 
 interface MemoryGameProps {
@@ -64,7 +64,7 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
   // Initialize cards
   useEffect(() => {
     const gameCards: MemoryCard[] = [];
-    
+
     content.pairs.forEach((pair) => {
       // Card 1 - Question
       gameCards.push({
@@ -74,9 +74,9 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
         isFlipped: false,
         isMatched: false,
         isHighlighted: false,
-        type: 'question',
+        type: "question",
       });
-      
+
       // Card 2 - Answer
       gameCards.push({
         id: `${pair.id}-2`,
@@ -85,7 +85,7 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
         isFlipped: false,
         isMatched: false,
         isHighlighted: false,
-        type: 'answer',
+        type: "answer",
       });
     });
 
@@ -103,7 +103,7 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
   // Timer effect
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    
+
     if (gameStarted && !gameCompleted && timeLeft > 0) {
       timer = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
@@ -121,35 +121,41 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
     if (flippedCards.length === 2) {
       setIsProcessing(true);
       const [card1Id, card2Id] = flippedCards;
-      const card1 = cards.find(c => c.id === card1Id);
-      const card2 = cards.find(c => c.id === card2Id);
+      const card1 = cards.find((c) => c.id === card1Id);
+      const card2 = cards.find((c) => c.id === card2Id);
 
       if (card1 && card2 && card1.pairId === card2.pairId) {
         // Match found! Remove matched cards from the board after a short animation
         setTimeout(() => {
-          setCards(prev => prev.map(card =>
-            card.pairId === card1.pairId
-              ? { ...card, isMatched: true, isFlipped: true }
-              : card
-          ));
-          setMatchedPairs(prev => new Set([...prev, card1.pairId]));
+          setCards((prev) =>
+            prev.map((card) =>
+              card.pairId === card1.pairId
+                ? { ...card, isMatched: true, isFlipped: true }
+                : card
+            )
+          );
+          setMatchedPairs((prev) => new Set([...prev, card1.pairId]));
           setFlippedCards([]);
-          
+
           // Remove matched cards after showing success animation
           setTimeout(() => {
-            setCards(prev => prev.filter(card => card.pairId !== card1.pairId));
+            setCards((prev) =>
+              prev.filter((card) => card.pairId !== card1.pairId)
+            );
             setIsProcessing(false);
           }, 800);
         }, 300);
       } else {
         // No match - flip cards back
-        setMistakes(prev => prev + 1);
+        setMistakes((prev) => prev + 1);
         setTimeout(() => {
-          setCards(prev => prev.map(card =>
-            flippedCards.includes(card.id)
-              ? { ...card, isFlipped: false }
-              : card
-          ));
+          setCards((prev) =>
+            prev.map((card) =>
+              flippedCards.includes(card.id)
+                ? { ...card, isFlipped: false }
+                : card
+            )
+          );
           setFlippedCards([]);
           setIsProcessing(false);
         }, 800);
@@ -181,10 +187,10 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
     setStartTime(null);
     setIsProcessing(false);
     setSelectedCard(null);
-    
+
     // Recreate all cards from original content
     const gameCards: MemoryCard[] = [];
-    
+
     content.pairs.forEach((pair) => {
       gameCards.push({
         id: `${pair.id}-1`,
@@ -193,9 +199,9 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
         isFlipped: false,
         isMatched: false,
         isHighlighted: false,
-        type: 'question',
+        type: "question",
       });
-      
+
       gameCards.push({
         id: `${pair.id}-2`,
         text: pair.match,
@@ -203,7 +209,7 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
         isFlipped: false,
         isMatched: false,
         isHighlighted: false,
-        type: 'answer',
+        type: "answer",
       });
     });
 
@@ -220,17 +226,21 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
 
   const endGame = (success: boolean) => {
     setGameCompleted(true);
-    const timeSpent = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
-    
+    const timeSpent = startTime
+      ? Math.floor((Date.now() - startTime) / 1000)
+      : 0;
+
     // Calculate score based on success, time, and mistakes
     let score = 0;
     if (success) {
-      const timeBonus = Math.max(0, (content.timeLimit || 300) - timeSpent) / (content.timeLimit || 300);
-      const mistakesPenalty = Math.max(0, 1 - (mistakes * 0.1));
-      const hintsBonus = Math.max(0, 1 - (hintsUsed * 0.05));
+      const timeBonus =
+        Math.max(0, (content.timeLimit || 300) - timeSpent) /
+        (content.timeLimit || 300);
+      const mistakesPenalty = Math.max(0, 1 - mistakes * 0.1);
+      const hintsBonus = Math.max(0, 1 - hintsUsed * 0.05);
       score = Math.round(100 * timeBonus * mistakesPenalty * hintsBonus);
     }
-    
+
     // Only call onComplete if this is first completion (for rewards)
     if (success && isFirstCompletion) {
       setIsFirstCompletion(false);
@@ -243,20 +253,27 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
 
   const handleCardClick = (cardId: string) => {
     // Prevent clicking if game not started, completed, processing, or already have 2 flipped cards
-    if (!gameStarted || gameCompleted || isProcessing || flippedCards.length >= 2 || selectedCard) return;
-    
-    const card = cards.find(c => c.id === cardId);
+    if (
+      !gameStarted ||
+      gameCompleted ||
+      isProcessing ||
+      flippedCards.length >= 2 ||
+      selectedCard
+    )
+      return;
+
+    const card = cards.find((c) => c.id === cardId);
     if (!card || card.isFlipped || card.isMatched) return;
 
     // Show card content in modal first
     setSelectedCard(card);
-    
+
     // After a shorter delay, flip the card in the game
     setTimeout(() => {
-      setCards(prev => prev.map(c =>
-        c.id === cardId ? { ...c, isFlipped: true } : c
-      ));
-      setFlippedCards(prev => [...prev, cardId]);
+      setCards((prev) =>
+        prev.map((c) => (c.id === cardId ? { ...c, isFlipped: true } : c))
+      );
+      setFlippedCards((prev) => [...prev, cardId]);
       setSelectedCard(null);
     }, 2000); // Reduced from 4000ms to 2000ms
   };
@@ -267,24 +284,28 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
 
   const useHint = () => {
     if (hintsUsed >= 3 || gameCompleted) return;
-    
-    setHintsUsed(prev => prev + 1);
+
+    setHintsUsed((prev) => prev + 1);
     setShowHint(true);
-    
+
     // Show a matching pair for 2 seconds
-    const unmatched = cards.filter(card => !card.isMatched);
+    const unmatched = cards.filter((card) => !card.isMatched);
     if (unmatched.length >= 2) {
       const randomPairId = unmatched[0].pairId;
-      const pairCards = unmatched.filter(card => card.pairId === randomPairId);
-      
-      setCards(prev => prev.map(card => 
-        card.pairId === randomPairId 
-          ? { ...card, isHighlighted: true }
-          : card
-      ));
-      
+      const pairCards = unmatched.filter(
+        (card) => card.pairId === randomPairId
+      );
+
+      setCards((prev) =>
+        prev.map((card) =>
+          card.pairId === randomPairId ? { ...card, isHighlighted: true } : card
+        )
+      );
+
       setTimeout(() => {
-        setCards(prev => prev.map(card => ({ ...card, isHighlighted: false })));
+        setCards((prev) =>
+          prev.map((card) => ({ ...card, isHighlighted: false }))
+        );
         setShowHint(false);
       }, 2000);
     }
@@ -293,7 +314,7 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const getScoreColor = (score: number) => {
@@ -304,7 +325,7 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-6">
+    <div className="mx-auto w-full max-w-6xl p-6">
       {/* Header */}
       <div className="mb-6 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 p-6 text-white">
         <div className="flex items-center justify-between">
@@ -312,7 +333,9 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
             <Brain className="h-8 w-8" />
             <div>
               <h2 className="text-2xl font-bold">Memory Game</h2>
-              <p className="text-purple-100">Match all the pairs to complete!</p>
+              <p className="text-purple-100">
+                Match all the pairs to complete!
+              </p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
@@ -321,30 +344,34 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
               <div className="text-sm text-purple-200">Time Left</div>
             </div>
             <div className="text-center">
-              <div className="text-xl font-bold">{matchedPairs.size}/{content.pairs.length}</div>
+              <div className="text-xl font-bold">
+                {matchedPairs.size}/{content.pairs.length}
+              </div>
               <div className="text-sm text-purple-200">Pairs</div>
             </div>
           </div>
         </div>
-        
+
         {/* Rewards Display */}
         <div className="mt-4 flex items-center justify-center space-x-6 rounded-lg bg-white/20 p-3 backdrop-blur-sm">
           <div className="flex items-center space-x-2">
             <Diamond className="h-5 w-5 text-yellow-300" />
             <span className="text-sm font-medium">
-              {isFirstCompletion ? `+${diamondReward} Diamonds` : 'No Rewards (Replay)'}
+              {isFirstCompletion
+                ? `+${diamondReward} Diamonds`
+                : "No Rewards (Replay)"}
             </span>
           </div>
           <div className="flex items-center space-x-2">
             <Star className="h-5 w-5 text-yellow-300" />
             <span className="text-sm font-medium">
-              {isFirstCompletion ? `+${experienceReward} XP` : 'Practice Mode'}
+              {isFirstCompletion ? `+${experienceReward} XP` : "Practice Mode"}
             </span>
           </div>
           <div className="flex items-center space-x-2">
             <Trophy className="h-5 w-5 text-yellow-300" />
             <span className="text-sm font-medium">
-              {isCompleted ? 'Already Completed!' : 'Complete to Earn!'}
+              {isCompleted ? "Already Completed!" : "Complete to Earn!"}
             </span>
           </div>
         </div>
@@ -362,7 +389,7 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
             <span>Hints: {hintsUsed}/3</span>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           {!gameStarted && !gameCompleted && (
             <button
@@ -370,21 +397,21 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
               className="flex items-center space-x-2 rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
             >
               <Star className="h-4 w-4" />
-              <span>Start Game</span>
+              <span></span>
             </button>
           )}
-          
+
           {gameStarted && !gameCompleted && (
             <button
               onClick={useHint}
               disabled={hintsUsed >= 3 || showHint}
-              className="flex items-center space-x-2 rounded-lg bg-yellow-600 px-4 py-2 text-white hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center space-x-2 rounded-lg bg-yellow-600 px-4 py-2 text-white hover:bg-yellow-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Zap className="h-4 w-4" />
               <span>Hint</span>
             </button>
           )}
-          
+
           <button
             onClick={resetGame}
             className="flex items-center space-x-2 rounded-lg bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
@@ -396,11 +423,15 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
       </div>
 
       {/* Game Board */}
-      <div className={`relative grid gap-3 ${
-        cards.length <= 6 ? 'grid-cols-2 sm:grid-cols-3' :
-        cards.length <= 12 ? 'grid-cols-3 sm:grid-cols-4 md:grid-cols-4' :
-        'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6'
-      }`}>
+      <div
+        className={`relative grid gap-3 ${
+          cards.length <= 6
+            ? "grid-cols-2 sm:grid-cols-3"
+            : cards.length <= 12
+              ? "grid-cols-3 sm:grid-cols-4 md:grid-cols-4"
+              : "grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6"
+        }`}
+      >
         <AnimatePresence>
           {cards.map((card) => (
             <motion.div
@@ -413,63 +444,78 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
               transition={{
                 type: "spring",
                 stiffness: 300,
-                damping: 30
+                damping: 30,
               }}
               className={`relative aspect-square min-h-[80px] ${
-                !gameStarted || card.isMatched || isProcessing || flippedCards.length >= 2 || selectedCard
-                  ? 'cursor-default opacity-75'
-                  : 'cursor-pointer hover:scale-105'
+                !gameStarted ||
+                card.isMatched ||
+                isProcessing ||
+                flippedCards.length >= 2 ||
+                selectedCard
+                  ? "cursor-default opacity-75"
+                  : "cursor-pointer hover:scale-105"
               } transition-all duration-200`}
               onClick={() => handleCardClick(card.id)}
             >
-              <div className={`
+              <div
+                className={`
                 absolute inset-0 rounded-xl border-2 transition-all duration-200
-                ${card.isMatched
-                  ? 'border-green-400 bg-green-50'
-                  : card.isHighlighted
-                    ? 'border-yellow-400 bg-yellow-50 shadow-lg'
-                    : card.isFlipped
-                      ? card.type === 'question'
-                        ? 'border-blue-400 bg-blue-50'
-                        : 'border-green-400 bg-green-50'
-                      : card.type === 'question'
-                        ? 'border-blue-200 bg-white hover:border-blue-400 hover:shadow-md'
-                        : 'border-green-200 bg-white hover:border-green-400 hover:shadow-md'
+                ${
+                  card.isMatched
+                    ? "border-green-400 bg-green-50"
+                    : card.isHighlighted
+                      ? "border-yellow-400 bg-yellow-50 shadow-lg"
+                      : card.isFlipped
+                        ? card.type === "question"
+                          ? "border-blue-400 bg-blue-50"
+                          : "border-green-400 bg-green-50"
+                        : card.type === "question"
+                          ? "border-blue-200 bg-white hover:border-blue-400 hover:shadow-md"
+                          : "border-green-200 bg-white hover:border-green-400 hover:shadow-md"
                 }
-              `}>
+              `}
+              >
                 <div className="flex h-full items-center justify-center p-3">
                   {card.isFlipped || card.isMatched || card.isHighlighted ? (
-                    <div className={`text-center ${
-                      card.isMatched ? 'text-green-700' :
-                      card.isHighlighted ? 'text-yellow-700' :
-                      'text-blue-700'
-                    }`}>
-                      <div className="font-medium leading-snug text-center break-words text-xs overflow-hidden">
+                    <div
+                      className={`text-center ${
+                        card.isMatched
+                          ? "text-green-700"
+                          : card.isHighlighted
+                            ? "text-yellow-700"
+                            : "text-blue-700"
+                      }`}
+                    >
+                      <div className="overflow-hidden break-words text-center text-xs font-medium leading-snug">
                         <div className="line-clamp-3">
-                          {card.text.length > 30 ? `${card.text.substring(0, 30)}...` : card.text}
+                          {card.text.length > 30
+                            ? `${card.text.substring(0, 30)}...`
+                            : card.text}
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className={`flex h-full w-full items-center justify-center rounded-lg ${
-                      card.type === 'question'
-                        ? 'bg-gradient-to-br from-blue-400 to-indigo-500'
-                        : 'bg-gradient-to-br from-green-400 to-emerald-500'
-                    }`}>
+                    <div
+                      className={`flex h-full w-full items-center justify-center rounded-lg ${
+                        card.type === "question"
+                          ? "bg-gradient-to-br from-blue-400 to-indigo-500"
+                          : "bg-gradient-to-br from-green-400 to-emerald-500"
+                      }`}
+                    >
                       <div className="flex flex-col items-center justify-center text-white">
-                        {card.type === 'question' ? (
-                          <HelpCircle className="h-6 w-6 mb-1" />
+                        {card.type === "question" ? (
+                          <HelpCircle className="mb-1 h-6 w-6" />
                         ) : (
-                          <MessageSquare className="h-6 w-6 mb-1" />
+                          <MessageSquare className="mb-1 h-6 w-6" />
                         )}
-                        <span className="font-medium text-xs">
-                          {card.type === 'question' ? 'Q' : 'A'}
+                        <span className="text-xs font-medium">
+                          {card.type === "question" ? "Q" : "A"}
                         </span>
                       </div>
                     </div>
                   )}
                 </div>
-                
+
                 {card.isMatched && (
                   <div className="absolute -right-2 -top-2">
                     <CheckCircle className="h-6 w-6 text-green-500" />
@@ -488,7 +534,7 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4 backdrop-blur-sm"
             onClick={handleModalClose}
           >
             <motion.div
@@ -496,35 +542,41 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border-2 border-gray-100"
+              className="w-full max-w-sm rounded-2xl border-2 border-gray-100 bg-white p-6 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="text-center">
-                <div className={`inline-flex items-center justify-center w-14 h-14 rounded-full mb-3 ${
-                  selectedCard.type === 'question'
-                    ? 'bg-blue-100 text-blue-600'
-                    : 'bg-green-100 text-green-600'
-                }`}>
-                  {selectedCard.type === 'question' ? (
+                <div
+                  className={`mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full ${
+                    selectedCard.type === "question"
+                      ? "bg-blue-100 text-blue-600"
+                      : "bg-green-100 text-green-600"
+                  }`}
+                >
+                  {selectedCard.type === "question" ? (
                     <HelpCircle className="h-7 w-7" />
                   ) : (
                     <MessageSquare className="h-7 w-7" />
                   )}
                 </div>
-                
-                <h3 className={`text-sm font-medium mb-3 ${
-                  selectedCard.type === 'question' ? 'text-blue-600' : 'text-green-600'
-                }`}>
-                  {selectedCard.type === 'question' ? 'Question' : 'Answer'}
+
+                <h3
+                  className={`mb-3 text-sm font-medium ${
+                    selectedCard.type === "question"
+                      ? "text-blue-600"
+                      : "text-green-600"
+                  }`}
+                >
+                  {selectedCard.type === "question" ? "Question" : "Answer"}
                 </h3>
-                
-                <p className="text-base font-semibold text-gray-900 mb-5 leading-relaxed px-2">
+
+                <p className="mb-5 px-2 text-base font-semibold leading-relaxed text-gray-900">
                   {selectedCard.text}
                 </p>
-                
+
                 <button
                   onClick={handleModalClose}
-                  className="px-5 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg transition-all duration-200 font-medium shadow-md"
+                  className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-5 py-2 font-medium text-white shadow-md transition-all duration-200 hover:from-purple-600 hover:to-pink-600"
                 >
                   Got it!
                 </button>
@@ -559,16 +611,27 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
                     <p className="mb-4 text-gray-600">
                       You completed the memory game!
                     </p>
-                    
+
                     {/* Score */}
                     <div className="mb-6 rounded-lg bg-gray-50 p-4">
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                           <div className="text-gray-600">Final Score</div>
-                          <div className={`text-xl font-bold ${getScoreColor(
-                            Math.round(100 * (1 - mistakes * 0.1) * (1 - hintsUsed * 0.05))
-                          )}`}>
-                            {Math.round(100 * (1 - mistakes * 0.1) * (1 - hintsUsed * 0.05))}%
+                          <div
+                            className={`text-xl font-bold ${getScoreColor(
+                              Math.round(
+                                100 *
+                                  (1 - mistakes * 0.1) *
+                                  (1 - hintsUsed * 0.05)
+                              )
+                            )}`}
+                          >
+                            {Math.round(
+                              100 *
+                                (1 - mistakes * 0.1) *
+                                (1 - hintsUsed * 0.05)
+                            )}
+                            %
                           </div>
                         </div>
                         <div>
@@ -579,11 +642,15 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
                         </div>
                         <div>
                           <div className="text-gray-600">Mistakes</div>
-                          <div className="text-xl font-bold text-red-600">{mistakes}</div>
+                          <div className="text-xl font-bold text-red-600">
+                            {mistakes}
+                          </div>
                         </div>
                         <div>
                           <div className="text-gray-600">Hints Used</div>
-                          <div className="text-xl font-bold text-yellow-600">{hintsUsed}</div>
+                          <div className="text-xl font-bold text-yellow-600">
+                            {hintsUsed}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -594,16 +661,20 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
                         <>
                           <div className="flex items-center space-x-2">
                             <Diamond className="h-5 w-5 text-yellow-500" />
-                            <span className="font-bold text-yellow-600">+{diamondReward}</span>
+                            <span className="font-bold text-yellow-600">
+                              +{diamondReward}
+                            </span>
                           </div>
                           <div className="flex items-center space-x-2">
                             <Star className="h-5 w-5 text-purple-500" />
-                            <span className="font-bold text-purple-600">+{experienceReward} XP</span>
+                            <span className="font-bold text-purple-600">
+                              +{experienceReward} XP
+                            </span>
                           </div>
                         </>
                       ) : (
                         <div className="text-center">
-                          <Trophy className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <Trophy className="mx-auto mb-2 h-8 w-8 text-gray-400" />
                           <p className="text-sm text-gray-600">
                             Practice completed! No rewards for replay.
                           </p>
@@ -622,7 +693,7 @@ const MemoryGame: React.FC<MemoryGameProps> = ({
                     </p>
                   </>
                 )}
-                
+
                 <button
                   onClick={resetGame}
                   className="w-full rounded-lg bg-purple-600 py-3 text-white hover:bg-purple-700"

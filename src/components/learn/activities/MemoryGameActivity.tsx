@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { RotateCcw, Trophy, Clock, Star, Gift, Sparkles } from "lucide-react";
+import {
+  RotateCcw,
+  Trophy,
+  Clock,
+  Star,
+  Gift,
+  Sparkles,
+  Play,
+} from "lucide-react";
 
 interface Card {
   id: number;
@@ -328,34 +336,41 @@ export default function MemoryGameActivity({
           <h2 className="mb-4 text-3xl font-bold text-gray-900">
             {activity.title}
           </h2>
-          <p className="mb-8 text-lg text-gray-600">{activity.description}</p>
+          <p className="mb-8 text-lg text-black">{activity.description}</p>
 
           <div className="mb-8 rounded-lg bg-purple-50 p-6">
             <h3 className="mb-4 text-xl font-semibold text-purple-900">
               Game Rules
             </h3>
-            <p className="mb-4 text-purple-800">{rules}</p>
+            <p className="mb-4 text-black">{rules}</p>
             <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
               <div className="flex items-center justify-center space-x-2">
                 <Star className="h-5 w-5 text-purple-600" />
-                <span>{cards.length} Pairs to Match</span>
+                <span className="text-black">
+                  {cards.length} Pairs to Match
+                </span>
               </div>
               <div className="flex items-center justify-center space-x-2">
                 <Clock className="h-5 w-5 text-purple-600" />
-                <span>{formatTime(timeLimit)} Time Limit</span>
+                <span className="text-black">
+                  {formatTime(timeLimit)} Time Limit
+                </span>
               </div>
               <div className="flex items-center justify-center space-x-2">
                 <Trophy className="h-5 w-5 text-purple-600" />
-                <span>Score: Speed + Accuracy</span>
+                <span className="text-black">Score: Speed + Accuracy</span>
               </div>
             </div>
           </div>
 
           <button
             onClick={startGame}
-            className="rounded-lg bg-purple-600 px-8 py-3 text-lg font-bold text-white transition-colors hover:bg-purple-700"
+            className="inline-flex transform items-center space-x-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-10 py-4 text-xl font-bold text-white shadow-xl transition-all hover:scale-105 hover:from-purple-700 hover:to-pink-700 hover:shadow-2xl"
           >
-            Start Memory Game
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+              <Play className="h-5 w-5" />
+            </div>
+            <span>🎮 START GAME</span>
           </button>
         </div>
       </div>

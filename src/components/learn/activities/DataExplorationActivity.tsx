@@ -1,34 +1,48 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Play, Database, TrendingUp, Eye, RotateCcw } from "lucide-react";
+import {
+  BarChart3,
+  CheckCircle,
+  XCircle,
+  Trophy,
+  Star,
+  Gift,
+  TrendingUp,
+} from "lucide-react";
 
-interface Exploration {
-  method: string;
-  code: string;
-  result: string;
-  explanation: string;
+interface Task {
+  id: number;
+  task: string;
+  points: number;
+}
+
+interface Dataset {
+  name: string;
+  columns: string[];
+  data: any[][];
 }
 
 interface DataExplorationContent {
-  dataset?: string;
-  explorations?: Exploration[];
-  structures?: Array<{
-    name: string;
-    module: string;
-    usage: string;
-    advantages: string;
-    complexity: string;
-  }>;
-  interactiveExamples?: boolean;
-  practiceExercises?: string[];
+  instructions: string;
+  dataset: Dataset;
+  tasks: Task[];
+  hints?: string[];
 }
 
 interface LearningActivity {
   id: string;
   title: string;
   description: string;
+  activityType: string;
+  difficulty: number;
+  category: string;
+  diamondReward: number;
+  experienceReward: number;
+  estimatedMinutes: number;
   content: DataExplorationContent;
+  settings?: any;
+  tags: string[];
 }
 
 interface DataExplorationActivityProps {
@@ -40,322 +54,522 @@ export default function DataExplorationActivity({
   activity,
   onComplete,
 }: DataExplorationActivityProps) {
-  const [currentExploration, setCurrentExploration] = useState(0);
-  const [exploredItems, setExploredItems] = useState<Set<number>>(new Set());
-  const [showResult, setShowResult] = useState<{ [key: number]: boolean }>({});
-  const [activeTab, setActiveTab] = useState<"explorations" | "structures">(
-    "explorations"
-  );
-
-  const {
-    dataset,
-    explorations = [],
-    structures = [],
-    interactiveExamples,
-    practiceExercises = [],
-  } = activity.content;
-
-  // Removed auto-completion - users should manually complete via button
-  // This prevents the modal from closing automatically without user interaction
-
-  const runExploration = (index: number) => {
-    setShowResult((prev) => ({ ...prev, [index]: true }));
-    setExploredItems((prev) => new Set([...prev, index]));
-
-    // Simulate execution delay
-    setTimeout(() => {
-      // Result is already shown, this is just for effect
-    }, 1000);
-  };
-
-  const resetExploration = (index: number) => {
-    setShowResult((prev) => ({ ...prev, [index]: false }));
-  };
-
-  const completeActivity = () => {
-    const completionRate =
-      exploredItems.size / Math.max(explorations.length, structures.length);
-    const score = Math.round(70 + completionRate * 30);
-    onComplete(score, 100, true);
-  };
-
-  // Render explorations tab
-  const renderExplorations = () => (
-    <div className="space-y-6">
-      {dataset && (
-        <div className="mb-6 rounded-lg bg-gray-900 p-4">
-          <div className="mb-3 flex items-center space-x-2">
-            <Database className="h-5 w-5 text-green-400" />
-            <span className="text-sm font-medium text-green-400">Dataset</span>
+  // Safety check for activity prop
+  if (!activity || typeof activity !== "object") {
+    return (
+      <div className="mx-auto max-w-4xl p-6">
+        <div className="text-center">
+          <div className="mb-4 text-lg font-semibold text-red-500">
+            Activity Loading Error
           </div>
-          <pre className="font-mono text-sm text-green-300">{dataset}</pre>
+          <p className="text-gray-600">
+            Activity data is not available. Please try refreshing the page.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          >
+            Reload Page
+          </button>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      <div className="grid gap-6">
-        {explorations.map((exploration, index) => (
-          <div
-            key={index}
-            className="overflow-hidden rounded-lg border border-gray-200 bg-white"
+  const [completedTasks, setCompletedTasks] = useState<Set<number>>(new Set());
+  const [taskAnswers, setTaskAnswers] = useState<{ [key: number]: string }>({});
+  const [showResults, setShowResults] = useState(false);
+  const [showRewardAnimation, setShowRewardAnimation] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showHints, setShowHints] = useState(false);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/session");
+        const session = await response.json();
+        setIsAuthenticated(!!session?.user);
+      } catch (error) {
+        const userSession =
+          localStorage.getItem("user") ||
+          sessionStorage.getItem("user") ||
+          localStorage.getItem("next-auth.session-token") ||
+          document.cookie.includes("next-auth.session-token");
+        setIsAuthenticated(!!userSession);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  // Safe destructuring with fallbacks
+  const {
+    instructions = "Explore the dataset below and complete the analysis tasks.",
+    dataset = { name: "Dataset", columns: [], data: [] },
+    tasks = [],
+    hints = [],
+  } = activity?.content || {};
+
+  // Additional safety checks
+  const safeDataset = {
+    name: dataset?.name || "Dataset",
+    columns: Array.isArray(dataset?.columns) ? dataset.columns : [],
+    data: Array.isArray(dataset?.data) ? dataset.data : [],
+  };
+
+  const safeTasks = Array.isArray(tasks)
+    ? tasks.filter((task) => task && typeof task === "object")
+    : [];
+  const safeHints = Array.isArray(hints)
+    ? hints.filter((hint) => hint && typeof hint === "string")
+    : [];
+
+  // If we don't have valid data, show an error
+  if (
+    safeDataset.columns.length === 0 ||
+    safeDataset.data.length === 0 ||
+    safeTasks.length === 0
+  ) {
+    return (
+      <div className="mx-auto max-w-4xl p-6">
+        <div className="text-center">
+          <div className="mb-4 text-lg font-semibold text-red-500">
+            Data Exploration Activity Error
+          </div>
+          <p className="text-gray-600">
+            This activity doesn't have the required dataset or tasks configured
+            properly.
+          </p>
+          <div className="mt-4 text-sm text-gray-500">
+            Dataset columns: {safeDataset.columns.length}, Dataset rows:{" "}
+            {safeDataset.data.length}, Tasks: {safeTasks.length}
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
-            <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {exploration.method}
-                </h3>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => runExploration(index)}
-                    disabled={showResult[index]}
-                    className="flex items-center space-x-2 rounded bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700 disabled:bg-gray-400"
+            Reload Activity
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const handleTaskAnswer = (taskId: number, answer: string) => {
+    setTaskAnswers({
+      ...taskAnswers,
+      [taskId]: answer,
+    });
+  };
+
+  const completeTask = (taskId: number) => {
+    const newCompleted = new Set(completedTasks);
+    newCompleted.add(taskId);
+    setCompletedTasks(newCompleted);
+  };
+
+  const submitExploration = () => {
+    setShowResults(true);
+    const completedPoints = Array.from(completedTasks).reduce(
+      (total, taskId) => {
+        const task = safeTasks.find((t) => t && t.id === taskId);
+        return total + (task?.points || 0);
+      },
+      0
+    );
+
+    const totalPoints = safeTasks.reduce(
+      (total, task) => total + (task?.points || 0),
+      0
+    );
+    const score = Math.round((completedPoints / totalPoints) * 100);
+    const success = score >= 70;
+
+    if (success) {
+      handleActivityCompletion(score);
+    }
+  };
+
+  const handleActivityCompletion = async (score: number) => {
+    if (!isAuthenticated) return;
+
+    const awardedActivities = JSON.parse(
+      localStorage.getItem("awardedActivities") || "[]"
+    );
+    const alreadyAwarded = awardedActivities.includes(activity.id);
+
+    if (!alreadyAwarded) {
+      try {
+        const response = await fetch("/api/learning-activities/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            activityType: "data_exploration",
+            activityId: activity.id,
+            activityTitle: activity.title,
+            score: Math.max(70, score),
+            timeSpent: 600, // 10 minutes estimated
+            success: true,
+            diamondReward: activity.diamondReward || 60,
+            experienceReward: activity.experienceReward || 90,
+          }),
+        });
+
+        if (response.ok) {
+          setShowRewardAnimation(true);
+          awardedActivities.push(activity.id);
+          localStorage.setItem(
+            "awardedActivities",
+            JSON.stringify(awardedActivities)
+          );
+          setTimeout(() => setShowRewardAnimation(false), 3000);
+        }
+      } catch (error) {
+        console.error("Error awarding rewards:", error);
+      }
+    }
+  };
+
+  // Calculate basic statistics for the dataset
+  const getColumnStats = (columnIndex: number) => {
+    try {
+      if (
+        !safeDataset.data ||
+        !Array.isArray(safeDataset.data) ||
+        columnIndex >= safeDataset.columns.length
+      ) {
+        return null;
+      }
+
+      const values = safeDataset.data
+        .filter((row) => Array.isArray(row) && row.length > columnIndex)
+        .map((row) => row[columnIndex])
+        .filter((val) => typeof val === "number" && !isNaN(val));
+
+      if (values.length === 0) return null;
+
+      const sum = values.reduce((a, b) => a + b, 0);
+      const avg = sum / values.length;
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+
+      return { sum, avg: avg.toFixed(2), min, max, count: values.length };
+    } catch (error) {
+      console.error("Error calculating column stats:", error);
+      return null;
+    }
+  };
+
+  if (showResults) {
+    const completedPoints = Array.from(completedTasks).reduce(
+      (total, taskId) => {
+        const task = safeTasks.find((t) => t && t.id === taskId);
+        return total + (task?.points || 0);
+      },
+      0
+    );
+
+    const totalPoints = safeTasks.reduce(
+      (total, task) => total + (task?.points || 0),
+      0
+    );
+    const score = Math.round((completedPoints / totalPoints) * 100);
+    const passed = score >= 70;
+
+    return (
+      <div className="mx-auto max-w-4xl p-6">
+        <div className="text-center">
+          <div
+            className={`mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full ${
+              passed ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
+            }`}
+          >
+            {passed ? (
+              <Trophy className="h-10 w-10" />
+            ) : (
+              <XCircle className="h-10 w-10" />
+            )}
+          </div>
+
+          <h2 className="mb-2 text-3xl font-bold text-gray-900">
+            {passed ? "Data Analysis Complete!" : "Keep Exploring!"}
+          </h2>
+          <p className="mb-8 text-lg text-gray-600">
+            You completed {completedTasks.size} out of {tasks.length} analysis
+            tasks
+          </p>
+
+          <div className="mb-8 rounded-lg bg-gray-50 p-6">
+            <div className="mb-2 text-4xl font-bold text-gray-900">
+              {score}%
+            </div>
+            <div
+              className={`text-lg font-semibold ${passed ? "text-green-600" : "text-red-600"}`}
+            >
+              {passed ? "Data Scientist!" : "More Analysis Needed"}
+            </div>
+            <div className="mt-4 text-sm text-gray-600">
+              Points Earned: {completedPoints} / {totalPoints}
+            </div>
+          </div>
+
+          <div className="mb-8 space-y-4 text-left">
+            <h3 className="text-xl font-semibold text-gray-900">
+              Task Results:
+            </h3>
+            {safeTasks.map((task) => (
+              <div key={task.id} className="rounded-lg border bg-white p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium">{task.task}</div>
+                    <div className="text-sm text-gray-600">
+                      Points: {task.points}
+                    </div>
+                    {taskAnswers[task.id] && (
+                      <div className="mt-2 text-sm text-blue-600">
+                        Your answer: {taskAnswers[task.id]}
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    className={`rounded-full p-2 ${
+                      completedTasks.has(task.id)
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-200 text-gray-500"
+                    }`}
                   >
-                    <Play className="h-4 w-4" />
-                    <span>{showResult[index] ? "Executed" : "Run Code"}</span>
-                  </button>
-                  {showResult[index] && (
-                    <button
-                      onClick={() => resetExploration(index)}
-                      className="flex items-center space-x-2 rounded bg-gray-500 px-3 py-2 text-sm text-white transition-colors hover:bg-gray-600"
-                    >
-                      <RotateCcw className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6">
-              <div className="mb-4 rounded-lg bg-gray-900 p-4">
-                <pre className="font-mono text-sm text-green-300">
-                  {exploration.code}
-                </pre>
-              </div>
-
-              {showResult[index] && (
-                <div className="space-y-4">
-                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                    <div className="mb-2 flex items-center space-x-2">
-                      <TrendingUp className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm font-medium text-blue-900">
-                        Output
-                      </span>
-                    </div>
-                    <pre className="whitespace-pre-wrap font-mono text-sm text-blue-800">
-                      {exploration.result}
-                    </pre>
-                  </div>
-
-                  <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-                    <div className="mb-2 flex items-center space-x-2">
-                      <Eye className="h-4 w-4 text-green-600" />
-                      <span className="text-sm font-medium text-green-900">
-                        Explanation
-                      </span>
-                    </div>
-                    <p className="text-sm text-green-800">
-                      {exploration.explanation}
-                    </p>
+                    {completedTasks.has(task.id) ? "✓" : "○"}
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-    </div>
-  );
 
-  // Render data structures tab
-  const renderStructures = () => (
-    <div className="space-y-6">
-      <div className="grid gap-6">
-        {structures.map((structure, index) => (
-          <div
-            key={index}
-            className="overflow-hidden rounded-lg border border-gray-200 bg-white"
+          <button
+            onClick={() => onComplete(score, 100, passed)}
+            className="rounded-lg bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700"
           >
-            <div className="border-b border-gray-200 bg-gradient-to-r from-purple-50 to-indigo-50 px-6 py-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {structure.name}
-                </h3>
-                <button
-                  onClick={() => {
-                    setExploredItems((prev) => new Set([...prev, index]));
-                    setShowResult((prev) => ({ ...prev, [index]: true }));
-                  }}
-                  disabled={showResult[index]}
-                  className="flex items-center space-x-2 rounded bg-purple-600 px-4 py-2 text-sm text-white transition-colors hover:bg-purple-700 disabled:bg-gray-400"
-                >
-                  <Eye className="h-4 w-4" />
-                  <span>{showResult[index] ? "Explored" : "Explore"}</span>
-                </button>
-              </div>
-            </div>
+            Complete Data Exploration
+          </button>
+        </div>
 
-            <div className="p-6">
-              <div className="mb-4">
-                <h4 className="mb-2 font-medium text-gray-900">
-                  Import & Basic Usage
-                </h4>
-                <div className="rounded-lg bg-gray-900 p-4">
-                  <pre className="font-mono text-sm text-green-300">
-                    {structure.module}
-                    {"\n\n"}
-                    {structure.usage}
-                  </pre>
+        {/* Reward Animation */}
+        {showRewardAnimation && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="relative rounded-2xl bg-gradient-to-br from-purple-900 via-blue-900 to-purple-900 p-8 text-center shadow-2xl">
+              <h3 className="mb-4 text-3xl font-bold text-white">
+                🎉 Data Scientist! 🎉
+              </h3>
+              <div className="mb-6 space-y-3">
+                <div className="flex items-center justify-center space-x-3 rounded-lg bg-yellow-500/20 p-3">
+                  <span className="text-xl font-semibold text-yellow-300">
+                    +{activity.diamondReward || 60} Diamonds
+                  </span>
+                </div>
+                <div className="flex items-center justify-center space-x-3 rounded-lg bg-blue-500/20 p-3">
+                  <Star className="h-8 w-8 text-blue-400" />
+                  <span className="text-xl font-semibold text-blue-300">
+                    +{activity.experienceReward || 90} Experience
+                  </span>
                 </div>
               </div>
-
-              {showResult[index] && (
-                <div className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                      <h4 className="mb-2 font-medium text-blue-900">
-                        Advantages
-                      </h4>
-                      <p className="text-sm text-blue-800">
-                        {structure.advantages}
-                      </p>
-                    </div>
-
-                    <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
-                      <h4 className="mb-2 font-medium text-orange-900">
-                        Time Complexity
-                      </h4>
-                      <p className="text-sm text-orange-800">
-                        {structure.complexity}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
-        ))}
+        )}
       </div>
-    </div>
-  );
-
-  const totalItems = Math.max(explorations.length, structures.length);
-  const progressPercentage =
-    totalItems > 0 ? (exploredItems.size / totalItems) * 100 : 0;
+    );
+  }
 
   return (
-    <div className="mx-auto max-w-4xl p-6">
-      {/* Header */}
-      <div className="mb-8">
+    <div className="mx-auto max-w-6xl p-6">
+      <div className="mb-8 text-center">
         <h2 className="mb-4 text-3xl font-bold text-gray-900">
           {activity.title}
         </h2>
         <p className="text-lg text-gray-600">{activity.description}</p>
       </div>
 
-      {/* Progress */}
-      <div className="mb-8">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">
-            Exploration Progress
-          </span>
-          <span className="text-sm text-gray-500">
-            {exploredItems.size}/{totalItems} explored
-          </span>
+      <div className="mb-8 rounded-lg bg-blue-50 p-6">
+        <h3 className="mb-4 text-xl font-semibold text-blue-900">
+          Instructions
+        </h3>
+        <p className="text-blue-800">{instructions}</p>
+        {safeHints && safeHints.length > 0 && (
+          <div className="mt-4">
+            <button
+              onClick={() => setShowHints(!showHints)}
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
+              💡 {showHints ? "Hide" : "Show"} Hints
+            </button>
+            {showHints && (
+              <div className="mt-2 space-y-1">
+                {safeHints.map((hint, index) => (
+                  <div key={index} className="text-sm text-blue-700">
+                    • {hint}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
+        {/* Dataset View */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">
+            📊 Dataset: {safeDataset.name}
+          </h3>
+
+          <div className="rounded-lg border border-gray-200 bg-white">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {safeDataset.columns.map((column, index) => (
+                      <th
+                        key={index}
+                        className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                      >
+                        {column}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {safeDataset.data
+                    .filter((row) => Array.isArray(row))
+                    .map((row, rowIndex) => (
+                      <tr
+                        key={rowIndex}
+                        className={
+                          rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
+                        }
+                      >
+                        {(row || []).map((cell, cellIndex) => (
+                          <td
+                            key={cellIndex}
+                            className="whitespace-nowrap px-4 py-2 text-sm text-gray-900"
+                          >
+                            {cell}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Basic Statistics */}
+          <div className="mt-4 rounded-lg bg-gray-50 p-4">
+            <h4 className="mb-2 font-semibold text-gray-900">📈 Quick Stats</h4>
+            <div className="grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
+              <div>Rows: {safeDataset.data.length}</div>
+              <div>Columns: {safeDataset.columns.length}</div>
+              {safeDataset.columns.map((column, index) => {
+                const stats = getColumnStats(index);
+                if (stats) {
+                  return (
+                    <div key={index} className="col-span-2">
+                      <strong>{column}:</strong> Avg: {stats.avg}, Min:{" "}
+                      {stats.min}, Max: {stats.max}
+                    </div>
+                  );
+                }
+                return null;
+              })}
+            </div>
+          </div>
         </div>
-        <div className="h-2 w-full rounded-full bg-gray-200">
-          <div
-            className="h-2 rounded-full bg-purple-600 transition-all duration-300"
-            style={{ width: `${progressPercentage}%` }}
-          ></div>
+
+        {/* Tasks Panel */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">
+            🎯 Analysis Tasks
+          </h3>
+
+          <div className="space-y-4">
+            {safeTasks.map((task) => (
+              <div
+                key={task.id}
+                className="rounded-lg border border-gray-200 bg-white p-4"
+              >
+                <div className="mb-3 flex items-start justify-between">
+                  <div>
+                    <div className="font-medium text-gray-900">{task.task}</div>
+                    <div className="text-sm text-gray-600">
+                      Worth {task.points} points
+                    </div>
+                  </div>
+                  <div
+                    className={`rounded-full p-1 ${
+                      completedTasks.has(task.id)
+                        ? "bg-green-100 text-green-600"
+                        : "bg-gray-100 text-gray-400"
+                    }`}
+                  >
+                    {completedTasks.has(task.id) ? (
+                      <CheckCircle className="h-5 w-5" />
+                    ) : (
+                      <TrendingUp className="h-5 w-5" />
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    placeholder="Enter your answer..."
+                    value={taskAnswers[task.id] || ""}
+                    onChange={(e) => handleTaskAnswer(task.id, e.target.value)}
+                    className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                  <button
+                    onClick={() => completeTask(task.id)}
+                    disabled={
+                      !taskAnswers[task.id] || completedTasks.has(task.id)
+                    }
+                    className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {completedTasks.has(task.id) ? "✓" : "Submit"}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Progress */}
+          <div className="mt-6 rounded-lg bg-blue-50 p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-blue-900">
+                Progress
+              </span>
+              <span className="text-sm text-blue-700">
+                {completedTasks.size}/{safeTasks.length} tasks completed
+              </span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-blue-200">
+              <div
+                className="h-2 rounded-full bg-blue-600 transition-all duration-300"
+                style={{
+                  width: `${safeTasks.length > 0 ? (completedTasks.size / safeTasks.length) * 100 : 0}%`,
+                }}
+              ></div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      {explorations.length > 0 && structures.length > 0 && (
-        <div className="mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
-              <button
-                onClick={() => setActiveTab("explorations")}
-                className={`border-b-2 px-1 py-2 text-sm font-medium ${
-                  activeTab === "explorations"
-                    ? "border-purple-500 text-purple-600"
-                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                }`}
-              >
-                Data Explorations ({explorations.length})
-              </button>
-              <button
-                onClick={() => setActiveTab("structures")}
-                className={`border-b-2 px-1 py-2 text-sm font-medium ${
-                  activeTab === "structures"
-                    ? "border-purple-500 text-purple-600"
-                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                }`}
-              >
-                Data Structures ({structures.length})
-              </button>
-            </nav>
-          </div>
-        </div>
-      )}
-
-      {/* Content */}
-      {explorations.length > 0 &&
-        (activeTab === "explorations" || structures.length === 0) &&
-        renderExplorations()}
-      {structures.length > 0 &&
-        (activeTab === "structures" || explorations.length === 0) &&
-        renderStructures()}
-
-      {/* Practice Exercises */}
-      {practiceExercises.length > 0 && (
-        <div className="mt-8 rounded-lg border border-yellow-200 bg-yellow-50 p-6">
-          <h3 className="mb-4 text-lg font-semibold text-yellow-900">
-            Practice Exercises
-          </h3>
-          <ul className="space-y-2">
-            {practiceExercises.map((exercise, index) => (
-              <li
-                key={index}
-                className="flex items-center space-x-2 text-yellow-800"
-              >
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-yellow-200 text-xs font-bold">
-                  {index + 1}
-                </span>
-                <span>{exercise}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Completion Button */}
-      {exploredItems.size >= Math.ceil(totalItems * 0.5) && (
-        <div className="mt-8 text-center">
-          <button
-            onClick={completeActivity}
-            className="rounded-lg bg-purple-600 px-8 py-3 font-bold text-white transition-colors hover:bg-purple-700"
-          >
-            Complete Exploration
-          </button>
-        </div>
-      )}
-
-      {/* Instructions */}
-      <div className="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-4">
-        <h3 className="mb-2 font-semibold text-gray-900">💡 How to Explore:</h3>
-        <ul className="space-y-1 text-sm text-gray-700">
-          <li>
-            • Click "Run Code" or "Explore" buttons to see examples in action
-          </li>
-          <li>
-            • Read the explanations to understand what each operation does
-          </li>
-          <li>• Explore at least half the items to complete the activity</li>
-          {interactiveExamples && (
-            <li>• Try modifying the code examples to experiment</li>
-          )}
-        </ul>
+      <div className="text-center">
+        <button
+          onClick={submitExploration}
+          disabled={completedTasks.size === 0}
+          className="rounded-lg bg-green-600 px-8 py-3 text-lg font-bold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Submit Data Analysis
+        </button>
       </div>
     </div>
   );

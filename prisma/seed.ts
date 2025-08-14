@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { seedLearningActivities } from "./seeds/learning-activities";
 import { seedCards } from "./seeds/cards";
+import { seedPythonFundamentals } from "./seeds/python-fundamentals";
 
 const prisma = new PrismaClient();
 
@@ -863,6 +864,10 @@ async function main() {
   console.log("🎮 Seeding comprehensive learning activities...");
   await seedLearningActivities();
 
+  // Seed Python fundamentals challenges (Code Arena)
+  console.log("🐍 Seeding Python fundamentals challenges for Code Arena...");
+  await seedPythonFundamentals();
+
   // Seed cards and their categories
   console.log("🎴 Seeding cards and card categories...");
   await seedCards();
@@ -1178,6 +1183,7 @@ async function main() {
   - ${analysisSettings.length} analysis settings
   - ${backupUsers.length} backup users
   - 20+ comprehensive learning activities
+  - 15 Python fundamentals challenges for Code Arena
   - Sample card collection with various rarities
   - ${defaultSettings.length} site settings`);
 

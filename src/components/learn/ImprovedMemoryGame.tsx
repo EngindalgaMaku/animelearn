@@ -25,7 +25,7 @@ interface GameCard {
   isSelected: boolean;
   isMatched: boolean;
   isHighlighted: boolean;
-  type: 'question' | 'answer';
+  type: "question" | "answer";
 }
 
 interface GamePair {
@@ -58,7 +58,9 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
 }) => {
   const [questions, setQuestions] = useState<GameCard[]>([]);
   const [answers, setAnswers] = useState<GameCard[]>([]);
-  const [selectedQuestion, setSelectedQuestion] = useState<GameCard | null>(null);
+  const [selectedQuestion, setSelectedQuestion] = useState<GameCard | null>(
+    null
+  );
   const [selectedAnswer, setSelectedAnswer] = useState<GameCard | null>(null);
   const [matchedPairs, setMatchedPairs] = useState<Set<string>>(new Set());
   const [timeLeft, setTimeLeft] = useState(content.timeLimit || 300);
@@ -78,7 +80,7 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
   useEffect(() => {
     const questionCards: GameCard[] = [];
     const answerCards: GameCard[] = [];
-    
+
     content.pairs.forEach((pair) => {
       // Question cards
       questionCards.push({
@@ -88,9 +90,9 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
         isSelected: false,
         isMatched: false,
         isHighlighted: false,
-        type: 'question',
+        type: "question",
       });
-      
+
       // Answer cards
       answerCards.push({
         id: `a-${pair.id}`,
@@ -99,7 +101,7 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
         isSelected: false,
         isMatched: false,
         isHighlighted: false,
-        type: 'answer',
+        type: "answer",
       });
     });
 
@@ -108,7 +110,10 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
       // Shuffle questions and answers separately
       for (let i = questionCards.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [questionCards[i], questionCards[j]] = [questionCards[j], questionCards[i]];
+        [questionCards[i], questionCards[j]] = [
+          questionCards[j],
+          questionCards[i],
+        ];
       }
       for (let i = answerCards.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -123,7 +128,7 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
   // Timer effect
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    
+
     if (gameStarted && !gameCompleted && timeLeft > 0) {
       timer = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
@@ -139,41 +144,51 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
   useEffect(() => {
     if (selectedQuestion && selectedAnswer && !isProcessing) {
       setIsProcessing(true);
-      
+
       // Check if they match
       if (selectedQuestion.pairId === selectedAnswer.pairId) {
         // Match found!
         setTimeout(() => {
-          setQuestions(prev => prev.map(card =>
-            card.pairId === selectedQuestion.pairId
-              ? { ...card, isMatched: true, isSelected: false }
-              : card
-          ));
-          setAnswers(prev => prev.map(card =>
-            card.pairId === selectedAnswer.pairId
-              ? { ...card, isMatched: true, isSelected: false }
-              : card
-          ));
-          
-          setMatchedPairs(prev => new Set([...prev, selectedQuestion.pairId]));
+          setQuestions((prev) =>
+            prev.map((card) =>
+              card.pairId === selectedQuestion.pairId
+                ? { ...card, isMatched: true, isSelected: false }
+                : card
+            )
+          );
+          setAnswers((prev) =>
+            prev.map((card) =>
+              card.pairId === selectedAnswer.pairId
+                ? { ...card, isMatched: true, isSelected: false }
+                : card
+            )
+          );
+
+          setMatchedPairs(
+            (prev) => new Set([...prev, selectedQuestion.pairId])
+          );
           setSelectedQuestion(null);
           setSelectedAnswer(null);
           setIsProcessing(false);
         }, 1000);
       } else {
         // No match
-        setMistakes(prev => prev + 1);
+        setMistakes((prev) => prev + 1);
         setTimeout(() => {
-          setQuestions(prev => prev.map(card =>
-            card.id === selectedQuestion.id
-              ? { ...card, isSelected: false }
-              : card
-          ));
-          setAnswers(prev => prev.map(card =>
-            card.id === selectedAnswer.id
-              ? { ...card, isSelected: false }
-              : card
-          ));
+          setQuestions((prev) =>
+            prev.map((card) =>
+              card.id === selectedQuestion.id
+                ? { ...card, isSelected: false }
+                : card
+            )
+          );
+          setAnswers((prev) =>
+            prev.map((card) =>
+              card.id === selectedAnswer.id
+                ? { ...card, isSelected: false }
+                : card
+            )
+          );
           setSelectedQuestion(null);
           setSelectedAnswer(null);
           setIsProcessing(false);
@@ -208,34 +223,42 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
     setStartTime(null);
     setIsProcessing(false);
     setShowInstructions(true);
-    
+
     // Reset all cards
-    setQuestions(prev => prev.map(card => ({
-      ...card,
-      isSelected: false,
-      isMatched: false,
-      isHighlighted: false
-    })));
-    setAnswers(prev => prev.map(card => ({
-      ...card,
-      isSelected: false,
-      isMatched: false,
-      isHighlighted: false
-    })));
+    setQuestions((prev) =>
+      prev.map((card) => ({
+        ...card,
+        isSelected: false,
+        isMatched: false,
+        isHighlighted: false,
+      }))
+    );
+    setAnswers((prev) =>
+      prev.map((card) => ({
+        ...card,
+        isSelected: false,
+        isMatched: false,
+        isHighlighted: false,
+      }))
+    );
   };
 
   const endGame = (success: boolean) => {
     setGameCompleted(true);
-    const timeSpent = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
-    
+    const timeSpent = startTime
+      ? Math.floor((Date.now() - startTime) / 1000)
+      : 0;
+
     let score = 0;
     if (success) {
-      const timeBonus = Math.max(0, (content.timeLimit || 300) - timeSpent) / (content.timeLimit || 300);
-      const mistakesPenalty = Math.max(0, 1 - (mistakes * 0.1));
-      const hintsBonus = Math.max(0, 1 - (hintsUsed * 0.05));
+      const timeBonus =
+        Math.max(0, (content.timeLimit || 300) - timeSpent) /
+        (content.timeLimit || 300);
+      const mistakesPenalty = Math.max(0, 1 - mistakes * 0.1);
+      const hintsBonus = Math.max(0, 1 - hintsUsed * 0.05);
       score = Math.round(100 * timeBonus * mistakesPenalty * hintsBonus);
     }
-    
+
     if (success && isFirstCompletion) {
       setIsFirstCompletion(false);
       onComplete(score, timeSpent, success);
@@ -246,81 +269,91 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
 
   const handleQuestionClick = (questionId: string) => {
     if (!gameStarted || gameCompleted || isProcessing) return;
-    
-    const question = questions.find(q => q.id === questionId);
+
+    const question = questions.find((q) => q.id === questionId);
     if (!question || question.isMatched) return;
 
     // If there's already a selected question, deselect it
     if (selectedQuestion) {
-      setQuestions(prev => prev.map(card =>
-        card.id === selectedQuestion.id
-          ? { ...card, isSelected: false }
-          : card
-      ));
+      setQuestions((prev) =>
+        prev.map((card) =>
+          card.id === selectedQuestion.id
+            ? { ...card, isSelected: false }
+            : card
+        )
+      );
     }
 
     // Select the new question
-    setQuestions(prev => prev.map(card =>
-      card.id === questionId
-        ? { ...card, isSelected: true }
-        : card
-    ));
+    setQuestions((prev) =>
+      prev.map((card) =>
+        card.id === questionId ? { ...card, isSelected: true } : card
+      )
+    );
     setSelectedQuestion(question);
   };
 
   const handleAnswerClick = (answerId: string) => {
     if (!gameStarted || gameCompleted || isProcessing) return;
-    
-    const answer = answers.find(a => a.id === answerId);
+
+    const answer = answers.find((a) => a.id === answerId);
     if (!answer || answer.isMatched) return;
 
     // If there's already a selected answer, deselect it
     if (selectedAnswer) {
-      setAnswers(prev => prev.map(card =>
-        card.id === selectedAnswer.id
-          ? { ...card, isSelected: false }
-          : card
-      ));
+      setAnswers((prev) =>
+        prev.map((card) =>
+          card.id === selectedAnswer.id ? { ...card, isSelected: false } : card
+        )
+      );
     }
 
     // Select the new answer
-    setAnswers(prev => prev.map(card =>
-      card.id === answerId
-        ? { ...card, isSelected: true }
-        : card
-    ));
+    setAnswers((prev) =>
+      prev.map((card) =>
+        card.id === answerId ? { ...card, isSelected: true } : card
+      )
+    );
     setSelectedAnswer(answer);
   };
 
   const useHint = () => {
     if (hintsUsed >= 3 || gameCompleted) return;
-    
-    setHintsUsed(prev => prev + 1);
+
+    setHintsUsed((prev) => prev + 1);
     setShowHint(true);
-    
+
     // Show a matching pair for 3 seconds
-    const unmatchedQuestions = questions.filter(card => !card.isMatched);
+    const unmatchedQuestions = questions.filter((card) => !card.isMatched);
     if (unmatchedQuestions.length > 0) {
       const randomQuestion = unmatchedQuestions[0];
-      const matchingAnswer = answers.find(card => 
-        card.pairId === randomQuestion.pairId && !card.isMatched
+      const matchingAnswer = answers.find(
+        (card) => card.pairId === randomQuestion.pairId && !card.isMatched
       );
-      
+
       if (matchingAnswer) {
-        setQuestions(prev => prev.map(card => 
-          card.id === randomQuestion.id 
-            ? { ...card, isHighlighted: true }
-            : card
-        ));
-        setAnswers(prev => prev.map(card => 
-          card.id === matchingAnswer.id 
-            ? { ...card, isHighlighted: true }
-            : card
-        ));
-        
+        setQuestions((prev) =>
+          prev.map((card) =>
+            card.id === randomQuestion.id
+              ? { ...card, isHighlighted: true }
+              : card
+          )
+        );
+        setAnswers((prev) =>
+          prev.map((card) =>
+            card.id === matchingAnswer.id
+              ? { ...card, isHighlighted: true }
+              : card
+          )
+        );
+
         setTimeout(() => {
-          setQuestions(prev => prev.map(card => ({ ...card, isHighlighted: false })));
-          setAnswers(prev => prev.map(card => ({ ...card, isHighlighted: false })));
+          setQuestions((prev) =>
+            prev.map((card) => ({ ...card, isHighlighted: false }))
+          );
+          setAnswers((prev) =>
+            prev.map((card) => ({ ...card, isHighlighted: false }))
+          );
           setShowHint(false);
         }, 3000);
       }
@@ -330,7 +363,7 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const getScoreColor = (score: number) => {
@@ -344,11 +377,11 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
     if (hoverTimeout) {
       clearTimeout(hoverTimeout);
     }
-    
+
     const timeout = setTimeout(() => {
       setHoveredCard(card);
     }, 200); // 200ms delay before showing modal
-    
+
     setHoverTimeout(timeout);
   };
 
@@ -361,7 +394,7 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-6">
+    <div className="mx-auto w-full max-w-6xl p-6">
       {/* Hover Modal */}
       {hoveredCard && (
         <div
@@ -369,38 +402,44 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
           onClick={() => setHoveredCard(null)}
         >
           <div
-            className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 relative transform transition-all"
+            className="relative w-full max-w-md transform rounded-xl bg-white p-6 shadow-2xl transition-all"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setHoveredCard(null)}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl transition-colors"
+              className="absolute right-3 top-3 text-xl text-gray-400 transition-colors hover:text-gray-600"
             >
               ×
             </button>
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
-                {hoveredCard.type === 'question' ? (
+                {hoveredCard.type === "question" ? (
                   <HelpCircle className="h-6 w-6 text-blue-600" />
                 ) : (
                   <MessageSquare className="h-6 w-6 text-green-600" />
                 )}
-                <h3 className={`text-lg font-bold ${
-                  hoveredCard.type === 'question' ? 'text-blue-800' : 'text-green-800'
-                }`}>
-                  {hoveredCard.type === 'question' ? '📚 Soru' : '✅ Cevap'}
+                <h3
+                  className={`text-lg font-bold ${
+                    hoveredCard.type === "question"
+                      ? "text-blue-800"
+                      : "text-green-800"
+                  }`}
+                >
+                  {hoveredCard.type === "question" ? "📚 Soru" : "✅ Cevap"}
                 </h3>
               </div>
-              <div className={`p-4 rounded-lg border-l-4 ${
-                hoveredCard.type === 'question'
-                  ? 'bg-blue-50 border-blue-400'
-                  : 'bg-green-50 border-green-400'
-              }`}>
+              <div
+                className={`rounded-lg border-l-4 p-4 ${
+                  hoveredCard.type === "question"
+                    ? "border-blue-400 bg-blue-50"
+                    : "border-green-400 bg-green-50"
+                }`}
+              >
                 <p className="text-base leading-relaxed text-gray-800">
                   {hoveredCard.text}
                 </p>
               </div>
-              <div className="text-xs text-gray-500 text-center">
+              <div className="text-center text-xs text-gray-500">
                 Kartı kapatmak için dışarıya tıklayın
               </div>
             </div>
@@ -415,7 +454,9 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
             <Brain className="h-8 w-8" />
             <div>
               <h2 className="text-2xl font-bold">Smart Memory Game</h2>
-              <p className="text-purple-100">Match questions with their correct answers!</p>
+              <p className="text-purple-100">
+                Match questions with their correct answers!
+              </p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
@@ -424,7 +465,9 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
               <div className="text-sm text-purple-200">Time Left</div>
             </div>
             <div className="text-center">
-              <div className="text-xl font-bold">{matchedPairs.size}/{content.pairs.length}</div>
+              <div className="text-xl font-bold">
+                {matchedPairs.size}/{content.pairs.length}
+              </div>
               <div className="text-sm text-purple-200">Pairs</div>
             </div>
           </div>
@@ -438,16 +481,24 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="mb-6 rounded-xl bg-blue-50 border-2 border-blue-200 p-6"
+            className="mb-6 rounded-xl border-2 border-blue-200 bg-blue-50 p-6"
           >
             <div className="flex items-start space-x-4">
-              <Target className="h-6 w-6 text-blue-600 mt-1 flex-shrink-0" />
+              <Target className="mt-1 h-6 w-6 flex-shrink-0 text-blue-600" />
               <div>
-                <h3 className="text-lg font-semibold text-blue-900 mb-2">How to Play</h3>
-                <div className="text-blue-800 space-y-2">
-                  <p>1. <strong>Select a question</strong> from the top section</p>
-                  <p>2. <strong>Select an answer</strong> from the bottom section</p>
-                  <p>3. If they match, both cards will be marked as completed!</p>
+                <h3 className="mb-2 text-lg font-semibold text-blue-900">
+                  How to Play
+                </h3>
+                <div className="space-y-2 text-blue-800">
+                  <p>
+                    1. <strong>Select a question</strong> from the top section
+                  </p>
+                  <p>
+                    2. <strong>Select an answer</strong> from the bottom section
+                  </p>
+                  <p>
+                    3. If they match, both cards will be marked as completed!
+                  </p>
                   <p>4. Continue until all pairs are matched</p>
                 </div>
                 <div className="mt-4 flex items-center space-x-4 text-sm text-blue-700">
@@ -491,7 +542,7 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
             </div>
           )}
         </div>
-        
+
         <div className="flex items-center space-x-2">
           {!gameStarted && !gameCompleted && (
             <button
@@ -499,21 +550,21 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
               className="flex items-center space-x-2 rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
             >
               <Star className="h-4 w-4" />
-              <span>Start Game</span>
+              <span></span>
             </button>
           )}
-          
+
           {gameStarted && !gameCompleted && (
             <button
               onClick={useHint}
               disabled={hintsUsed >= 3 || showHint}
-              className="flex items-center space-x-2 rounded-lg bg-yellow-600 px-4 py-2 text-white hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center space-x-2 rounded-lg bg-yellow-600 px-4 py-2 text-white hover:bg-yellow-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Zap className="h-4 w-4" />
               <span>Hint</span>
             </button>
           )}
-          
+
           <button
             onClick={resetGame}
             className="flex items-center space-x-2 rounded-lg bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
@@ -532,70 +583,93 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
             <HelpCircle className="h-5 w-5 text-blue-600" />
             <h3 className="text-lg font-semibold text-blue-900">Questions</h3>
             <span className="text-sm text-blue-600">
-              ({questions.filter(q => !q.isMatched).length} remaining)
+              ({questions.filter((q) => !q.isMatched).length} remaining)
             </span>
           </div>
-          
-          <div className={`grid gap-3 ${
-            questions.length <= 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
-            questions.length <= 6 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
-            'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-          }`}>
-            {questions.filter(q => !q.isMatched).map((question) => (
-              <motion.div
-                key={question.id}
-                layout
-                whileHover={{ scale: gameStarted && !question.isMatched ? 1.02 : 1 }}
-                whileTap={{ scale: 0.98 }}
-                className={`relative min-h-[100px] sm:min-h-[120px] lg:min-h-[100px] ${
-                  !gameStarted || question.isMatched || isProcessing
-                    ? 'cursor-default opacity-60'
-                    : 'cursor-pointer'
-                } transition-all duration-200`}
-                onClick={() => handleQuestionClick(question.id)}
-                onMouseEnter={() => handleCardHover(question)}
-                onMouseLeave={handleCardLeave}
-              >
-                <div className={`
-                  absolute inset-0 rounded-lg border-2 transition-all duration-300 p-3 flex items-center justify-center
-                  ${question.isMatched
-                    ? 'border-green-400 bg-green-100'
-                    : question.isHighlighted
-                      ? 'border-yellow-400 bg-yellow-100 shadow-lg ring-2 ring-yellow-300'
-                      : question.isSelected
-                        ? 'border-blue-500 bg-blue-100 shadow-lg ring-2 ring-blue-300'
-                        : 'border-blue-300 bg-white hover:border-blue-500 hover:shadow-md'
+
+          <div
+            className={`grid gap-3 ${
+              questions.length <= 3
+                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                : questions.length <= 6
+                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                  : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            }`}
+          >
+            {questions
+              .filter((q) => !q.isMatched)
+              .map((question) => (
+                <motion.div
+                  key={question.id}
+                  layout
+                  whileHover={{
+                    scale: gameStarted && !question.isMatched ? 1.02 : 1,
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`relative min-h-[100px] sm:min-h-[120px] lg:min-h-[100px] ${
+                    !gameStarted || question.isMatched || isProcessing
+                      ? "cursor-default opacity-60"
+                      : "cursor-pointer"
+                  } transition-all duration-200`}
+                  onClick={() => handleQuestionClick(question.id)}
+                  onMouseEnter={() => handleCardHover(question)}
+                  onMouseLeave={handleCardLeave}
+                >
+                  <div
+                    className={`
+                  absolute inset-0 flex items-center justify-center rounded-lg border-2 p-3 transition-all duration-300
+                  ${
+                    question.isMatched
+                      ? "border-green-400 bg-green-100"
+                      : question.isHighlighted
+                        ? "border-yellow-400 bg-yellow-100 shadow-lg ring-2 ring-yellow-300"
+                        : question.isSelected
+                          ? "border-blue-500 bg-blue-100 shadow-lg ring-2 ring-blue-300"
+                          : "border-blue-300 bg-white hover:border-blue-500 hover:shadow-md"
                   }
-                `}>
-                  <div className="w-full text-center">
-                    <div className={`font-medium text-xs sm:text-sm leading-tight ${
-                      question.isMatched ? 'text-green-700' :
-                      question.isHighlighted ? 'text-yellow-700' :
-                      question.isSelected ? 'text-blue-700' :
-                      'text-blue-800'
-                    }`}>
-                      <div className="line-clamp-3 overflow-hidden" title={question.text}>
-                        {question.text.length > 35 ? `${question.text.substring(0, 35)}...` : question.text}
+                `}
+                  >
+                    <div className="w-full text-center">
+                      <div
+                        className={`text-xs font-medium leading-tight sm:text-sm ${
+                          question.isMatched
+                            ? "text-green-700"
+                            : question.isHighlighted
+                              ? "text-yellow-700"
+                              : question.isSelected
+                                ? "text-blue-700"
+                                : "text-blue-800"
+                        }`}
+                      >
+                        <div
+                          className="line-clamp-3 overflow-hidden"
+                          title={question.text}
+                        >
+                          {question.text.length > 35
+                            ? `${question.text.substring(0, 35)}...`
+                            : question.text}
+                        </div>
                       </div>
                     </div>
+
+                    {question.isMatched && (
+                      <div className="absolute -right-2 -top-2">
+                        <CheckCircle className="h-6 w-6 rounded-full bg-white text-green-500" />
+                      </div>
+                    )}
+
+                    {question.isSelected && !question.isMatched && (
+                      <div className="absolute -right-2 -top-2">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-500">
+                          <span className="text-xs font-bold text-white">
+                            Q
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  
-                  {question.isMatched && (
-                    <div className="absolute -right-2 -top-2">
-                      <CheckCircle className="h-6 w-6 text-green-500 bg-white rounded-full" />
-                    </div>
-                  )}
-                  
-                  {question.isSelected && !question.isMatched && (
-                    <div className="absolute -right-2 -top-2">
-                      <div className="h-6 w-6 bg-blue-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">Q</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
           </div>
         </div>
 
@@ -614,70 +688,93 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
             <MessageSquare className="h-5 w-5 text-green-600" />
             <h3 className="text-lg font-semibold text-green-900">Answers</h3>
             <span className="text-sm text-green-600">
-              ({answers.filter(a => !a.isMatched).length} remaining)
+              ({answers.filter((a) => !a.isMatched).length} remaining)
             </span>
           </div>
-          
-          <div className={`grid gap-3 ${
-            answers.length <= 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
-            answers.length <= 6 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
-            'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-          }`}>
-            {answers.filter(a => !a.isMatched).map((answer) => (
-              <motion.div
-                key={answer.id}
-                layout
-                whileHover={{ scale: gameStarted && !answer.isMatched ? 1.02 : 1 }}
-                whileTap={{ scale: 0.98 }}
-                className={`relative min-h-[100px] sm:min-h-[120px] lg:min-h-[100px] ${
-                  !gameStarted || answer.isMatched || isProcessing
-                    ? 'cursor-default opacity-60'
-                    : 'cursor-pointer'
-                } transition-all duration-200`}
-                onClick={() => handleAnswerClick(answer.id)}
-                onMouseEnter={() => handleCardHover(answer)}
-                onMouseLeave={handleCardLeave}
-              >
-                <div className={`
-                  absolute inset-0 rounded-lg border-2 transition-all duration-300 p-3 flex items-center justify-center
-                  ${answer.isMatched
-                    ? 'border-green-400 bg-green-100'
-                    : answer.isHighlighted
-                      ? 'border-yellow-400 bg-yellow-100 shadow-lg ring-2 ring-yellow-300'
-                      : answer.isSelected
-                        ? 'border-green-500 bg-green-100 shadow-lg ring-2 ring-green-300'
-                        : 'border-green-300 bg-white hover:border-green-500 hover:shadow-md'
+
+          <div
+            className={`grid gap-3 ${
+              answers.length <= 3
+                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                : answers.length <= 6
+                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                  : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            }`}
+          >
+            {answers
+              .filter((a) => !a.isMatched)
+              .map((answer) => (
+                <motion.div
+                  key={answer.id}
+                  layout
+                  whileHover={{
+                    scale: gameStarted && !answer.isMatched ? 1.02 : 1,
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`relative min-h-[100px] sm:min-h-[120px] lg:min-h-[100px] ${
+                    !gameStarted || answer.isMatched || isProcessing
+                      ? "cursor-default opacity-60"
+                      : "cursor-pointer"
+                  } transition-all duration-200`}
+                  onClick={() => handleAnswerClick(answer.id)}
+                  onMouseEnter={() => handleCardHover(answer)}
+                  onMouseLeave={handleCardLeave}
+                >
+                  <div
+                    className={`
+                  absolute inset-0 flex items-center justify-center rounded-lg border-2 p-3 transition-all duration-300
+                  ${
+                    answer.isMatched
+                      ? "border-green-400 bg-green-100"
+                      : answer.isHighlighted
+                        ? "border-yellow-400 bg-yellow-100 shadow-lg ring-2 ring-yellow-300"
+                        : answer.isSelected
+                          ? "border-green-500 bg-green-100 shadow-lg ring-2 ring-green-300"
+                          : "border-green-300 bg-white hover:border-green-500 hover:shadow-md"
                   }
-                `}>
-                  <div className="w-full text-center">
-                    <div className={`font-medium text-xs sm:text-sm leading-tight ${
-                      answer.isMatched ? 'text-green-700' :
-                      answer.isHighlighted ? 'text-yellow-700' :
-                      answer.isSelected ? 'text-green-700' :
-                      'text-green-800'
-                    }`}>
-                      <div className="line-clamp-3 overflow-hidden" title={answer.text}>
-                        {answer.text.length > 35 ? `${answer.text.substring(0, 35)}...` : answer.text}
+                `}
+                  >
+                    <div className="w-full text-center">
+                      <div
+                        className={`text-xs font-medium leading-tight sm:text-sm ${
+                          answer.isMatched
+                            ? "text-green-700"
+                            : answer.isHighlighted
+                              ? "text-yellow-700"
+                              : answer.isSelected
+                                ? "text-green-700"
+                                : "text-green-800"
+                        }`}
+                      >
+                        <div
+                          className="line-clamp-3 overflow-hidden"
+                          title={answer.text}
+                        >
+                          {answer.text.length > 35
+                            ? `${answer.text.substring(0, 35)}...`
+                            : answer.text}
+                        </div>
                       </div>
                     </div>
+
+                    {answer.isMatched && (
+                      <div className="absolute -right-2 -top-2">
+                        <CheckCircle className="h-6 w-6 rounded-full bg-white text-green-500" />
+                      </div>
+                    )}
+
+                    {answer.isSelected && !answer.isMatched && (
+                      <div className="absolute -right-2 -top-2">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500">
+                          <span className="text-xs font-bold text-white">
+                            A
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  
-                  {answer.isMatched && (
-                    <div className="absolute -right-2 -top-2">
-                      <CheckCircle className="h-6 w-6 text-green-500 bg-white rounded-full" />
-                    </div>
-                  )}
-                  
-                  {answer.isSelected && !answer.isMatched && (
-                    <div className="absolute -right-2 -top-2">
-                      <div className="h-6 w-6 bg-green-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">A</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
           </div>
         </div>
       </div>
@@ -707,15 +804,26 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
                     <p className="mb-4 text-gray-600">
                       You matched all questions with their answers!
                     </p>
-                    
+
                     <div className="mb-6 rounded-lg bg-gray-50 p-4">
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                           <div className="text-gray-600">Final Score</div>
-                          <div className={`text-xl font-bold ${getScoreColor(
-                            Math.round(100 * (1 - mistakes * 0.1) * (1 - hintsUsed * 0.05))
-                          )}`}>
-                            {Math.round(100 * (1 - mistakes * 0.1) * (1 - hintsUsed * 0.05))}%
+                          <div
+                            className={`text-xl font-bold ${getScoreColor(
+                              Math.round(
+                                100 *
+                                  (1 - mistakes * 0.1) *
+                                  (1 - hintsUsed * 0.05)
+                              )
+                            )}`}
+                          >
+                            {Math.round(
+                              100 *
+                                (1 - mistakes * 0.1) *
+                                (1 - hintsUsed * 0.05)
+                            )}
+                            %
                           </div>
                         </div>
                         <div>
@@ -726,11 +834,15 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
                         </div>
                         <div>
                           <div className="text-gray-600">Mistakes</div>
-                          <div className="text-xl font-bold text-red-600">{mistakes}</div>
+                          <div className="text-xl font-bold text-red-600">
+                            {mistakes}
+                          </div>
                         </div>
                         <div>
                           <div className="text-gray-600">Hints Used</div>
-                          <div className="text-xl font-bold text-yellow-600">{hintsUsed}</div>
+                          <div className="text-xl font-bold text-yellow-600">
+                            {hintsUsed}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -740,16 +852,20 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
                         <>
                           <div className="flex items-center space-x-2">
                             <Diamond className="h-5 w-5 text-yellow-500" />
-                            <span className="font-bold text-yellow-600">+{diamondReward}</span>
+                            <span className="font-bold text-yellow-600">
+                              +{diamondReward}
+                            </span>
                           </div>
                           <div className="flex items-center space-x-2">
                             <Star className="h-5 w-5 text-purple-500" />
-                            <span className="font-bold text-purple-600">+{experienceReward} XP</span>
+                            <span className="font-bold text-purple-600">
+                              +{experienceReward} XP
+                            </span>
                           </div>
                         </>
                       ) : (
                         <div className="text-center">
-                          <Trophy className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <Trophy className="mx-auto mb-2 h-8 w-8 text-gray-400" />
                           <p className="text-sm text-gray-600">
                             Practice completed! No rewards for replay.
                           </p>
@@ -768,7 +884,7 @@ const ImprovedMemoryGame: React.FC<ImprovedMemoryGameProps> = ({
                     </p>
                   </>
                 )}
-                
+
                 <button
                   onClick={resetGame}
                   className="w-full rounded-lg bg-purple-600 py-3 text-white hover:bg-purple-700"

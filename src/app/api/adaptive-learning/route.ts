@@ -79,22 +79,21 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Get lesson progress data
-    const codeArenaProgresses = await prisma.codeArenaProgress.findMany({
+    // Get activity progress data
+    const activityAttempts = await prisma.activityAttempt.findMany({
       where: { userId: authUser.userId },
       include: {
-        codeArena: {
+        learningActivity: {
           select: {
             id: true,
             title: true,
-            slug: true,
             category: true,
             difficulty: true,
-            order: true,
+            sortOrder: true,
           },
         },
       },
-      orderBy: { lastVisit: "desc" },
+      orderBy: { createdAt: "desc" },
     });
 
     // Get quiz attempts
@@ -103,12 +102,9 @@ export async function GET(req: NextRequest) {
       include: {
         quiz: {
           select: {
-            codeArena: {
-              select: {
-                category: true,
-                difficulty: true,
-              },
-            },
+            id: true,
+            title: true,
+            difficulty: true,
           },
         },
       },
@@ -124,29 +120,28 @@ export async function GET(req: NextRequest) {
     });
 
     // Get all available lessons
-    const allCodeArenas = await prisma.codeArena.findMany({
-      orderBy: { order: "asc" },
+    const allLearningActivities = await prisma.learningActivity.findMany({
+      orderBy: { sortOrder: "asc" },
       select: {
         id: true,
         title: true,
-        slug: true,
         category: true,
         difficulty: true,
-        order: true,
+        sortOrder: true,
       },
     });
 
     // Analyze performance by category
     const categoryPerformance = analyzeCategoryPerformance(
-      codeArenaProgresses,
+      activityAttempts,
       quizAttempts,
       codeSubmissions,
-      allCodeArenas
+      allLearningActivities
     );
 
     // Analyze learning patterns
     const learningPattern = analyzeLearningPattern(
-      codeArenaProgresses,
+      activityAttempts,
       quizAttempts,
       codeSubmissions,
       user
@@ -156,8 +151,8 @@ export async function GET(req: NextRequest) {
     const recommendations = generateRecommendations(
       categoryPerformance,
       learningPattern,
-      codeArenaProgresses,
-      allCodeArenas,
+      activityAttempts,
+      allLearningActivities,
       user
     );
 
@@ -183,21 +178,29 @@ export async function GET(req: NextRequest) {
 
 // Analyze performance by category
 function analyzeCategoryPerformance(
-  codeArenaProgresses: any[],
+  activityAttempts: any[],
   quizAttempts: any[],
   codeSubmissions: any[],
-  allCodeArenas: any[]
+  allLearningActivities: any[]
 ): Record<string, any> {
-  const categories = ["basic", "intermediate", "advanced", "project"];
+  const categories = [
+    "Python Fundamentals",
+    "Intermediate Python",
+    "Advanced Python",
+    "Projects",
+  ];
   const performance: Record<string, any> = {};
 
   categories.forEach((category) => {
-    const categoryLessons = allCodeArenas.filter((l) => l.category === category);
-    const completedLessons = codeArenaProgresses.filter(
-      (lp) => lp.isCompleted && lp.codeArena.category === category
+    const categoryLessons = allLearningActivities.filter(
+      (l) => l.category === category
+    );
+    const completedLessons = activityAttempts.filter(
+      (attempt) =>
+        attempt.completed && attempt.learningActivity.category === category
     );
     const categoryQuizzes = quizAttempts.filter(
-      (qa) => qa.quiz.codeArena?.category === category
+      (qa) => qa.quiz.learningActivity?.category === category
     );
 
     // Calculate average scores and performance metrics
@@ -212,8 +215,10 @@ function analyzeCategoryPerformance(
     const averageTime =
       completedLessons.length > 0
         ? Math.round(
-            completedLessons.reduce((sum, lp) => sum + (lp.timeSpent || 0), 0) /
-              completedLessons.length
+            completedLessons.reduce(
+              (sum, attempt) => sum + (attempt.timeSpent || 0),
+              0
+            ) / completedLessons.length
           )
         : 0;
 
@@ -221,7 +226,7 @@ function analyzeCategoryPerformance(
     const strugglingTopics = categoryLessons
       .filter((lesson) => {
         const lessonQuizzes = categoryQuizzes.filter(
-          (qa) => qa.quiz.codeArena?.id === lesson.id
+          (qa) => qa.quiz && qa.quiz.id === lesson.id
         );
         const avgScore =
           lessonQuizzes.length > 0
@@ -235,18 +240,18 @@ function analyzeCategoryPerformance(
     // Identify mastered topics (lessons completed with high scores)
     const masteredTopics = categoryLessons
       .filter((lesson) => {
-        const lessonProgress = codeArenaProgresses.find(
-          (lp) => lp.codeArena.id === lesson.id
+        const lessonProgress = activityAttempts.find(
+          (attempt) => attempt.activity.id === lesson.id
         );
         const lessonQuizzes = categoryQuizzes.filter(
-          (qa) => qa.quiz.codeArena?.id === lesson.id
+          (qa) => qa.quiz && qa.quiz.id === lesson.id
         );
         const avgScore =
           lessonQuizzes.length > 0
             ? lessonQuizzes.reduce((sum, qa) => sum + qa.score, 0) /
               lessonQuizzes.length
             : 0;
-        return lessonProgress?.isCompleted && avgScore >= 85;
+        return lessonProgress?.completed && avgScore >= 85;
       })
       .map((lesson) => lesson.title);
 
@@ -265,48 +270,44 @@ function analyzeCategoryPerformance(
 
 // Analyze learning patterns
 function analyzeLearningPattern(
-  codeArenaProgresses: any[],
+  activityAttempts: any[],
   quizAttempts: any[],
   codeSubmissions: any[],
   user: any
 ) {
   // Determine preferred difficulty based on completion rates
   const difficultyStats = {
-    beginner: codeArenaProgresses.filter(
-      (lp) => lp.codeArena.difficulty === "beginner"
-    ),
-    intermediate: codeArenaProgresses.filter(
-      (lp) => lp.codeArena.difficulty === "intermediate"
-    ),
-    advanced: codeArenaProgresses.filter(
-      (lp) => lp.codeArena.difficulty === "advanced"
-    ),
+    1: activityAttempts.filter((attempt) => attempt.activity.difficulty === 1),
+    2: activityAttempts.filter((attempt) => attempt.activity.difficulty === 2),
+    3: activityAttempts.filter((attempt) => attempt.activity.difficulty === 3),
   };
 
   let preferredDifficulty: "beginner" | "intermediate" | "advanced" =
     "beginner";
   let bestCompletionRate = 0;
 
-  Object.entries(difficultyStats).forEach(([difficulty, progresses]) => {
-    if (progresses.length > 0) {
+  Object.entries(difficultyStats).forEach(([difficulty, attempts]) => {
+    if (attempts.length > 0) {
       const completionRate =
-        progresses.filter((p) => p.isCompleted).length / progresses.length;
+        attempts.filter((attempt) => attempt.completed).length /
+        attempts.length;
       if (completionRate > bestCompletionRate) {
         bestCompletionRate = completionRate;
-        preferredDifficulty = difficulty as
-          | "beginner"
-          | "intermediate"
-          | "advanced";
+        if (difficulty === "1") preferredDifficulty = "beginner";
+        else if (difficulty === "2") preferredDifficulty = "intermediate";
+        else preferredDifficulty = "advanced";
       }
     }
   });
 
   // Calculate average session time
   const averageSessionTime =
-    codeArenaProgresses.length > 0
+    activityAttempts.length > 0
       ? Math.round(
-          codeArenaProgresses.reduce((sum, lp) => sum + (lp.timeSpent || 0), 0) /
-            codeArenaProgresses.length
+          activityAttempts.reduce(
+            (sum, attempt) => sum + (attempt.timeSpent || 0),
+            0
+          ) / activityAttempts.length
         )
       : 0;
 
@@ -316,7 +317,7 @@ function analyzeLearningPattern(
   // Calculate consistency score based on login streak and regular activity
   const consistencyScore = Math.min(
     100,
-    (user.loginStreak || 0) * 10 + (user.lessonsCompleted || 0) * 2
+    (user.loginStreak || 0) * 10 + (user.codeArenasCompleted || 0) * 2
   );
 
   return {
@@ -332,27 +333,38 @@ function analyzeLearningPattern(
 function generateRecommendations(
   categoryPerformance: Record<string, any>,
   learningPattern: any,
-  codeArenaProgresses: any[],
-  allCodeArenas: any[],
+  activityAttempts: any[],
+  allLearningActivities: any[],
   user: any
 ) {
   // Find next lesson to recommend
-  const completedLessonIds = codeArenaProgresses
-    .filter((lp) => lp.isCompleted)
-    .map((lp) => lp.codeArena.id);
+  const completedLessonIds = activityAttempts
+    .filter((attempt) => attempt.completed)
+    .map((attempt) => attempt.activity.id);
+
+  const difficultyMap: { [key: string]: number } = {
+    beginner: 1,
+    intermediate: 2,
+    advanced: 3,
+  };
+  const preferredDifficultyNum =
+    difficultyMap[learningPattern.preferredDifficulty as string] || 1;
 
   const nextLesson =
-    allCodeArenas.find(
+    allLearningActivities.find(
       (lesson) =>
         !completedLessonIds.includes(lesson.id) &&
-        lesson.difficulty === learningPattern.preferredDifficulty
-    ) || allCodeArenas.find((lesson) => !completedLessonIds.includes(lesson.id));
+        lesson.difficulty === preferredDifficultyNum
+    ) ||
+    allLearningActivities.find(
+      (lesson) => !completedLessonIds.includes(lesson.id)
+    );
 
-  // Find lessons that need review (completed but with low quiz scores)
-  const reviewLessons = codeArenaProgresses
-    .filter((lp) => lp.isCompleted && (lp.score || 0) < 80)
+  // Find lessons that need review (completed but with low scores)
+  const reviewLessons = activityAttempts
+    .filter((attempt) => attempt.completed && (attempt.score || 0) < 80)
     .slice(0, 3)
-    .map((lp) => lp.lesson);
+    .map((attempt) => attempt.activity);
 
   // Identify focus areas based on struggling topics
   const focusAreas: string[] = [];
@@ -365,8 +377,8 @@ function generateRecommendations(
   // Determine difficulty adjustment
   let difficultyAdjustment: "increase" | "maintain" | "decrease" = "maintain";
   const recentCompletionRate =
-    codeArenaProgresses.slice(0, 5).filter((lp) => lp.isCompleted).length /
-    Math.min(5, codeArenaProgresses.length);
+    activityAttempts.slice(0, 5).filter((attempt) => attempt.completed).length /
+    Math.min(5, activityAttempts.length);
 
   if (recentCompletionRate > 0.8) {
     difficultyAdjustment = "increase";
@@ -375,7 +387,7 @@ function generateRecommendations(
   }
 
   // Estimate completion time for next lesson
-  const estimatedCompletionTime = nextLesson?.estimatedTime || 30;
+  const estimatedCompletionTime = nextLesson?.estimatedMinutes || 30;
 
   return {
     nextLesson,

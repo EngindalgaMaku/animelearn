@@ -8,6 +8,7 @@ import {
   lazy,
   Suspense,
 } from "react";
+import Link from "next/link";
 import {
   BookOpen,
   Diamond,
@@ -22,6 +23,7 @@ import {
   Clock,
   Trophy,
   Rocket,
+  GraduationCap,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -75,6 +77,9 @@ function CodeArenaContent() {
   }>({
     "Python Fundamentals": true,
   });
+
+  // Pagination state - lifted from ActivityTable to preserve across re-renders
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Notification states
   const [showSuccessMessage, setShowSuccessMessage] = useState("");
@@ -346,7 +351,7 @@ function CodeArenaContent() {
 
   const fetchAllActivities = async () => {
     try {
-      const response = await fetch(`/api/learning-activities?limit=100`);
+      const response = await fetch(`/api/code-arena?limit=100`);
       if (response.ok) {
         const data: ActivitiesResponse = await response.json();
         setAllActivities(data.activities);
@@ -366,7 +371,7 @@ function CodeArenaContent() {
         ...(searchTerm && { search: searchTerm }),
       });
 
-      const response = await fetch(`/api/learning-activities?${params}`);
+      const response = await fetch(`/api/code-arena?${params}`);
       if (response.ok) {
         const data: ActivitiesResponse = await response.json();
         setActivities(data.activities);
@@ -415,6 +420,7 @@ function CodeArenaContent() {
   const closeActivity = () => {
     setSelectedActivity(null);
     fetchActivities();
+    // Don't reset pagination - preserve current page
   };
 
   // Memoize heavy calculations to prevent re-computation on every render
@@ -512,8 +518,19 @@ function CodeArenaContent() {
               transition={{ duration: 0.6, ease: "easeOut" }}
             >
               <div className="mb-4 flex justify-center sm:mb-6">
-                <div className="rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 px-4 py-2 text-xs font-black text-purple-900 shadow-2xl sm:rounded-3xl sm:px-6 sm:text-sm">
-                  🚀 INTERACTIVE CODING CHALLENGES
+                <div className="flex items-center space-x-3">
+                  <Link
+                    href="/learn"
+                    className="rounded-2xl border-2 border-white/30 bg-white/10 px-4 py-2 text-xs font-bold backdrop-blur-xl transition-all hover:bg-white/20 sm:rounded-3xl sm:px-6 sm:text-sm"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <BookOpen className="h-4 w-4" />
+                      <span>📚 LEARN FIRST</span>
+                    </div>
+                  </Link>
+                  <div className="rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 px-4 py-2 text-xs font-black text-purple-900 shadow-2xl sm:rounded-3xl sm:px-6 sm:text-sm">
+                    🚀 PRACTICE CHALLENGES
+                  </div>
                 </div>
               </div>
               <h1 className="mb-6 text-3xl font-black leading-tight sm:mb-8 sm:text-4xl md:text-5xl lg:text-7xl">
@@ -620,7 +637,7 @@ function CodeArenaContent() {
               </div>
 
               {/* Dynamic description based on selected topic */}
-              <p className="mx-auto mb-6 max-w-3xl px-4 text-base font-medium text-indigo-100 sm:mb-8 sm:px-0 sm:text-lg lg:mb-10 lg:text-xl">
+              <p className="mx-auto mb-4 max-w-3xl px-4 text-base font-medium text-indigo-100 sm:mb-6 sm:px-0 sm:text-lg lg:mb-8 lg:text-xl">
                 {categoryConfigs[selectedTopic]
                   ? `${categoryConfigs[selectedTopic].description} - ${uiConfig.heroDescription}`
                   : uiConfig.heroDescription.replace(
@@ -628,6 +645,23 @@ function CodeArenaContent() {
                       stats.total.toString()
                     )}
               </p>
+
+              {/* Learn First Notice */}
+              <div className="mx-auto mb-6 max-w-2xl rounded-2xl border border-cyan-300/30 bg-cyan-400/10 p-4 backdrop-blur-xl sm:mb-8 sm:p-6">
+                <div className="flex items-center justify-center space-x-3 text-cyan-100">
+                  <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <span className="text-sm font-medium sm:text-base">
+                    New to {selectedTopic}? Start with our
+                    <Link
+                      href={`/learn?topic=${encodeURIComponent(selectedTopic)}`}
+                      className="mx-1 font-bold text-cyan-200 underline hover:text-white"
+                    >
+                      step-by-step lessons
+                    </Link>
+                    first!
+                  </span>
+                </div>
+              </div>
             </motion.div>
           ) : (
             <div>
@@ -960,6 +994,8 @@ function CodeArenaContent() {
               onLaunch={launchActivity}
               enableAnimations={enableAnimations}
               itemsPerPage={activities.length > 10 ? 10 : activities.length}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
             />
           ) : !loading ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-xl">

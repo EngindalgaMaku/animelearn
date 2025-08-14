@@ -66,6 +66,13 @@ export async function POST(req: NextRequest) {
       activityTitle,
     } = body;
 
+    // Debug logging to understand the issue
+    console.log("Activity completion request:", {
+      activityType,
+      activityId,
+      activityTitle,
+    });
+
     // Validate required fields with detailed error messages
     if (
       !activityType ||
@@ -148,9 +155,31 @@ export async function POST(req: NextRequest) {
       level: newLevel,
     };
 
-    // Activity-specific updates
-    switch (activityType) {
-      case "code_arena":
+    // Verify the activity exists in the unified LearningActivity table
+    const learningActivity = await prisma.learningActivity.findUnique({
+      where: { id: activityId },
+      select: { id: true, activityType: true, category: true },
+    });
+
+    if (!learningActivity) {
+      return NextResponse.json(
+        { error: "Activity not found" },
+        { status: 404 }
+      );
+    }
+
+    console.log("Activity completion request:", {
+      activityId,
+      activityType: learningActivity.activityType,
+      category: learningActivity.category,
+      requestedType: activityType,
+    });
+
+    // Activity-specific updates based on activity type
+    switch (learningActivity.activityType) {
+      case "interactive_coding":
+      case "code_builder":
+      case "class_builder":
         updateData.codeArenasCompleted = { increment: 1 };
         break;
       case "quiz":
@@ -211,7 +240,13 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // Create or update activity attempt record (CRITICAL for progress tracking)
+      // Create or update activity completion record using unified ActivityAttempt table
+      console.log(
+        "Processing activity completion for:",
+        activityId,
+        "Type:",
+        learningActivity.activityType
+      );
       await prisma.activityAttempt.upsert({
         where: {
           userId_activityId: {

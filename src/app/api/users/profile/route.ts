@@ -107,10 +107,10 @@ export async function GET(request: NextRequest) {
           orderBy: { createdAt: "desc" },
           take: 50, // Daha fazla işlem verisi için
         },
-        codeArenaProgress: {
-          where: { isCompleted: true },
+        activityAttempts: {
+          where: { completed: true },
           include: {
-            codeArena: {
+            activity: {
               select: {
                 id: true,
                 title: true,
@@ -152,7 +152,7 @@ export async function GET(request: NextRequest) {
     const stats = {
       totalCards: user.userCards.length,
       totalCardValue: Math.round(totalCardValue),
-      completedLessons: user.codeArenaProgress.length,
+      completedLessons: user.activityAttempts.length,
       completedQuizzes: user.quizzesCompleted,
       codeSubmissions: user.codeSubmissionCount,
       currentStreak: user.loginStreak,

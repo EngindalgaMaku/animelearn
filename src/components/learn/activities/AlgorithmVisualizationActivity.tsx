@@ -1,42 +1,47 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Play, Pause, RotateCcw, SkipForward, Code, Eye } from "lucide-react";
+import {
+  Play,
+  Pause,
+  RotateCcw,
+  Trophy,
+  Star,
+  Gift,
+  ChevronRight,
+} from "lucide-react";
 
 interface VisualizationStep {
-  step: number;
-  left: number;
-  right: number;
-  mid: number;
-  value: number;
+  id: number;
+  description: string;
+  data: number[];
+  highlights?: number[];
+  comparison?: number[];
   action: string;
-  decision: string;
-}
-
-interface Visualization {
-  operation: string;
-  setA: number[];
-  setB: number[];
-  result: number[];
-  code: string;
-  explanation: string;
-  visual: string;
 }
 
 interface AlgorithmVisualizationContent {
-  algorithm?: string;
-  array?: number[];
-  target?: number;
-  steps?: VisualizationStep[];
-  code?: string;
-  visualizations?: Visualization[];
+  algorithm: string;
+  description: string;
+  timeComplexity: string;
+  spaceComplexity: string;
+  explanation: string;
+  steps: VisualizationStep[];
 }
 
 interface LearningActivity {
   id: string;
   title: string;
   description: string;
+  activityType: string;
+  difficulty: number;
+  category: string;
+  diamondReward: number;
+  experienceReward: number;
+  estimatedMinutes: number;
   content: AlgorithmVisualizationContent;
+  settings?: any;
+  tags: string[];
 }
 
 interface AlgorithmVisualizationActivityProps {
@@ -50,48 +55,93 @@ export default function AlgorithmVisualizationActivity({
 }: AlgorithmVisualizationActivityProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1000);
-  const [completedVisualization, setCompletedVisualization] = useState(false);
-  const [activeVisualization, setActiveVisualization] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [showRewardAnimation, setShowRewardAnimation] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/session");
+        const session = await response.json();
+        setIsAuthenticated(!!session?.user);
+      } catch (error) {
+        const userSession =
+          localStorage.getItem("user") ||
+          sessionStorage.getItem("user") ||
+          localStorage.getItem("next-auth.session-token") ||
+          document.cookie.includes("next-auth.session-token");
+        setIsAuthenticated(!!userSession);
+      }
+    };
+    checkAuth();
+  }, []);
 
   const {
-    algorithm,
-    array = [],
-    target,
+    algorithm = "Algorithm",
+    description = "No description available",
+    timeComplexity = "Unknown",
+    spaceComplexity = "Unknown",
+    explanation = "No explanation available",
     steps = [],
-    code,
-    visualizations = [],
-  } = activity.content;
+  } = activity.content || {};
 
+  // Auto-play functionality
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    if (isPlaying && currentStep < steps.length - 1) {
-      interval = setTimeout(() => {
-        setCurrentStep((prev) => prev + 1);
-      }, playbackSpeed);
-    } else if (currentStep >= steps.length - 1) {
+    const safeStepsLength = Array.isArray(steps) ? steps.length : 1;
+    if (isPlaying && currentStep < safeStepsLength - 1) {
+      const timer = setTimeout(() => {
+        setCurrentStep(currentStep + 1);
+      }, 2000); // 2 seconds per step
+      return () => clearTimeout(timer);
+    } else if (isPlaying && currentStep === safeStepsLength - 1) {
       setIsPlaying(false);
-      if (!completedVisualization) {
-        setCompletedVisualization(true);
-        // Don't auto-complete - let user review and manually complete
+      if (!isCompleted) {
+        setIsCompleted(true);
+        handleActivityCompletion();
       }
     }
+  }, [isPlaying, currentStep, steps, isCompleted]);
 
-    return () => {
-      if (interval) clearTimeout(interval);
-    };
-  }, [
-    isPlaying,
-    currentStep,
-    steps.length,
-    playbackSpeed,
-    completedVisualization,
-  ]);
+  const handleActivityCompletion = async () => {
+    if (!isAuthenticated) return;
 
-  const handleManualComplete = () => {
-    const score = 85; // Good score for completing visualization
-    onComplete(score, 100, true);
+    const awardedActivities = JSON.parse(
+      localStorage.getItem("awardedActivities") || "[]"
+    );
+    const alreadyAwarded = awardedActivities.includes(activity.id);
+
+    if (!alreadyAwarded) {
+      try {
+        const response = await fetch("/api/learning-activities/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            activityType: "algorithm_visualization",
+            activityId: activity.id,
+            activityTitle: activity.title,
+            score: 85, // Good score for completing visualization
+            timeSpent: 300,
+            success: true,
+            diamondReward: activity.diamondReward || 30,
+            experienceReward: activity.experienceReward || 50,
+          }),
+        });
+
+        if (response.ok) {
+          setShowRewardAnimation(true);
+          awardedActivities.push(activity.id);
+          localStorage.setItem(
+            "awardedActivities",
+            JSON.stringify(awardedActivities)
+          );
+          setTimeout(() => setShowRewardAnimation(false), 3000);
+        }
+      } catch (error) {
+        console.error("Error awarding rewards:", error);
+      }
+    }
   };
 
   const playPause = () => {
@@ -101,379 +151,259 @@ export default function AlgorithmVisualizationActivity({
   const reset = () => {
     setCurrentStep(0);
     setIsPlaying(false);
+    setIsCompleted(false);
   };
 
-  const stepForward = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep((prev) => prev + 1);
+  const nextStep = () => {
+    const safeStepsLength = Array.isArray(steps) ? steps.length : 1;
+    if (currentStep < safeStepsLength - 1) {
+      setCurrentStep(currentStep + 1);
+    } else if (!isCompleted) {
+      setIsCompleted(true);
+      handleActivityCompletion();
     }
   };
 
-  const stepBackward = () => {
+  const prevStep = () => {
     if (currentStep > 0) {
-      setCurrentStep((prev) => prev - 1);
+      setCurrentStep(currentStep - 1);
     }
   };
 
-  const renderBinarySearchVisualization = () => {
-    if (steps.length === 0) return null;
+  const getBarColor = (index: number, value: number) => {
+    const safeSteps = Array.isArray(steps) && steps.length > 0 ? steps : [];
+    const step = safeSteps[currentStep];
+    if (!step) return "bg-blue-500";
 
-    const currentStepData = steps[currentStep];
-
-    return (
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <h3 className="mb-4 text-lg font-semibold text-gray-900">
-          Binary Search Visualization
-        </h3>
-
-        {/* Array Visualization */}
-        <div className="mb-6">
-          <div className="mb-4 flex items-center justify-center space-x-2">
-            {array.map((value, index) => (
-              <div
-                key={index}
-                className={`flex h-12 w-12 items-center justify-center rounded border-2 text-sm font-bold transition-all ${
-                  index >= currentStepData.left &&
-                  index <= currentStepData.right
-                    ? index === currentStepData.mid
-                      ? "border-red-500 bg-red-100 text-red-800"
-                      : "border-blue-500 bg-blue-100 text-blue-800"
-                    : "border-gray-300 bg-gray-50 text-gray-500"
-                }`}
-              >
-                {value}
-              </div>
-            ))}
-          </div>
-
-          {/* Pointers */}
-          <div className="flex items-center justify-center space-x-2">
-            {array.map((_, index) => (
-              <div
-                key={index}
-                className="flex h-6 w-12 flex-col items-center justify-center text-xs"
-              >
-                {index === currentStepData.left && (
-                  <span className="font-bold text-blue-600">L</span>
-                )}
-                {index === currentStepData.mid && (
-                  <span className="font-bold text-red-600">M</span>
-                )}
-                {index === currentStepData.right && (
-                  <span className="font-bold text-green-600">R</span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Step Information */}
-        <div className="rounded-lg bg-gray-50 p-4">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="font-semibold">Step:</span>{" "}
-              {currentStepData.step}
-            </div>
-            <div>
-              <span className="font-semibold">Target:</span> {target}
-            </div>
-            <div>
-              <span className="font-semibold">Left:</span>{" "}
-              {currentStepData.left}
-            </div>
-            <div>
-              <span className="font-semibold">Right:</span>{" "}
-              {currentStepData.right}
-            </div>
-            <div>
-              <span className="font-semibold">Mid:</span> {currentStepData.mid}
-            </div>
-            <div>
-              <span className="font-semibold">Value:</span>{" "}
-              {currentStepData.value}
-            </div>
-          </div>
-
-          <div className="mt-4 space-y-2">
-            <div className="text-sm">
-              <span className="font-semibold">Action:</span>{" "}
-              {currentStepData.action}
-            </div>
-            <div className="text-sm">
-              <span className="font-semibold">Decision:</span>{" "}
-              {currentStepData.decision}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    if (
+      step.highlights &&
+      Array.isArray(step.highlights) &&
+      step.highlights.includes(index)
+    ) {
+      return "bg-yellow-500";
+    }
+    if (
+      step.comparison &&
+      Array.isArray(step.comparison) &&
+      step.comparison.includes(index)
+    ) {
+      return "bg-red-500";
+    }
+    return "bg-blue-500";
   };
 
-  const renderSetOperationsVisualization = () => {
-    if (visualizations.length === 0) return null;
+  // Safety checks for steps and currentStepData
+  const safeSteps =
+    Array.isArray(steps) && steps.length > 0
+      ? steps
+      : [
+          {
+            id: 0,
+            description: "No visualization data available",
+            data: [1, 2, 3, 4, 5],
+            action: "Sample data",
+          },
+        ];
 
-    const currentViz = visualizations[activeVisualization];
-
-    return (
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <h3 className="mb-4 text-lg font-semibold text-gray-900">
-          Set Operations Visualization
-        </h3>
-
-        {/* Visualization Tabs */}
-        <div className="mb-6">
-          <div className="mb-4 flex space-x-2">
-            {visualizations.map((viz, index) => (
-              <button
-                key={index}
-                onClick={() => setActiveVisualization(index)}
-                className={`rounded px-4 py-2 text-sm font-medium transition-colors ${
-                  index === activeVisualization
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                {viz.operation}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Venn Diagram Simulation */}
-        <div className="mb-6 text-center">
-          <div className="relative inline-block">
-            <svg width="300" height="200" className="rounded border">
-              {/* Set A Circle */}
-              <circle
-                cx="100"
-                cy="100"
-                r="60"
-                fill="rgba(59, 130, 246, 0.3)"
-                stroke="rgb(59, 130, 246)"
-                strokeWidth="2"
-              />
-              <text
-                x="60"
-                y="60"
-                className="fill-blue-700 text-sm font-semibold"
-              >
-                Set A
-              </text>
-
-              {/* Set B Circle */}
-              <circle
-                cx="200"
-                cy="100"
-                r="60"
-                fill="rgba(16, 185, 129, 0.3)"
-                stroke="rgb(16, 185, 129)"
-                strokeWidth="2"
-              />
-              <text
-                x="220"
-                y="60"
-                className="fill-green-700 text-sm font-semibold"
-              >
-                Set B
-              </text>
-
-              {/* Labels */}
-              <text
-                x="150"
-                y="180"
-                className="text-center text-xs font-semibold"
-              >
-                {currentViz.operation}: {currentViz.result.join(", ")}
-              </text>
-            </svg>
-          </div>
-
-          <div className="mt-4 grid grid-cols-3 gap-4 text-sm">
-            <div className="rounded bg-blue-50 p-3">
-              <div className="font-semibold text-blue-900">Set A</div>
-              <div className="text-blue-700">{currentViz.setA.join(", ")}</div>
-            </div>
-            <div className="rounded bg-green-50 p-3">
-              <div className="font-semibold text-green-900">Set B</div>
-              <div className="text-green-700">{currentViz.setB.join(", ")}</div>
-            </div>
-            <div className="rounded bg-purple-50 p-3">
-              <div className="font-semibold text-purple-900">Result</div>
-              <div className="text-purple-700">
-                {currentViz.result.join(", ")}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Code and Explanation */}
-        <div className="space-y-4">
-          <div className="rounded-lg bg-gray-900 p-4">
-            <pre className="font-mono text-sm text-green-300">
-              {currentViz.code}
-            </pre>
-          </div>
-
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-            <p className="text-blue-800">{currentViz.explanation}</p>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  const currentStepData = safeSteps[currentStep] || safeSteps[0];
+  const safeData = Array.isArray(currentStepData?.data)
+    ? currentStepData.data
+    : [1, 2, 3, 4, 5];
+  const maxValue = Math.max(...safeData);
 
   return (
-    <div className="mx-auto max-w-4xl p-6">
-      {/* Header */}
-      <div className="mb-8">
+    <div className="mx-auto max-w-6xl p-6">
+      <div className="mb-8 text-center">
         <h2 className="mb-4 text-3xl font-bold text-gray-900">
           {activity.title}
         </h2>
         <p className="text-lg text-gray-600">{activity.description}</p>
       </div>
 
-      {/* Controls */}
-      <div className="mb-8 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          {steps.length > 0 && (
-            <>
-              <button
-                onClick={() => stepBackward()}
-                disabled={currentStep === 0}
-                className="rounded border border-gray-300 p-2 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <SkipForward className="h-4 w-4 rotate-180" />
-              </button>
+      {/* Algorithm Info */}
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="rounded-lg bg-purple-50 p-6">
+          <h3 className="mb-4 text-xl font-semibold text-purple-900">
+            {algorithm}
+          </h3>
+          <p className="mb-4 text-purple-800">{description}</p>
+          <div className="space-y-2 text-sm">
+            <div>
+              <strong>Time Complexity:</strong> {timeComplexity}
+            </div>
+            <div>
+              <strong>Space Complexity:</strong> {spaceComplexity}
+            </div>
+          </div>
+        </div>
 
+        <div className="rounded-lg bg-blue-50 p-6">
+          <h3 className="mb-4 text-xl font-semibold text-blue-900">
+            How it Works
+          </h3>
+          <p className="text-blue-800">{explanation}</p>
+        </div>
+      </div>
+
+      {/* Visualization */}
+      <div className="mb-8 rounded-lg bg-white p-6 shadow-lg">
+        <div className="mb-6 flex items-center justify-between">
+          <h3 className="text-xl font-semibold text-gray-900">
+            Algorithm Visualization
+          </h3>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-gray-600">
+              Step {currentStep + 1} of{" "}
+              {Array.isArray(steps) ? steps.length : 1}
+            </span>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={reset}
+                className="rounded-lg bg-gray-100 p-2 text-gray-600 hover:bg-gray-200"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </button>
               <button
                 onClick={playPause}
-                className="flex items-center space-x-2 rounded bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+                className="rounded-lg bg-purple-600 p-2 text-white hover:bg-purple-700"
               >
                 {isPlaying ? (
                   <Pause className="h-4 w-4" />
                 ) : (
                   <Play className="h-4 w-4" />
                 )}
-                <span>{isPlaying ? "Pause" : "Play"}</span>
               </button>
-
-              <button
-                onClick={() => stepForward()}
-                disabled={currentStep >= steps.length - 1}
-                className="rounded border border-gray-300 p-2 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <SkipForward className="h-4 w-4" />
-              </button>
-
-              <button
-                onClick={reset}
-                className="flex items-center space-x-2 rounded bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700"
-              >
-                <RotateCcw className="h-4 w-4" />
-                <span>Reset</span>
-              </button>
-            </>
-          )}
+            </div>
+          </div>
         </div>
 
-        {steps.length > 0 && (
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600">Speed:</span>
-            <select
-              value={playbackSpeed}
-              onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
-              className="rounded border border-gray-300 px-2 py-1 text-sm"
-            >
-              <option value={2000}>Slow</option>
-              <option value={1000}>Normal</option>
-              <option value={500}>Fast</option>
-            </select>
-          </div>
-        )}
-      </div>
-
-      {/* Progress Bar for Steps */}
-      {steps.length > 0 && (
-        <div className="mb-8">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">
-              Algorithm Progress
-            </span>
-            <span className="text-sm text-gray-500">
-              Step {currentStep + 1} of {steps.length}
-            </span>
-          </div>
+        {/* Progress Bar */}
+        <div className="mb-6">
           <div className="h-2 w-full rounded-full bg-gray-200">
             <div
-              className="h-2 rounded-full bg-blue-600 transition-all duration-300"
-              style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+              className="h-2 rounded-full bg-purple-600 transition-all duration-300"
+              style={{
+                width: `${((currentStep + 1) / (Array.isArray(steps) ? steps.length : 1)) * 100}%`,
+              }}
             ></div>
           </div>
         </div>
-      )}
 
-      {/* Visualization Content */}
-      <div className="space-y-8">
-        {/* Binary Search Visualization */}
-        {algorithm === "binary_search" &&
-          steps.length > 0 &&
-          renderBinarySearchVisualization()}
-
-        {/* Set Operations Visualization */}
-        {visualizations.length > 0 && renderSetOperationsVisualization()}
-
-        {/* Algorithm Code */}
-        {code && (
-          <div className="overflow-hidden rounded-lg bg-gray-900">
-            <div className="flex items-center space-x-2 border-b border-gray-700 p-4">
-              <Code className="h-5 w-5 text-gray-400" />
-              <span className="text-sm font-medium text-gray-400">
-                Algorithm Implementation
-              </span>
-            </div>
-            <pre className="overflow-x-auto whitespace-pre-wrap p-4 font-mono text-sm text-green-300">
-              {code}
-            </pre>
+        {/* Array Visualization */}
+        <div className="mb-6">
+          <div
+            className="flex items-end justify-center space-x-2"
+            style={{ height: "200px" }}
+          >
+            {safeData.map((value, index) => (
+              <div key={index} className="flex flex-col items-center">
+                <div
+                  className={`w-12 transition-all duration-500 ${getBarColor(index, value)}`}
+                  style={{
+                    height: `${(value / maxValue) * 150 + 20}px`,
+                  }}
+                ></div>
+                <div className="mt-2 text-xs text-gray-600">{value}</div>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
+
+        {/* Step Description */}
+        <div className="rounded-lg bg-gray-50 p-4">
+          <div className="mb-2 font-semibold text-gray-900">
+            {currentStepData?.description || "No description available"}
+          </div>
+          <div className="text-sm text-gray-600">
+            <strong>Action:</strong>{" "}
+            {currentStepData?.action || "No action available"}
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <div className="mt-6 flex items-center justify-between">
+          <button
+            onClick={prevStep}
+            disabled={currentStep === 0}
+            className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Previous
+          </button>
+
+          <div className="flex items-center space-x-2">
+            {(Array.isArray(steps) ? steps : [{}]).map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentStep(index)}
+                className={`h-3 w-3 rounded-full transition-all ${
+                  index === currentStep
+                    ? "bg-purple-600"
+                    : index < currentStep
+                      ? "bg-purple-300"
+                      : "bg-gray-200"
+                }`}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={nextStep}
+            className="flex items-center space-x-2 rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700"
+          >
+            <span>
+              {currentStep === (Array.isArray(steps) ? steps.length : 1) - 1
+                ? "Complete"
+                : "Next"}
+            </span>
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
-      {/* Completion Message */}
-      {completedVisualization && (
-        <div className="mt-8 rounded-lg border border-green-200 bg-green-50 p-6 text-center">
-          <div className="mb-4 flex items-center justify-center space-x-2">
-            <Eye className="h-6 w-6 text-green-600" />
-            <span className="text-lg font-semibold text-green-900">
-              Visualization Complete!
-            </span>
+      {/* Completion */}
+      {isCompleted && (
+        <div className="text-center">
+          <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-green-600">
+            <Trophy className="h-10 w-10" />
           </div>
-          <p className="mb-6 text-green-800">
-            You've successfully explored the algorithm visualization.
-            Understanding how algorithms work step-by-step is key to mastering
-            programming!
+          <h3 className="mb-4 text-2xl font-bold text-gray-900">
+            Visualization Complete!
+          </h3>
+          <p className="mb-6 text-gray-600">
+            You've successfully learned how the {algorithm} algorithm works!
           </p>
           <button
-            onClick={handleManualComplete}
-            className="rounded-lg bg-green-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-700"
+            onClick={() => onComplete(85, 100, true)}
+            className="rounded-lg bg-green-600 px-6 py-3 font-bold text-white transition-colors hover:bg-green-700"
           >
-            🎉 Complete Activity & Claim Rewards
+            Complete Activity
           </button>
         </div>
       )}
 
-      {/* Instructions */}
-      <div className="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-4">
-        <h3 className="mb-2 font-semibold text-gray-900">🎯 How to Use:</h3>
-        <ul className="space-y-1 text-sm text-gray-700">
-          <li>• Use Play/Pause to control the automatic visualization</li>
-          <li>• Step forward/backward to manually explore each step</li>
-          <li>• Adjust speed to match your learning pace</li>
-          <li>• Study the code implementation to understand the algorithm</li>
-          {visualizations.length > 0 && (
-            <li>��� Switch between different operations using the tabs</li>
-          )}
-        </ul>
-      </div>
+      {/* Reward Animation */}
+      {showRewardAnimation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="relative rounded-2xl bg-gradient-to-br from-purple-900 via-blue-900 to-purple-900 p-8 text-center shadow-2xl">
+            <h3 className="mb-4 text-3xl font-bold text-white">
+              🎉 Algorithm Mastered! 🎉
+            </h3>
+            <div className="mb-6 space-y-3">
+              <div className="flex items-center justify-center space-x-3 rounded-lg bg-yellow-500/20 p-3">
+                <span className="text-xl font-semibold text-yellow-300">
+                  +{activity.diamondReward || 30} Diamonds
+                </span>
+              </div>
+              <div className="flex items-center justify-center space-x-3 rounded-lg bg-blue-500/20 p-3">
+                <Star className="h-8 w-8 text-blue-400" />
+                <span className="text-xl font-semibold text-blue-300">
+                  +{activity.experienceReward || 50} Experience
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

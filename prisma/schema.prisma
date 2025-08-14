@@ -180,7 +180,6 @@ model User {
   blogPosts             BlogPost[]                 @relation("BlogAuthor")
   distributionLogs      CardDistributionLog[]
   cardPackOpenings      CardPackOpening[]
-  codeArenaProgress     CodeArenaProgress[]
   codeSubmissions       CodeSubmission[]
   dailyMiniQuizAttempts DailyMiniQuizAttempt[]
   dailyQuests           DailyQuest[]
@@ -256,59 +255,6 @@ model UserCard {
   @@map("user_cards")
 }
 
-model CodeArena {
-  id                 String              @id @default(cuid())
-  title              String
-  slug               String              @unique
-  description        String
-  content            String
-  difficulty         Int
-  order              Int
-  duration           Int                 @default(30)
-  category           String              @default("basic")
-  hasCodeExercise    Boolean             @default(false)
-  starterCode        String?
-  solutionCode       String?
-  testCases          String?
-  hints              String?
-  prerequisites      String?
-  diamondReward      Int                 @default(10)
-  experienceReward   Int                 @default(50)
-  isPublished        Boolean             @default(false)
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  examples           String?
-  learningObjectives String?
-  resources          String?
-  sections           String?
-  tags               String?
-  progress           CodeArenaProgress[]
-  quizzes            Quiz[]
-
-  @@map("code_arenas")
-}
-
-model CodeArenaProgress {
-  id            String    @id @default(cuid())
-  userId        String
-  codeArenaId   String
-  isStarted     Boolean   @default(false)
-  isCompleted   Boolean   @default(false)
-  score         Int?
-  attempts      Int       @default(0)
-  lastCode      String?
-  bestCode      String?
-  isCodeCorrect Boolean   @default(false)
-  timeSpent     Int       @default(0)
-  startedAt     DateTime?
-  completedAt   DateTime?
-  lastVisit     DateTime  @default(now())
-  codeArena     CodeArena @relation(fields: [codeArenaId], references: [id], onDelete: Cascade)
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, codeArenaId])
-  @@map("code_arena_progress")
-}
 
 model CodeSubmission {
   id            String   @id @default(cuid())
@@ -341,9 +287,7 @@ model Quiz {
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   passingScore     Int           @default(70)
-  codeArenaId      String?
   attempts         QuizAttempt[]
-  codeArena        CodeArena?    @relation(fields: [codeArenaId], references: [id])
 
   @@map("quizzes")
 }

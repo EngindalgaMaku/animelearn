@@ -345,7 +345,7 @@ export async function seedLearningActivities() {
       content: JSON.stringify({
         instructions:
           "Memorize the Python keywords, then click them in the order they appeared.",
-        items: [
+        cards: [
           "def",
           "class",
           "if",

@@ -28,10 +28,31 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const activityType = searchParams.get("activityType");
     const category = searchParams.get("category");
+    const search = searchParams.get("search");
+    const difficulty = searchParams.get("difficulty");
 
     const where: any = {};
     if (activityType) where.activityType = activityType;
     if (category) where.category = category;
+    if (difficulty) where.difficulty = parseInt(difficulty);
+
+    // Add search functionality
+    if (search) {
+      where.OR = [
+        {
+          title: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          description: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+      ];
+    }
 
     const activities = await prisma.learningActivity.findMany({
       where,

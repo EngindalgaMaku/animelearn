@@ -11,7 +11,7 @@ async function checkBadgeCondition(
       where: { id: userId },
       include: {
         userCards: true,
-        codeArenaProgress: { where: { isCompleted: true } },
+        activityAttempts: { where: { completed: true } },
         quizAttempts: { where: { isCompleted: true } },
         diamondTransactions: true,
       },
@@ -21,28 +21,35 @@ async function checkBadgeCondition(
 
     switch (conditionObj.type) {
       case "lessons_completed":
-        return user.codeArenasCompleted >= conditionObj.target;
+        return (
+          user.activityAttempts.filter((a: any) => a.completed).length >=
+          conditionObj.target
+        );
 
       case "quizzes_completed":
         return user.quizzesCompleted >= conditionObj.target;
 
       case "quiz_streak":
         // Quiz streak kontrolü - kullanıcının en yüksek quiz streak'i
-        const quizAttempts = user.quizAttempts.filter((qa: any) => qa.isCompleted);
+        const quizAttempts = user.quizAttempts.filter(
+          (qa: any) => qa.isCompleted
+        );
         if (quizAttempts.length === 0) return false;
-        
+
         // En yüksek streak'i bul
         let maxStreak = 0;
         let currentStreak = 0;
-        
+
         // Quiz attempts'leri tarihe göre sırala
-        const sortedAttempts = quizAttempts.sort((a: any, b: any) =>
-          new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime()
+        const sortedAttempts = quizAttempts.sort(
+          (a: any, b: any) =>
+            new Date(a.completedAt).getTime() -
+            new Date(b.completedAt).getTime()
         );
-        
+
         for (const attempt of sortedAttempts) {
           // Quiz Arena streak'i - her doğru cevap streak'i artırır, yanlış streak'i sıfırlar
-          const answers = JSON.parse(attempt.answers || '[]');
+          const answers = JSON.parse(attempt.answers || "[]");
           for (const answer of answers) {
             if (answer.isCorrect) {
               currentStreak++;
@@ -53,15 +60,18 @@ async function checkBadgeCondition(
             }
           }
         }
-        
+
         return maxStreak >= conditionObj.target;
 
       case "perfect_quizzes":
         // Perfect quiz sayısı kontrolü (hiç yanlış cevap vermeden tamamlanan quiz'ler)
         const perfectQuizzes = user.quizAttempts.filter((qa: any) => {
           if (!qa.isCompleted) return false;
-          const answers = JSON.parse(qa.answers || '[]');
-          return answers.length > 0 && answers.every((answer: any) => answer.isCorrect);
+          const answers = JSON.parse(qa.answers || "[]");
+          return (
+            answers.length > 0 &&
+            answers.every((answer: any) => answer.isCorrect)
+          );
         });
         return perfectQuizzes.length >= conditionObj.target;
 
@@ -70,9 +80,13 @@ async function checkBadgeCondition(
         let fastAnswerCount = 0;
         for (const attempt of user.quizAttempts) {
           if (!attempt.isCompleted) continue;
-          const answers = JSON.parse(attempt.answers || '[]');
+          const answers = JSON.parse(attempt.answers || "[]");
           for (const answer of answers) {
-            if (answer.isCorrect && answer.timeSpent && answer.timeSpent < 5000) {
+            if (
+              answer.isCorrect &&
+              answer.timeSpent &&
+              answer.timeSpent < 5000
+            ) {
               fastAnswerCount++;
             }
           }
@@ -85,7 +99,7 @@ async function checkBadgeCondition(
         today.setHours(0, 0, 0, 0);
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
-        
+
         const todayQuizzes = user.quizAttempts.filter((qa: any) => {
           if (!qa.isCompleted) return false;
           const completedAt = new Date(qa.completedAt);
@@ -98,17 +112,20 @@ async function checkBadgeCondition(
         let maxComebackStreak = 0;
         for (const attempt of user.quizAttempts) {
           if (!attempt.isCompleted) continue;
-          const answers = JSON.parse(attempt.answers || '[]');
+          const answers = JSON.parse(attempt.answers || "[]");
           let hadMistake = false;
           let currentComebackStreak = 0;
-          
+
           for (const answer of answers) {
             if (!answer.isCorrect) {
               hadMistake = true;
               currentComebackStreak = 0;
             } else if (hadMistake) {
               currentComebackStreak++;
-              maxComebackStreak = Math.max(maxComebackStreak, currentComebackStreak);
+              maxComebackStreak = Math.max(
+                maxComebackStreak,
+                currentComebackStreak
+              );
             }
           }
         }
@@ -139,12 +156,12 @@ async function checkBadgeCondition(
         return rareCards.length >= conditionObj.target;
 
       case "first_lesson":
-        return user.codeArenaProgress.length > 0;
+        return user.activityAttempts.length > 0;
 
       case "perfect_score":
         // Mükemmel skor kontrolü
-        const perfectLessons = user.codeArenaProgress.filter(
-          (cap: any) => cap.score === 100
+        const perfectLessons = user.activityAttempts.filter(
+          (attempt: any) => attempt.score === 100
         );
         return perfectLessons.length >= conditionObj.target;
 

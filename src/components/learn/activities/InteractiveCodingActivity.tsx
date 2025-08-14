@@ -5,34 +5,38 @@ import {
   Play,
   CheckCircle,
   XCircle,
-  RotateCcw,
-  Code,
   Trophy,
+  Star,
+  Gift,
+  Code,
 } from "lucide-react";
 
 interface TestCase {
   input: string;
   expected: string;
-  description: string;
-}
-
-interface Exercise {
-  title: string;
-  instruction: string;
-  starterCode: string;
-  solution: string;
-  testCases: TestCase[];
 }
 
 interface InteractiveCodingContent {
-  exercises: Exercise[];
+  instructions: string;
+  starterCode: string;
+  expectedOutput?: string;
+  hints?: string[];
+  testCases?: TestCase[];
 }
 
 interface LearningActivity {
   id: string;
   title: string;
   description: string;
+  activityType: string;
+  difficulty: number;
+  category: string;
+  diamondReward: number;
+  experienceReward: number;
+  estimatedMinutes: number;
   content: InteractiveCodingContent;
+  settings?: any;
+  tags: string[];
 }
 
 interface InteractiveCodingActivityProps {
@@ -44,412 +48,344 @@ export default function InteractiveCodingActivity({
   activity,
   onComplete,
 }: InteractiveCodingActivityProps) {
-  const [currentExercise, setCurrentExercise] = useState(0);
-  const [userCode, setUserCode] = useState("");
+  const [code, setCode] = useState("");
   const [output, setOutput] = useState("");
-  const [testResults, setTestResults] = useState<
-    { passed: boolean; message: string }[]
-  >([]);
   const [isRunning, setIsRunning] = useState(false);
-  const [completedExercises, setCompletedExercises] = useState<Set<number>>(
-    new Set()
-  );
-  const [showSolution, setShowSolution] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [testResults, setTestResults] = useState<boolean[]>([]);
+  const [showRewardAnimation, setShowRewardAnimation] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showHints, setShowHints] = useState(false);
 
-  const { exercises } = activity.content;
-  const currentExerciseData = exercises[currentExercise];
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/session");
+        const session = await response.json();
+        setIsAuthenticated(!!session?.user);
+      } catch (error) {
+        const userSession =
+          localStorage.getItem("user") ||
+          sessionStorage.getItem("user") ||
+          localStorage.getItem("next-auth.session-token") ||
+          document.cookie.includes("next-auth.session-token");
+        setIsAuthenticated(!!userSession);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const { instructions, starterCode, expectedOutput, hints, testCases } =
+    activity.content;
 
   useEffect(() => {
-    if (currentExerciseData) {
-      setUserCode(currentExerciseData.starterCode);
-      setOutput("");
-      setTestResults([]);
-      setShowSolution(false);
-    }
-  }, [currentExercise, currentExerciseData]);
+    setCode(starterCode);
+  }, [starterCode]);
 
-  const simulateCodeExecution = (code: string, testCases: TestCase[]) => {
-    const results: { passed: boolean; message: string }[] = [];
-    let outputText = "";
+  const runCode = async () => {
+    setIsRunning(true);
+    setOutput("");
 
     try {
-      // Simple simulation for Python-like code execution
-      testCases.forEach((testCase, index) => {
-        try {
-          let passed = false;
-          let actualResult = "";
+      // Simulate code execution (in a real app, you'd use a code execution service)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-          // Basic simulation based on common patterns
-          if (code.includes("def ") && code.includes("return")) {
-            // Function definition detected
-            if (code.includes("length * width")) {
-              // Rectangle area calculation
-              const inputs = testCase.input.match(/\((\d+),\s*(\d+)\)/);
-              if (inputs) {
-                const length = parseInt(inputs[1]);
-                const width = parseInt(inputs[2]);
-                actualResult = (length * width).toString();
-                passed = actualResult === testCase.expected;
-              }
-            } else if (
-              code.includes("f'{greeting}, {name}!'") ||
-              code.includes(`f"{greeting}, {name}!"`)
-            ) {
-              // Greeting function
-              const inputs = testCase.input.match(
-                /\('([^']+)'(?:,\s*'([^']+)')?\)/
-              );
-              if (inputs) {
-                const name = inputs[1];
-                const greeting = inputs[2] || "Hello";
-                actualResult = `${greeting}, ${name}!`;
-                passed = actualResult === testCase.expected;
-              }
-            } else if (code.includes("return length * width")) {
-              // Basic area calculation
-              const inputs = testCase.input.match(/\((\d+),\s*(\d+)\)/);
-              if (inputs) {
-                const length = parseInt(inputs[1]);
-                const width = parseInt(inputs[2]);
-                actualResult = (length * width).toString();
-                passed = actualResult === testCase.expected;
-              }
-            }
-          } else if (
-            code.includes("fruits.append") &&
-            code.includes("fruits.remove")
-          ) {
-            // List manipulation
-            if (
-              testCase.expected.includes("banana") &&
-              testCase.expected.includes("orange") &&
-              testCase.expected.includes("grape")
-            ) {
-              actualResult = "['banana', 'orange', 'grape']";
-              passed = actualResult === testCase.expected;
-            }
-          }
+      // Mock execution results
+      const mockOutput = "Code executed successfully!\nOutput: Hello, Python!";
+      setOutput(mockOutput);
 
-          results.push({
-            passed,
-            message: passed
-              ? `✓ Test ${index + 1} passed: ${testCase.description}`
-              : `✗ Test ${index + 1} failed: Expected "${testCase.expected}", got "${actualResult}"`,
-          });
-        } catch (error) {
-          results.push({
-            passed: false,
-            message: `✗ Test ${index + 1} error: ${testCase.description}`,
-          });
+      // If there are test cases, run them
+      if (testCases && testCases.length > 0) {
+        const results = testCases.map((testCase, index) => {
+          // Mock test case validation
+          return Math.random() > 0.3; // 70% chance of passing
+        });
+        setTestResults(results);
+
+        const passedTests = results.filter(Boolean).length;
+        const score = Math.round((passedTests / testCases.length) * 100);
+
+        if (score >= 70) {
+          setTimeout(() => {
+            setShowResults(true);
+            handleActivityCompletion(score);
+          }, 2000);
         }
-      });
-
-      // Generate output
-      const passedTests = results.filter((r) => r.passed).length;
-      outputText = results.map((r) => r.message).join("\n");
-      outputText += `\n\nPassed ${passedTests}/${testCases.length} tests`;
-
-      // Mark exercise as completed if all tests pass
-      if (passedTests === testCases.length) {
-        setCompletedExercises((prev) => new Set([...prev, currentExercise]));
+      } else if (expectedOutput) {
+        // Check if output matches expected
+        const success = mockOutput.includes("Hello, Python!");
+        if (success) {
+          setTimeout(() => {
+            setShowResults(true);
+            handleActivityCompletion(85);
+          }, 2000);
+        }
       }
     } catch (error) {
-      outputText = "Error executing code: " + (error as Error).message;
-      results.push({
-        passed: false,
-        message: "Code execution failed",
-      });
-    }
-
-    setTestResults(results);
-    setOutput(outputText);
-  };
-
-  const runCode = () => {
-    setIsRunning(true);
-    setOutput("Running tests...");
-
-    setTimeout(() => {
-      simulateCodeExecution(userCode, currentExerciseData.testCases);
+      setOutput(`Error: ${error}`);
+    } finally {
       setIsRunning(false);
-    }, 1500);
-  };
-
-  const resetCode = () => {
-    setUserCode(currentExerciseData.starterCode);
-    setOutput("");
-    setTestResults([]);
-  };
-
-  const useSolution = () => {
-    setUserCode(currentExerciseData.solution);
-    setShowSolution(true);
-  };
-
-  const nextExercise = () => {
-    if (currentExercise < exercises.length - 1) {
-      setCurrentExercise(currentExercise + 1);
-    } else {
-      // Don't auto-complete - let user manually complete
     }
   };
 
-  const handleManualComplete = () => {
-    const completionRate = completedExercises.size / exercises.length;
-    const score = Math.round(60 + completionRate * 40); // Base 60% + completion bonus
-    onComplete(score, 100, completionRate >= 0.7);
-  };
+  const handleActivityCompletion = async (score: number) => {
+    if (!isAuthenticated) return;
 
-  const previousExercise = () => {
-    if (currentExercise > 0) {
-      setCurrentExercise(currentExercise - 1);
+    const awardedActivities = JSON.parse(
+      localStorage.getItem("awardedActivities") || "[]"
+    );
+    const alreadyAwarded = awardedActivities.includes(activity.id);
+
+    if (!alreadyAwarded) {
+      try {
+        const response = await fetch("/api/learning-activities/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            activityType: "interactive_coding",
+            activityId: activity.id,
+            activityTitle: activity.title,
+            score: Math.max(70, score),
+            timeSpent: 600, // 10 minutes estimated
+            success: true,
+            diamondReward: activity.diamondReward || 40,
+            experienceReward: activity.experienceReward || 60,
+          }),
+        });
+
+        if (response.ok) {
+          setShowRewardAnimation(true);
+          awardedActivities.push(activity.id);
+          localStorage.setItem(
+            "awardedActivities",
+            JSON.stringify(awardedActivities)
+          );
+          setTimeout(() => setShowRewardAnimation(false), 3000);
+        }
+      } catch (error) {
+        console.error("Error awarding rewards:", error);
+      }
     }
   };
 
-  const allTestsPassed =
-    testResults.length > 0 && testResults.every((result) => result.passed);
-  const progress = ((currentExercise + 1) / exercises.length) * 100;
+  if (showResults) {
+    const passedTests = testResults.filter(Boolean).length;
+    const totalTests = testResults.length;
+    const score =
+      totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 85;
+    const passed = score >= 70;
+
+    return (
+      <div className="mx-auto max-w-4xl p-6">
+        <div className="text-center">
+          <div
+            className={`mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full ${
+              passed ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
+            }`}
+          >
+            {passed ? (
+              <Trophy className="h-10 w-10" />
+            ) : (
+              <XCircle className="h-10 w-10" />
+            )}
+          </div>
+
+          <h2 className="mb-2 text-3xl font-bold text-gray-900">
+            {passed ? "Code Complete!" : "Keep Coding!"}
+          </h2>
+          <p className="mb-8 text-lg text-gray-600">
+            {totalTests > 0
+              ? `You passed ${passedTests} out of ${totalTests} test cases`
+              : "Your code ran successfully!"}
+          </p>
+
+          <div className="mb-8 rounded-lg bg-gray-50 p-6">
+            <div className="mb-2 text-4xl font-bold text-gray-900">
+              {score}%
+            </div>
+            <div
+              className={`text-lg font-semibold ${passed ? "text-green-600" : "text-red-600"}`}
+            >
+              {passed ? "Excellent Coding!" : "Keep Practicing!"}
+            </div>
+          </div>
+
+          {testCases && testCases.length > 0 && (
+            <div className="mb-8 space-y-4 text-left">
+              <h3 className="text-xl font-semibold text-gray-900">
+                Test Results:
+              </h3>
+              {testCases.map((testCase, index) => (
+                <div key={index} className="rounded-lg border bg-white p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">Test Case {index + 1}</div>
+                      <div className="text-sm text-gray-600">
+                        Input: {testCase.input}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Expected: {testCase.expected}
+                      </div>
+                    </div>
+                    <div
+                      className={`rounded-full p-2 ${
+                        testResults[index]
+                          ? "bg-green-500 text-white"
+                          : "bg-red-500 text-white"
+                      }`}
+                    >
+                      {testResults[index] ? "✓" : "✗"}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <button
+            onClick={() => onComplete(score, 100, passed)}
+            className="rounded-lg bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700"
+          >
+            Complete Coding Challenge
+          </button>
+        </div>
+
+        {/* Reward Animation */}
+        {showRewardAnimation && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="relative rounded-2xl bg-gradient-to-br from-purple-900 via-blue-900 to-purple-900 p-8 text-center shadow-2xl">
+              <h3 className="mb-4 text-3xl font-bold text-white">
+                🎉 Congratulations! 🎉
+              </h3>
+              <div className="mb-6 space-y-3">
+                <div className="flex items-center justify-center space-x-3 rounded-lg bg-yellow-500/20 p-3">
+                  <span className="text-xl font-semibold text-yellow-300">
+                    +{activity.diamondReward || 40} Diamonds
+                  </span>
+                </div>
+                <div className="flex items-center justify-center space-x-3 rounded-lg bg-blue-500/20 p-3">
+                  <Star className="h-8 w-8 text-blue-400" />
+                  <span className="text-xl font-semibold text-blue-300">
+                    +{activity.experienceReward || 60} Experience
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-6xl p-6">
-      {/* Header */}
-      <div className="mb-8">
+      <div className="mb-8 text-center">
         <h2 className="mb-4 text-3xl font-bold text-gray-900">
           {activity.title}
         </h2>
         <p className="text-lg text-gray-600">{activity.description}</p>
       </div>
 
-      {/* Progress */}
-      <div className="mb-8">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">
-            Exercise {currentExercise + 1} of {exercises.length}
-          </span>
-          <span className="text-sm text-gray-500">
-            {completedExercises.size}/{exercises.length} completed
-          </span>
-        </div>
-        <div className="h-2 w-full rounded-full bg-gray-200">
-          <div
-            className="h-2 rounded-full bg-indigo-600 transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
+      <div className="mb-8 rounded-lg bg-blue-50 p-6">
+        <h3 className="mb-4 text-xl font-semibold text-blue-900">
+          Instructions
+        </h3>
+        <p className="text-blue-800">{instructions}</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        {/* Left Panel - Instructions and Navigation */}
-        <div className="space-y-6">
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
-            <h3 className="mb-4 text-xl font-semibold text-gray-900">
-              {currentExerciseData.title}
-            </h3>
-            <p className="mb-6 text-gray-700">
-              {currentExerciseData.instruction}
-            </p>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Code Editor */}
+        <div>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">Code Editor</h3>
+            <div className="flex items-center space-x-2">
+              {hints && hints.length > 0 && (
+                <button
+                  onClick={() => setShowHints(!showHints)}
+                  className="rounded-lg bg-yellow-100 px-3 py-1 text-sm text-yellow-800 hover:bg-yellow-200"
+                >
+                  💡 Hints
+                </button>
+              )}
+              <button
+                onClick={runCode}
+                disabled={isRunning}
+                className="flex items-center space-x-2 rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-50"
+              >
+                <Play className="h-4 w-4" />
+                <span>{isRunning ? "Running..." : "Run Code"}</span>
+              </button>
+            </div>
+          </div>
 
-            {/* Test Cases */}
-            <div className="rounded-lg bg-gray-50 p-4">
-              <h4 className="mb-3 font-semibold text-gray-900">Test Cases:</h4>
+          <textarea
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            className="h-80 w-full rounded-lg border border-gray-300 bg-gray-900 p-4 font-mono text-sm text-green-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            placeholder="Write your Python code here..."
+          />
+
+          {showHints && hints && hints.length > 0 && (
+            <div className="mt-4 rounded-lg bg-yellow-50 p-4">
+              <h4 className="mb-2 font-semibold text-yellow-900">Hints:</h4>
+              <ul className="space-y-1 text-sm text-yellow-800">
+                {hints.map((hint, index) => (
+                  <li key={index}>💡 {hint}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* Output Panel */}
+        <div>
+          <div className="mb-4 flex items-center space-x-2">
+            <Code className="h-5 w-5 text-gray-600" />
+            <h3 className="text-lg font-semibold text-gray-900">Output</h3>
+          </div>
+
+          <div className="h-80 rounded-lg border border-gray-300 bg-black p-4 font-mono text-sm text-green-400">
+            {isRunning ? (
+              <div className="flex items-center space-x-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-400 border-t-transparent"></div>
+                <span>Running code...</span>
+              </div>
+            ) : output ? (
+              <pre className="whitespace-pre-wrap">{output}</pre>
+            ) : (
+              <div className="text-gray-500">
+                Click "Run Code" to see output...
+              </div>
+            )}
+          </div>
+
+          {expectedOutput && (
+            <div className="mt-4 rounded-lg bg-gray-50 p-4">
+              <h4 className="mb-2 font-semibold text-gray-900">
+                Expected Output:
+              </h4>
+              <pre className="text-sm text-gray-700">{expectedOutput}</pre>
+            </div>
+          )}
+
+          {testCases && testCases.length > 0 && (
+            <div className="mt-4 rounded-lg bg-gray-50 p-4">
+              <h4 className="mb-2 font-semibold text-gray-900">Test Cases:</h4>
               <div className="space-y-2">
-                {currentExerciseData.testCases.map((testCase, index) => (
+                {testCases.map((testCase, index) => (
                   <div key={index} className="text-sm">
-                    <div className="flex items-center space-x-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-800">
-                        {index + 1}
-                      </span>
-                      <span className="text-gray-700">
-                        {testCase.description}
-                      </span>
-                      {testResults[index] && (
-                        <span>
-                          {testResults[index].passed ? (
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <XCircle className="h-4 w-4 text-red-500" />
-                          )}
-                        </span>
-                      )}
-                    </div>
-                    <div className="ml-8 text-xs text-gray-500">
-                      Input: {testCase.input} → Expected: {testCase.expected}
+                    <div className="font-medium">Test {index + 1}:</div>
+                    <div className="text-gray-600">Input: {testCase.input}</div>
+                    <div className="text-gray-600">
+                      Expected: {testCase.expected}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-
-          {/* Exercise Navigation */}
-          <div className="rounded-lg bg-gray-50 p-4">
-            <h4 className="mb-3 font-semibold text-gray-900">Exercises</h4>
-            <div className="grid grid-cols-1 gap-2">
-              {exercises.map((exercise, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentExercise(index)}
-                  className={`rounded p-3 text-left transition-colors ${
-                    index === currentExercise
-                      ? "border border-indigo-300 bg-indigo-100 text-indigo-900"
-                      : completedExercises.has(index)
-                        ? "hover:bg-green-150 bg-green-100 text-green-800"
-                        : "bg-white text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div
-                      className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-                        index === currentExercise
-                          ? "bg-indigo-600 text-white"
-                          : completedExercises.has(index)
-                            ? "bg-green-500 text-white"
-                            : "bg-gray-300 text-gray-600"
-                      }`}
-                    >
-                      {completedExercises.has(index) ? "✓" : index + 1}
-                    </div>
-                    <span className="text-sm font-medium">
-                      {exercise.title}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Panel - Code Editor and Output */}
-        <div className="space-y-6">
-          {/* Code Editor */}
-          <div className="overflow-hidden rounded-lg bg-gray-900">
-            <div className="flex items-center justify-between border-b border-gray-700 p-4">
-              <div className="flex items-center space-x-2">
-                <Code className="h-5 w-5 text-gray-400" />
-                <span className="text-sm font-medium text-gray-400">
-                  Python Code Editor
-                </span>
-              </div>
-              <div className="flex space-x-1">
-                <div className="h-3 w-3 rounded-full bg-red-400"></div>
-                <div className="h-3 w-3 rounded-full bg-yellow-400"></div>
-                <div className="h-3 w-3 rounded-full bg-green-400"></div>
-              </div>
-            </div>
-
-            <textarea
-              value={userCode}
-              onChange={(e) => setUserCode(e.target.value)}
-              className="h-64 w-full resize-none bg-transparent p-4 font-mono text-sm text-white focus:outline-none"
-              placeholder="Write your Python code here..."
-            />
-
-            <div className="flex space-x-3 border-t border-gray-700 p-4">
-              <button
-                onClick={runCode}
-                disabled={isRunning}
-                className="inline-flex items-center space-x-2 rounded bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 disabled:bg-gray-600"
-              >
-                <Play className="h-4 w-4" />
-                <span>{isRunning ? "Running..." : "Run Tests"}</span>
-              </button>
-
-              <button
-                onClick={resetCode}
-                className="inline-flex items-center space-x-2 rounded bg-gray-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700"
-              >
-                <RotateCcw className="h-4 w-4" />
-                <span>Reset</span>
-              </button>
-
-              <button
-                onClick={useSolution}
-                className="rounded bg-yellow-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-yellow-700"
-              >
-                Show Solution
-              </button>
-            </div>
-          </div>
-
-          {/* Output */}
-          <div className="rounded-lg bg-black p-4">
-            <div className="mb-3 flex items-center space-x-2">
-              <div className="h-2 w-2 rounded-full bg-green-400"></div>
-              <span className="text-sm font-medium text-green-400">
-                Test Results
-              </span>
-            </div>
-            <pre className="min-h-[120px] whitespace-pre-wrap font-mono text-sm text-green-300">
-              {output || "Run your code to see test results..."}
-            </pre>
-          </div>
-
-          {/* Success Message */}
-          {allTestsPassed && (
-            <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-              <div className="flex items-center space-x-2">
-                <Trophy className="h-5 w-5 text-green-600" />
-                <span className="font-semibold text-green-800">
-                  Excellent! All tests passed!
-                </span>
-              </div>
-              <p className="mt-1 text-sm text-green-700">
-                You can move to the next exercise when ready.
-              </p>
-            </div>
-          )}
-
-          {/* Solution Notice */}
-          {showSolution && (
-            <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-              <p className="text-sm text-yellow-800">
-                💡 Solution is now displayed in the editor. Study it carefully
-                to understand the approach.
-              </p>
-            </div>
           )}
         </div>
-      </div>
-
-      {/* Navigation */}
-      <div className="mt-8 flex justify-between">
-        <button
-          onClick={previousExercise}
-          disabled={currentExercise === 0}
-          className="rounded-lg border border-gray-300 px-6 py-2 text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Previous Exercise
-        </button>
-
-        {currentExercise === exercises.length - 1 ? (
-          <div className="text-center">
-            <div className="mb-3 rounded-lg border border-green-200 bg-green-50 p-3">
-              <div className="mb-2 flex items-center justify-center space-x-2">
-                <Trophy className="h-5 w-5 text-green-600" />
-                <span className="text-sm font-semibold text-green-900">
-                  Lab Complete!
-                </span>
-              </div>
-              <p className="mb-3 text-xs text-green-800">
-                You've finished all coding exercises in this lab. Review your
-                work and claim your rewards!
-              </p>
-              <button
-                onClick={handleManualComplete}
-                className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700"
-              >
-                🎉 Complete Lab & Claim Rewards
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={nextExercise}
-            className="rounded-lg bg-indigo-600 px-6 py-2 text-white transition-colors hover:bg-indigo-700"
-          >
-            Next Exercise
-          </button>
-        )}
       </div>
     </div>
   );

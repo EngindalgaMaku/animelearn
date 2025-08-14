@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 export async function GET() {
-  const baseUrl = 'https://zumenzu.com';
-  
+  const baseUrl = "https://zumenzu.com";
+
   try {
     // Fetch categories from database
     const categories = await prisma.category.findMany({
@@ -14,132 +14,112 @@ export async function GET() {
         slug: true,
         name: true,
         updatedAt: true,
-        cardCount: true
+        cardCount: true,
       },
       where: {
-        isActive: true
+        isActive: true,
       },
       orderBy: {
-        sortOrder: 'asc'
-      }
-    });
-
-    // Fetch code arenas for learning content
-    const codeArenas = await prisma.codeArena.findMany({
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        updatedAt: true,
-        difficulty: true,
-        category: true
+        sortOrder: "asc",
       },
-      where: {
-        isPublished: true
-      },
-      orderBy: {
-        order: 'asc'
-      }
     });
 
     // Category URLs
-    const categoryUrls = categories.map(category => ({
+    const categoryUrls = categories.map((category) => ({
       url: `/shop?category=${category.slug}`,
       lastModified: category.updatedAt.toISOString(),
-      changeFrequency: 'weekly',
-      priority: category.cardCount > 50 ? '0.8' : 
-               category.cardCount > 20 ? '0.7' : '0.6'
-    }));
-
-    // Code Arena URLs
-    const codeArenaUrls = codeArenas.map(arena => ({
-      url: `/code-arena/${arena.slug}`,
-      lastModified: arena.updatedAt.toISOString(),
-      changeFrequency: 'monthly',
-      priority: arena.difficulty <= 2 ? '0.8' : 
-               arena.difficulty <= 4 ? '0.7' : '0.6'
+      changeFrequency: "weekly",
+      priority:
+        category.cardCount > 50
+          ? "0.8"
+          : category.cardCount > 20
+            ? "0.7"
+            : "0.6",
     }));
 
     // Learning category URLs
     const learningUrls = [
       {
-        url: '/python-kursu',
+        url: "/python-kursu",
         lastModified: new Date().toISOString(),
-        changeFrequency: 'weekly',
-        priority: '0.9'
+        changeFrequency: "weekly",
+        priority: "0.9",
       },
       {
-        url: '/python-kursu/temel-seviye',
+        url: "/python-kursu/temel-seviye",
         lastModified: new Date().toISOString(),
-        changeFrequency: 'weekly',
-        priority: '0.8'
+        changeFrequency: "weekly",
+        priority: "0.8",
       },
       {
-        url: '/python-kursu/orta-seviye',
+        url: "/python-kursu/orta-seviye",
         lastModified: new Date().toISOString(),
-        changeFrequency: 'weekly',
-        priority: '0.8'
+        changeFrequency: "weekly",
+        priority: "0.8",
       },
       {
-        url: '/python-kursu/ileri-seviye',
+        url: "/python-kursu/ileri-seviye",
         lastModified: new Date().toISOString(),
-        changeFrequency: 'weekly',
-        priority: '0.8'
+        changeFrequency: "weekly",
+        priority: "0.8",
       },
       {
-        url: '/kart-koleksiyonu',
+        url: "/kart-koleksiyonu",
         lastModified: new Date().toISOString(),
-        changeFrequency: 'weekly',
-        priority: '0.8'
+        changeFrequency: "weekly",
+        priority: "0.8",
       },
       {
-        url: '/kart-koleksiyonu/anime-collection',
+        url: "/kart-koleksiyonu/anime-collection",
         lastModified: new Date().toISOString(),
-        changeFrequency: 'weekly',
-        priority: '0.7'
+        changeFrequency: "weekly",
+        priority: "0.7",
       },
       {
-        url: '/kart-koleksiyonu/star-collection',
+        url: "/kart-koleksiyonu/star-collection",
         lastModified: new Date().toISOString(),
-        changeFrequency: 'weekly',
-        priority: '0.7'
+        changeFrequency: "weekly",
+        priority: "0.7",
       },
       {
-        url: '/rozetler-basarimlar',
+        url: "/rozetler-basarimlar",
         lastModified: new Date().toISOString(),
-        changeFrequency: 'weekly',
-        priority: '0.7'
+        changeFrequency: "weekly",
+        priority: "0.7",
       },
       {
-        url: '/gunluk-gorevler',
+        url: "/gunluk-gorevler",
         lastModified: new Date().toISOString(),
-        changeFrequency: 'daily',
-        priority: '0.8'
-      }
+        changeFrequency: "daily",
+        priority: "0.8",
+      },
     ];
 
-    const allUrls = [...categoryUrls, ...codeArenaUrls, ...learningUrls];
+    const allUrls = [...categoryUrls, ...learningUrls];
 
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${allUrls.map(item => `  <url>
+${allUrls
+  .map(
+    (item) => `  <url>
     <loc>${baseUrl}${item.url}</loc>
     <lastmod>${item.lastModified}</lastmod>
     <changefreq>${item.changeFrequency}</changefreq>
     <priority>${item.priority}</priority>
-  </url>`).join('\n')}
+  </url>`
+  )
+  .join("\n")}
 </urlset>`;
 
     return new NextResponse(sitemap, {
       headers: {
-        'Content-Type': 'application/xml',
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+        "Content-Type": "application/xml",
+        "Cache-Control": "public, max-age=3600, s-maxage=3600",
       },
     });
-
   } catch (error) {
-    console.error('Error generating categories sitemap:', error);
-    
+    console.error("Error generating categories sitemap:", error);
+
     // Return minimal sitemap on error
     const fallbackSitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -159,8 +139,8 @@ ${allUrls.map(item => `  <url>
 
     return new NextResponse(fallbackSitemap, {
       headers: {
-        'Content-Type': 'application/xml',
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+        "Content-Type": "application/xml",
+        "Cache-Control": "public, max-age=3600, s-maxage=3600",
       },
     });
   } finally {

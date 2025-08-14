@@ -38,6 +38,8 @@ interface ActivityTableProps {
   onLaunch: (activity: LearningActivity) => void;
   enableAnimations?: boolean;
   itemsPerPage?: number;
+  currentPage?: number;
+  onPageChange?: (page: number) => void;
 }
 
 const ActivityTable = memo(
@@ -48,8 +50,13 @@ const ActivityTable = memo(
     onLaunch,
     enableAnimations = true,
     itemsPerPage = 10,
+    currentPage: externalCurrentPage,
+    onPageChange: externalOnPageChange,
   }: ActivityTableProps) => {
-    const [currentPage, setCurrentPage] = useState(1);
+    // Use external pagination state if provided, otherwise use internal state
+    const [internalCurrentPage, setInternalCurrentPage] = useState(1);
+    const currentPage = externalCurrentPage ?? internalCurrentPage;
+    const setCurrentPage = externalOnPageChange ?? setInternalCurrentPage;
 
     // Pagination logic
     const totalPages = Math.ceil(activities.length / itemsPerPage);
@@ -58,7 +65,8 @@ const ActivityTable = memo(
     const currentActivities = activities.slice(startIndex, endIndex);
 
     const goToPage = (page: number) => {
-      setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+      const newPage = Math.max(1, Math.min(page, totalPages));
+      setCurrentPage(newPage);
     };
 
     const getDifficultyConfig = (difficulty: number) => {

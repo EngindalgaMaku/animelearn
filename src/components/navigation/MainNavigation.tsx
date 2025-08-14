@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Home,
   Book,
+  BookOpen,
   ShoppingBag,
   Award,
   Target,
@@ -50,6 +51,14 @@ const navigation = [
     icon: Gamepad2,
     requireAuth: true,
     color: "text-indigo-600",
+  },
+  {
+    name: "Learn",
+    href: "/learn",
+    icon: BookOpen,
+    requireAuth: false,
+    color: "text-emerald-600",
+    description: "Step-by-step programming lessons",
   },
   {
     name: "Code Arena",
@@ -235,15 +244,20 @@ export default function MainNavigation() {
                 .filter((item) => {
                   if (item.requireAuth && !isAuthenticated) return false;
                   if (item.hideForAuth && isAuthenticated) return false;
-                  // Show primary items on tablet: Dashboard, Code Arena, Shop for authenticated users
-                  // Show Home, Code Arena, Shop for non-authenticated users (Blog moved to More)
+                  // Show primary items on tablet: Dashboard, Learn, Code Arena, Shop for authenticated users
+                  // Show Home, Learn, Code Arena, Shop for non-authenticated users (Blog moved to More)
                   if (item.moveToMore) return false; // Exclude items marked for More dropdown
                   if (isAuthenticated) {
-                    return ["Dashboard", "Code Arena", "Shop"].includes(
+                    return [
+                      "Dashboard",
+                      "Learn",
+                      "Code Arena",
+                      "Shop",
+                    ].includes(item.name);
+                  } else {
+                    return ["Home", "Learn", "Code Arena", "Shop"].includes(
                       item.name
                     );
-                  } else {
-                    return ["Home", "Code Arena", "Shop"].includes(item.name);
                   }
                 })
                 .map((item) => {
@@ -289,6 +303,7 @@ export default function MainNavigation() {
                       // For non-authenticated users
                       const isPrimaryNav = [
                         "Home",
+                        "Learn",
                         "Code Arena",
                         "Shop",
                       ].includes(item.name);
@@ -594,11 +609,16 @@ export default function MainNavigation() {
                   // Show main navigation items (excluding moveToMore items in mobile)
                   if (item.moveToMore) return false; // Exclude moveToMore items from primary mobile nav
                   if (isAuthenticated) {
-                    return ["Dashboard", "Code Arena", "Shop"].includes(
+                    return [
+                      "Dashboard",
+                      "Learn",
+                      "Code Arena",
+                      "Shop",
+                    ].includes(item.name);
+                  } else {
+                    return ["Home", "Learn", "Code Arena", "Shop"].includes(
                       item.name
                     );
-                  } else {
-                    return ["Home", "Code Arena", "Shop"].includes(item.name);
                   }
                 })
                 .map((item) => {
@@ -672,7 +692,9 @@ export default function MainNavigation() {
                     if (item.requireAuth && !isAuthenticated) return false;
                     if (item.hideForAuth) return false;
                     if (item.moveToMore) return false; // Already handled above
-                    return !["Home", "Code Arena", "Shop"].includes(item.name);
+                    return !["Home", "Learn", "Code Arena", "Shop"].includes(
+                      item.name
+                    );
                   })
                   .map((item) => {
                     const isActive = pathname === item.href;

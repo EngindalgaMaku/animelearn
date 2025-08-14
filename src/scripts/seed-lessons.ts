@@ -852,67 +852,79 @@ async function seedLessons() {
     console.log("🌱 Starting lesson seeding...");
 
     for (const lessonData of lessonsData) {
-      // Check if code arena already exists
-      const existingCodeArena = await prisma.codeArena.findUnique({
-        where: { slug: lessonData.slug },
+      // Check if learning activity already exists
+      const existingActivity = await prisma.learningActivity.findFirst({
+        where: { title: lessonData.title },
       });
 
-      if (existingCodeArena) {
-        // Update existing code arena
-        await prisma.codeArena.update({
-          where: { slug: lessonData.slug },
+      if (existingActivity) {
+        // Update existing learning activity
+        await prisma.learningActivity.update({
+          where: { id: existingActivity.id },
           data: {
             title: lessonData.title,
             description: lessonData.description,
-            category: lessonData.category,
-            difficulty: lessonData.difficulty,
-            order: lessonData.order,
-            duration: lessonData.duration,
-            diamondReward: lessonData.diamondReward,
-            experienceReward: lessonData.experienceReward,
             content: JSON.stringify({
+              instructions: lessonData.description,
+              starterCode: lessonData.starterCode,
+              solutionCode: lessonData.solutionCode,
+              testCases: lessonData.testCases,
+              hints: lessonData.hints,
               ...lessonData.content,
               quiz: lessonData.quiz,
             }),
-            starterCode: lessonData.starterCode,
-            solutionCode: lessonData.solutionCode,
-            testCases: JSON.stringify(lessonData.testCases),
-            hints: JSON.stringify(lessonData.hints),
-            hasCodeExercise: true,
-            isPublished: true,
+            activityType: "interactive_coding",
+            category: lessonData.category,
+            difficulty: lessonData.difficulty,
+            diamondReward: lessonData.diamondReward,
+            experienceReward: lessonData.experienceReward,
+            estimatedMinutes: lessonData.duration,
+            isActive: true,
+            sortOrder: lessonData.order,
+            tags: JSON.stringify(["python", "coding", "basics"]),
+            settings: JSON.stringify({
+              hasCodeExercise: true,
+              duration: lessonData.duration,
+            }),
           },
         });
-        console.log(`✅ Updated code arena: ${lessonData.title}`);
+        console.log(`✅ Updated learning activity: ${lessonData.title}`);
       } else {
-        // Create new code arena
-        await prisma.codeArena.create({
+        // Create new learning activity
+        await prisma.learningActivity.create({
           data: {
             title: lessonData.title,
-            slug: lessonData.slug,
             description: lessonData.description,
-            category: lessonData.category,
-            difficulty: lessonData.difficulty,
-            order: lessonData.order,
-            duration: lessonData.duration,
-            diamondReward: lessonData.diamondReward,
-            experienceReward: lessonData.experienceReward,
             content: JSON.stringify({
+              instructions: lessonData.description,
+              starterCode: lessonData.starterCode,
+              solutionCode: lessonData.solutionCode,
+              testCases: lessonData.testCases,
+              hints: lessonData.hints,
               ...lessonData.content,
               quiz: lessonData.quiz,
             }),
-            starterCode: lessonData.starterCode,
-            solutionCode: lessonData.solutionCode,
-            testCases: JSON.stringify(lessonData.testCases),
-            hints: JSON.stringify(lessonData.hints),
-            hasCodeExercise: true,
-            isPublished: true,
+            activityType: "interactive_coding",
+            category: lessonData.category,
+            difficulty: lessonData.difficulty,
+            diamondReward: lessonData.diamondReward,
+            experienceReward: lessonData.experienceReward,
+            estimatedMinutes: lessonData.duration,
+            isActive: true,
+            isLocked: false,
+            sortOrder: lessonData.order,
+            tags: JSON.stringify(["python", "coding", "basics"]),
+            settings: JSON.stringify({
+              hasCodeExercise: true,
+              duration: lessonData.duration,
+            }),
           },
         });
-        console.log(`✅ Created code arena: ${lessonData.title}`);
+        console.log(`✅ Created learning activity: ${lessonData.title}`);
       }
     }
 
-    console.log("🎉 Code arena seeding completed successfully!");
+    console.log("🎉 Learning activity seeding completed successfully!");
   } catch (error) {
     console.error("❌ Error seeding code arenas:", error);
   } finally {

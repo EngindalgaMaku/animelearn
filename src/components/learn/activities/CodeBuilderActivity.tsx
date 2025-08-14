@@ -1,26 +1,34 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle, Code, Play, RotateCcw, Trophy } from "lucide-react";
+import { CheckCircle, XCircle, Trophy, Star, Gift, Move } from "lucide-react";
 
-interface Module {
-  name: string;
+interface CodeBlock {
+  id: number;
   code: string;
-  explanation: string;
+  type: string;
 }
 
 interface CodeBuilderContent {
-  project: string;
-  description: string;
-  modules: Module[];
-  testGraph?: { [key: string]: string[] };
+  instructions: string;
+  codeBlocks: CodeBlock[];
+  correctOrder: number[];
+  explanation?: string;
 }
 
 interface LearningActivity {
   id: string;
   title: string;
   description: string;
+  activityType: string;
+  difficulty: number;
+  category: string;
+  diamondReward: number;
+  experienceReward: number;
+  estimatedMinutes: number;
   content: CodeBuilderContent;
+  settings?: any;
+  tags: string[];
 }
 
 interface CodeBuilderActivityProps {
@@ -32,344 +40,396 @@ export default function CodeBuilderActivity({
   activity,
   onComplete,
 }: CodeBuilderActivityProps) {
-  const [currentModule, setCurrentModule] = useState(0);
-  const [completedModules, setCompletedModules] = useState<Set<number>>(
-    new Set()
-  );
-  const [builtCode, setBuiltCode] = useState<string[]>([]);
-  const [showOutput, setShowOutput] = useState(false);
-  const [projectCompleted, setProjectCompleted] = useState(false);
+  const [blocks, setBlocks] = useState<CodeBlock[]>([]);
+  const [arrangedBlocks, setArrangedBlocks] = useState<CodeBlock[]>([]);
+  const [draggedBlock, setDraggedBlock] = useState<CodeBlock | null>(null);
+  const [showResults, setShowResults] = useState(false);
+  const [showRewardAnimation, setShowRewardAnimation] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const { project, description, modules, testGraph } = activity.content;
-
+  // Check authentication status
   useEffect(() => {
-    // Mark project as completed but don't auto-complete activity
-    if (completedModules.size === modules.length && !projectCompleted) {
-      setProjectCompleted(true);
-    }
-  }, [completedModules, modules.length, projectCompleted]);
-
-  const handleManualComplete = () => {
-    const score = 90 + completedModules.size * 2; // High score for completing all modules
-    onComplete(Math.min(100, score), 100, true);
-  };
-
-  const addModule = (moduleIndex: number) => {
-    const module = modules[moduleIndex];
-    setBuiltCode((prev) => [...prev, module.code]);
-    setCompletedModules((prev) => new Set([...prev, moduleIndex]));
-
-    // Move to next module if available
-    if (moduleIndex < modules.length - 1) {
-      setCurrentModule(moduleIndex + 1);
-    }
-  };
-
-  const removeModule = (codeIndex: number) => {
-    setBuiltCode((prev) => prev.filter((_, index) => index !== codeIndex));
-    // Reset completed modules that come after this one
-    const moduleIndex = codeIndex;
-    const newCompleted = new Set([...completedModules]);
-    for (let i = moduleIndex; i < modules.length; i++) {
-      newCompleted.delete(i);
-    }
-    setCompletedModules(newCompleted);
-  };
-
-  const testCode = () => {
-    setShowOutput(true);
-    // Simulate testing the built project
-    setTimeout(() => {
-      // Mark as completed if all modules are included
-      if (builtCode.length === modules.length) {
-        setCompletedModules(new Set(modules.map((_, index) => index)));
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/session");
+        const session = await response.json();
+        setIsAuthenticated(!!session?.user);
+      } catch (error) {
+        const userSession =
+          localStorage.getItem("user") ||
+          sessionStorage.getItem("user") ||
+          localStorage.getItem("next-auth.session-token") ||
+          document.cookie.includes("next-auth.session-token");
+        setIsAuthenticated(!!userSession);
       }
-    }, 1000);
+    };
+    checkAuth();
+  }, []);
+
+  const { instructions, codeBlocks, correctOrder, explanation } =
+    activity.content;
+
+  // Initialize blocks in random order
+  useEffect(() => {
+    const shuffledBlocks = [...codeBlocks].sort(() => Math.random() - 0.5);
+    setBlocks(shuffledBlocks);
+  }, [codeBlocks]);
+
+  const handleDragStart = (block: CodeBlock) => {
+    setDraggedBlock(block);
   };
 
-  const resetProject = () => {
-    setCurrentModule(0);
-    setCompletedModules(new Set());
-    setBuiltCode([]);
-    setShowOutput(false);
-    setProjectCompleted(false);
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
   };
 
-  const simulateOutput = () => {
-    if (testGraph) {
-      return `Graph Traversal Results:
-DFS from A: A B D E F C
-BFS from A: A B C D E F
+  const handleDropToArranged = (e: React.DragEvent, insertIndex?: number) => {
+    e.preventDefault();
+    if (!draggedBlock) return;
 
-Graph structure loaded successfully!
-All nodes visited: ${Object.keys(testGraph).join(", ")}`;
+    // Remove from blocks
+    setBlocks(blocks.filter((b) => b.id !== draggedBlock.id));
+
+    // Add to arranged blocks at specified position
+    if (insertIndex !== undefined) {
+      const newArranged = [...arrangedBlocks];
+      newArranged.splice(insertIndex, 0, draggedBlock);
+      setArrangedBlocks(newArranged);
+    } else {
+      setArrangedBlocks([...arrangedBlocks, draggedBlock]);
     }
 
-    return `Project built successfully!
-All modules integrated correctly.
-Code is ready for execution.`;
+    setDraggedBlock(null);
   };
+
+  const handleDropToBlocks = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!draggedBlock) return;
+
+    // Remove from arranged blocks
+    setArrangedBlocks(arrangedBlocks.filter((b) => b.id !== draggedBlock.id));
+
+    // Add back to blocks
+    setBlocks([...blocks, draggedBlock]);
+
+    setDraggedBlock(null);
+  };
+
+  const moveBlock = (fromIndex: number, toIndex: number) => {
+    const newArranged = [...arrangedBlocks];
+    const [movedBlock] = newArranged.splice(fromIndex, 1);
+    newArranged.splice(toIndex, 0, movedBlock);
+    setArrangedBlocks(newArranged);
+  };
+
+  const checkOrder = () => {
+    setShowResults(true);
+    const userOrder = arrangedBlocks.map((block) => block.id);
+    const correctMatches = userOrder.filter(
+      (id, index) => id === correctOrder[index]
+    ).length;
+    const score = Math.round((correctMatches / correctOrder.length) * 100);
+    const success = score >= 70;
+
+    if (success) {
+      handleActivityCompletion(score);
+    }
+  };
+
+  const handleActivityCompletion = async (score: number) => {
+    if (!isAuthenticated) return;
+
+    const awardedActivities = JSON.parse(
+      localStorage.getItem("awardedActivities") || "[]"
+    );
+    const alreadyAwarded = awardedActivities.includes(activity.id);
+
+    if (!alreadyAwarded) {
+      try {
+        const response = await fetch("/api/learning-activities/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            activityType: "code_builder",
+            activityId: activity.id,
+            activityTitle: activity.title,
+            score: Math.max(70, score),
+            timeSpent: 400,
+            success: true,
+            diamondReward: activity.diamondReward || 50,
+            experienceReward: activity.experienceReward || 75,
+          }),
+        });
+
+        if (response.ok) {
+          setShowRewardAnimation(true);
+          awardedActivities.push(activity.id);
+          localStorage.setItem(
+            "awardedActivities",
+            JSON.stringify(awardedActivities)
+          );
+          setTimeout(() => setShowRewardAnimation(false), 3000);
+        }
+      } catch (error) {
+        console.error("Error awarding rewards:", error);
+      }
+    }
+  };
+
+  const reset = () => {
+    const shuffledBlocks = [...codeBlocks].sort(() => Math.random() - 0.5);
+    setBlocks(shuffledBlocks);
+    setArrangedBlocks([]);
+    setShowResults(false);
+  };
+
+  if (showResults) {
+    const userOrder = arrangedBlocks.map((block) => block.id);
+    const correctMatches = userOrder.filter(
+      (id, index) => id === correctOrder[index]
+    ).length;
+    const score = Math.round((correctMatches / correctOrder.length) * 100);
+    const passed = score >= 70;
+
+    return (
+      <div className="mx-auto max-w-4xl p-6">
+        <div className="text-center">
+          <div
+            className={`mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full ${
+              passed ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
+            }`}
+          >
+            {passed ? (
+              <Trophy className="h-10 w-10" />
+            ) : (
+              <XCircle className="h-10 w-10" />
+            )}
+          </div>
+
+          <h2 className="mb-2 text-3xl font-bold text-gray-900">
+            {passed ? "Code Built Successfully!" : "Keep Building!"}
+          </h2>
+          <p className="mb-8 text-lg text-gray-600">
+            You got {correctMatches} out of {correctOrder.length} blocks in the
+            correct order
+          </p>
+
+          <div className="mb-8 rounded-lg bg-gray-50 p-6">
+            <div className="mb-2 text-4xl font-bold text-gray-900">
+              {score}%
+            </div>
+            <div
+              className={`text-lg font-semibold ${passed ? "text-green-600" : "text-red-600"}`}
+            >
+              {passed ? "Perfect Structure!" : "Review the Code Structure"}
+            </div>
+          </div>
+
+          {explanation && (
+            <div className="mb-8 rounded-lg bg-blue-50 p-6 text-left">
+              <h3 className="mb-4 text-xl font-semibold text-blue-900">
+                Code Explanation
+              </h3>
+              <p className="text-blue-800">{explanation}</p>
+            </div>
+          )}
+
+          <div className="mb-8 space-y-4 text-left">
+            <h3 className="text-xl font-semibold text-gray-900">
+              Correct Order:
+            </h3>
+            <div className="rounded-lg bg-gray-900 p-4">
+              {correctOrder.map((id, index) => {
+                const block = codeBlocks.find((b) => b.id === id);
+                const isCorrect = userOrder[index] === id;
+                return (
+                  <div
+                    key={id}
+                    className={`mb-2 rounded bg-gray-800 p-3 font-mono text-sm ${
+                      isCorrect
+                        ? "border-l-4 border-green-500"
+                        : "border-l-4 border-red-500"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-green-400">{block?.code}</span>
+                      <span
+                        className={`text-xs ${isCorrect ? "text-green-400" : "text-red-400"}`}
+                      >
+                        {isCorrect ? "✓" : "✗"}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={reset}
+              className="rounded-lg border border-gray-300 px-6 py-3 text-gray-700 hover:bg-gray-50"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => onComplete(score, 100, passed)}
+              className="rounded-lg bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700"
+            >
+              Complete Activity
+            </button>
+          </div>
+        </div>
+
+        {/* Reward Animation */}
+        {showRewardAnimation && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="relative rounded-2xl bg-gradient-to-br from-purple-900 via-blue-900 to-purple-900 p-8 text-center shadow-2xl">
+              <h3 className="mb-4 text-3xl font-bold text-white">
+                🎉 Code Master! 🎉
+              </h3>
+              <div className="mb-6 space-y-3">
+                <div className="flex items-center justify-center space-x-3 rounded-lg bg-yellow-500/20 p-3">
+                  <span className="text-xl font-semibold text-yellow-300">
+                    +{activity.diamondReward || 50} Diamonds
+                  </span>
+                </div>
+                <div className="flex items-center justify-center space-x-3 rounded-lg bg-blue-500/20 p-3">
+                  <Star className="h-8 w-8 text-blue-400" />
+                  <span className="text-xl font-semibold text-blue-300">
+                    +{activity.experienceReward || 75} Experience
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-6xl p-6">
-      {/* Header */}
-      <div className="mb-8">
+      <div className="mb-8 text-center">
         <h2 className="mb-4 text-3xl font-bold text-gray-900">
           {activity.title}
         </h2>
-        <p className="mb-6 text-lg text-gray-600">{activity.description}</p>
-
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-          <h3 className="mb-2 font-semibold text-blue-900">
-            Project: {project}
-          </h3>
-          <p className="text-blue-800">{description}</p>
-        </div>
+        <p className="text-lg text-gray-600">{activity.description}</p>
       </div>
 
-      {/* Progress */}
-      <div className="mb-8">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">
-            Project Progress
-          </span>
-          <span className="text-sm text-gray-500">
-            {completedModules.size}/{modules.length} modules built
-          </span>
-        </div>
-        <div className="h-2 w-full rounded-full bg-gray-200">
-          <div
-            className="h-2 rounded-full bg-green-600 transition-all duration-300"
-            style={{
-              width: `${(completedModules.size / modules.length) * 100}%`,
-            }}
-          ></div>
-        </div>
+      <div className="mb-8 rounded-lg bg-blue-50 p-6">
+        <h3 className="mb-4 text-xl font-semibold text-blue-900">
+          Instructions
+        </h3>
+        <p className="text-blue-800">{instructions}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        {/* Left Panel - Module Selection */}
-        <div className="space-y-6">
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">
-              Available Modules
-            </h3>
-
-            <div className="space-y-4">
-              {modules.map((module, index) => (
-                <div
-                  key={index}
-                  className={`rounded-lg border-2 p-4 transition-all ${
-                    completedModules.has(index)
-                      ? "border-green-500 bg-green-50"
-                      : index === currentModule
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 bg-white hover:border-gray-300"
-                  }`}
-                >
-                  <div className="mb-3 flex items-center justify-between">
-                    <h4 className="font-semibold text-gray-900">
-                      {module.name}
-                    </h4>
-                    {completedModules.has(index) ? (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <button
-                        onClick={() => addModule(index)}
-                        disabled={index > currentModule}
-                        className="rounded bg-blue-600 px-3 py-1 text-sm text-white transition-colors hover:bg-blue-700 disabled:bg-gray-400"
-                      >
-                        Add Module
-                      </button>
-                    )}
-                  </div>
-
-                  <p className="mb-3 text-sm text-gray-600">
-                    {module.explanation}
-                  </p>
-
-                  <div className="rounded bg-gray-900 p-3">
-                    <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-xs text-green-300">
-                      {module.code}
-                    </pre>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Panel - Built Project */}
-        <div className="space-y-6">
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Built Project
-              </h3>
-              <div className="flex space-x-2">
-                {builtCode.length > 0 && (
-                  <button
-                    onClick={testCode}
-                    className="flex items-center space-x-2 rounded bg-green-600 px-4 py-2 text-sm text-white transition-colors hover:bg-green-700"
-                  >
-                    <Play className="h-4 w-4" />
-                    <span>Test Code</span>
-                  </button>
-                )}
-                <button
-                  onClick={resetProject}
-                  className="flex items-center space-x-2 rounded bg-gray-600 px-4 py-2 text-sm text-white transition-colors hover:bg-gray-700"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  <span>Reset</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Code Editor */}
-            <div className="min-h-96 overflow-hidden rounded-lg bg-gray-900">
-              <div className="flex items-center space-x-2 border-b border-gray-700 p-4">
-                <Code className="h-5 w-5 text-gray-400" />
-                <span className="text-sm font-medium text-gray-400">
-                  {project}.py
-                </span>
-              </div>
-
-              <div className="p-4">
-                {builtCode.length > 0 ? (
-                  <div className="space-y-4">
-                    {builtCode.map((code, index) => (
-                      <div key={index} className="group relative">
-                        <button
-                          onClick={() => removeModule(index)}
-                          className="absolute -right-2 -top-2 h-6 w-6 rounded-full bg-red-500 text-xs text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
-                        >
-                          ×
-                        </button>
-                        <pre className="whitespace-pre-wrap font-mono text-sm text-green-300">
-                          {code}
-                        </pre>
-                        {index < builtCode.length - 1 && (
-                          <div className="my-4 border-t border-gray-700"></div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="py-12 text-center">
-                    <Code className="mx-auto mb-4 h-12 w-12 text-gray-600" />
-                    <p className="text-gray-400">
-                      Add modules to build your project
-                    </p>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Start with the first module and work your way down
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Output Panel */}
-          {showOutput && (
-            <div className="rounded-lg bg-black p-4">
-              <div className="mb-3 flex items-center space-x-2">
-                <div className="h-2 w-2 rounded-full bg-green-400"></div>
-                <span className="text-sm font-medium text-green-400">
-                  Output
-                </span>
-              </div>
-              <pre className="whitespace-pre-wrap font-mono text-sm text-green-300">
-                {simulateOutput()}
-              </pre>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Module Flow Diagram */}
-      <div className="mt-8 rounded-lg bg-gray-50 p-6">
-        <h3 className="mb-4 text-lg font-semibold text-gray-900">
-          Module Build Order
-        </h3>
-        <div className="flex items-center justify-center space-x-4">
-          {modules.map((module, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
-                  completedModules.has(index)
-                    ? "bg-green-500 text-white"
-                    : index === currentModule
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-300 text-gray-600"
-                }`}
-              >
-                {index + 1}
-              </div>
-              <span
-                className={`text-sm font-medium ${
-                  completedModules.has(index)
-                    ? "text-green-700"
-                    : "text-gray-600"
-                }`}
-              >
-                {module.name}
-              </span>
-              {index < modules.length - 1 && (
-                <div className="h-0.5 w-8 bg-gray-300"></div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Completion Message */}
-      {projectCompleted && (
-        <div className="mt-8 rounded-lg border border-green-200 bg-green-50 p-6 text-center">
-          <div className="mb-4 flex items-center justify-center space-x-2">
-            <Trophy className="h-8 w-8 text-green-600" />
-            <span className="text-2xl font-bold text-green-900">
-              Project Complete!
-            </span>
-          </div>
-          <p className="mb-6 text-green-800">
-            Congratulations! You've successfully built the {project} project by
-            assembling all the required modules.
-          </p>
-          <div className="mb-6 rounded-lg border border-green-200 bg-white p-4">
-            <h4 className="mb-2 font-semibold text-green-900">
-              What you learned:
-            </h4>
-            <ul className="space-y-1 text-sm text-green-800">
-              <li>• How to structure complex code into modular components</li>
-              <li>• The importance of proper code organization</li>
-              <li>
-                • How different modules work together in a complete system
-              </li>
-              <li>
-                • Building projects step-by-step from individual components
-              </li>
-            </ul>
-          </div>
-          <button
-            onClick={handleManualComplete}
-            className="rounded-lg bg-green-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-700"
+        {/* Available Blocks */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">
+            Available Code Blocks
+          </h3>
+          <div
+            className="min-h-40 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4"
+            onDragOver={handleDragOver}
+            onDrop={handleDropToBlocks}
           >
-            🎉 Complete Activity & Claim Rewards
-          </button>
+            {blocks.length === 0 ? (
+              <div className="flex h-32 items-center justify-center text-gray-500">
+                All blocks used! Drop here to return blocks.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {blocks.map((block) => (
+                  <div
+                    key={block.id}
+                    draggable
+                    onDragStart={() => handleDragStart(block)}
+                    className="cursor-move rounded-lg bg-white p-3 shadow-sm transition-all hover:shadow-md"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Move className="h-4 w-4 text-gray-400" />
+                      <code className="text-sm text-gray-800">
+                        {block.code}
+                      </code>
+                    </div>
+                    <div className="mt-1 text-xs text-gray-500">
+                      {block.type}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      )}
 
-      {/* Instructions */}
-      <div className="mt-8 rounded-lg border border-blue-200 bg-blue-50 p-4">
-        <h3 className="mb-2 font-semibold text-blue-900">🏗️ How to Build:</h3>
-        <ul className="space-y-1 text-sm text-blue-800">
-          <li>• Add modules in the recommended order for best results</li>
-          <li>• Read each module's explanation to understand its purpose</li>
-          <li>• Test your code after adding modules to see it in action</li>
-          <li>• Remove modules if you want to try a different approach</li>
-          <li>• Complete all modules to finish the project</li>
-        </ul>
+        {/* Code Construction Area */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">
+            Build Your Code
+          </h3>
+          <div
+            className="min-h-40 rounded-lg border-2 border-dashed border-blue-300 bg-blue-50 p-4"
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDropToArranged(e)}
+          >
+            {arrangedBlocks.length === 0 ? (
+              <div className="flex h-32 items-center justify-center text-blue-600">
+                Drag code blocks here to build your program
+              </div>
+            ) : (
+              <div className="rounded-lg bg-gray-900 p-4">
+                {arrangedBlocks.map((block, index) => (
+                  <div key={`${block.id}-${index}`} className="group relative">
+                    <div
+                      draggable
+                      onDragStart={() => handleDragStart(block)}
+                      className="mb-2 cursor-move rounded bg-gray-800 p-3 transition-all hover:bg-gray-700"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <span className="text-xs text-gray-400">
+                          {index + 1}.
+                        </span>
+                        <code className="text-sm text-green-400">
+                          {block.code}
+                        </code>
+                      </div>
+                    </div>
+
+                    {/* Drop zone between blocks */}
+                    <div
+                      className="absolute -bottom-1 left-0 right-0 h-2 opacity-0 hover:opacity-100"
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDropToArranged(e, index + 1)}
+                    >
+                      <div className="h-1 rounded bg-blue-400"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8 text-center">
+        <div className="mb-4 text-sm text-gray-600">
+          Progress: {arrangedBlocks.length}/{codeBlocks.length} blocks placed
+        </div>
+        <button
+          onClick={checkOrder}
+          disabled={arrangedBlocks.length !== codeBlocks.length}
+          className="mr-4 rounded-lg bg-green-600 px-8 py-3 text-lg font-bold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Check Code Structure
+        </button>
+        <button
+          onClick={reset}
+          className="rounded-lg border border-gray-300 px-6 py-3 text-gray-700 hover:bg-gray-50"
+        >
+          Reset
+        </button>
       </div>
     </div>
   );

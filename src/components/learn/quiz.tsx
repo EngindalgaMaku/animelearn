@@ -196,7 +196,16 @@ export default function QuizComponent({
     } catch (error) {
       console.error("Error submitting quiz:", error);
     }
-  }, [quiz, quizStartTime, timeLeft, answers, currentQuestion, quizStorageKey, lessonId, onQuizComplete]);
+  }, [
+    quiz,
+    quizStartTime,
+    timeLeft,
+    answers,
+    currentQuestion,
+    quizStorageKey,
+    lessonId,
+    onQuizComplete,
+  ]);
 
   // Handle page visibility changes (tab switching)
   useEffect(() => {
@@ -225,7 +234,13 @@ export default function QuizComponent({
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [quizStarted, quizCompleted, quizStartTime, quiz?.timeLimit, handleSubmitQuiz]);
+  }, [
+    quizStarted,
+    quizCompleted,
+    quizStartTime,
+    quiz?.timeLimit,
+    handleSubmitQuiz,
+  ]);
 
   // Timer countdown - now uses real elapsed time
   useEffect(() => {
@@ -252,7 +267,14 @@ export default function QuizComponent({
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [timeLeft, quizStarted, quizCompleted, quizStartTime, quiz?.timeLimit, handleSubmitQuiz]);
+  }, [
+    timeLeft,
+    quizStarted,
+    quizCompleted,
+    quizStartTime,
+    quiz?.timeLimit,
+    handleSubmitQuiz,
+  ]);
 
   // Safety check for quiz object and questions - now after all hooks
   if (!quiz || !quiz.questions || quiz.questions.length === 0) {
@@ -392,7 +414,6 @@ export default function QuizComponent({
             className="mx-auto flex items-center gap-2 rounded-lg bg-yellow-600 px-8 py-3 font-medium text-white hover:bg-yellow-700"
           >
             <Award className="h-5 w-5" />
-            Start Quiz
           </button>
         </div>
       </div>
