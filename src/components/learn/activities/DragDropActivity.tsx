@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   CheckCircle,
   RotateCcw,
@@ -26,7 +26,7 @@ interface ClassifyItem {
 }
 
 interface ClassifyCategory {
-  id: string;
+  id: string | number;
   name: string;
   description?: string;
 }
@@ -179,6 +179,194 @@ export default function DragDropActivity({
     ClassifyCategory[]
   >([]);
 
+  // TOUCH/POINTER FALLBACK SUPPORT
+  // Detect touch-capable devices
+  const isTouchDevice = useMemo(
+    () =>
+      typeof window !== "undefined" &&
+      ("ontouchstart" in window || (navigator as any)?.maxTouchPoints > 0),
+    []
+  );
+
+  // Refs for hit-testing drop zones (order mode)
+  const availableBlocksRef = useRef<HTMLDivElement | null>(null);
+  const droppedBlocksRef = useRef<HTMLDivElement | null>(null);
+
+  // Refs for classification mode containers
+  const availableItemsRef = useRef<HTMLDivElement | null>(null);
+  const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const setCategoryRef = (id: string | number, el: HTMLDivElement | null) => {
+    categoryRefs.current[String(id)] = el;
+  };
+
+  // Drag overlay for touch
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+  const createOverlay = (text: string) => {
+    try {
+      const overlay = document.createElement("div");
+      overlay.style.position = "fixed";
+      overlay.style.left = "0";
+      overlay.style.top = "0";
+      overlay.style.transform = "translate(-9999px, -9999px)";
+      overlay.style.zIndex = "9999";
+      overlay.style.pointerEvents = "none";
+      overlay.style.padding = "8px 12px";
+      overlay.style.background = "rgba(255,255,255,0.98)";
+      overlay.style.border = "2px solid #3b82f6";
+      overlay.style.borderRadius = "8px";
+      overlay.style.boxShadow = "0 10px 25px rgba(0,0,0,0.15)";
+      overlay.style.fontFamily =
+        "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace";
+      overlay.style.fontSize = "12px";
+      overlay.style.color = "#0f172a";
+      overlay.style.whiteSpace = "pre-wrap";
+      overlay.style.maxWidth = "70vw";
+      overlay.textContent = text || "";
+      document.body.appendChild(overlay);
+      overlayRef.current = overlay;
+    } catch {
+      // ignore
+    }
+  };
+  const moveOverlay = (clientX: number, clientY: number) => {
+    const ov = overlayRef.current;
+    if (!ov) return;
+    const x = clientX + 12;
+    const y = clientY + 12;
+    ov.style.transform = `translate(${Math.max(0, x)}px, ${Math.max(0, y)}px)`;
+  };
+  const cleanupOverlay = () => {
+    const ov = overlayRef.current;
+    if (ov && ov.parentNode) {
+      ov.parentNode.removeChild(ov);
+    }
+    overlayRef.current = null;
+  };
+  const pointIn = (el: HTMLElement | null, x: number, y: number) => {
+    if (!el) return false;
+    const r = el.getBoundingClientRect();
+    return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+  };
+
+  // Touch drag starters (order mode)
+  const startTouchDragOrder = (ev: React.PointerEvent, block: DraggedBlock) => {
+    // Only handle touch/pen; ignore mouse
+    // @ts-ignore
+    const pType = (ev as any).pointerType;
+    if (pType === "mouse" || submitted) return;
+    ev.preventDefault();
+
+    createOverlay(block.code || "");
+
+    const onMove = (e: PointerEvent) => {
+      moveOverlay(e.clientX, e.clientY);
+    };
+    const onUp = (e: PointerEvent) => {
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp, true);
+
+      const x = e.clientX;
+      const y = e.clientY;
+
+      const overDropped = pointIn(droppedBlocksRef.current, x, y);
+      const overAvailable = pointIn(availableBlocksRef.current, x, y);
+
+      if (overDropped) {
+        // Move into dropped
+        setDroppedBlocks((prev) => {
+          if (prev.some((it) => it.id === block.id)) return prev;
+          return [...prev, { ...block, isPlaced: true }];
+        });
+        setAvailableBlocks((prev) => prev.filter((it) => it.id !== block.id));
+      } else if (overAvailable) {
+        // Move back to available
+        setAvailableBlocks((prev) => {
+          if (prev.some((it) => it.id === block.id)) return prev;
+          return [...prev, { ...block, isPlaced: false }];
+        });
+        setDroppedBlocks((prev) => prev.filter((it) => it.id !== block.id));
+      }
+
+      cleanupOverlay();
+    };
+
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp, true);
+  };
+
+  // Touch drag starters (classification mode)
+  const startTouchDragClassify = (
+    ev: React.PointerEvent,
+    item: ClassifyItem
+  ) => {
+    // Only handle touch/pen; ignore mouse
+    // @ts-ignore
+    const pType = (ev as any).pointerType;
+    if (pType === "mouse" || submitted) return;
+    ev.preventDefault();
+
+    createOverlay(item.value || "");
+
+    const onMove = (e: PointerEvent) => {
+      moveOverlay(e.clientX, e.clientY);
+    };
+    const onUp = (e: PointerEvent) => {
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp, true);
+
+      const x = e.clientX;
+      const y = e.clientY;
+
+      // Check category buckets
+      let droppedToCategory: string | null = null;
+      const entries = Object.entries(categoryRefs.current);
+      for (const [cid, el] of entries) {
+        if (pointIn(el, x, y)) {
+          droppedToCategory = cid;
+          break;
+        }
+      }
+
+      if (droppedToCategory) {
+        const categoryId = droppedToCategory;
+        // Same logic as handleClassifyDropToCategory, without DragEvent
+        setCategoryMap((prev) => {
+          const newMap: Record<string, ClassifyItem[]> = {};
+          // Remove from all categories first
+          Object.keys(prev).forEach((cid) => {
+            newMap[cid] = prev[cid].filter((it) => it.id !== item.id);
+          });
+          // Add to target category
+          if (!newMap[categoryId]) newMap[categoryId] = [];
+          if (!newMap[categoryId].some((it) => it.id === item.id)) {
+            newMap[categoryId].push(item);
+          }
+          return newMap;
+        });
+        // Remove from available
+        setAvailableItems((prev) => prev.filter((it) => it.id !== item.id));
+      } else if (pointIn(availableItemsRef.current, x, y)) {
+        // Return to pool (same as handleClassifyDropToPool)
+        setCategoryMap((prev) => {
+          const newMap: Record<string, ClassifyItem[]> = {};
+          Object.keys(prev).forEach((cid) => {
+            newMap[cid] = prev[cid].filter((it) => it.id !== item.id);
+          });
+          return newMap;
+        });
+        setAvailableItems((prev) => {
+          if (prev.some((it) => it.id === item.id)) return prev;
+          return [...prev, item].sort((a, b) => a.id - b.id);
+        });
+      }
+
+      cleanupOverlay();
+    };
+
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp, true);
+  };
+
   // Check authentication status on component mount
   useEffect(() => {
     const checkAuth = async () => {
@@ -247,19 +435,7 @@ export default function DragDropActivity({
         // Remove any already placed if re-init
         setCategoryMap(map);
         setAvailableItems(shuffleArray(validItems));
-        // Randomize category order for this session
-        setShuffledCategories(
-          shuffleArray(
-            (categories as ClassifyCategory[]).map((c) => ({ ...c }))
-          )
-        );
-        // Randomize category order for this session
-        setShuffledCategories(
-          shuffleArray(
-            (categories as ClassifyCategory[]).map((c) => ({ ...c }))
-          )
-        );
-        // Randomize category order too
+        // Randomize category order for this session (keep only once)
         setShuffledCategories(
           shuffleArray(
             (categories as ClassifyCategory[]).map((c) => ({ ...c }))
@@ -731,6 +907,7 @@ export default function DragDropActivity({
               </div>
 
               <div
+                ref={availableItemsRef}
                 className="max-h-[60vh] min-h-40 overflow-auto rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4"
                 onDragOver={handleDragOver}
                 onDrop={handleClassifyDropToPool}
@@ -742,6 +919,11 @@ export default function DragDropActivity({
                         key={it.id}
                         draggable={!submitted}
                         onDragStart={(e) => handleClassifyDragStart(e, it)}
+                        onPointerDown={(e) =>
+                          isTouchDevice
+                            ? startTouchDragClassify(e, it)
+                            : undefined
+                        }
                         className={`cursor-move rounded-lg border-2 border-slate-300 bg-white p-3 transition-all hover:shadow-md ${
                           submitted ? "cursor-not-allowed opacity-50" : ""
                         }`}
@@ -790,6 +972,7 @@ export default function DragDropActivity({
                         )}
                       </div>
                       <div
+                        ref={(el) => setCategoryRef(cat.id, el)}
                         className={`max-h-[40vh] min-h-36 overflow-auto rounded-lg border-2 border-dashed p-3 transition-colors ${
                           submitted
                             ? "border-slate-300 bg-slate-50"
@@ -808,6 +991,11 @@ export default function DragDropActivity({
                                 draggable={!submitted}
                                 onDragStart={(e) =>
                                   handleClassifyDragStart(e, it)
+                                }
+                                onPointerDown={(e) =>
+                                  isTouchDevice
+                                    ? startTouchDragClassify(e, it)
+                                    : undefined
                                 }
                                 className="flex items-center justify-between rounded-lg border-2 border-slate-300 bg-white p-2"
                               >
@@ -980,6 +1168,7 @@ export default function DragDropActivity({
             </div>
 
             <div
+              ref={availableBlocksRef}
               className="max-h-[60vh] min-h-40 overflow-auto rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, "available")}
@@ -990,6 +1179,9 @@ export default function DragDropActivity({
                     key={block.id}
                     draggable={!submitted}
                     onDragStart={(e) => handleDragStart(e, block)}
+                    onPointerDown={(e) =>
+                      isTouchDevice ? startTouchDragOrder(e, block) : undefined
+                    }
                     className={`cursor-move rounded-lg border-2 p-3 transition-all hover:shadow-md ${getBlockTypeColor(
                       block.type
                     )} ${submitted ? "cursor-not-allowed opacity-50" : ""}`}
@@ -1033,6 +1225,7 @@ export default function DragDropActivity({
               Program Structure
             </h3>
             <div
+              ref={droppedBlocksRef}
               className={`max-h-[60vh] min-h-96 overflow-auto rounded-lg border-2 border-dashed p-4 transition-colors ${
                 isCorrectOrder
                   ? "border-green-500 bg-green-50"
@@ -1049,6 +1242,11 @@ export default function DragDropActivity({
                     <div
                       draggable={!submitted}
                       onDragStart={(e) => handleDragStart(e, block)}
+                      onPointerDown={(e) =>
+                        isTouchDevice
+                          ? startTouchDragOrder(e, block)
+                          : undefined
+                      }
                       className={`rounded-lg border-2 p-3 transition-all ${getBlockTypeColor(
                         block.type
                       )} ${

@@ -53,6 +53,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:seed-lessons": "tsx prisma/seed-lessons.ts",
     "db:seed-enhanced": "tsx prisma/enhanced-lessons-seed.ts",
+    "db:seed-algorithms-core": "tsx prisma/seeds/activities/algorithm-visualization-core-algorithms.ts",
     "create-test-user": "tsx scripts/create-test-user.ts",
     "create-admin": "tsx scripts/create-admin.ts",
     "test-apis": "tsx scripts/test-apis.ts",

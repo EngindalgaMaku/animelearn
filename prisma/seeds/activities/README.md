@@ -63,3 +63,39 @@ npx tsx prisma/seeds/activities/python-basics.ts
 - Her aktivite kategorisi için ayrı dosya oluşturun
 - `index.ts` dosyasına yeni kategorileri export edin
 - Aktivite içerikleri JSON formatında saklanır
+
+---
+
+## Algorithm Visualization — Core Algorithms (EN)
+
+A curated set of 30 most-used algorithms are provided as "algorithm_visualization" activities.
+
+- Seed file: `prisma/seeds/activities/algorithm-visualization-core-algorithms.ts`
+- Function: seed runner [seedAlgorithmVisualizationCoreAlgorithmsActivities()](prisma/seeds/activities/algorithm-visualization-core-algorithms.ts:836)
+- Integrated in main seeder [prisma/seed.ts](prisma/seed.ts:1) and runs automatically on `npm run db:seed`
+
+### Run only the 30 core algorithm visualizations
+
+```bash
+# Using npm script
+npm run db:seed-algorithms-core
+
+# Or directly with tsx
+npx tsx prisma/seeds/activities/algorithm-visualization-core-algorithms.ts
+```
+
+### Included algorithms (30)
+
+- Searching: Linear Search, Binary Search
+- Sorting: Selection, Insertion, Merge, Quick, Heap, Counting, Radix, Bucket
+- Graphs: BFS, DFS, Dijkstra, Bellman–Ford, Floyd–Warshall, Kruskal (MST), Prim (MST), Topological Sort (Kahn)
+- Data structures/algorithms: Union-Find (Disjoint Set), Trie, BST operations (insert/search/delete), AVL rotations, Hash Table operations
+- Greedy & DP: Activity Selection, 0/1 Knapsack, Coin Change (min coins), LCS, LIS
+
+Each activity:
+
+- activityType: `"algorithm_visualization"`
+- category: `"Algorithms"`
+- difficulty: 1–5 (diamond ≈ difficulty×10, XP ≈ difficulty×20)
+- content includes algorithm metadata, steps, optional visualizations, and code excerpt
+- idempotent seeding with duplicate protection via [seedActivitiesWithDuplicateCheck()](prisma/seeds/activities/seed-utils.ts:114)

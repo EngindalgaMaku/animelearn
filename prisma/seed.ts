@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { seedLearningActivities } from "./seeds/learning-activities";
 import { seedCards } from "./seeds/cards";
 import { seedPythonFundamentals } from "./seeds/python-fundamentals";
+import { seedAlgorithmVisualizationCoreAlgorithmsActivities } from "./seeds/activities/algorithm-visualization-core-algorithms";
 
 const prisma = new PrismaClient();
 
@@ -863,6 +864,10 @@ async function main() {
   // Seed comprehensive learning activities
   console.log("🎮 Seeding comprehensive learning activities...");
   await seedLearningActivities();
+
+  // Seed core Algorithm Visualization activities (30 most-used algorithms)
+  console.log("🧠 Seeding core algorithm visualizations (30)...");
+  await seedAlgorithmVisualizationCoreAlgorithmsActivities();
 
   // Seed Python fundamentals challenges (Code Arena)
   console.log("🐍 Seeding Python fundamentals challenges for Code Arena...");

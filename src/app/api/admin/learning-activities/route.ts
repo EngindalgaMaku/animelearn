@@ -86,10 +86,28 @@ export async function GET(request: NextRequest) {
         tags = [];
       }
 
+      // content/settings güvenli parse
+      let parsedContent: any = null;
+      try {
+        parsedContent = JSON.parse(activity.content as any);
+      } catch (_e) {
+        // Legacy kayıtlar düz metin (örn. Markdown) olabilir
+        parsedContent = activity.content;
+      }
+
+      let parsedSettings: any = null;
+      if (activity.settings) {
+        try {
+          parsedSettings = JSON.parse(activity.settings as any);
+        } catch (_e) {
+          parsedSettings = activity.settings;
+        }
+      }
+
       return {
         ...activity,
-        content: JSON.parse(activity.content),
-        settings: activity.settings ? JSON.parse(activity.settings) : null,
+        content: parsedContent,
+        settings: parsedSettings,
         tags: Array.isArray(tags) ? tags : [],
         attemptsCount: activity._count.attempts,
       };
