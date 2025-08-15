@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { seedActivitiesWithDuplicateCheck, prisma } from "./seed-utils";
 
 /**
  * Memory Game Activities for Python Fundamentals
@@ -497,34 +495,9 @@ export const memoryGamePythonFundamentalsActivities = [
 ];
 
 export async function seedMemoryGamePythonFundamentalsActivities() {
-  console.log("🧠 Seeding Memory Game Python Fundamentals activities...");
-
-  if (memoryGamePythonFundamentalsActivities.length === 0) {
-    console.log("📝 No Memory Game Python Fundamentals activities to seed");
-    return;
-  }
-
-  for (const activity of memoryGamePythonFundamentalsActivities) {
-    await prisma.learningActivity.create({
-      data: {
-        title: activity.title,
-        description: activity.description,
-        activityType: activity.activityType,
-        category: activity.category,
-        difficulty: activity.difficulty,
-        diamondReward: activity.diamondReward,
-        experienceReward: activity.experienceReward,
-        estimatedMinutes: activity.estimatedMinutes,
-        content: JSON.stringify(activity.content),
-        tags: JSON.stringify(activity.tags),
-        isActive: activity.isActive,
-        sortOrder: activity.sortOrder,
-      },
-    });
-  }
-
-  console.log(
-    `✅ ${memoryGamePythonFundamentalsActivities.length} Memory Game Python Fundamentals activities seeded successfully`
+  await seedActivitiesWithDuplicateCheck(
+    memoryGamePythonFundamentalsActivities,
+    "Memory Game Python Fundamentals"
   );
 }
 

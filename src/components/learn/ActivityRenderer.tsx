@@ -267,20 +267,48 @@ export default function ActivityRenderer({
           }
           break;
 
-        case "memory_game":
-          const { cards } = content || {};
-          if (!cards || !Array.isArray(cards)) {
-            return "Memory game missing cards array";
+        case "memory_game": {
+          const { cards, pairs } = content || {};
+          const hasCards = Array.isArray(cards);
+          const hasPairs = Array.isArray(pairs);
+
+          if (!hasCards && !hasPairs) {
+            return "Memory game missing cards or pairs array";
           }
-          if (cards.length === 0) {
+
+          if (hasCards && cards.length === 0) {
             return "Memory game has no cards";
           }
-          for (const card of cards) {
-            if (!card || (!card.content && !card.text)) {
-              return "Memory game cards missing content";
+          if (hasPairs && pairs.length === 0) {
+            return "Memory game has no pairs";
+          }
+
+          // Validate cards-based schema
+          if (hasCards) {
+            for (const card of cards) {
+              if (
+                !card ||
+                (!card.content && !card.text && !card.front && !card.back)
+              ) {
+                return "Memory game cards missing content";
+              }
+            }
+          }
+
+          // Validate pairs-based schema (backward compatible with seeds)
+          if (hasPairs) {
+            for (const p of pairs) {
+              if (
+                !p ||
+                p.id === undefined ||
+                (p.card1 === undefined && p.card2 === undefined)
+              ) {
+                return "Memory game pairs missing required fields (id, card1, card2)";
+              }
             }
           }
           break;
+        }
 
         case "matching":
           const { pairs } = content || {};
@@ -297,20 +325,10 @@ export default function ActivityRenderer({
           }
           break;
 
-        case "fill_blanks":
-          const { blanks, codeTemplate } = content || {};
-          if (!blanks || !Array.isArray(blanks) || !codeTemplate) {
-            return "Fill blanks activity missing blanks array or code template";
-          }
-          if (blanks.length === 0) {
-            return "Fill blanks activity has no blanks";
-          }
-          for (const blank of blanks) {
-            if (!blank || blank.id === undefined || !blank.correctAnswer) {
-              return "Fill blanks missing required fields (id, correctAnswer)";
-            }
-          }
-          break;
+        case "fill_blanks": {
+          // Allow Fill Blanks to render; the component normalizes schema variants safely
+          return null;
+        }
 
         case "interactive_coding":
           const { starterCode, instructions, testCases } = content || {};
@@ -322,96 +340,131 @@ export default function ActivityRenderer({
           }
           break;
 
-        case "algorithm_visualization":
-          const { steps, algorithm } = content || {};
-          if (!steps || !Array.isArray(steps) || !algorithm) {
-            return "Algorithm visualization missing steps or algorithm name";
+        case "algorithm_visualization": {
+          // Accept both top-level steps and nested algorithm.steps schemas
+          const stepsTop = (content as any)?.steps;
+          const stepsNested = (content as any)?.algorithm?.steps;
+          const hasAnySteps =
+            Array.isArray(stepsTop) || Array.isArray(stepsNested);
+          if (!hasAnySteps) {
+            return "Algorithm visualization missing steps";
           }
-          if (steps.length === 0) {
-            return "Algorithm visualization has no steps";
+          // Do not enforce algorithm string or per-step data shape here; the component normalizes safely
+          break;
+        }
+
+        case "code_builder": {
+          // Accept either classic schema (codeBlocks + correctOrder) or seed schema (availableBlocks + solution)
+          const { codeBlocks, correctOrder, availableBlocks, solution } =
+            (content as any) || {};
+          const hasClassic =
+            Array.isArray(codeBlocks) && Array.isArray(correctOrder);
+          const hasSeedVariant =
+            Array.isArray(availableBlocks) && Array.isArray(solution);
+          if (!hasClassic && !hasSeedVariant) {
+            return "Code builder missing blocks/order";
           }
-          for (const step of steps) {
-            if (!step || !step.data || !Array.isArray(step.data)) {
-              return "Algorithm visualization step missing data array";
-            }
+          // Let the component normalize shapes; avoid strict blocking here
+          break;
+        }
+
+        case "class_builder": {
+          const {
+            classTemplate,
+            className,
+            requiredProperties,
+            requiredMethods,
+            availableProperties,
+            availableMethods,
+          } = content || {};
+
+          const hasTemplate =
+            classTemplate &&
+            Array.isArray(classTemplate.attributes) &&
+            Array.isArray(classTemplate.methods);
+
+          const hasSeedVariant =
+            typeof className === "string" &&
+            (Array.isArray(requiredMethods) ||
+              Array.isArray(availableMethods) ||
+              Array.isArray(requiredProperties) ||
+              Array.isArray(availableProperties));
+
+          if (!hasTemplate && !hasSeedVariant) {
+            return "Class builder must include classTemplate with attributes/methods OR seed-style fields (className plus required/available arrays)";
           }
           break;
+        }
 
-        case "code_builder":
-          const { codeBlocks, correctOrder: builderCorrectOrder } =
-            content || {};
-          if (
-            !codeBlocks ||
-            !builderCorrectOrder ||
-            !Array.isArray(codeBlocks) ||
-            !Array.isArray(builderCorrectOrder)
-          ) {
-            return "Code builder missing code blocks or correct order";
-          }
-          if (codeBlocks.length === 0 || builderCorrectOrder.length === 0) {
-            return "Code builder has empty code blocks or correct order";
-          }
-          for (const block of codeBlocks) {
-            if (!block || block.id === undefined || !block.code) {
-              return "Code builder blocks missing required fields (id, code)";
-            }
-          }
-          break;
-
-        case "class_builder":
-          const { classTemplate } = content || {};
-          if (
-            !classTemplate ||
-            !classTemplate.attributes ||
-            !classTemplate.methods ||
-            !Array.isArray(classTemplate.attributes) ||
-            !Array.isArray(classTemplate.methods)
-          ) {
-            return "Class builder missing class template or attributes/methods arrays";
-          }
-          break;
-
-        case "interactive_demo":
+        case "interactive_demo": {
           const { steps: demoSteps } = content || {};
-          if (!demoSteps || !Array.isArray(demoSteps)) {
+          if (!Array.isArray(demoSteps)) {
             return "Interactive demo missing steps array";
           }
           if (demoSteps.length === 0) {
             return "Interactive demo has no steps";
           }
+          // Accept steps that provide either 'content' or 'description' (seed schema)
           for (const step of demoSteps) {
-            if (!step || !step.content) {
-              return "Interactive demo step missing content";
+            const hasText =
+              step &&
+              (typeof step.content === "string"
+                ? step.content.trim() !== ""
+                : false || typeof step.description === "string"
+                  ? step.description.trim() !== ""
+                  : false);
+            if (!hasText) {
+              return "Interactive demo step missing content or description";
             }
           }
           break;
+        }
 
-        case "data_exploration":
-          const { dataset, tasks } = content || {};
-          if (!dataset || !tasks || !Array.isArray(tasks)) {
-            return "Data exploration missing dataset or tasks";
+        case "data_exploration": {
+          const { dataset, tasks, questions } = content || {};
+
+          // Accept either:
+          // 1) Structured schema: { dataset: { columns: [], data: [] }, tasks: [] }
+          // 2) Seed schema: { dataset: Array<object records>, questions: [] }
+          const hasStructured =
+            dataset &&
+            Array.isArray((dataset as any)?.columns) &&
+            Array.isArray((dataset as any)?.data) &&
+            Array.isArray(tasks);
+
+          const hasSeedVariant =
+            Array.isArray(dataset) && Array.isArray(questions);
+
+          if (!hasStructured && !hasSeedVariant) {
+            return "Data exploration must include structured dataset+tasks OR seed-style dataset array + questions";
           }
-          if (!dataset.data || !Array.isArray(dataset.data)) {
-            return "Data exploration dataset missing data array";
-          }
-          if (!dataset.columns || !Array.isArray(dataset.columns)) {
-            return "Data exploration dataset missing columns array";
-          }
-          if (tasks.length === 0) {
-            return "Data exploration has no tasks";
-          }
-          if (dataset.data.length === 0) {
-            return "Data exploration dataset is empty";
-          }
-          if (dataset.columns.length === 0) {
-            return "Data exploration dataset has no columns";
-          }
-          for (const task of tasks) {
-            if (!task || !task.task || task.points === undefined) {
-              return "Data exploration task missing required fields (task, points)";
+
+          if (hasStructured) {
+            if ((dataset as any).data.length === 0) {
+              return "Data exploration dataset is empty";
+            }
+            if ((dataset as any).columns.length === 0) {
+              return "Data exploration dataset has no columns";
+            }
+            if (!Array.isArray(tasks) || tasks.length === 0) {
+              return "Data exploration has no tasks";
+            }
+            for (const task of tasks as any[]) {
+              if (!task || !task.task || task.points === undefined) {
+                return "Data exploration task missing required fields (task, points)";
+              }
+            }
+          } else if (hasSeedVariant) {
+            // Minimal checks for seed variant
+            if ((dataset as any[]).length === 0) {
+              return "Data exploration dataset (seed) is empty";
+            }
+            if (!(questions as any[]).length) {
+              return "Data exploration (seed) has no questions";
             }
           }
           break;
+        }
 
         default:
           return null; // Unknown activity type, let it be handled by the component

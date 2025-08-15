@@ -1,21 +1,49 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { CheckCircle, XCircle, Trophy, Star, Gift } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import {
+  CheckCircle,
+  XCircle,
+  Trophy,
+  Star,
+  Gift,
+  RefreshCw,
+} from "lucide-react";
+
+type BlankId = string | number;
 
 interface Blank {
-  id: number;
+  id: BlankId;
   answer: string;
   hint?: string;
   alternatives?: string[];
+  position?: number; // some seeds provide ordering for replacement
 }
 
-interface FillBlanksContent {
-  instructions: string;
-  codeTemplate: string;
+interface Exercise {
+  id: string | number;
+  description?: string;
+  template?: string;
   blanks: Blank[];
+  expectedOutput?: string;
+}
+
+interface FillBlanksContentSingle {
+  instructions?: string;
+  codeTemplate?: string;
+  template?: string;
+  code?: string;
+  blanks?: Blank[];
   explanation?: string;
 }
+
+interface FillBlanksContentMulti {
+  instructions?: string;
+  exercises: Exercise[];
+  explanation?: string;
+}
+
+type FillBlanksContent = FillBlanksContentSingle | FillBlanksContentMulti;
 
 interface LearningActivity {
   id: string;
@@ -41,12 +69,9 @@ export default function FillBlanksActivity({
   activity,
   onComplete,
 }: FillBlanksActivityProps) {
-  const [answers, setAnswers] = useState<{ [key: number]: string }>({});
-  const [showResults, setShowResults] = useState(false);
-  const [showRewardAnimation, setShowRewardAnimation] = useState(false);
+  // Authentication state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check authentication status
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -65,37 +90,260 @@ export default function FillBlanksActivity({
     checkAuth();
   }, []);
 
-  const { instructions, codeTemplate, blanks, explanation } = activity.content;
+  // Normalize content for both single-template and multi-exercise schemas
+  const raw: any = activity?.content ?? {};
 
-  const handleAnswerChange = (blankId: number, value: string) => {
-    setAnswers({
-      ...answers,
-      [blankId]: value,
+  const instructions: string =
+    typeof raw.instructions === "string" && raw.instructions.trim() !== ""
+      ? raw.instructions
+      : "Fill in the blanks to complete the code";
+
+  const explanation: string | undefined =
+    typeof raw.explanation === "string" ? raw.explanation : undefined;
+
+  // Build exercises[] in a normalized form
+  const exercises: Exercise[] = useMemo(() => {
+    // Multi-exercise schema: content.exercises[]
+    if (Array.isArray(raw.exercises)) {
+      return (
+        raw.exercises
+          .map((ex: any, idx: number) => {
+            const id = ex?.id ?? idx + 1;
+            const template: string | undefined =
+              typeof ex?.template === "string" ? ex.template : undefined;
+
+            const blanks: Blank[] = Array.isArray(ex?.blanks)
+              ? ex.blanks
+                  .map((b: any, bi: number) => {
+                    const bid: BlankId =
+                      b?.id !== undefined ? String(b.id) : String(bi + 1);
+                    const answerStr = String(
+                      b?.answer ?? b?.correctAnswer ?? ""
+                    ).trim();
+                    return {
+                      id: bid,
+                      answer: answerStr,
+                      hint: typeof b?.hint === "string" ? b.hint : undefined,
+                      alternatives: Array.isArray(b?.alternatives)
+                        ? b.alternatives.map((a: any) => String(a))
+                        : [],
+                      position:
+                        typeof b?.position === "number" &&
+                        !Number.isNaN(b.position)
+                          ? b.position
+                          : undefined,
+                    } as Blank;
+                  })
+                  // Sort by position if provided
+                  .sort((a: Blank, b: Blank) => {
+                    const ap = a.position ?? 1e9;
+                    const bp = b.position ?? 1e9;
+                    return ap - bp;
+                  })
+              : [];
+
+            return {
+              id,
+              description:
+                typeof ex?.description === "string"
+                  ? ex.description
+                  : undefined,
+              template,
+              blanks,
+              expectedOutput:
+                typeof ex?.expectedOutput === "string"
+                  ? ex.expectedOutput
+                  : undefined,
+            } as Exercise;
+          })
+          // Filter out exercises with no blanks and no template to avoid empty renders
+          .filter(
+            (ex: Exercise) =>
+              (ex.template && ex.template.trim()) || ex.blanks.length > 0
+          )
+      );
+    }
+
+    // Single-template schema: content.{codeTemplate|template|code} + content.blanks[]
+    const singleTemplate: string = (raw.codeTemplate ??
+      raw.template ??
+      raw.code ??
+      "") as string;
+
+    const singleBlanks: Blank[] = Array.isArray(raw.blanks)
+      ? raw.blanks.map((b: any, bi: number) => {
+          const bid: BlankId =
+            b?.id !== undefined
+              ? typeof b.id === "string"
+                ? b.id
+                : Number(b.id)
+              : bi + 1;
+          const answerStr = String(b?.answer ?? b?.correctAnswer ?? "").trim();
+          return {
+            id: bid,
+            answer: answerStr,
+            hint: typeof b?.hint === "string" ? b.hint : undefined,
+            alternatives: Array.isArray(b?.alternatives)
+              ? b.alternatives.map((a: any) => String(a))
+              : [],
+            position:
+              typeof b?.position === "number" && !Number.isNaN(b.position)
+                ? b.position
+                : undefined,
+          } as Blank;
+        })
+      : [];
+
+    if (!singleTemplate && singleBlanks.length === 0) {
+      // Nothing usable
+      return [];
+    }
+
+    return [
+      {
+        id: 1,
+        description: activity.description,
+        template: singleTemplate,
+        blanks: singleBlanks,
+      } as Exercise,
+    ];
+  }, [raw, activity.description]);
+
+  // Flat answers map: key = `${exerciseIndex}::${blankId}`
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [showResults, setShowResults] = useState(false);
+  const [showRewardAnimation, setShowRewardAnimation] = useState(false);
+
+  const totalBlanks = useMemo(
+    () => exercises.reduce((sum, ex) => sum + ex.blanks.length, 0),
+    [exercises]
+  );
+
+  const handleAnswerChange = (
+    exIdx: number,
+    blankId: BlankId,
+    value: string
+  ) => {
+    const key = `${exIdx}::${String(blankId)}`;
+    setAnswers((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  // Replace placeholders in the template and render inputs
+  // Supports:
+  //  - Numbered placeholders: __1__, {{1}}
+  //  - Generic placeholders: any run of underscores (___, ____, ______, etc.)
+  const renderTemplateWithInputs = (
+    exIdx: number,
+    template: string,
+    blanks: Blank[]
+  ) => {
+    if (!template || !template.trim()) return null;
+
+    let t = template;
+
+    // 1) Numbered placeholders by blank id (string/number)
+    blanks.forEach((blank) => {
+      const idStr = String(blank.id).replace(/\s+/g, "");
+      const numberedPatterns = [
+        new RegExp(`__${idStr}__`, "g"), // __1__
+        new RegExp(`\\{\\{\\s*${idStr}\\s*\\}\\}`, "g"), // {{1}}
+      ];
+      const inputField = `<input-${exIdx}-${idStr}>`;
+      numberedPatterns.forEach((rx) => {
+        t = t.replace(rx, inputField);
+      });
     });
+
+    // 2) Generic underscores placeholders (replace remaining, in order of blanks.position or order)
+    const sortedBlanks = [...blanks].sort((a: Blank, b: Blank) => {
+      const ap = a.position ?? 1e9;
+      const bp = b.position ?? 1e9;
+      return ap - bp;
+    });
+
+    let genericIndex = 0;
+    // Replace runs of underscores (3 or more) with remaining blanks
+    t = t.replace(/_{3,}/g, () => {
+      if (genericIndex >= sortedBlanks.length) return "___"; // leave as is if no more blanks
+      const b = sortedBlanks[genericIndex++];
+      return `<input-${exIdx}-${String(b.id)}>`;
+    });
+
+    // Final split by injected markers
+    const parts = t.split(/(<input-\d+-[^>]+>)/);
+
+    return parts.map((part, i) => {
+      const m = part.match(/<input-(\d+)-([^>]+)>/);
+      if (m) {
+        const blankIdStr = m[2]; // id as string
+        // locate the blank metadata
+        const blank = blanks.find((b) => String(b.id) === blankIdStr);
+        const key = `${exIdx}::${String(blank?.id ?? blankIdStr)}`;
+        return (
+          <input
+            key={`inp-${exIdx}-${i}`}
+            type="text"
+            value={answers[key] ?? ""}
+            onChange={(e) =>
+              handleAnswerChange(exIdx, blank?.id ?? blankIdStr, e.target.value)
+            }
+            className="mx-1 rounded border border-blue-300 bg-blue-50 px-2 py-1 font-mono text-sm text-blue-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            placeholder={blank?.hint || "..."}
+            style={{
+              width: `${Math.max(80, ((blank?.answer?.length ?? 5) as number) * 8)}px`,
+            }}
+          />
+        );
+      }
+      return <span key={`txt-${exIdx}-${i}`}>{part}</span>;
+    });
+  };
+
+  const allFilled = useMemo(() => {
+    // Every blank across all exercises must have an answer
+    for (let exIdx = 0; exIdx < exercises.length; exIdx++) {
+      const ex = exercises[exIdx];
+      for (const b of ex.blanks) {
+        const key = `${exIdx}::${String(b.id)}`;
+        if (!answers[key] || !answers[key].trim()) return false;
+      }
+    }
+    return exercises.length > 0;
+  }, [answers, exercises]);
+
+  const computeScore = () => {
+    let correctCount = 0;
+    let total = 0;
+    for (let exIdx = 0; exIdx < exercises.length; exIdx++) {
+      const ex = exercises[exIdx];
+      for (const b of ex.blanks) {
+        total += 1;
+        const key = `${exIdx}::${String(b.id)}`;
+        const user = (answers[key] ?? "").trim().toLowerCase();
+        const correct = (b.answer ?? "").trim().toLowerCase();
+        const alts = (b.alternatives ?? []).map((a) => a.trim().toLowerCase());
+        if (user === correct || alts.includes(user)) correctCount += 1;
+      }
+    }
+    const score = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+    return { correctCount, total, score };
   };
 
   const checkAnswers = () => {
     setShowResults(true);
-    const correctCount = blanks.filter((blank) => {
-      const userAnswer = answers[blank.id]?.trim().toLowerCase();
-      const correctAnswer = blank.answer.toLowerCase();
-      const alternatives =
-        blank.alternatives?.map((alt) => alt.toLowerCase()) || [];
-
-      return userAnswer === correctAnswer || alternatives.includes(userAnswer);
-    }).length;
-
-    const score = Math.round((correctCount / blanks.length) * 100);
+    const { score } = computeScore();
     const success = score >= 70;
-
     if (success) {
       handleActivityCompletion(score);
     }
   };
 
   const handleActivityCompletion = async (score: number) => {
+    // For authenticated users, we also hit API; for anonymous, parent handles onComplete for reward flow.
     if (!isAuthenticated) return;
-
     const awardedActivities = JSON.parse(
       localStorage.getItem("awardedActivities") || "[]"
     );
@@ -133,49 +381,30 @@ export default function FillBlanksActivity({
     }
   };
 
-  const renderCodeWithBlanks = () => {
-    let template = codeTemplate;
-    blanks.forEach((blank) => {
-      const placeholder = `___`;
-      const inputField = `<input-${blank.id}>`;
-      template = template.replace(placeholder, inputField);
-    });
-
-    const parts = template.split(/(<input-\d+>)/);
-
-    return parts.map((part, index) => {
-      const inputMatch = part.match(/<input-(\d+)>/);
-      if (inputMatch) {
-        const blankId = parseInt(inputMatch[1]);
-        const blank = blanks.find((b) => b.id === blankId);
-        return (
-          <input
-            key={index}
-            type="text"
-            value={answers[blankId] || ""}
-            onChange={(e) => handleAnswerChange(blankId, e.target.value)}
-            className="mx-1 rounded border border-blue-300 bg-blue-50 px-2 py-1 font-mono text-sm text-blue-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            placeholder={blank?.hint || "..."}
-            style={{
-              width: `${Math.max(80, (blank?.answer.length || 5) * 8)}px`,
-            }}
-          />
-        );
-      }
-      return <span key={index}>{part}</span>;
-    });
+  const restart = () => {
+    setAnswers({});
+    setShowResults(false);
+    setShowRewardAnimation(false);
   };
 
-  if (showResults) {
-    const correctCount = blanks.filter((blank) => {
-      const userAnswer = answers[blank.id]?.trim().toLowerCase();
-      const correctAnswer = blank.answer.toLowerCase();
-      const alternatives =
-        blank.alternatives?.map((alt) => alt.toLowerCase()) || [];
-      return userAnswer === correctAnswer || alternatives.includes(userAnswer);
-    }).length;
+  if (exercises.length === 0) {
+    // Nothing useful found in content
+    return (
+      <div className="mx-auto max-w-4xl p-6">
+        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-6 text-center">
+          <h2 className="mb-2 text-2xl font-bold text-yellow-900">
+            No Content Available
+          </h2>
+          <p className="text-yellow-800">
+            This activity doesn't contain any exercises or blanks to fill.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-    const score = Math.round((correctCount / blanks.length) * 100);
+  if (showResults) {
+    const { correctCount, total, score } = computeScore();
     const passed = score >= 70;
 
     return (
@@ -197,7 +426,7 @@ export default function FillBlanksActivity({
             {passed ? "Well Done!" : "Keep Practicing!"}
           </h2>
           <p className="mb-8 text-lg text-gray-600">
-            You got {correctCount} out of {blanks.length} blanks correct
+            You answered {correctCount} out of {total} blanks correctly
           </p>
 
           <div className="mb-8 rounded-lg bg-gray-50 p-6">
@@ -212,7 +441,7 @@ export default function FillBlanksActivity({
           </div>
 
           {explanation && (
-            <div className="mb-8 rounded-lg bg-blue-50 p-6 text-left">
+            <div className="mx-auto mb-8 max-w-2xl rounded-lg bg-blue-50 p-6 text-left">
               <h3 className="mb-4 text-xl font-semibold text-blue-900">
                 Explanation
               </h3>
@@ -220,12 +449,25 @@ export default function FillBlanksActivity({
             </div>
           )}
 
-          <button
-            onClick={() => onComplete(score, 100, passed)}
-            className="rounded-lg bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700"
-          >
-            Complete Activity
-          </button>
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={() => onComplete(score, 100, passed)}
+              className="rounded-lg bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700"
+            >
+              {passed
+                ? "🎉 Complete Activity & Claim Rewards"
+                : "Complete Activity"}
+            </button>
+            {!passed && (
+              <button
+                onClick={restart}
+                className="inline-flex items-center space-x-2 rounded-lg bg-slate-200 px-6 py-3 font-bold text-slate-800 transition-colors hover:bg-slate-300"
+              >
+                <RefreshCw className="h-5 w-5" />
+                <span>Try Again</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Reward Animation */}
@@ -257,6 +499,7 @@ export default function FillBlanksActivity({
 
   return (
     <div className="mx-auto max-w-4xl p-6">
+      {/* Header */}
       <div className="mb-8 text-center">
         <h2 className="mb-4 text-3xl font-bold text-gray-900">
           {activity.title}
@@ -264,6 +507,7 @@ export default function FillBlanksActivity({
         <p className="text-lg text-gray-600">{activity.description}</p>
       </div>
 
+      {/* Instructions */}
       <div className="mb-8 rounded-lg bg-blue-50 p-6">
         <h3 className="mb-4 text-xl font-semibold text-blue-900">
           Instructions
@@ -271,36 +515,112 @@ export default function FillBlanksActivity({
         <p className="text-blue-800">{instructions}</p>
       </div>
 
-      <div className="mb-8 rounded-lg bg-gray-900 p-6">
-        <h3 className="mb-4 text-lg font-semibold text-white">
-          Complete the code:
-        </h3>
-        <pre className="overflow-x-auto text-sm leading-relaxed text-gray-100">
-          <code>{renderCodeWithBlanks()}</code>
-        </pre>
-      </div>
+      {/* Exercises */}
+      <div className="space-y-8">
+        {exercises.map((ex, exIdx) => {
+          const hasTemplate = !!(ex.template && ex.template.trim());
+          const hasPlaceholders =
+            (hasTemplate && /_{3,}/.test(ex.template!)) || // ___ or longer
+            /__\d+__/.test(ex.template!) || // __1__
+            /\{\{\s*\d+\s*\}\}/.test(ex.template!); // {{1}}
 
-      <div className="mb-8 space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Hints:</h3>
-        {blanks.map((blank) => (
-          <div key={blank.id} className="rounded-lg bg-yellow-50 p-4">
-            <div className="font-medium text-yellow-900">
-              Blank #{blank.id}:
+          return (
+            <div
+              key={`ex-${exIdx}`}
+              className="rounded-lg border border-slate-200 bg-white p-4"
+            >
+              {ex.description && (
+                <div className="mb-3 text-sm font-semibold text-slate-800">
+                  Exercise {exIdx + 1}: {ex.description}
+                </div>
+              )}
+
+              {/* Template section if provided */}
+              {hasTemplate && (
+                <div className="mb-4 rounded-lg bg-gray-900 p-4">
+                  <h4 className="mb-3 text-sm font-semibold text-white">
+                    Complete the code:
+                  </h4>
+                  <pre className="overflow-x-auto text-sm leading-relaxed text-gray-100">
+                    <code>
+                      {renderTemplateWithInputs(
+                        exIdx,
+                        ex.template!,
+                        ex.blanks
+                      ) ?? ex.template}
+                    </code>
+                  </pre>
+                </div>
+              )}
+
+              {/* Fallback Inputs when no template or no detectable placeholders */}
+              {(!hasTemplate || !hasPlaceholders) && ex.blanks.length > 0 && (
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <h4 className="mb-3 text-sm font-semibold text-slate-900">
+                    Fill in the blanks
+                  </h4>
+                  <div className="space-y-2">
+                    {ex.blanks.map((b) => {
+                      const key = `${exIdx}::${String(b.id)}`;
+                      return (
+                        <div
+                          key={`in-${exIdx}-${String(b.id)}`}
+                          className="flex items-center gap-3"
+                        >
+                          <label className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
+                            {String(b.id)}
+                          </label>
+                          <input
+                            type="text"
+                            value={answers[key] ?? ""}
+                            onChange={(e) =>
+                              handleAnswerChange(exIdx, b.id, e.target.value)
+                            }
+                            className="w-full rounded border border-slate-300 bg-white px-3 py-2 font-mono text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            placeholder={b.hint || "Type your answer"}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Hints per exercise */}
+              {ex.blanks.length > 0 && (
+                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {ex.blanks.map((b) => (
+                    <div
+                      key={`hint-${exIdx}-${String(b.id)}`}
+                      className="rounded-lg bg-yellow-50 p-3"
+                    >
+                      <div className="text-xs font-bold text-yellow-900">
+                        Blank {String(b.id)}
+                      </div>
+                      {b.hint && (
+                        <div className="text-xs text-yellow-800">
+                          Hint: {b.hint}
+                        </div>
+                      )}
+                      {b.alternatives && b.alternatives.length > 0 && (
+                        <div className="mt-1 text-[11px] text-yellow-700">
+                          Alternatives: {b.alternatives.join(", ")}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <div className="text-yellow-800">{blank.hint}</div>
-            {blank.alternatives && (
-              <div className="mt-2 text-sm text-yellow-700">
-                Alternative answers: {blank.alternatives.join(", ")}
-              </div>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="text-center">
+      {/* Actions */}
+      <div className="mt-8 text-center">
         <button
           onClick={checkAnswers}
-          disabled={Object.keys(answers).length < blanks.length}
+          disabled={!allFilled}
           className="rounded-lg bg-blue-600 px-8 py-3 text-lg font-bold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Check Answers

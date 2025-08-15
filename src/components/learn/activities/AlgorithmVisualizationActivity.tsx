@@ -78,18 +78,98 @@ export default function AlgorithmVisualizationActivity({
     checkAuth();
   }, []);
 
-  const {
-    algorithm = "Algorithm",
-    description = "No description available",
-    timeComplexity = "Unknown",
-    spaceComplexity = "Unknown",
-    explanation = "No explanation available",
-    steps = [],
-  } = activity.content || {};
+  // Normalize nested seed schema (content.algorithm.* with algorithm.steps[]) and flat schema (content.* with content.steps[])
+  const contentAny: any = activity.content || {};
+  const alg: any = contentAny.algorithm || {};
+  const rawSteps: any[] = Array.isArray(contentAny.steps)
+    ? contentAny.steps
+    : Array.isArray(alg.steps)
+      ? alg.steps
+      : [];
+
+  const algorithm: string =
+    (typeof alg.name === "string" && alg.name) ||
+    (typeof contentAny.algorithm === "string"
+      ? contentAny.algorithm
+      : undefined) ||
+    "Algorithm";
+
+  const description: string =
+    (typeof contentAny.description === "string" && contentAny.description) ||
+    (typeof contentAny.title === "string" && contentAny.title) ||
+    "No description available";
+
+  const timeComplexity: string =
+    (alg?.complexity?.time as string) ||
+    (alg?.complexity?.Time as string) ||
+    "Unknown";
+
+  const spaceComplexity: string =
+    (alg?.complexity?.space as string) ||
+    (alg?.complexity?.Space as string) ||
+    "Unknown";
+
+  const explanation: string =
+    (typeof contentAny.explanation === "string" && contentAny.explanation) ||
+    (typeof contentAny.description === "string" && contentAny.description) ||
+    "No explanation available";
+
+  // Map rich step objects from seeds to simple visualization steps expected by this component
+  const normalizedSteps: VisualizationStep[] = Array.isArray(rawSteps)
+    ? rawSteps.map((s: any, idx: number) => {
+        const viz: any = s?.visualization || {};
+        let data: number[] = [];
+
+        // Prefer explicit numeric arrays
+        if (
+          Array.isArray(viz.data) &&
+          viz.data.every((n: any) => typeof n === "number")
+        ) {
+          data = viz.data as number[];
+        } else if (
+          Array.isArray(s?.data) &&
+          s.data.every((n: any) => typeof n === "number")
+        ) {
+          data = s.data as number[];
+        } else if (Array.isArray(viz.list_data)) {
+          // Derive numbers from list_data by index or length
+          data = viz.list_data.map((x: any, i: number) =>
+            typeof x === "number" ? x : Array.isArray(x) ? x.length : i + 1
+          );
+        } else if (typeof viz.data === "string") {
+          // For string visualizations, derive heights by index
+          data = (viz.data as string).split("").map((_, i) => i + 1);
+        } else {
+          // Fallback sample data
+          data = [1, 2, 3, 4, 5];
+        }
+
+        // Map highlight indices commonly used in seeds
+        const highlights: number[] = Array.isArray(viz.comparing)
+          ? (viz.comparing as number[])
+          : Array.isArray(viz.highlight)
+            ? (viz.highlight as number[])
+            : Array.isArray(s?.highlights)
+              ? (s.highlights as number[])
+              : [];
+
+        return {
+          id: typeof s?.id === "number" ? s.id : idx,
+          description:
+            (s?.description as string) || (s?.title as string) || "Step",
+          data,
+          highlights,
+          comparison: [],
+          action: (s?.title as string) || (s?.description as string) || "Step",
+        } as VisualizationStep;
+      })
+    : [];
 
   // Auto-play functionality
   useEffect(() => {
-    const safeStepsLength = Array.isArray(steps) ? steps.length : 1;
+    const safeStepsLength = Array.isArray(normalizedSteps)
+      ? normalizedSteps.length
+      : 1;
     if (isPlaying && currentStep < safeStepsLength - 1) {
       const timer = setTimeout(() => {
         setCurrentStep(currentStep + 1);
@@ -102,7 +182,7 @@ export default function AlgorithmVisualizationActivity({
         handleActivityCompletion();
       }
     }
-  }, [isPlaying, currentStep, steps, isCompleted]);
+  }, [isPlaying, currentStep, normalizedSteps, isCompleted]);
 
   const handleActivityCompletion = async () => {
     if (!isAuthenticated) return;
@@ -155,7 +235,9 @@ export default function AlgorithmVisualizationActivity({
   };
 
   const nextStep = () => {
-    const safeStepsLength = Array.isArray(steps) ? steps.length : 1;
+    const safeStepsLength = Array.isArray(normalizedSteps)
+      ? normalizedSteps.length
+      : 1;
     if (currentStep < safeStepsLength - 1) {
       setCurrentStep(currentStep + 1);
     } else if (!isCompleted) {
@@ -171,7 +253,10 @@ export default function AlgorithmVisualizationActivity({
   };
 
   const getBarColor = (index: number, value: number) => {
-    const safeSteps = Array.isArray(steps) && steps.length > 0 ? steps : [];
+    const safeSteps =
+      Array.isArray(normalizedSteps) && normalizedSteps.length > 0
+        ? normalizedSteps
+        : [];
     const step = safeSteps[currentStep];
     if (!step) return "bg-blue-500";
 
@@ -194,16 +279,16 @@ export default function AlgorithmVisualizationActivity({
 
   // Safety checks for steps and currentStepData
   const safeSteps =
-    Array.isArray(steps) && steps.length > 0
-      ? steps
-      : [
+    Array.isArray(normalizedSteps) && normalizedSteps.length > 0
+      ? normalizedSteps
+      : ([
           {
             id: 0,
             description: "No visualization data available",
             data: [1, 2, 3, 4, 5],
             action: "Sample data",
           },
-        ];
+        ] as VisualizationStep[]);
 
   const currentStepData = safeSteps[currentStep] || safeSteps[0];
   const safeData = Array.isArray(currentStepData?.data)
@@ -254,7 +339,7 @@ export default function AlgorithmVisualizationActivity({
           <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-600">
               Step {currentStep + 1} of{" "}
-              {Array.isArray(steps) ? steps.length : 1}
+              {Array.isArray(normalizedSteps) ? normalizedSteps.length : 1}
             </span>
             <div className="flex items-center space-x-2">
               <button
@@ -283,7 +368,7 @@ export default function AlgorithmVisualizationActivity({
             <div
               className="h-2 rounded-full bg-purple-600 transition-all duration-300"
               style={{
-                width: `${((currentStep + 1) / (Array.isArray(steps) ? steps.length : 1)) * 100}%`,
+                width: `${((currentStep + 1) / (Array.isArray(normalizedSteps) ? normalizedSteps.length : 1)) * 100}%`,
               }}
             ></div>
           </div>
@@ -331,19 +416,21 @@ export default function AlgorithmVisualizationActivity({
           </button>
 
           <div className="flex items-center space-x-2">
-            {(Array.isArray(steps) ? steps : [{}]).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentStep(index)}
-                className={`h-3 w-3 rounded-full transition-all ${
-                  index === currentStep
-                    ? "bg-purple-600"
-                    : index < currentStep
-                      ? "bg-purple-300"
-                      : "bg-gray-200"
-                }`}
-              />
-            ))}
+            {(Array.isArray(normalizedSteps) ? normalizedSteps : [{}]).map(
+              (_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentStep(index)}
+                  className={`h-3 w-3 rounded-full transition-all ${
+                    index === currentStep
+                      ? "bg-purple-600"
+                      : index < currentStep
+                        ? "bg-purple-300"
+                        : "bg-gray-200"
+                  }`}
+                />
+              )
+            )}
           </div>
 
           <button
@@ -351,7 +438,8 @@ export default function AlgorithmVisualizationActivity({
             className="flex items-center space-x-2 rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700"
           >
             <span>
-              {currentStep === (Array.isArray(steps) ? steps.length : 1) - 1
+              {currentStep ===
+              (Array.isArray(normalizedSteps) ? normalizedSteps.length : 1) - 1
                 ? "Complete"
                 : "Next"}
             </span>

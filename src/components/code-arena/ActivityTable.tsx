@@ -97,57 +97,32 @@ const ActivityTable = memo(
               </p>
             </div>
 
-            {/* Type Selector */}
-            {onActivityTypeChange && (
-              <div className="flex items-center space-x-3">
-                <label className="text-sm font-medium text-white">
-                  Filter by Type:
-                </label>
-                <select
-                  value={selectedActivityType}
-                  onChange={(e) => onActivityTypeChange(e.target.value)}
-                  className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white backdrop-blur-xl transition-all hover:bg-white/20 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
-                >
-                  <option value="" className="bg-slate-800 text-white">
-                    All Types
-                  </option>
-                  {Object.entries(activityTypeConfigs).map(([key, config]) => (
-                    <option
-                      key={key}
-                      value={key}
-                      className="bg-slate-800 text-white"
-                    >
-                      {config.icon} {config.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Controls Toolbar (always visible) */}
-        <div className="flex items-center justify-end gap-3 border-b border-slate-200 bg-slate-50 px-6 py-3">
-          {onActivityTypeChange && (
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-slate-700">
-                Type:
+            {/* Type Selector (always visible if configs provided) */}
+            <div className="flex items-center space-x-3">
+              <label className="text-sm font-medium text-white">
+                Filter by Type:
               </label>
               <select
-                aria-label="Filter by activity type"
                 value={selectedActivityType}
-                onChange={(e) => onActivityTypeChange(e.target.value)}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                onChange={(e) => onActivityTypeChange?.(e.target.value)}
+                disabled={!onActivityTypeChange}
+                className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white backdrop-blur-xl transition-all hover:bg-white/20 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/30 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <option value="">All Types</option>
+                <option value="" className="bg-slate-800 text-white">
+                  All Types
+                </option>
                 {Object.entries(activityTypeConfigs).map(([key, config]) => (
-                  <option key={key} value={key}>
+                  <option
+                    key={key}
+                    value={key}
+                    className="bg-slate-800 text-white"
+                  >
                     {config.icon} {config.name}
                   </option>
                 ))}
               </select>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Desktop & Tablet Table */}

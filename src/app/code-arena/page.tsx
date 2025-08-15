@@ -905,11 +905,26 @@ function CodeArenaContent() {
                   ))}
                 </select>
 
+                {/* Activity Type Filter */}
+                <select
+                  value={selectedActivityType}
+                  onChange={(e) => setSelectedActivityType(e.target.value)}
+                  className="rounded-lg border border-slate-200 px-3 py-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 sm:rounded-xl sm:px-4 sm:text-base"
+                >
+                  <option value="">All Types</option>
+                  {Object.entries(activityTypeConfigs).map(([key, cfg]) => (
+                    <option key={key} value={key}>
+                      {cfg.icon} {cfg.name}
+                    </option>
+                  ))}
+                </select>
+
                 <button
                   onClick={() => {
                     setSearchTerm("");
                     setSelectedTopic("Python Fundamentals");
                     setSelectedDifficulty("");
+                    setSelectedActivityType("");
                   }}
                   className="rounded-lg bg-slate-100 px-3 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200 sm:col-span-2 sm:rounded-xl sm:px-4 sm:text-base lg:col-span-1"
                 >

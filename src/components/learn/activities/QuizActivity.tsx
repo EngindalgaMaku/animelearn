@@ -64,7 +64,12 @@ export default function QuizActivity({
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
   const [showResults, setShowResults] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(activity.content.timeLimit);
+  const [timeLeft, setTimeLeft] = useState(
+    typeof activity.content?.timeLimit === "number" &&
+      !Number.isNaN(activity.content.timeLimit)
+      ? activity.content.timeLimit
+      : 600
+  );
   const [quizStarted, setQuizStarted] = useState(false);
   const [showRewardAnimation, setShowRewardAnimation] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -93,7 +98,19 @@ export default function QuizActivity({
     checkAuth();
   }, []);
 
-  const { questions, passingScore, timeLimit } = activity.content;
+  const {
+    questions = [],
+    passingScore: rawPassingScore,
+    timeLimit: rawTimeLimit,
+  } = activity.content || {};
+  const passingScore =
+    typeof rawPassingScore === "number" && !Number.isNaN(rawPassingScore)
+      ? rawPassingScore
+      : 70;
+  const timeLimit =
+    typeof rawTimeLimit === "number" && !Number.isNaN(rawTimeLimit)
+      ? rawTimeLimit
+      : 600;
 
   // Timer effect
   useEffect(() => {
@@ -364,52 +381,33 @@ export default function QuizActivity({
             })}
           </div>
 
-          <div className="relative">
-            {isCompleted && !isAuthenticated ? (
-              <div className="relative text-center">
-                <div className="relative mb-2 rounded-lg border border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-3">
-                  <button
-                    onClick={handleCloseLoginMessage}
-                    className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-200 text-xs font-bold text-yellow-800 transition-colors hover:bg-yellow-300 hover:text-yellow-900"
-                    title="Close"
-                  >
-                    ✕
-                  </button>
-                  <div className="mb-1 flex items-center justify-center space-x-1 pr-6">
-                    <Gift className="h-4 w-4 text-yellow-600" />
-                    <span className="text-sm font-semibold text-yellow-800">
-                      Login Benefits Available!
-                    </span>
+          <div className="relative text-center">
+            {passed ? (
+              <>
+                {!isAuthenticated && (
+                  <div className="relative mx-auto mb-3 max-w-lg rounded-lg border border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-3 text-left">
+                    <div className="mb-1 flex items-center space-x-1">
+                      <Gift className="h-4 w-4 text-yellow-600" />
+                      <span className="text-sm font-semibold text-yellow-800">
+                        Login Benefits Available!
+                      </span>
+                    </div>
+                    <p className="text-xs text-yellow-700">
+                      Login users earn{" "}
+                      <strong>{activity.diamondReward || 50} diamonds</strong>{" "}
+                      and <strong>{activity.experienceReward || 100} XP</strong>{" "}
+                      for completing activities!
+                    </p>
                   </div>
-                  <p className="pr-6 text-xs text-yellow-700">
-                    Login users earn{" "}
-                    <strong>{activity.diamondReward || 50} diamonds</strong> and{" "}
-                    <strong>{activity.experienceReward || 100} XP</strong> for
-                    completing activities!
-                  </p>
-                </div>
-              </div>
-            ) : isCompleted ? (
-              <div className="text-center">
-                <div className="mb-3 rounded-lg border border-green-200 bg-green-50 p-3">
-                  <div className="mb-2 flex items-center justify-center space-x-2">
-                    <Trophy className="h-5 w-5 text-green-600" />
-                    <span className="text-sm font-semibold text-green-900">
-                      Quiz Complete!
-                    </span>
-                  </div>
-                  <p className="mb-3 text-xs text-green-800">
-                    You've successfully completed the quiz. Review your answers
-                    above and claim your rewards!
-                  </p>
-                  <button
-                    onClick={handleManualComplete}
-                    className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700"
-                  >
-                    🎉 Complete Quiz & Claim Rewards
-                  </button>
-                </div>
-              </div>
+                )}
+
+                <button
+                  onClick={handleManualComplete}
+                  className="rounded-lg bg-green-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-green-700"
+                >
+                  🎉 Finish & Claim Rewards
+                </button>
+              </>
             ) : (
               <button
                 onClick={restartQuiz}

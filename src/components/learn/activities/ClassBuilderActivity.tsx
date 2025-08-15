@@ -101,7 +101,143 @@ export default function ClassBuilderActivity({
     checkAuth();
   }, []);
 
-  const { instructions, classTemplate, requirements } = activity.content;
+  // Normalize content to support both "classic" template schema and seed schema
+  const raw: any = activity?.content ?? {};
+
+  const instructions: string =
+    typeof raw.instructions === "string" && raw.instructions.trim() !== ""
+      ? raw.instructions
+      : "Select attributes and methods to build the class";
+
+  const hasTemplate =
+    raw?.classTemplate &&
+    Array.isArray(raw.classTemplate.attributes) &&
+    Array.isArray(raw.classTemplate.methods);
+
+  let classTemplate: ClassTemplate;
+
+  if (hasTemplate) {
+    // Classic template schema
+    classTemplate = {
+      name: String(raw.classTemplate.name || raw.className || "MyClass"),
+      attributes: (raw.classTemplate.attributes || []).map((a: any) => ({
+        name: String(a?.name ?? ""),
+        type: String(a?.type ?? "any"),
+        required: !!a?.required,
+      })),
+      methods: (raw.classTemplate.methods || []).map((m: any) => ({
+        name: String(m?.name ?? ""),
+        required: !!m?.required,
+        params: Array.isArray(m?.params)
+          ? m.params.map((p: any) => String(p))
+          : Array.isArray(m?.parameters)
+            ? m.parameters.map((p: any) => String(p))
+            : [],
+      })),
+    };
+  } else {
+    // Seed schema normalization: className + requiredProperties/requiredMethods + availableProperties/availableMethods
+    const reqProps: any[] = Array.isArray(raw.requiredProperties)
+      ? raw.requiredProperties
+      : [];
+    const availProps: any[] = Array.isArray(raw.availableProperties)
+      ? raw.availableProperties
+      : [];
+    const propMap = new Map<string, ClassAttribute>();
+
+    // Seed available properties as optional by default
+    availProps.forEach((p) => {
+      const name = String(p?.name ?? "");
+      if (!name) return;
+      propMap.set(name, {
+        name,
+        type: String(p?.type ?? "any"),
+        required: false,
+      });
+    });
+
+    // Mark required properties and make sure they exist
+    reqProps.forEach((p) => {
+      const name = String(p?.name ?? "");
+      if (!name) return;
+      const existing = propMap.get(name);
+      if (existing) {
+        existing.required = true;
+        existing.type = String(p?.type ?? existing.type ?? "any");
+        propMap.set(name, existing);
+      } else {
+        propMap.set(name, {
+          name,
+          type: String(p?.type ?? "any"),
+          required: true,
+        });
+      }
+    });
+
+    const reqMethods: any[] = Array.isArray(raw.requiredMethods)
+      ? raw.requiredMethods
+      : [];
+    const availMethods: any[] = Array.isArray(raw.availableMethods)
+      ? raw.availableMethods
+      : [];
+    const methodMap = new Map<string, ClassMethod>();
+
+    // Seed available methods as optional by default
+    availMethods.forEach((m) => {
+      const name = String(m?.name ?? "");
+      if (!name) return;
+      const params = Array.isArray(m?.parameters)
+        ? m.parameters.map((p: any) => String(p))
+        : Array.isArray(m?.params)
+          ? m.params.map((p: any) => String(p))
+          : [];
+      methodMap.set(name, { name, required: false, params });
+    });
+
+    // Mark required methods and ensure they exist with parameters
+    reqMethods.forEach((m) => {
+      const name = String(m?.name ?? "");
+      if (!name) return;
+      const params = Array.isArray(m?.parameters)
+        ? m.parameters.map((p: any) => String(p))
+        : Array.isArray(m?.params)
+          ? m.params.map((p: any) => String(p))
+          : [];
+      const existing = methodMap.get(name);
+      if (existing) {
+        existing.required = true;
+        existing.params = params.length ? params : existing.params;
+        methodMap.set(name, existing);
+      } else {
+        methodMap.set(name, { name, required: true, params });
+      }
+    });
+
+    classTemplate = {
+      name: String(raw.className || "MyClass"),
+      attributes: Array.from(propMap.values()),
+      methods: Array.from(methodMap.values()),
+    };
+  }
+
+  const requirements: string =
+    typeof raw.requirements === "string" && raw.requirements.trim() !== ""
+      ? raw.requirements
+      : (() => {
+          const reqAttrNames = (
+            Array.isArray(raw.requiredProperties) ? raw.requiredProperties : []
+          )
+            .map((p: any) => p?.name)
+            .filter(Boolean)
+            .join(", ");
+          const reqMethodNames = (
+            Array.isArray(raw.requiredMethods) ? raw.requiredMethods : []
+          )
+            .map((m: any) => m?.name)
+            .filter(Boolean)
+            .join(", ");
+          return `Include required attributes: ${reqAttrNames || "none"}; and required methods: ${reqMethodNames || "none"}.`;
+        })();
 
   const addAttribute = (attribute: ClassAttribute) => {
     const userAttr = { name: attribute.name, type: attribute.type };
@@ -325,7 +461,7 @@ export default function ClassBuilderActivity({
               <h3 className="mb-4 text-xl font-semibold text-gray-900">
                 Your Class Code:
               </h3>
-              <pre className="overflow-x-auto rounded-lg bg-gray-900 p-4 text-left text-sm text-green-400">
+              <pre className="overflow-x-auto rounded-lg bg-white p-4 text-left text-sm text-black">
                 <code>{generateClassCode()}</code>
               </pre>
             </div>
@@ -369,7 +505,7 @@ export default function ClassBuilderActivity({
             onClick={() => onComplete(score, 100, passed)}
             className="rounded-lg bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700"
           >
-            Complete Class Design
+            🎉 Finish & Claim Rewards
           </button>
         </div>
 
@@ -602,7 +738,7 @@ export default function ClassBuilderActivity({
                       key={attr.name}
                       className="flex items-center justify-between rounded bg-white p-2"
                     >
-                      <span className="text-sm">
+                      <span className="text-sm text-black">
                         {attr.name}: {attr.type}
                       </span>
                       <button
@@ -633,7 +769,7 @@ export default function ClassBuilderActivity({
                       key={method.name}
                       className="flex items-center justify-between rounded bg-white p-2"
                     >
-                      <span className="text-sm">
+                      <span className="text-sm text-black">
                         {method.name}({method.params.join(", ")})
                       </span>
                       <button
@@ -654,7 +790,7 @@ export default function ClassBuilderActivity({
             <h4 className="text-md mb-2 font-medium text-gray-800">
               Generated Code
             </h4>
-            <pre className="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-green-400">
+            <pre className="overflow-x-auto rounded-lg bg-white p-4 text-sm text-black">
               <code>{generateClassCode()}</code>
             </pre>
           </div>

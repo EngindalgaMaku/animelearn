@@ -102,34 +102,72 @@ export default function DataExplorationActivity({
     checkAuth();
   }, []);
 
-  // Safe destructuring with fallbacks
-  const {
-    instructions = "Explore the dataset below and complete the analysis tasks.",
-    dataset = { name: "Dataset", columns: [], data: [] },
-    tasks = [],
-    hints = [],
-  } = activity?.content || {};
+  // Normalize content to support BOTH schemas:
+  // 1) Structured schema: { dataset: { name, columns: string[], data: any[][] }, tasks: Task[] }
+  // 2) Seed schema: { title?, instructions, dataset: Array<object>, questions: Array<{question, ...}> }
+  const raw: any = activity?.content ?? {};
 
-  // Additional safety checks
-  const safeDataset = {
-    name: dataset?.name || "Dataset",
-    columns: Array.isArray(dataset?.columns) ? dataset.columns : [],
-    data: Array.isArray(dataset?.data) ? dataset.data : [],
-  };
+  const instructions: string =
+    typeof raw.instructions === "string" && raw.instructions.trim() !== ""
+      ? raw.instructions
+      : "Explore the dataset below and complete the analysis tasks.";
 
-  const safeTasks = Array.isArray(tasks)
-    ? tasks.filter((task) => task && typeof task === "object")
-    : [];
-  const safeHints = Array.isArray(hints)
-    ? hints.filter((hint) => hint && typeof hint === "string")
+  const safeHints = Array.isArray(raw.hints)
+    ? (raw.hints as any[]).filter((h) => typeof h === "string")
     : [];
 
-  // If we don't have valid data, show an error
-  if (
-    safeDataset.columns.length === 0 ||
-    safeDataset.data.length === 0 ||
-    safeTasks.length === 0
-  ) {
+  // Determine seed vs structured
+  const isSeedDataset = Array.isArray(raw?.dataset);
+  let datasetName: string =
+    typeof raw?.title === "string"
+      ? raw.title
+      : typeof raw?.dataset?.name === "string"
+        ? raw.dataset.name
+        : "Dataset";
+
+  // Normalized columns, rows, and tasks
+  let columns: string[] = [];
+  let dataRows: any[][] = [];
+  let tasksList: Task[] = [];
+
+  if (isSeedDataset) {
+    // Seed variant: dataset is an array of objects
+    const records: any[] = Array.isArray(raw.dataset) ? raw.dataset : [];
+    const colSet = new Set<string>();
+    for (const rec of records) {
+      if (rec && typeof rec === "object") {
+        Object.keys(rec).forEach((k) => colSet.add(k));
+      }
+    }
+    columns = Array.from(colSet);
+    dataRows = records.map((rec) =>
+      columns.map((c) => (rec ? rec[c] : undefined))
+    );
+    // Map "questions" into tasks (free-form answer + points)
+    const qs: any[] = Array.isArray(raw.questions) ? raw.questions : [];
+    tasksList = qs.map((q, i) => ({
+      id: i + 1,
+      task: String(q?.question ?? `Question ${i + 1}`),
+      points: Number.isFinite(q?.points) ? Number(q.points) : 10,
+    }));
+  } else {
+    // Structured variant
+    const ds = raw?.dataset ?? {};
+    columns = Array.isArray(ds?.columns) ? ds.columns : [];
+    dataRows = Array.isArray(ds?.data) ? ds.data : [];
+    datasetName =
+      typeof ds?.name === "string" && ds.name.trim() !== ""
+        ? ds.name
+        : datasetName;
+
+    const ts: any[] = Array.isArray(raw?.tasks) ? raw.tasks : [];
+    tasksList = ts.filter(
+      (t) => t && typeof t.task === "string" && t.points !== undefined
+    );
+  }
+
+  // Validation guard
+  if (columns.length === 0 || dataRows.length === 0 || tasksList.length === 0) {
     return (
       <div className="mx-auto max-w-4xl p-6">
         <div className="text-center">
@@ -141,8 +179,8 @@ export default function DataExplorationActivity({
             properly.
           </p>
           <div className="mt-4 text-sm text-gray-500">
-            Dataset columns: {safeDataset.columns.length}, Dataset rows:{" "}
-            {safeDataset.data.length}, Tasks: {safeTasks.length}
+            Dataset columns: {columns.length}, Dataset rows: {dataRows.length},
+            Tasks: {tasksList.length}
           </div>
           <button
             onClick={() => window.location.reload()}
@@ -172,13 +210,13 @@ export default function DataExplorationActivity({
     setShowResults(true);
     const completedPoints = Array.from(completedTasks).reduce(
       (total, taskId) => {
-        const task = safeTasks.find((t) => t && t.id === taskId);
+        const task = tasksList.find((t) => t && t.id === taskId);
         return total + (task?.points || 0);
       },
       0
     );
 
-    const totalPoints = safeTasks.reduce(
+    const totalPoints = tasksList.reduce(
       (total, task) => total + (task?.points || 0),
       0
     );
@@ -230,21 +268,18 @@ export default function DataExplorationActivity({
     }
   };
 
-  // Calculate basic statistics for the dataset
+  // Calculate basic statistics for the dataset (numeric columns only)
   const getColumnStats = (columnIndex: number) => {
     try {
-      if (
-        !safeDataset.data ||
-        !Array.isArray(safeDataset.data) ||
-        columnIndex >= safeDataset.columns.length
-      ) {
+      if (!Array.isArray(dataRows) || columnIndex >= columns.length)
         return null;
-      }
 
-      const values = safeDataset.data
+      const values = dataRows
         .filter((row) => Array.isArray(row) && row.length > columnIndex)
         .map((row) => row[columnIndex])
-        .filter((val) => typeof val === "number" && !isNaN(val));
+        .filter(
+          (val) => typeof val === "number" && !Number.isNaN(val as number)
+        ) as number[];
 
       if (values.length === 0) return null;
 
@@ -263,13 +298,13 @@ export default function DataExplorationActivity({
   if (showResults) {
     const completedPoints = Array.from(completedTasks).reduce(
       (total, taskId) => {
-        const task = safeTasks.find((t) => t && t.id === taskId);
+        const task = tasksList.find((t) => t && t.id === taskId);
         return total + (task?.points || 0);
       },
       0
     );
 
-    const totalPoints = safeTasks.reduce(
+    const totalPoints = tasksList.reduce(
       (total, task) => total + (task?.points || 0),
       0
     );
@@ -295,8 +330,8 @@ export default function DataExplorationActivity({
             {passed ? "Data Analysis Complete!" : "Keep Exploring!"}
           </h2>
           <p className="mb-8 text-lg text-gray-600">
-            You completed {completedTasks.size} out of {tasks.length} analysis
-            tasks
+            You completed {completedTasks.size} out of {tasksList.length}{" "}
+            analysis tasks
           </p>
 
           <div className="mb-8 rounded-lg bg-gray-50 p-6">
@@ -317,7 +352,7 @@ export default function DataExplorationActivity({
             <h3 className="text-xl font-semibold text-gray-900">
               Task Results:
             </h3>
-            {safeTasks.map((task) => (
+            {tasksList.map((task) => (
               <div key={task.id} className="rounded-lg border bg-white p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -419,7 +454,7 @@ export default function DataExplorationActivity({
         {/* Dataset View */}
         <div>
           <h3 className="mb-4 text-lg font-semibold text-gray-900">
-            📊 Dataset: {safeDataset.name}
+            📊 Dataset: {datasetName}
           </h3>
 
           <div className="rounded-lg border border-gray-200 bg-white">
@@ -427,7 +462,7 @@ export default function DataExplorationActivity({
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    {safeDataset.columns.map((column, index) => (
+                    {columns.map((column, index) => (
                       <th
                         key={index}
                         className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
@@ -438,25 +473,25 @@ export default function DataExplorationActivity({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {safeDataset.data
-                    .filter((row) => Array.isArray(row))
-                    .map((row, rowIndex) => (
-                      <tr
-                        key={rowIndex}
-                        className={
-                          rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
-                        }
-                      >
-                        {(row || []).map((cell, cellIndex) => (
-                          <td
-                            key={cellIndex}
-                            className="whitespace-nowrap px-4 py-2 text-sm text-gray-900"
-                          >
-                            {cell}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
+                  {dataRows.map((row, rowIndex) => (
+                    <tr
+                      key={rowIndex}
+                      className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    >
+                      {row.map((cell, cellIndex) => (
+                        <td
+                          key={cellIndex}
+                          className="whitespace-nowrap px-4 py-2 text-sm text-gray-900"
+                        >
+                          {typeof cell === "object" && cell !== null
+                            ? Array.isArray(cell)
+                              ? JSON.stringify(cell)
+                              : JSON.stringify(cell)
+                            : String(cell)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -466,9 +501,9 @@ export default function DataExplorationActivity({
           <div className="mt-4 rounded-lg bg-gray-50 p-4">
             <h4 className="mb-2 font-semibold text-gray-900">📈 Quick Stats</h4>
             <div className="grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
-              <div>Rows: {safeDataset.data.length}</div>
-              <div>Columns: {safeDataset.columns.length}</div>
-              {safeDataset.columns.map((column, index) => {
+              <div>Rows: {dataRows.length}</div>
+              <div>Columns: {columns.length}</div>
+              {columns.map((column, index) => {
                 const stats = getColumnStats(index);
                 if (stats) {
                   return (
@@ -491,7 +526,7 @@ export default function DataExplorationActivity({
           </h3>
 
           <div className="space-y-4">
-            {safeTasks.map((task) => (
+            {tasksList.map((task) => (
               <div
                 key={task.id}
                 className="rounded-lg border border-gray-200 bg-white p-4"
@@ -524,7 +559,7 @@ export default function DataExplorationActivity({
                     placeholder="Enter your answer..."
                     value={taskAnswers[task.id] || ""}
                     onChange={(e) => handleTaskAnswer(task.id, e.target.value)}
-                    className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm text-black placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                   <button
                     onClick={() => completeTask(task.id)}
@@ -547,14 +582,14 @@ export default function DataExplorationActivity({
                 Progress
               </span>
               <span className="text-sm text-blue-700">
-                {completedTasks.size}/{safeTasks.length} tasks completed
+                {completedTasks.size}/{tasksList.length} tasks completed
               </span>
             </div>
             <div className="h-2 w-full rounded-full bg-blue-200">
               <div
                 className="h-2 rounded-full bg-blue-600 transition-all duration-300"
                 style={{
-                  width: `${safeTasks.length > 0 ? (completedTasks.size / safeTasks.length) * 100 : 0}%`,
+                  width: `${tasksList.length > 0 ? (completedTasks.size / tasksList.length) * 100 : 0}%`,
                 }}
               ></div>
             </div>

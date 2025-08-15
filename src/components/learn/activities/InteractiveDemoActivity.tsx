@@ -74,10 +74,34 @@ export default function InteractiveDemoActivity({
     checkAuth();
   }, []);
 
-  const { title, description, steps } = activity.content;
+  // Normalize content to support both classic and seed schemas
+  const raw: any = activity?.content ?? {};
+  const title: string =
+    typeof raw.title === "string" ? raw.title : activity.title;
+  const description: string =
+    typeof raw.description === "string"
+      ? raw.description
+      : activity.description;
+
+  const stepsRaw: any[] = Array.isArray(raw.steps) ? raw.steps : [];
+  const normalizedSteps: {
+    title: string;
+    content: string;
+    code?: string;
+    explanation?: string;
+  }[] = stepsRaw.map((s: any) => ({
+    title: String(s?.title ?? "Step"),
+    // Seed steps often use "description" instead of "content"
+    content:
+      typeof s?.content === "string" && s.content.trim() !== ""
+        ? s.content
+        : String(s?.description ?? ""),
+    code: typeof s?.code === "string" ? s.code : undefined,
+    explanation: typeof s?.explanation === "string" ? s.explanation : undefined,
+  }));
 
   const nextStep = () => {
-    if (currentStep < steps.length - 1) {
+    if (currentStep < normalizedSteps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else if (!isCompleted) {
       setIsCompleted(true);
@@ -92,7 +116,7 @@ export default function InteractiveDemoActivity({
   };
 
   const runCode = async () => {
-    const currentStepData = steps[currentStep];
+    const currentStepData = normalizedSteps[currentStep];
     if (!currentStepData.code) return;
 
     setIsRunning(true);
@@ -201,7 +225,7 @@ export default function InteractiveDemoActivity({
             onClick={() => onComplete(85, 100, true)}
             className="rounded-lg bg-green-600 px-6 py-3 font-bold text-white transition-colors hover:bg-green-700"
           >
-            Complete Demo
+            🎉 Finish & Claim Rewards
           </button>
         </div>
 
@@ -232,8 +256,8 @@ export default function InteractiveDemoActivity({
     );
   }
 
-  const currentStepData = steps[currentStep];
-  const progress = ((currentStep + 1) / steps.length) * 100;
+  const currentStepData = normalizedSteps[currentStep];
+  const progress = ((currentStep + 1) / (normalizedSteps.length || 1)) * 100;
 
   return (
     <div className="mx-auto max-w-6xl p-6">
@@ -248,7 +272,7 @@ export default function InteractiveDemoActivity({
       <div className="mb-8">
         <div className="mb-2 flex items-center justify-between">
           <span className="text-sm font-medium text-gray-700">
-            Step {currentStep + 1} of {steps.length}
+            Step {currentStep + 1} of {normalizedSteps.length}
           </span>
           <span className="text-sm text-gray-500">
             {Math.round(progress)}% Complete
@@ -361,7 +385,7 @@ export default function InteractiveDemoActivity({
 
         {/* Step Indicators */}
         <div className="flex items-center space-x-2">
-          {steps.map((_, index) => (
+          {normalizedSteps.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentStep(index)}
@@ -381,7 +405,9 @@ export default function InteractiveDemoActivity({
           className="flex items-center space-x-2 rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
         >
           <span>
-            {currentStep === steps.length - 1 ? "Complete Demo" : "Next Step"}
+            {currentStep === normalizedSteps.length - 1
+              ? "Complete Demo"
+              : "Next Step"}
           </span>
           <ChevronRight className="h-4 w-4" />
         </button>

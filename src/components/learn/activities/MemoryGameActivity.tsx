@@ -65,11 +65,35 @@ export default function MemoryGameActivity({
   activity,
   onComplete,
 }: MemoryGameActivityProps) {
+  // Normalize content for backward compatibility (support pairs-based seeds)
+  const rawContent = (activity?.content ?? {}) as any;
+  const cards: Card[] = Array.isArray(rawContent.cards)
+    ? rawContent.cards
+    : Array.isArray(rawContent.pairs)
+      ? (rawContent.pairs as any[]).map((p: any) => ({
+          id: Number(p?.id),
+          front:
+            typeof p?.card1 === "string" ? p.card1 : String(p?.card1 ?? ""),
+          back: typeof p?.card2 === "string" ? p.card2 : String(p?.card2 ?? ""),
+        }))
+      : [];
+  const timeLimit: number =
+    typeof rawContent.timeLimit === "number" &&
+    !Number.isNaN(rawContent.timeLimit)
+      ? rawContent.timeLimit
+      : 300;
+  const rules: string =
+    typeof rawContent.rules === "string" && rawContent.rules?.trim() !== ""
+      ? rawContent.rules
+      : typeof rawContent.instructions === "string"
+        ? rawContent.instructions
+        : "Flip two cards at a time to find matching pairs. Match all pairs before time runs out!";
+
   const [gameCards, setGameCards] = useState<GameCard[]>([]);
   const [flippedCards, setFlippedCards] = useState<GameCard[]>([]);
   const [matchedPairs, setMatchedPairs] = useState<number>(0);
   const [moves, setMoves] = useState<number>(0);
-  const [timeLeft, setTimeLeft] = useState(activity.content.timeLimit);
+  const [timeLeft, setTimeLeft] = useState(timeLimit);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameCompleted, setGameCompleted] = useState(false);
   const [gameWon, setGameWon] = useState(false);
@@ -100,7 +124,7 @@ export default function MemoryGameActivity({
     checkAuth();
   }, []);
 
-  const { cards, rules, timeLimit } = activity.content;
+  // cards, rules, timeLimit are defined above via normalized rawContent
 
   // Initialize game
   useEffect(() => {
@@ -119,47 +143,48 @@ export default function MemoryGameActivity({
 
   // Check for matches
   useEffect(() => {
-    if (flippedCards.length === 2) {
-      setMoves(moves + 1);
-      const [card1, card2] = flippedCards;
+    // Only evaluate exactly once when a pair is flipped
+    if (flippedCards.length !== 2) return;
 
-      // Check if cards form a matching pair
-      const isMatch =
-        (card1.type === "front" &&
-          card2.type === "back" &&
-          card1.id === card2.id) ||
-        (card1.type === "back" &&
-          card2.type === "front" &&
-          card1.id === card2.id);
+    // Count this as a single move
+    setMoves((prev) => prev + 1);
 
-      if (isMatch) {
-        // Match found
-        setTimeout(() => {
-          setGameCards((prev) =>
-            prev.map((card) =>
-              card.gameId === card1.gameId || card.gameId === card2.gameId
-                ? { ...card, isMatched: true }
-                : card
-            )
-          );
-          setMatchedPairs((prev) => prev + 1);
-          setFlippedCards([]);
-        }, 1000);
-      } else {
-        // No match, flip cards back
-        setTimeout(() => {
-          setGameCards((prev) =>
-            prev.map((card) =>
-              card.gameId === card1.gameId || card.gameId === card2.gameId
-                ? { ...card, isFlipped: false }
-                : card
-            )
-          );
-          setFlippedCards([]);
-        }, 1500);
-      }
+    const [card1, card2] = flippedCards;
+
+    // Check if cards form a matching pair (same id, opposite sides)
+    const isMatch =
+      ((card1.type === "front" && card2.type === "back") ||
+        (card1.type === "back" && card2.type === "front")) &&
+      card1.id === card2.id;
+
+    if (isMatch) {
+      // Match found
+      setTimeout(() => {
+        setGameCards((prev) =>
+          prev.map((card) =>
+            card.gameId === card1.gameId || card.gameId === card2.gameId
+              ? { ...card, isMatched: true }
+              : card
+          )
+        );
+        // Clamp to total number of pairs to prevent runaway counts
+        setMatchedPairs((prev) => Math.min(prev + 1, cards.length));
+        setFlippedCards([]);
+      }, 1000);
+    } else {
+      // No match, flip cards back
+      setTimeout(() => {
+        setGameCards((prev) =>
+          prev.map((card) =>
+            card.gameId === card1.gameId || card.gameId === card2.gameId
+              ? { ...card, isFlipped: false }
+              : card
+          )
+        );
+        setFlippedCards([]);
+      }, 1500);
     }
-  }, [flippedCards, moves]);
+  }, [flippedCards]);
 
   // Check for game completion
   useEffect(() => {

@@ -13,7 +13,8 @@ import {
 
 interface TestCase {
   input: string;
-  expected: string;
+  expected?: string;
+  expectedOutput?: string;
 }
 
 interface InteractiveCodingContent {
@@ -95,32 +96,50 @@ export default function InteractiveCodingActivity({
       const mockOutput = "Code executed successfully!\nOutput: Hello, Python!";
       setOutput(mockOutput);
 
-      // If there are test cases, run them
+      // Heuristic: consider implementation "ready" when user replaced starter 'pass' stubs
+      const heuristicPass =
+        typeof code === "string" &&
+        code.trim().length > 0 &&
+        !code.includes("pass");
+
+      // If there are test cases, evaluate deterministically using the heuristic
       if (testCases && testCases.length > 0) {
-        const results = testCases.map((testCase, index) => {
-          // Mock test case validation
-          return Math.random() > 0.3; // 70% chance of passing
-        });
+        const results = testCases.map(() => heuristicPass);
         setTestResults(results);
 
         const passedTests = results.filter(Boolean).length;
         const score = Math.round((passedTests / testCases.length) * 100);
 
-        if (score >= 70) {
-          setTimeout(() => {
-            setShowResults(true);
+        setTimeout(() => {
+          setShowResults(true);
+          if (score >= 70) {
             handleActivityCompletion(score);
-          }, 2000);
-        }
+          }
+        }, 600);
       } else if (expectedOutput) {
-        // Check if output matches expected
-        const success = mockOutput.includes("Hello, Python!");
-        if (success) {
-          setTimeout(() => {
-            setShowResults(true);
-            handleActivityCompletion(85);
-          }, 2000);
-        }
+        // If only an expectedOutput is provided, fall back to basic check
+        const success =
+          heuristicPass ||
+          (typeof expectedOutput === "string" &&
+            expectedOutput.length > 0 &&
+            mockOutput.includes(expectedOutput));
+        const score = success ? 85 : 0;
+
+        setTimeout(() => {
+          setShowResults(true);
+          if (score >= 70) {
+            handleActivityCompletion(score);
+          }
+        }, 600);
+      } else {
+        // No testCases and no expectedOutput: show results based on heuristic only
+        const score = heuristicPass ? 85 : 0;
+        setTimeout(() => {
+          setShowResults(true);
+          if (score >= 70) {
+            handleActivityCompletion(score);
+          }
+        }, 600);
       }
     } catch (error) {
       setOutput(`Error: ${error}`);
@@ -225,7 +244,7 @@ export default function InteractiveCodingActivity({
                         Input: {testCase.input}
                       </div>
                       <div className="text-sm text-gray-600">
-                        Expected: {testCase.expected}
+                        Expected: {testCase.expected ?? testCase.expectedOutput}
                       </div>
                     </div>
                     <div
@@ -247,7 +266,7 @@ export default function InteractiveCodingActivity({
             onClick={() => onComplete(score, 100, passed)}
             className="rounded-lg bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700"
           >
-            Complete Coding Challenge
+            🎉 Finish & Claim Rewards
           </button>
         </div>
 
@@ -378,7 +397,7 @@ export default function InteractiveCodingActivity({
                     <div className="font-medium">Test {index + 1}:</div>
                     <div className="text-gray-600">Input: {testCase.input}</div>
                     <div className="text-gray-600">
-                      Expected: {testCase.expected}
+                      Expected: {testCase.expected ?? testCase.expectedOutput}
                     </div>
                   </div>
                 ))}

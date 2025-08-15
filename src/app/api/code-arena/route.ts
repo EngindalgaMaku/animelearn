@@ -106,19 +106,28 @@ export async function GET(request: NextRequest) {
 
     // Format activities for Code Arena display
     const formattedActivities = activities.map((activity) => {
-      let parsedContent;
+      let parsedContent: any;
       try {
-        parsedContent = JSON.parse(activity.content);
+        parsedContent =
+          typeof activity.content === "string"
+            ? JSON.parse(activity.content)
+            : activity.content || {};
       } catch (e) {
-        parsedContent = {
-          instructions: activity.description,
-        };
+        parsedContent =
+          activity &&
+          (activity as any).content &&
+          typeof (activity as any).content === "object"
+            ? (activity as any).content
+            : { instructions: activity.description };
       }
 
-      let parsedSettings = {};
+      let parsedSettings: any = {};
       try {
         if (activity.settings) {
-          parsedSettings = JSON.parse(activity.settings);
+          parsedSettings =
+            typeof activity.settings === "string"
+              ? JSON.parse(activity.settings)
+              : activity.settings;
         }
       } catch (e) {
         parsedSettings = {};

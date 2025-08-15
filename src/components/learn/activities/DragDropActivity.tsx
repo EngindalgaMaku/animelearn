@@ -747,7 +747,7 @@ export default function DragDropActivity({
                         }`}
                       >
                         <div>
-                          <pre className="whitespace-pre-wrap font-mono text-sm">
+                          <pre className="whitespace-pre-wrap font-mono text-sm text-black">
                             {it.value}
                           </pre>
                         </div>

@@ -89,15 +89,21 @@ export default function MatchingActivity({
     }
   }, []);
 
-  // Timer effect
+  // Timer effect (only when a valid timeLimit is provided)
   useEffect(() => {
+    const hasTimer =
+      typeof timeLimit === "number" &&
+      !Number.isNaN(timeLimit) &&
+      timeLimit > 0;
+    if (!hasTimer) return; // No timer configured → never auto-submit
+
     if (gameStarted && timeLeft > 0 && !showResults) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && gameStarted && !showResults) {
+    } else if (hasTimer && timeLeft === 0 && gameStarted && !showResults) {
       handleSubmit();
     }
-  }, [timeLeft, gameStarted, showResults]);
+  }, [timeLeft, gameStarted, showResults, timeLimit]);
 
   const shuffleItems = () => {
     const leftShuffled = [...pairs.map((p) => p.left)].sort(
@@ -204,6 +210,24 @@ export default function MatchingActivity({
         console.error("Error awarding rewards:", error);
       }
     }
+  };
+
+  const restartGame = () => {
+    // Reset selections and matches
+    setMatches({});
+    setSelectedLeft(null);
+    setSelectedRight(null);
+    setShowResults(false);
+    // Reset timer if configured
+    if (
+      typeof timeLimit === "number" &&
+      !Number.isNaN(timeLimit) &&
+      timeLimit > 0
+    ) {
+      setTimeLeft(timeLimit);
+    }
+    // Optional: reshuffle to provide a new try feel
+    shuffleItems();
   };
 
   const formatTime = (seconds: number) => {
@@ -347,12 +371,21 @@ export default function MatchingActivity({
             })}
           </div>
 
-          <button
-            onClick={() => onComplete(score, 100, passed)}
-            className="rounded-lg bg-green-600 px-6 py-3 font-bold text-white transition-colors hover:bg-green-700"
-          >
-            Complete Activity
-          </button>
+          {passed ? (
+            <button
+              onClick={() => onComplete(score, 100, true)}
+              className="rounded-lg bg-green-600 px-6 py-3 font-bold text-white transition-colors hover:bg-green-700"
+            >
+              🎉 Finish & Claim Rewards
+            </button>
+          ) : (
+            <button
+              onClick={restartGame}
+              className="rounded-lg bg-blue-600 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-700"
+            >
+              Try Again
+            </button>
+          )}
         </div>
 
         {/* Reward Animation */}
