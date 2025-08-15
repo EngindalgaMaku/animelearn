@@ -95,7 +95,7 @@ export async function seedPythonFundamentals() {
 
   // First, remove existing Python fundamentals activities to avoid conflicts
   try {
-    await prisma.codeArena.deleteMany({
+    await prisma.learningActivity.deleteMany({
       where: {
         OR: [
           { category: "Python Fundamentals" },
@@ -1238,10 +1238,44 @@ calc.run()`,
   // Insert activities
   for (const activity of pythonFundamentalsActivities) {
     try {
-      await prisma.codeArena.upsert({
-        where: { slug: activity.slug },
-        update: activity,
-        create: activity,
+      const learningActivityData = {
+        id: activity.slug,
+        title: activity.title,
+        description: activity.description,
+        content:
+          typeof activity.content === "string"
+            ? activity.content
+            : JSON.stringify(activity.content),
+        activityType:
+          activity.activityType ||
+          (activity.hasCodeExercise
+            ? "coding_challenge"
+            : "theory_interactive"),
+        category: activity.category.toLowerCase().replace(/\s+/g, "_"),
+        difficulty: activity.difficulty || 1,
+        diamondReward: activity.diamondReward || 25,
+        experienceReward: activity.experienceReward || 40,
+        estimatedMinutes: activity.duration || 10,
+        sortOrder: activity.order || 0,
+        isActive: activity.isPublished !== false,
+        tags: activity.tags || "[]",
+        settings: JSON.stringify({
+          slug: activity.slug,
+          hasCodeExercise: activity.hasCodeExercise || false,
+          starterCode: activity.starterCode || "",
+          solutionCode: activity.solutionCode || "",
+          testCases: activity.testCases || "[]",
+          learningObjectives: activity.learningObjectives || "[]",
+          source: "python_fundamentals_seed",
+          migrated_at: new Date().toISOString(),
+          original_activity_type: activity.activityType,
+        }),
+      };
+
+      await prisma.learningActivity.upsert({
+        where: { id: activity.slug },
+        update: learningActivityData,
+        create: learningActivityData,
       });
       console.log(`✅ Created Python Fundamentals activity: ${activity.title}`);
     } catch (error) {

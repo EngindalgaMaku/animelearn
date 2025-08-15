@@ -1493,7 +1493,7 @@ export async function seedLessons() {
     // Delete existing lessons and quizzes with proper cleanup
     console.log("🗑️ Cleaning existing data...");
     await prisma.quiz.deleteMany({});
-    await prisma.codeArena.deleteMany({});
+    await prisma.learningActivity.deleteMany({});
     console.log("✅ Existing data cleaned");
   } catch (error) {
     console.log("⚠️ No existing data to clean");
@@ -1501,43 +1501,53 @@ export async function seedLessons() {
 
   // Create lessons
   for (const lessonData of lessonsData) {
-    await prisma.codeArena.create({
+    await prisma.learningActivity.create({
       data: {
         id: lessonData.id,
         title: lessonData.title,
-        slug: lessonData.slug,
         description: lessonData.description,
         content: JSON.stringify(lessonData.content),
-        difficulty: lessonData.difficulty,
-        duration: lessonData.duration,
-        category: lessonData.category,
-        diamondReward: lessonData.diamondReward,
-        experienceReward: lessonData.experienceReward,
-        order: lessonData.order,
-        isPublished: lessonData.isPublished,
-        hasCodeExercise: !!lessonData.practicalExercise,
-        starterCode: lessonData.practicalExercise?.starterCode,
-        solutionCode: lessonData.practicalExercise?.solution,
-        testCases: JSON.stringify(
-          lessonData.practicalExercise?.testCases || []
-        ),
-        hints: JSON.stringify(lessonData.hints || []),
-        prerequisites: JSON.stringify([]),
+        activityType: lessonData.type || "theory_interactive",
+        category: lessonData.category || "general",
+        difficulty: lessonData.difficulty || 1,
+        diamondReward: lessonData.diamondReward || 10,
+        experienceReward: lessonData.experienceReward || 25,
+        estimatedMinutes: lessonData.duration || 5,
+        sortOrder: lessonData.order || 0,
+        isActive: lessonData.isPublished || false,
+        tags: JSON.stringify(lessonData.hints || []),
+        settings: JSON.stringify({
+          slug: lessonData.slug,
+          isPublished: lessonData.isPublished,
+          hasCodeExercise: !!lessonData.practicalExercise,
+          starterCode: lessonData.practicalExercise?.starterCode,
+          solutionCode: lessonData.practicalExercise?.solution,
+          testCases: lessonData.practicalExercise?.testCases || [],
+          hints: lessonData.hints || [],
+          prerequisites: [],
+          learningObjectives: lessonData.learningObjectives || [],
+          practicalExercise: lessonData.practicalExercise || null,
+          source: "legacy_seed_lessons",
+          migrated_at: new Date().toISOString(),
+          original_type: lessonData.type,
+        }),
       },
     });
   }
 
-  // Create quizzes
+  // Create quizzes (standalone - no direct relationship to learning activities in current schema)
   for (const quiz of quizData) {
     await prisma.quiz.create({
       data: {
-        codeArenaId: quiz.lessonId,
+        id: `quiz_${quiz.lessonId}`,
         title: `${quiz.lessonId} Quiz`,
+        description: `Quiz for ${quiz.lessonId}`,
         questions: JSON.stringify(quiz.questions),
         timeLimit: 300,
         diamondReward: 15,
         experienceReward: 25,
         difficulty: 1,
+        isActive: true,
       },
     });
   }

@@ -70,6 +70,7 @@ function CodeArenaContent() {
   // UI states
   const [selectedTopic, setSelectedTopic] = useState("Python Fundamentals");
   const [selectedDifficulty, setSelectedDifficulty] = useState("");
+  const [selectedActivityType, setSelectedActivityType] = useState(""); // Add activity type state
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<{
@@ -78,8 +79,11 @@ function CodeArenaContent() {
     "Python Fundamentals": true,
   });
 
-  // Pagination state - lifted from ActivityTable to preserve across re-renders
+  // Server-side pagination state
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage] = useState(10); // Fixed items per page for server-side pagination
 
   // Notification states
   const [showSuccessMessage, setShowSuccessMessage] = useState("");
@@ -159,13 +163,19 @@ function CodeArenaContent() {
   }, []);
 
   useEffect(() => {
+    setCurrentPage(1); // Reset to first page when filters change
     fetchActivities(); // Re-fetch when filters change
     // Auto-expand the selected topic's accordion
     setExpandedCategories((prev) => ({
       ...prev,
       [selectedTopic]: true,
     }));
-  }, [selectedTopic, selectedDifficulty]);
+  }, [selectedTopic, selectedDifficulty, selectedActivityType]);
+
+  // Separate effect for pagination to avoid resetting page
+  useEffect(() => {
+    fetchActivities();
+  }, [currentPage]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -351,7 +361,7 @@ function CodeArenaContent() {
 
   const fetchAllActivities = async () => {
     try {
-      const response = await fetch(`/api/code-arena?limit=100`);
+      const response = await fetch(`/api/code-arena?limit=200`);
       if (response.ok) {
         const data: ActivitiesResponse = await response.json();
         setAllActivities(data.activities);
@@ -364,10 +374,25 @@ function CodeArenaContent() {
   const fetchActivities = async () => {
     try {
       setLoading(true);
+
+      // Map display names to database category names
+      const categoryMapping: { [key: string]: string } = {
+        "Python Fundamentals": "Python Fundamentals",
+        "Data Structures": "Data Structures",
+        Algorithms: "Algorithms",
+        "Functions & OOP": "Functions & OOP",
+        "Web Development": "Web Development",
+        "Data Science": "Data Science",
+      };
+
+      const dbCategory = categoryMapping[selectedTopic] || selectedTopic;
+
       const params = new URLSearchParams({
-        limit: "50",
-        category: selectedTopic, // Only fetch activities for selected topic
+        page: currentPage.toString(),
+        limit: itemsPerPage.toString(),
+        category: dbCategory, // Use mapped category name
         ...(selectedDifficulty && { difficulty: selectedDifficulty }),
+        ...(selectedActivityType && { activityType: selectedActivityType }),
         ...(searchTerm && { search: searchTerm }),
       });
 
@@ -375,6 +400,12 @@ function CodeArenaContent() {
       if (response.ok) {
         const data: ActivitiesResponse = await response.json();
         setActivities(data.activities);
+
+        // Update pagination state from server response
+        if (data.pagination) {
+          setTotalCount(data.pagination.total);
+          setTotalPages(data.pagination.pages);
+        }
 
         // Group activities by category (just for consistency, will only have one category)
         const grouped = data.activities.reduce(
@@ -614,7 +645,7 @@ function CodeArenaContent() {
                 <div className="flex w-full items-center justify-center space-x-3 sm:w-auto sm:space-x-4">
                   <div className="rounded-2xl border border-white/30 bg-gradient-to-r from-white/20 to-white/10 px-4 py-2 text-white shadow-2xl backdrop-blur-xl sm:rounded-3xl sm:px-6 sm:py-3">
                     <span className="text-lg font-black sm:text-xl">
-                      {activities.length}
+                      {totalCount || activities.length}
                     </span>
                     <span className="ml-1 text-xs font-medium opacity-90 sm:ml-2 sm:text-sm">
                       challenges
@@ -749,7 +780,7 @@ function CodeArenaContent() {
                 <div className="flex w-full items-center justify-center space-x-3 sm:w-auto sm:space-x-4">
                   <div className="rounded-2xl border border-white/30 bg-gradient-to-r from-white/20 to-white/10 px-4 py-2 text-white shadow-2xl backdrop-blur-xl sm:rounded-3xl sm:px-6 sm:py-3">
                     <span className="text-lg font-black sm:text-xl">
-                      {activities.length}
+                      {totalCount || activities.length}
                     </span>
                     <span className="ml-1 text-xs font-medium opacity-90 sm:ml-2 sm:text-sm">
                       challenges
@@ -787,7 +818,7 @@ function CodeArenaContent() {
             <div className="mx-auto grid max-w-5xl grid-cols-2 gap-3 px-4 sm:gap-4 sm:px-0 md:grid-cols-4 md:gap-6">
               <div className="rounded-2xl border border-white/30 bg-gradient-to-br from-white/20 to-white/5 p-4 shadow-2xl backdrop-blur-xl sm:rounded-3xl sm:p-6">
                 <div className="text-2xl font-black text-yellow-300 sm:text-3xl lg:text-4xl">
-                  {stats.total}
+                  {totalCount || stats.total}
                 </div>
                 <div className="text-xs font-bold text-cyan-200 sm:text-sm">
                   Epic Challenges
@@ -980,22 +1011,19 @@ function CodeArenaContent() {
         >
           {activities.length > 0 ? (
             <ActivityTable
-              activities={activities.filter(
-                (activity) =>
-                  activity.title
-                    .toLowerCase()
-                    .includes(searchTerm.toLowerCase()) ||
-                  activity.description
-                    .toLowerCase()
-                    .includes(searchTerm.toLowerCase())
-              )}
+              activities={activities} // Server-side filtering, no need for client-side filtering
               difficultyConfigs={difficultyConfigs}
               activityTypeConfigs={activityTypeConfigs}
               onLaunch={launchActivity}
               enableAnimations={enableAnimations}
-              itemsPerPage={activities.length > 10 ? 10 : activities.length}
+              // Server-side pagination props
+              totalCount={totalCount}
               currentPage={currentPage}
+              totalPages={totalPages}
               onPageChange={setCurrentPage}
+              // Filter props
+              selectedActivityType={selectedActivityType}
+              onActivityTypeChange={setSelectedActivityType}
             />
           ) : !loading ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-xl">
@@ -1079,7 +1107,7 @@ function CodeArenaContent() {
                               "Content-Type": "application/json",
                             },
                             body: JSON.stringify({
-                              activityType: "learning_activity",
+                              activityType: selectedActivity.activityType,
                               activityId: selectedActivity.id,
                               score: score,
                               timeSpent: timeSpent,
@@ -1150,10 +1178,8 @@ function CodeArenaContent() {
                             );
                           }
 
-                          // Close the activity but keep reward claim visible
-                          setTimeout(() => {
-                            closeActivity();
-                          }, 2000);
+                          // Close the activity immediately; reward claim button stays visible
+                          closeActivity();
                         } else {
                           // Fallback to basic message if API fails
                           setShowSuccessMessage(

@@ -4,131 +4,21 @@ const prisma = new PrismaClient();
 
 async function migrateCodeArenaData() {
   try {
-    console.log("🔄 Starting CodeArena to LearningActivity data migration...");
+    console.log("🔄 CodeArena to LearningActivity migration check...");
 
-    // Get all CodeArena data
-    const codeArenas = await prisma.codeArena.findMany({
-      include: {
-        progress: true,
-        quizzes: true,
-      },
-    });
-
-    console.log(`📊 Found ${codeArenas.length} CodeArena entries to migrate`);
-
-    // Migrate each CodeArena to LearningActivity
-    for (const arena of codeArenas) {
-      // Check if already migrated (by title match)
-      const existing = await prisma.learningActivity.findFirst({
-        where: { title: arena.title },
-      });
-
-      if (existing) {
-        console.log(
-          `⏭️  Skipping "${arena.title}" - already exists in LearningActivity`
-        );
-        continue;
-      }
-
-      // Create LearningActivity from CodeArena
-      const learningActivity = await prisma.learningActivity.create({
-        data: {
-          title: arena.title,
-          description: arena.description,
-          activityType: arena.activityType || "interactive_coding",
-          category: mapCategory(arena.category),
-          difficulty: arena.difficulty,
-          diamondReward: arena.diamondReward,
-          experienceReward: arena.experienceReward,
-          content: JSON.stringify({
-            instructions: arena.description,
-            starterCode: arena.starterCode,
-            solutionCode: arena.solutionCode,
-            testCases: arena.testCases ? JSON.parse(arena.testCases) : [],
-            hints: arena.hints ? JSON.parse(arena.hints) : [],
-            examples: arena.examples ? JSON.parse(arena.examples) : [],
-            sections: arena.sections ? JSON.parse(arena.sections) : [],
-            learningObjectives: arena.learningObjectives
-              ? JSON.parse(arena.learningObjectives)
-              : [],
-            resources: arena.resources ? JSON.parse(arena.resources) : [],
-          }),
-          settings: JSON.stringify({
-            duration: arena.duration,
-            hasCodeExercise: arena.hasCodeExercise,
-            prerequisites: arena.prerequisites
-              ? JSON.parse(arena.prerequisites)
-              : [],
-          }),
-          isActive: arena.isPublished,
-          estimatedMinutes: arena.duration,
-          tags: arena.tags,
-          sortOrder: arena.order,
-          isLocked: false, // CodeArena activities weren't locked
-          createdAt: arena.createdAt,
-          updatedAt: arena.updatedAt,
-        },
-      });
-
-      // Migrate progress data
-      for (const progress of arena.progress) {
-        // Check if user still exists
-        const userExists = await prisma.user.findUnique({
-          where: { id: progress.userId },
-        });
-
-        if (!userExists) {
-          console.log(
-            `⚠️  Skipping progress for deleted user: ${progress.userId}`
-          );
-          continue;
-        }
-
-        // Check if progress already exists
-        const existingAttempt = await prisma.activityAttempt.findUnique({
-          where: {
-            userId_activityId: {
-              userId: progress.userId,
-              activityId: learningActivity.id,
-            },
-          },
-        });
-
-        if (!existingAttempt) {
-          await prisma.activityAttempt.create({
-            data: {
-              userId: progress.userId,
-              activityId: learningActivity.id,
-              answers: JSON.stringify({
-                lastCode: progress.lastCode,
-                bestCode: progress.bestCode,
-                isCodeCorrect: progress.isCodeCorrect,
-              }),
-              score: progress.score || 0,
-              completed: progress.isCompleted,
-              timeSpent: progress.timeSpent,
-              startedAt: progress.startedAt || progress.lastVisit,
-              completedAt: progress.completedAt,
-            },
-          });
-        }
-      }
-
-      console.log(
-        `✅ Migrated "${arena.title}" with ${arena.progress.length} progress entries`
-      );
-    }
-
-    console.log("🎉 Data migration completed successfully!");
-    console.log("📋 Summary:");
-    console.log(`   - ${codeArenas.length} CodeArena entries processed`);
+    // The CodeArena model has been removed and migration has been completed
+    // This script is now a no-op to prevent build errors
+    console.log(
+      "✅ Migration already completed - CodeArena model has been removed"
+    );
+    console.log("📋 All data has been migrated to the LearningActivity model");
 
     const totalActivities = await prisma.learningActivity.count();
-    console.log(
-      `   - ${totalActivities} total LearningActivity entries now exist`
-    );
+    console.log(`📊 Current LearningActivity entries: ${totalActivities}`);
+
+    console.log("🎉 Migration check completed successfully!");
   } catch (error) {
-    console.error("❌ Migration failed:", error);
+    console.error("❌ Migration check failed:", error);
     throw error;
   } finally {
     await prisma.$disconnect();

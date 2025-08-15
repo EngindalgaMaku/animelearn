@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const category = searchParams.get("category");
     const difficulty = searchParams.get("difficulty");
+    const activityType = searchParams.get("activityType"); // Add activity type filtering
     const search = searchParams.get("search");
 
     const where: any = {
@@ -43,6 +44,7 @@ export async function GET(request: NextRequest) {
 
     if (category) where.category = category;
     if (difficulty) where.difficulty = parseInt(difficulty);
+    if (activityType) where.activityType = activityType; // Add activity type filter
     if (search) {
       where.OR = [
         { title: { contains: search, mode: "insensitive" } },

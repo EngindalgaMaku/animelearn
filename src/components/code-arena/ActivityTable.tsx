@@ -37,9 +37,14 @@ interface ActivityTableProps {
   };
   onLaunch: (activity: LearningActivity) => void;
   enableAnimations?: boolean;
-  itemsPerPage?: number;
+  // Server-side pagination props
+  totalCount?: number;
   currentPage?: number;
+  totalPages?: number;
   onPageChange?: (page: number) => void;
+  // Filter props
+  selectedActivityType?: string;
+  onActivityTypeChange?: (type: string) => void;
 }
 
 const ActivityTable = memo(
@@ -49,25 +54,26 @@ const ActivityTable = memo(
     activityTypeConfigs,
     onLaunch,
     enableAnimations = true,
-    itemsPerPage = 10,
-    currentPage: externalCurrentPage,
-    onPageChange: externalOnPageChange,
+    // Server-side pagination props
+    totalCount = 0,
+    currentPage = 1,
+    totalPages = 1,
+    onPageChange,
+    // Filter props
+    selectedActivityType = "",
+    onActivityTypeChange,
   }: ActivityTableProps) => {
-    // Use external pagination state if provided, otherwise use internal state
-    const [internalCurrentPage, setInternalCurrentPage] = useState(1);
-    const currentPage = externalCurrentPage ?? internalCurrentPage;
-    const setCurrentPage = externalOnPageChange ?? setInternalCurrentPage;
-
-    // Pagination logic
-    const totalPages = Math.ceil(activities.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentActivities = activities.slice(startIndex, endIndex);
-
     const goToPage = (page: number) => {
-      const newPage = Math.max(1, Math.min(page, totalPages));
-      setCurrentPage(newPage);
+      if (onPageChange) {
+        const newPage = Math.max(1, Math.min(page, totalPages));
+        onPageChange(newPage);
+      }
     };
+
+    // For server-side pagination, we show all activities as they're already filtered/paginated
+    const currentActivities = activities;
+    const startIndex = (currentPage - 1) * 10 + 1; // Assuming 10 items per page
+    const endIndex = Math.min(startIndex + activities.length - 1, totalCount);
 
     const getDifficultyConfig = (difficulty: number) => {
       return difficultyConfigs[difficulty] || difficultyConfigs[1];
@@ -81,12 +87,67 @@ const ActivityTable = memo(
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
         {/* Table Header */}
         <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-6 py-4">
-          <h2 className="text-xl font-bold text-white sm:text-2xl">
-            🎯 Interactive Challenges
-          </h2>
-          <p className="text-indigo-100">
-            Master programming concepts through gamified learning
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-white sm:text-2xl">
+                🎯 Interactive Challenges
+              </h2>
+              <p className="text-indigo-100">
+                Master programming concepts through gamified learning
+              </p>
+            </div>
+
+            {/* Type Selector */}
+            {onActivityTypeChange && (
+              <div className="flex items-center space-x-3">
+                <label className="text-sm font-medium text-white">
+                  Filter by Type:
+                </label>
+                <select
+                  value={selectedActivityType}
+                  onChange={(e) => onActivityTypeChange(e.target.value)}
+                  className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white backdrop-blur-xl transition-all hover:bg-white/20 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+                >
+                  <option value="" className="bg-slate-800 text-white">
+                    All Types
+                  </option>
+                  {Object.entries(activityTypeConfigs).map(([key, config]) => (
+                    <option
+                      key={key}
+                      value={key}
+                      className="bg-slate-800 text-white"
+                    >
+                      {config.icon} {config.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Controls Toolbar (always visible) */}
+        <div className="flex items-center justify-end gap-3 border-b border-slate-200 bg-slate-50 px-6 py-3">
+          {onActivityTypeChange && (
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-slate-700">
+                Type:
+              </label>
+              <select
+                aria-label="Filter by activity type"
+                value={selectedActivityType}
+                onChange={(e) => onActivityTypeChange(e.target.value)}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              >
+                <option value="">All Types</option>
+                {Object.entries(activityTypeConfigs).map(([key, config]) => (
+                  <option key={key} value={key}>
+                    {config.icon} {config.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Desktop & Tablet Table */}
@@ -360,19 +421,16 @@ const ActivityTable = memo(
           </div>
         </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="border-t border-slate-200 bg-slate-50 px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-slate-700">
-                Showing <span className="font-bold">{startIndex + 1}</span> to{" "}
-                <span className="font-bold">
-                  {Math.min(endIndex, activities.length)}
-                </span>{" "}
-                of <span className="font-bold">{activities.length}</span>{" "}
-                challenges
-              </div>
+        {/* Footer */}
+        <div className="border-t border-slate-200 bg-slate-50 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-slate-700">
+              Showing <span className="font-bold">{startIndex}</span> to{" "}
+              <span className="font-bold">{endIndex}</span> of{" "}
+              <span className="font-bold">{totalCount}</span> challenges
+            </div>
 
+            {totalPages > 1 && (
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => goToPage(currentPage - 1)}
@@ -410,9 +468,9 @@ const ActivityTable = memo(
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     );
 

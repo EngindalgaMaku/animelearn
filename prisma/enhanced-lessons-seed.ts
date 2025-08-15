@@ -10,7 +10,8 @@ const lessonsData = [
     id: "python_lesson_001",
     title: "🐍 Python Dünyasına Hoş Geldiniz! - Kapsamlı Giriş",
     slug: "python-giris-kapsamli",
-    description: "🎯 KAPSAMLI ve İNTERAKTİF! Python programlama dilinin derinlemesine tanıtımı. Tarihçe, özellikler, kullanım alanları, kurulum, ilk program ve gelişim yol haritası. Anime temalı örnekler ve gerçek dünya uygulamaları ile öğrenin!",
+    description:
+      "🎯 KAPSAMLI ve İNTERAKTİF! Python programlama dilinin derinlemesine tanıtımı. Tarihçe, özellikler, kullanım alanları, kurulum, ilk program ve gelişim yol haritası. Anime temalı örnekler ve gerçek dünya uygulamaları ile öğrenin!",
     content: {
       sections: {
         welcome: {
@@ -34,9 +35,9 @@ Python sadece bir programlama dili değil - teknoloji dünyasının en güçlü 
 • Anime karakterleri ile örnekler
 • Mini oyunlar ve challengelar
 • İlerleme takip sistemi
-          `
+          `,
         },
-        
+
         python_history: {
           title: "📜 Python'un Büyülü Tarihi",
           content: `
@@ -70,7 +71,7 @@ Python'un temel prensipleri:
 
 **🎌 Anime Karakteri ile Açıklama:**
 *Naruto'nun "Hokage olacağım!" hedefi gibi, Python da "Programlamayı herkes için kolay hale getireceğim!" hedefiyle yola çıktı ve bu hedefine ulaştı!*
-          `
+          `,
         },
 
         why_python: {
@@ -134,7 +135,7 @@ Python'da her şey için hazır kütüphane var:
 • Stack Overflow anketinde #3 en sevilen dil
 • İş ilanlarında #2 en çok aranan dil
 • Maaş ortalaması: $95,000-$150,000 (ABD)
-          `
+          `,
         },
 
         usage_areas: {
@@ -265,7 +266,7 @@ Anime endüstrisinde de Python kullanılıyor:
 • Quantum computing
 • Augmented Reality (AR)
 • Virtual Reality (VR)
-          `
+          `,
         },
 
         python_features: {
@@ -492,7 +493,7 @@ for episode in episodes:
 • Generator'lar bellekte %90 daha az yer kaplar
 • Built-in fonksiyonlar C dilinde yazıldığı için çok hızlı
 • Dictionary lookup O(1) kompleksitesinde
-          `
+          `,
         },
 
         installation_setup: {
@@ -746,7 +747,7 @@ Python öğrenirken anime karakterleri ve hikayelerini örnek olarak kullanın. 
 
 **🚀 Bir Sonraki Adım:**
 Kurulum tamamlandıktan sonra değişkenler konusuna geçebilirsiniz!
-          `
+          `,
         },
 
         first_program: {
@@ -967,7 +968,7 @@ Bu program anime karakteri yaratma sürecini simüle ediyor. Gerçek anime prod�
 4. Eğlenin! 🎉
 
 Bu program Python'un temellerini öğretirken aynı zamanda yaratıcılığınızı da geliştiriyor!
-          `
+          `,
         },
 
         next_steps: {
@@ -1239,7 +1240,7 @@ Python öğrenmek, anime izlemek gibidir:
 
 **📈 İlerleme Takibi:**
 Bu rehberi takip ederek büyük rüyalarınızı gerçeğe dönüştürebilirsiniz!
-          `
+          `,
         },
 
         community_resources: {
@@ -1520,9 +1521,9 @@ Python'un en büyük avantajlarından biri güçlü ve destekleyici topluluğudu
 *"Programlama öğrenmek anime izlemek gibi - ilk başta karmaşık gelir, ama sonra bağımlılık yapar!"*
 
 Python topluluğu sizi bekliyor! Katılın, öğrenin, paylaşın ve birlikte büyüyün! 🚀
-          `
-        }
-      }
+          `,
+        },
+      },
     },
     difficulty: 1,
     duration: 90,
@@ -1534,16 +1535,17 @@ Python topluluğu sizi bekliyor! Katılın, öğrenin, paylaşın ve birlikte b�
     isPublished: true,
     learningObjectives: [
       "🐍 Python'un tarihini ve felsefesini anlama",
-      "🎯 Python'un kullanım alanlarını keşfetme", 
+      "🎯 Python'un kullanım alanlarını keşfetme",
       "⚡ Python'un avantajlarını ve özelliklerini öğrenme",
       "💻 Geliştirme ortamını kurma ve yapılandırma",
       "🎮 İlk interaktif Python programını yazma",
       "🗺️ Python öğrenme yol haritasını planlama",
       "👥 Python topluluğuna katılma ve kaynaklara erişim",
-      "🚀 Programlama kariyeri için temel atma"
+      "🚀 Programlama kariyeri için temel atma",
     ],
     practicalExercise: {
-      description: "🎮 Kendi Anime Evreninizi Yaratın! - Kapsamlı Python Uygulaması",
+      description:
+        "🎮 Kendi Anime Evreninizi Yaratın! - Kapsamlı Python Uygulaması",
       starterCode: `# 🌟 ANIME EVRENİ YARATICISI 🌟
 # Bu proje ile Python'un temellerini öğrenirken kendi anime evreninizi yaratacaksınız!
 
@@ -1961,8 +1963,8 @@ print(f"🚀 Python Yolculuğu: Başarıyla Başladı! 🎊")`,
         {
           description: "🤓 Kod analizi bilgileri verilmeli",
           test: "assert 'İSTATİSTİK' in output or 'ANALİZ' in output",
-        }
-      ]
+        },
+      ],
     },
     hints: [
       "🎮 Default değerler kullanarak test etmeyi kolaylaştırın",
@@ -1972,9 +1974,9 @@ print(f"🚀 Python Yolculuğu: Başarıyla Başladı! 🎊")`,
       "📊 Hesaplamalarda matematiksel operatörleri kullanın",
       "🎭 Koşullu ifadelerle farklı senaryolar oluşturun",
       "📚 List ve dictionary yapılarını etkin kullanın",
-      "🔄 Loop'lar ile tekrarlayan işlemleri otomatikleştirin"
-    ]
-  }
+      "🔄 Loop'lar ile tekrarlayan işlemleri otomatikleştirin",
+    ],
+  },
 ];
 
 // =============================================
@@ -1991,153 +1993,218 @@ const quizData = [
         question: "Python programlama dili ne zaman yaratılmaya başlandı?",
         options: ["1987", "1989", "1991", "1995"],
         correctAnswer: "1989",
-        explanation: "Python, 1989 yılında Guido van Rossum tarafından Noel tatilinde yaratılmaya başlandı.",
+        explanation:
+          "Python, 1989 yılında Guido van Rossum tarafından Noel tatilinde yaratılmaya başlandı.",
         points: 10,
         difficulty: "easy",
-        category: "history"
+        category: "history",
       },
-      
+
       {
-        type: "multiple_choice", 
+        type: "multiple_choice",
         question: "Python'un yaratıcısı kimdir?",
-        options: ["Linus Torvalds", "Guido van Rossum", "Dennis Ritchie", "Bjarne Stroustrup"],
+        options: [
+          "Linus Torvalds",
+          "Guido van Rossum",
+          "Dennis Ritchie",
+          "Bjarne Stroustrup",
+        ],
         correctAnswer: "Guido van Rossum",
-        explanation: "Python'un yaratıcısı Hollandalı programcı Guido van Rossum'dur.",
+        explanation:
+          "Python'un yaratıcısı Hollandalı programcı Guido van Rossum'dur.",
         points: 10,
         difficulty: "easy",
-        category: "history"
+        category: "history",
       },
 
       {
         type: "multiple_choice",
         question: "Python isminin geldiği kaynak nedir?",
-        options: ["Piton yılanı", "Monty Python comedy grubu", "Python mitolojisi", "Pythagoras teoremi"],
+        options: [
+          "Piton yılanı",
+          "Monty Python comedy grubu",
+          "Python mitolojisi",
+          "Pythagoras teoremi",
+        ],
         correctAnswer: "Monty Python comedy grubu",
-        explanation: "Guido van Rossum, Python ismini İngiliz komedi grubu 'Monty Python's Flying Circus'tan almıştır.",
+        explanation:
+          "Guido van Rossum, Python ismini İngiliz komedi grubu 'Monty Python's Flying Circus'tan almıştır.",
         points: 15,
         difficulty: "medium",
-        category: "history"
+        category: "history",
       },
 
       {
         type: "true_false",
         question: "Python 3.0, Python 2.0 ile tamamen uyumludur.",
         correctAnswer: false,
-        explanation: "Python 3.0, Python 2.0 ile geriye dönük uyumlu değildir. Bu büyük bir değişiklikti.",
+        explanation:
+          "Python 3.0, Python 2.0 ile geriye dönük uyumlu değildir. Bu büyük bir değişiklikti.",
         points: 10,
         difficulty: "medium",
-        category: "versions"
+        category: "versions",
       },
 
       {
         type: "multiple_choice",
-        question: "Python'un 'Zen of Python' felsefesine göre, hangisi en önemli prensiptir?",
-        options: ["Hız her şeyden önemlidir", "Okunabilirlik önemlidir", "Kısa kod her zaman iyidir", "Karmaşık çözümler daha güçlüdür"],
+        question:
+          "Python'un 'Zen of Python' felsefesine göre, hangisi en önemli prensiptir?",
+        options: [
+          "Hız her şeyden önemlidir",
+          "Okunabilirlik önemlidir",
+          "Kısa kod her zaman iyidir",
+          "Karmaşık çözümler daha güçlüdür",
+        ],
         correctAnswer: "Okunabilirlik önemlidir",
-        explanation: "'Readability counts' - Okunabilirlik Python felsefesinin temel taşlarından biridir.",
+        explanation:
+          "'Readability counts' - Okunabilirlik Python felsefesinin temel taşlarından biridir.",
         points: 10,
         difficulty: "easy",
-        category: "philosophy"
+        category: "philosophy",
       },
 
       // Python Özellikleri ve Avantajları
       {
         type: "multiple_choice",
         question: "Python'un en büyük avantajlarından biri nedir?",
-        options: ["En hızlı programlama dilidir", "Kolay öğrenilir ve okunabilir", "Sadece web geliştirme için kullanılır", "Compile edilmeden çalışamaz"],
+        options: [
+          "En hızlı programlama dilidir",
+          "Kolay öğrenilir ve okunabilir",
+          "Sadece web geliştirme için kullanılır",
+          "Compile edilmeden çalışamaz",
+        ],
         correctAnswer: "Kolay öğrenilir ve okunabilir",
-        explanation: "Python'un basit syntax'ı ve okunabilirliği onu öğrenmeyi kolay hale getirir.",
+        explanation:
+          "Python'un basit syntax'ı ve okunabilirliği onu öğrenmeyi kolay hale getirir.",
         points: 10,
         difficulty: "easy",
-        category: "features"
+        category: "features",
       },
 
       {
         type: "true_false",
         question: "Python interpreted (yorumlanan) bir dildir.",
         correctAnswer: true,
-        explanation: "Python interpreted bir dildir, yani kod satır satır yorumlanarak çalıştırılır.",
+        explanation:
+          "Python interpreted bir dildir, yani kod satır satır yorumlanarak çalıştırılır.",
         points: 10,
         difficulty: "easy",
-        category: "features"
+        category: "features",
       },
 
       {
         type: "multiple_choice",
         question: "Python'da kod blokları nasıl belirlenir?",
-        options: ["Süslü parantezler {}", "Girinti (indentation)", "BEGIN/END anahtar kelimeleri", "Noktalı virgül"],
+        options: [
+          "Süslü parantezler {}",
+          "Girinti (indentation)",
+          "BEGIN/END anahtar kelimeleri",
+          "Noktalı virgül",
+        ],
         correctAnswer: "Girinti (indentation)",
-        explanation: "Python'da kod blokları girinti (indentation) ile belirlenir, bu da kodu daha okunabilir yapar.",
+        explanation:
+          "Python'da kod blokları girinti (indentation) ile belirlenir, bu da kodu daha okunabilir yapar.",
         points: 15,
         difficulty: "medium",
-        category: "syntax"
+        category: "syntax",
       },
 
       {
         type: "multiple_choice",
-        question: "Aşağıdakilerden hangisi Python'un kullanım alanlarından BİRİ DEĞİLDİR?",
-        options: ["Web Development", "Data Science", "Machine Learning", "Real-time embedded systems"],
+        question:
+          "Aşağıdakilerden hangisi Python'un kullanım alanlarından BİRİ DEĞİLDİR?",
+        options: [
+          "Web Development",
+          "Data Science",
+          "Machine Learning",
+          "Real-time embedded systems",
+        ],
         correctAnswer: "Real-time embedded systems",
-        explanation: "Python interpreted yapısı nedeniyle gerçek zamanlı embedded sistemler için uygun değildir.",
+        explanation:
+          "Python interpreted yapısı nedeniyle gerçek zamanlı embedded sistemler için uygun değildir.",
         points: 15,
         difficulty: "hard",
-        category: "usage"
+        category: "usage",
       },
 
       // Kurulum ve Geliştirme Ortamı
       {
         type: "multiple_choice",
         question: "Python kurulumunda PATH'e ekleme neden önemlidir?",
-        options: ["Daha hızlı çalışır", "Herhangi bir dizinden python komutunu çalıştırabilmek için", "Daha az bellek kullanır", "Daha güvenli olur"],
-        correctAnswer: "Herhangi bir dizinden python komutunu çalıştırabilmek için",
-        explanation: "PATH'e eklenmezse, Python'u sadece kurulduğu dizinden çalıştırabilirsiniz.",
+        options: [
+          "Daha hızlı çalışır",
+          "Herhangi bir dizinden python komutunu çalıştırabilmek için",
+          "Daha az bellek kullanır",
+          "Daha güvenli olur",
+        ],
+        correctAnswer:
+          "Herhangi bir dizinden python komutunu çalıştırabilmek için",
+        explanation:
+          "PATH'e eklenmezse, Python'u sadece kurulduğu dizinden çalıştırabilirsiniz.",
         points: 10,
         difficulty: "medium",
-        category: "installation"
+        category: "installation",
       },
 
       {
         type: "multiple_choice",
         question: "pip nedir?",
-        options: ["Python interpreter", "Package installer for Python", "Python IDE", "Python compiler"],
+        options: [
+          "Python interpreter",
+          "Package installer for Python",
+          "Python IDE",
+          "Python compiler",
+        ],
         correctAnswer: "Package installer for Python",
-        explanation: "pip, Python paketlerini yüklemek ve yönetmek için kullanılan araçtır.",
+        explanation:
+          "pip, Python paketlerini yüklemek ve yönetmek için kullanılan araçtır.",
         points: 10,
         difficulty: "easy",
-        category: "tools"
+        category: "tools",
       },
 
       {
         type: "true_false",
-        question: "Virtual environment (sanal ortam) kullanmak Python projelerinde önerilir.",
+        question:
+          "Virtual environment (sanal ortam) kullanmak Python projelerinde önerilir.",
         correctAnswer: true,
-        explanation: "Virtual environment farklı projeler için farklı paket versiyonları kullanmanızı sağlar.",
+        explanation:
+          "Virtual environment farklı projeler için farklı paket versiyonları kullanmanızı sağlar.",
         points: 10,
         difficulty: "medium",
-        category: "best_practices"
+        category: "best_practices",
       },
 
       // İlk Program ve Temel Kavramlar
       {
         type: "multiple_choice",
-        question: "Python'da ekrana yazı yazdırmak için hangi fonksiyon kullanılır?",
+        question:
+          "Python'da ekrana yazı yazdırmak için hangi fonksiyon kullanılır?",
         options: ["write()", "display()", "print()", "output()"],
         correctAnswer: "print()",
-        explanation: "print() fonksiyonu Python'da ekrana yazı yazdırmak için kullanılır.",
+        explanation:
+          "print() fonksiyonu Python'da ekrana yazı yazdırmak için kullanılır.",
         points: 5,
         difficulty: "easy",
-        category: "basic_syntax"
+        category: "basic_syntax",
       },
 
       {
         type: "multiple_choice",
-        question: "Aşağıdaki Python kodunun çıktısı nedir?\n\nprint('Merhaba ' + 'Dünya!')",
-        options: ["Merhaba + Dünya!", "Merhaba Dünya!", "Syntax Error", "Merhaba  Dünya!"],
+        question:
+          "Aşağıdaki Python kodunun çıktısı nedir?\n\nprint('Merhaba ' + 'Dünya!')",
+        options: [
+          "Merhaba + Dünya!",
+          "Merhaba Dünya!",
+          "Syntax Error",
+          "Merhaba  Dünya!",
+        ],
         correctAnswer: "Merhaba Dünya!",
-        explanation: "String concatenation ile 'Merhaba ' ve 'Dünya!' birleşerek 'Merhaba Dünya!' çıktısını verir.",
+        explanation:
+          "String concatenation ile 'Merhaba ' ve 'Dünya!' birleşerek 'Merhaba Dünya!' çıktısını verir.",
         points: 10,
         difficulty: "easy",
-        category: "basic_syntax"
+        category: "basic_syntax",
       },
 
       {
@@ -2148,76 +2215,105 @@ const quizData = [
         explanation: "Python'da tek satır yorumlar # işareti ile başlar.",
         points: 10,
         difficulty: "easy",
-        category: "basic_syntax"
+        category: "basic_syntax",
       },
 
       // Gelecek ve Kariyer
       {
         type: "multiple_choice",
-        question: "2024 yılı itibarıyla Python'un en popüler kullanım alanı hangisidir?",
-        options: ["Game Development", "Data Science & AI", "Mobile Development", "System Programming"],
+        question:
+          "2024 yılı itibarıyla Python'un en popüler kullanım alanı hangisidir?",
+        options: [
+          "Game Development",
+          "Data Science & AI",
+          "Mobile Development",
+          "System Programming",
+        ],
         correctAnswer: "Data Science & AI",
-        explanation: "Python, AI/ML kütüphanelerinin zenginliği sayesinde veri bilimi alanında lider konumdadır.",
+        explanation:
+          "Python, AI/ML kütüphanelerinin zenginliği sayesinde veri bilimi alanında lider konumdadır.",
         points: 10,
         difficulty: "medium",
-        category: "trends"
+        category: "trends",
       },
 
       {
         type: "true_false",
-        question: "Python öğrenmek, programlama kariyeri için iyi bir başlangıçtır.",
+        question:
+          "Python öğrenmek, programlama kariyeri için iyi bir başlangıçtır.",
         correctAnswer: true,
-        explanation: "Python'un kolay syntax'ı ve geniş kullanım alanları onu mükemmel bir başlangıç dili yapar.",
+        explanation:
+          "Python'un kolay syntax'ı ve geniş kullanım alanları onu mükemmel bir başlangıç dili yapar.",
         points: 5,
         difficulty: "easy",
-        category: "career"
+        category: "career",
       },
 
       {
         type: "multiple_choice",
-        question: "Hangi büyük teknoloji şirketi Python'u yoğun olarak kullanır?",
-        options: ["Sadece startuplar", "Google, Instagram, Spotify", "Hiçbir büyük şirket", "Sadece üniversiteler"],
+        question:
+          "Hangi büyük teknoloji şirketi Python'u yoğun olarak kullanır?",
+        options: [
+          "Sadece startuplar",
+          "Google, Instagram, Spotify",
+          "Hiçbir büyük şirket",
+          "Sadece üniversiteler",
+        ],
         correctAnswer: "Google, Instagram, Spotify",
-        explanation: "Google, Instagram, Spotify gibi büyük şirketler Python'u yoğun olarak kullanır.",
+        explanation:
+          "Google, Instagram, Spotify gibi büyük şirketler Python'u yoğun olarak kullanır.",
         points: 10,
         difficulty: "medium",
-        category: "industry"
+        category: "industry",
       },
 
       // Bonus sorular - toplam 20+ soru için
       {
         type: "multiple_choice",
         question: "Python'da 'import this' komutu ne yapar?",
-        options: ["Hata verir", "Zen of Python'u gösterir", "Python versiyonunu gösterir", "Yardım menüsünü açar"],
+        options: [
+          "Hata verir",
+          "Zen of Python'u gösterir",
+          "Python versiyonunu gösterir",
+          "Yardım menüsünü açar",
+        ],
         correctAnswer: "Zen of Python'u gösterir",
-        explanation: "'import this' komutu Python'un tasarım felsefesi olan Zen of Python'u görüntüler.",
+        explanation:
+          "'import this' komutu Python'un tasarım felsefesi olan Zen of Python'u görüntüler.",
         points: 15,
         difficulty: "medium",
-        category: "easter_egg"
+        category: "easter_egg",
       },
 
       {
         type: "multiple_choice",
         question: "REPL nedir?",
-        options: ["Python IDE", "Read-Eval-Print Loop", "Python framework", "Debugging tool"],
+        options: [
+          "Python IDE",
+          "Read-Eval-Print Loop",
+          "Python framework",
+          "Debugging tool",
+        ],
         correctAnswer: "Read-Eval-Print Loop",
-        explanation: "REPL (Read-Eval-Print Loop) interaktif Python shell'idir.",
+        explanation:
+          "REPL (Read-Eval-Print Loop) interaktif Python shell'idir.",
         points: 10,
         difficulty: "medium",
-        category: "tools"
+        category: "tools",
       },
 
       {
         type: "true_false",
         question: "Python kodu .py uzantısı ile kaydedilir.",
         correctAnswer: true,
-        explanation: "Python dosyaları geleneksel olarak .py uzantısı ile kaydedilir.",
+        explanation:
+          "Python dosyaları geleneksel olarak .py uzantısı ile kaydedilir.",
         points: 5,
         difficulty: "easy",
-        category: "basic"
-      }
-    ]
-  }
+        category: "basic",
+      },
+    ],
+  },
 ];
 
 // Seeding fonksiyonu
@@ -2228,7 +2324,7 @@ export async function seedEnhancedLessons() {
     // Mevcut dersleri ve quizleri temizle
     console.log("🗑️ Mevcut verileri temizleniyor...");
     await prisma.quiz.deleteMany({});
-    await prisma.codeArena.deleteMany({});
+    await prisma.learningActivity.deleteMany({});
     console.log("✅ Mevcut veriler temizlendi");
   } catch (error) {
     console.log("⚠️ Temizlenecek veri bulunamadı");
@@ -2236,27 +2332,31 @@ export async function seedEnhancedLessons() {
 
   // Dersleri oluştur
   for (const lessonData of lessonsData) {
-    await prisma.codeArena.create({
+    await prisma.learningActivity.create({
       data: {
         id: lessonData.id,
         title: lessonData.title,
-        slug: lessonData.slug,
         description: lessonData.description,
-        content: JSON.stringify(lessonData.content),
-        difficulty: lessonData.difficulty,
-        duration: lessonData.duration,
+        activityType: lessonData.type || "theory_interactive",
         category: lessonData.category,
+        difficulty: lessonData.difficulty,
         diamondReward: lessonData.diamondReward,
         experienceReward: lessonData.experienceReward,
-        order: lessonData.order,
-        isPublished: lessonData.isPublished,
-        hasCodeExercise: !!lessonData.practicalExercise,
-        starterCode: lessonData.practicalExercise?.starterCode,
-        solutionCode: lessonData.practicalExercise?.solution,
-        testCases: JSON.stringify(lessonData.practicalExercise?.testCases || []),
-        hints: JSON.stringify(lessonData.hints || []),
-        prerequisites: JSON.stringify([]),
-        learningObjectives: JSON.stringify(lessonData.learningObjectives || []),
+        content: JSON.stringify(lessonData.content),
+        settings: JSON.stringify({
+          practicalExercise: lessonData.practicalExercise,
+          hints: lessonData.hints,
+          learningObjectives: lessonData.learningObjectives,
+          duration: lessonData.duration,
+          slug: lessonData.slug,
+          isPublished: lessonData.isPublished,
+        }),
+        isActive: lessonData.isPublished,
+        estimatedMinutes: lessonData.duration,
+        tags: JSON.stringify([lessonData.category, "python", "programming"]),
+        sortOrder: lessonData.order,
+        topicOrder: lessonData.order,
+        isLocked: false,
       },
     });
   }
@@ -2265,7 +2365,6 @@ export async function seedEnhancedLessons() {
   for (const quiz of quizData) {
     await prisma.quiz.create({
       data: {
-        codeArenaId: quiz.lessonId,
         title: `${quiz.lessonId} Quiz - Kapsamlı Test`,
         description: "Python temelleri ve kavramları üzerine kapsamlı quiz",
         questions: JSON.stringify(quiz.questions),

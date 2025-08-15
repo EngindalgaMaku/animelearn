@@ -1038,10 +1038,38 @@ def is_palindrome(s):
   try {
     // Create algorithm challenges
     for (const challenge of algorithmChallenges) {
-      await prisma.codeArena.upsert({
-        where: { slug: challenge.slug },
-        update: challenge,
-        create: challenge,
+      const learningActivityData = {
+        id: challenge.slug,
+        title: challenge.title,
+        description: challenge.description,
+        content: challenge.content,
+        activityType: "coding_challenge",
+        category: challenge.category || "algorithms",
+        difficulty: challenge.difficulty || 1,
+        diamondReward: challenge.diamondReward || 40,
+        experienceReward: challenge.experienceReward || 80,
+        estimatedMinutes: challenge.duration || 15,
+        sortOrder: challenge.order || 0,
+        isActive: challenge.isPublished !== false,
+        tags: JSON.stringify(challenge.tags ? JSON.parse(challenge.tags) : []),
+        settings: JSON.stringify({
+          slug: challenge.slug,
+          hasCodeExercise: challenge.hasCodeExercise || false,
+          starterCode: challenge.starterCode,
+          solutionCode: challenge.solutionCode,
+          testCases: challenge.testCases,
+          learningObjectives: challenge.learningObjectives
+            ? JSON.parse(challenge.learningObjectives)
+            : [],
+          source: "algorithm_seed",
+          migrated_at: new Date().toISOString(),
+        }),
+      };
+
+      await prisma.learningActivity.upsert({
+        where: { id: challenge.slug },
+        update: learningActivityData,
+        create: learningActivityData,
       });
       console.log(`✅ Created algorithm challenge: ${challenge.title}`);
     }

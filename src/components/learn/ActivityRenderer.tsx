@@ -203,31 +203,51 @@ export default function ActivityRenderer({
       }
 
       switch (activity.activityType) {
-        case "drag_drop":
+        case "drag_drop": {
           const {
-            target,
             blocks,
             correctOrder: dragCorrectOrder,
-            hints,
+            items,
+            categories,
           } = content || {};
-          if (
-            !blocks ||
-            !dragCorrectOrder ||
-            !Array.isArray(blocks) ||
-            !Array.isArray(dragCorrectOrder)
-          ) {
-            return "Drag & Drop activity missing blocks or correctOrder arrays";
+
+          const hasOrderSchema =
+            Array.isArray(blocks) && Array.isArray(dragCorrectOrder);
+          const hasClassificationSchema =
+            Array.isArray(items) && Array.isArray(categories);
+
+          if (!hasOrderSchema && !hasClassificationSchema) {
+            return "Drag & Drop must have either order schema (blocks + correctOrder) or classification schema (items + categories)";
           }
-          if (blocks.length === 0 || dragCorrectOrder.length === 0) {
-            return "Drag & Drop activity has empty blocks or correctOrder";
+
+          if (hasOrderSchema) {
+            if (blocks.length === 0 || dragCorrectOrder.length === 0) {
+              return "Drag & Drop (order) has empty blocks or correctOrder";
+            }
+            for (const block of blocks) {
+              if (!block || block.id === undefined || !block.code) {
+                return "Drag & Drop blocks missing required fields (id, code)";
+              }
+            }
           }
-          // Validate block structure
-          for (const block of blocks) {
-            if (!block || block.id === undefined || !block.code) {
-              return "Drag & Drop blocks missing required fields (id, code)";
+
+          if (hasClassificationSchema) {
+            if (items.length === 0 || categories.length === 0) {
+              return "Drag & Drop (classification) has empty items or categories";
+            }
+            for (const item of items) {
+              if (!item || item.id === undefined || item.type === undefined) {
+                return "Drag & Drop items missing required fields (id, type)";
+              }
+            }
+            for (const cat of categories) {
+              if (!cat || !cat.id || !cat.name) {
+                return "Drag & Drop categories missing required fields (id, name)";
+              }
             }
           }
           break;
+        }
 
         case "quiz":
           const { questions } = content || {};

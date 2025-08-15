@@ -19,11 +19,45 @@ interface Block {
   type: string;
 }
 
+interface ClassifyItem {
+  id: number;
+  value: string;
+  type: string; // category id
+}
+
+interface ClassifyCategory {
+  id: string;
+  name: string;
+  description?: string;
+}
+
 interface DragDropContent {
-  target: string;
-  blocks: Block[];
-  correctOrder: number[];
-  hints: string[];
+  // Order-building schema (original)
+  target?: string;
+  blocks?: Block[];
+  correctOrder?: number[];
+  hints?: string[];
+
+  // Classification schema (used by "Python Data Types Explorer")
+  items?: Array<{
+    id: number | string;
+    value?: string; // preferred field for display text
+    content?: string; // alternative field some seeds might use
+    type: string | number; // category id key
+  }>;
+  categories?: Array<{
+    id: string | number;
+    name: string;
+    description?: string;
+  }>;
+}
+function shuffleArray<T>(array: T[]): T[] {
+  const arr = array.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
 }
 
 interface LearningActivity {
@@ -95,14 +129,14 @@ export default function DragDropActivity({
     );
   }
 
-  const { target, blocks, correctOrder, hints } = activity.content || {};
+  const { target, blocks, correctOrder, hints, items, categories } =
+    activity.content || {};
 
-  if (
-    !blocks ||
-    !correctOrder ||
-    !Array.isArray(blocks) ||
-    !Array.isArray(correctOrder)
-  ) {
+  const hasOrderSchema = Array.isArray(blocks) && Array.isArray(correctOrder);
+  const hasClassificationSchema =
+    Array.isArray(items) && Array.isArray(categories);
+
+  if (!hasOrderSchema && !hasClassificationSchema) {
     return (
       <div className="mx-auto max-w-6xl p-6">
         <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
@@ -113,7 +147,8 @@ export default function DragDropActivity({
             This learning activity is missing required configuration data.
           </p>
           <div className="mt-4 text-sm text-red-500">
-            Expected: blocks array and correctOrder array in activity.content
+            Expected either: blocks + correctOrder arrays (order mode), or items
+            + categories (classification mode)
           </div>
         </div>
       </div>
@@ -131,6 +166,18 @@ export default function DragDropActivity({
   const [isCompleted, setIsCompleted] = useState(false);
   const [rewardAwarded, setRewardAwarded] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Classification mode state
+  const [availableItems, setAvailableItems] = useState<ClassifyItem[]>([]);
+  const [categoryMap, setCategoryMap] = useState<
+    Record<string, ClassifyItem[]>
+  >({});
+  const [classifyDraggedItem, setClassifyDraggedItem] =
+    useState<ClassifyItem | null>(null);
+  // Randomized category order for classification mode
+  const [shuffledCategories, setShuffledCategories] = useState<
+    ClassifyCategory[]
+  >([]);
 
   // Check authentication status on component mount
   useEffect(() => {
@@ -170,6 +217,62 @@ export default function DragDropActivity({
     }
   }, [blocks]);
 
+  // Initialize classification mode structures
+  useEffect(() => {
+    try {
+      if (Array.isArray(items) && Array.isArray(categories)) {
+        const validItems: ClassifyItem[] = items
+          .filter(
+            (it: any) =>
+              it &&
+              (typeof it.id === "number" || typeof it.id === "string") &&
+              (typeof it.type === "string" || typeof it.type === "number")
+          )
+          .map((it: any) => ({
+            id: Number(it.id),
+            value:
+              typeof it.value === "string"
+                ? it.value
+                : typeof it.content === "string"
+                  ? it.content
+                  : String(it.value ?? it.content ?? ""),
+            type: String(it.type),
+          }));
+
+        const map: Record<string, ClassifyItem[]> = {};
+        for (const cat of categories as ClassifyCategory[]) {
+          if (cat && cat.id) map[String(cat.id)] = [];
+        }
+
+        // Remove any already placed if re-init
+        setCategoryMap(map);
+        setAvailableItems(shuffleArray(validItems));
+        // Randomize category order for this session
+        setShuffledCategories(
+          shuffleArray(
+            (categories as ClassifyCategory[]).map((c) => ({ ...c }))
+          )
+        );
+        // Randomize category order for this session
+        setShuffledCategories(
+          shuffleArray(
+            (categories as ClassifyCategory[]).map((c) => ({ ...c }))
+          )
+        );
+        // Randomize category order too
+        setShuffledCategories(
+          shuffleArray(
+            (categories as ClassifyCategory[]).map((c) => ({ ...c }))
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error initializing classification items:", error);
+      setAvailableItems([]);
+      setCategoryMap({});
+    }
+  }, [items, categories]);
+
   const handleDragStart = (e: React.DragEvent, block: DraggedBlock) => {
     try {
       setDraggedItem(block);
@@ -180,8 +283,35 @@ export default function DragDropActivity({
   };
 
   const handleDragOver = (e: React.DragEvent) => {
+    // Allow drop
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
+
+    // Auto-scroll the current scrollable container during drag-over
+    const container = e.currentTarget as HTMLElement | null;
+    if (container && container.scrollHeight > container.clientHeight) {
+      const rect = container.getBoundingClientRect();
+      const offsetY = e.clientY - rect.top;
+      const threshold = 40; // px from edges to trigger scroll
+      const step = 20; // px per event
+
+      if (offsetY < threshold) {
+        container.scrollTop = Math.max(0, container.scrollTop - step);
+      } else if (rect.bottom - e.clientY < threshold) {
+        container.scrollTop = Math.min(
+          container.scrollHeight,
+          container.scrollTop + step
+        );
+      }
+    }
+
+    // Also gently scroll the window if near viewport edges
+    const viewportThreshold = 40;
+    if (e.clientY < viewportThreshold) {
+      window.scrollBy({ top: -20, behavior: "smooth" });
+    } else if (window.innerHeight - e.clientY < viewportThreshold) {
+      window.scrollBy({ top: 20, behavior: "smooth" });
+    }
   };
 
   const handleDrop = (
@@ -230,6 +360,171 @@ export default function DragDropActivity({
     }
   };
 
+  // Classification mode handlers
+  const handleClassifyDragStart = (e: React.DragEvent, item: ClassifyItem) => {
+    try {
+      setClassifyDraggedItem(item);
+      e.dataTransfer.effectAllowed = "move";
+    } catch (error) {
+      console.error("Classify drag start error:", error);
+    }
+  };
+
+  const handleClassifyDropToCategory = (
+    e: React.DragEvent,
+    categoryId: string
+  ) => {
+    try {
+      e.preventDefault();
+      if (!classifyDraggedItem) return;
+
+      setCategoryMap((prev) => {
+        const newMap: Record<string, ClassifyItem[]> = {};
+        // Remove from all categories first
+        Object.keys(prev).forEach((cid) => {
+          newMap[cid] = prev[cid].filter(
+            (it) => it.id !== classifyDraggedItem.id
+          );
+        });
+        // Add to target category
+        if (!newMap[categoryId]) newMap[categoryId] = [];
+        // Prevent duplicates
+        if (
+          !newMap[categoryId].some((it) => it.id === classifyDraggedItem.id)
+        ) {
+          newMap[categoryId].push(classifyDraggedItem);
+        }
+        return newMap;
+      });
+
+      // Remove from available pool
+      setAvailableItems((prev) =>
+        prev.filter((it) => it.id !== classifyDraggedItem.id)
+      );
+
+      setClassifyDraggedItem(null);
+    } catch (error) {
+      console.error("Classify drop to category error:", error);
+    }
+  };
+
+  const handleClassifyDropToPool = (e: React.DragEvent) => {
+    try {
+      e.preventDefault();
+      if (!classifyDraggedItem) return;
+
+      // Remove from categories
+      setCategoryMap((prev) => {
+        const newMap: Record<string, ClassifyItem[]> = {};
+        Object.keys(prev).forEach((cid) => {
+          newMap[cid] = prev[cid].filter(
+            (it) => it.id !== classifyDraggedItem.id
+          );
+        });
+        return newMap;
+      });
+
+      // Add back to available if not present
+      setAvailableItems((prev) => {
+        if (prev.some((it) => it.id === classifyDraggedItem.id)) return prev;
+        return [...prev, classifyDraggedItem].sort((a, b) => a.id - b.id);
+      });
+
+      setClassifyDraggedItem(null);
+    } catch (error) {
+      console.error("Classify drop to pool error:", error);
+    }
+  };
+
+  const removeItemFromCategory = (categoryId: string, item: ClassifyItem) => {
+    try {
+      setCategoryMap((prev) => {
+        const newMap = { ...prev };
+        newMap[categoryId] = (newMap[categoryId] || []).filter(
+          (it) => it.id !== item.id
+        );
+        return newMap;
+      });
+      setAvailableItems((prev) => {
+        if (prev.some((it) => it.id === item.id)) return prev;
+        return [...prev, item].sort((a, b) => a.id - b.id);
+      });
+    } catch (error) {
+      console.error("Remove item from category error:", error);
+    }
+  };
+
+  const resetClassification = () => {
+    try {
+      const validItems: ClassifyItem[] = Array.isArray(items)
+        ? items.map((it: any) => ({
+            id: Number(it.id),
+            value:
+              typeof it.value === "string"
+                ? it.value
+                : typeof it.content === "string"
+                  ? it.content
+                  : String(it.value ?? it.content ?? ""),
+            type: String(it.type),
+          }))
+        : [];
+      setAvailableItems(shuffleArray(validItems));
+      const map: Record<string, ClassifyItem[]> = {};
+      if (Array.isArray(categories)) {
+        const cats = categories as ClassifyCategory[];
+        cats.forEach((c) => (map[String(c.id)] = []));
+        // Randomize category order on reset
+        setShuffledCategories(shuffleArray(cats.map((c) => ({ ...c }))));
+      }
+      setCategoryMap(map);
+      setSubmitted(false);
+      setScore(0);
+      setIsCompleted(false);
+      setRewardAwarded(false);
+      setShowRewardAnimation(false);
+      setAttempts(0);
+    } catch (error) {
+      console.error("Reset classification error:", error);
+    }
+  };
+
+  const checkClassification = async () => {
+    try {
+      setSubmitted(true);
+      setAttempts((prev) => prev + 1);
+
+      const total = Array.isArray(items) ? items.length : 0;
+      let placed = 0;
+      let correct = 0;
+
+      if (Array.isArray(categories)) {
+        for (const cat of categories as ClassifyCategory[]) {
+          const bucket = categoryMap[String(cat.id)] || [];
+          placed += bucket.length;
+          for (const it of bucket) {
+            if (String(it.type) === String(cat.id)) correct++;
+          }
+        }
+      }
+
+      const accuracy = total > 0 ? (correct / total) * 100 : 0;
+      const completeness = total > 0 ? (placed / total) * 100 : 0;
+      const efficiency = Math.max(0, 100 - (attempts - 1) * 10);
+      const finalScore = Math.round(
+        accuracy * 0.7 + completeness * 0.2 + efficiency * 0.1
+      );
+
+      setScore(finalScore);
+
+      const success = finalScore >= 80 && placed === total;
+      if (success) {
+        setIsCompleted(true);
+      }
+    } catch (error) {
+      console.error("Check classification error:", error);
+    }
+  };
+
   const checkOrder = async () => {
     try {
       setSubmitted(true);
@@ -262,7 +557,7 @@ export default function DragDropActivity({
 
       const success = finalScore >= 70 && correctCount === orderLength;
       if (success) {
-        await handleActivityCompletion();
+        setIsCompleted(true);
       }
     } catch (error) {
       console.error("Check order error:", error);
@@ -300,54 +595,16 @@ export default function DragDropActivity({
 
   const handleActivityCompletion = async () => {
     try {
+      // Mark as completed locally (for UI), then delegate to parent.
       setIsCompleted(true);
-      if (!isAuthenticated || !activity?.id) return;
 
-      let awardedActivities = [];
-      try {
-        awardedActivities = JSON.parse(
-          localStorage.getItem("awardedActivities") || "[]"
-        );
-      } catch (error) {
-        console.error("Error parsing awarded activities:", error);
-        awardedActivities = [];
-      }
-
-      if (!awardedActivities.includes(activity.id)) {
-        try {
-          const response = await fetch("/api/learning-activities/complete", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              activityType: "drag_drop",
-              activityId: activity.id,
-              activityTitle: activity.title || "Drag Drop Activity",
-              score: Math.max(70, score || 0),
-              timeSpent: 300,
-              success: true,
-              diamondReward: activity.diamondReward || 50,
-              experienceReward: activity.experienceReward || 100,
-            }),
-          });
-
-          if (response.ok) {
-            setShowRewardAnimation(true);
-            try {
-              awardedActivities.push(activity.id);
-              localStorage.setItem(
-                "awardedActivities",
-                JSON.stringify(awardedActivities)
-              );
-            } catch (error) {
-              console.error("Error saving awarded activities:", error);
-            }
-            setRewardAwarded(true);
-            setTimeout(() => setShowRewardAnimation(false), 3000);
-          }
-        } catch (error) {
-          console.error("Error awarding rewards:", error);
-        }
-      }
+      // Delegate completion to parent via onComplete.
+      // ActivityRenderer will compute timeSpent and the parent page will handle:
+      // - calling /api/learning-activities/complete
+      // - showing reward claim UI
+      // - closing the activity modal
+      const final = Math.max(0, Number.isFinite(score) ? score : 0);
+      onComplete(final, 100, true);
     } catch (error) {
       console.error("Error in handleActivityCompletion:", error);
     }
@@ -415,6 +672,248 @@ export default function DragDropActivity({
     }
   }, [submitted, correctOrder, droppedBlocks]);
 
+  // Render classification mode early if applicable
+  if (!hasOrderSchema && hasClassificationSchema) {
+    try {
+      const safeItems = Array.isArray(items) ? (items as any[]) : [];
+      const safeCategories = Array.isArray(categories)
+        ? (categories as ClassifyCategory[])
+        : [];
+
+      const totalCount = safeItems.length;
+      const placedCount = Object.values(categoryMap).reduce(
+        (sum, arr) => sum + arr.length,
+        0
+      );
+
+      return (
+        <div className="mx-auto max-w-6xl p-6 pb-24">
+          {/* Header */}
+          <div className="mb-8">
+            <h2 className="mb-4 text-3xl font-bold text-gray-900">
+              {activity.title || "Drag & Drop Classification"}
+            </h2>
+            <p className="mb-6 text-lg text-gray-600">
+              {activity.description ||
+                "Drag each item into the correct category."}
+            </p>
+          </div>
+
+          {/* Progress */}
+          <div className="mb-6">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">
+                Progress
+              </span>
+              <span className="text-sm text-gray-500">
+                {placedCount}/{totalCount} items placed
+              </span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-gray-200">
+              <div
+                className="h-2 rounded-full bg-blue-600 transition-all duration-300"
+                style={{
+                  width: `${
+                    totalCount > 0 ? (placedCount / totalCount) * 100 : 0
+                  }%`,
+                }}
+              ></div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            {/* Available Items */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Available Items
+                </h3>
+              </div>
+
+              <div
+                className="max-h-[60vh] min-h-40 overflow-auto rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4"
+                onDragOver={handleDragOver}
+                onDrop={handleClassifyDropToPool}
+              >
+                <div className="space-y-3">
+                  {availableItems.length > 0 ? (
+                    availableItems.map((it) => (
+                      <div
+                        key={it.id}
+                        draggable={!submitted}
+                        onDragStart={(e) => handleClassifyDragStart(e, it)}
+                        className={`cursor-move rounded-lg border-2 border-slate-300 bg-white p-3 transition-all hover:shadow-md ${
+                          submitted ? "cursor-not-allowed opacity-50" : ""
+                        }`}
+                      >
+                        <div>
+                          <pre className="whitespace-pre-wrap font-mono text-sm">
+                            {it.value}
+                          </pre>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="py-8 text-center text-gray-500">
+                      All items have been placed
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Categories */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Categories
+              </h3>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {(shuffledCategories.length > 0
+                  ? shuffledCategories
+                  : safeCategories
+                ).map((cat) => {
+                  const bucket = categoryMap[String(cat.id)] || [];
+                  return (
+                    <div
+                      key={cat.id}
+                      className="rounded-lg border border-slate-200 bg-white p-3"
+                    >
+                      <div className="mb-2">
+                        <div className="text-sm font-bold text-slate-800">
+                          {cat.name}
+                        </div>
+                        {cat.description && (
+                          <div className="text-xs text-slate-500">
+                            {cat.description}
+                          </div>
+                        )}
+                      </div>
+                      <div
+                        className={`max-h-[40vh] min-h-36 overflow-auto rounded-lg border-2 border-dashed p-3 transition-colors ${
+                          submitted
+                            ? "border-slate-300 bg-slate-50"
+                            : "border-blue-300 bg-blue-50"
+                        }`}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) =>
+                          handleClassifyDropToCategory(e, String(cat.id))
+                        }
+                      >
+                        <div className="space-y-2">
+                          {bucket.length > 0 ? (
+                            bucket.map((it) => (
+                              <div
+                                key={it.id}
+                                draggable={!submitted}
+                                onDragStart={(e) =>
+                                  handleClassifyDragStart(e, it)
+                                }
+                                className="flex items-center justify-between rounded-lg border-2 border-slate-300 bg-white p-2"
+                              >
+                                <pre className="whitespace-pre-wrap font-mono text-sm">
+                                  {it.value}
+                                </pre>
+                                {!submitted && (
+                                  <button
+                                    onClick={() =>
+                                      removeItemFromCategory(String(cat.id), it)
+                                    }
+                                    className="text-xs text-red-500 hover:text-red-700"
+                                  >
+                                    Remove
+                                  </button>
+                                )}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="py-6 text-center text-sm text-slate-400">
+                              Drop items here
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="mt-8 flex justify-center space-x-4">
+            {!submitted ? (
+              <button
+                onClick={checkClassification}
+                disabled={placedCount === 0}
+                className="rounded-lg bg-blue-600 px-8 py-3 font-bold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+              >
+                Check Answers
+              </button>
+            ) : isCompleted ? (
+              <>
+                <button
+                  onClick={handleActivityCompletion}
+                  className="rounded-lg bg-green-600 px-6 py-3 font-bold text-white transition-colors hover:bg-green-700"
+                >
+                  Get Reward & Close
+                </button>
+                <button
+                  onClick={resetClassification}
+                  className="inline-flex items-center space-x-2 rounded-lg bg-indigo-600 px-6 py-3 font-bold text-white transition-colors hover:bg-indigo-700"
+                >
+                  Try Again
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={resetClassification}
+                className="inline-flex items-center space-x-2 rounded-lg bg-indigo-600 px-6 py-3 font-bold text-white transition-colors hover:bg-indigo-700"
+              >
+                Try Again
+              </button>
+            )}
+          </div>
+
+          {/* Results */}
+          {submitted && (
+            <div className="mt-6 rounded-lg border border-gray-200 bg-white p-6 text-center">
+              <div
+                className={`mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full ${
+                  isCompleted
+                    ? "bg-green-100 text-green-600"
+                    : "bg-orange-100 text-orange-600"
+                }`}
+              >
+                <CheckCircle className="h-8 w-8" />
+              </div>
+              <h3 className="mb-2 text-2xl font-bold text-gray-900">
+                {isCompleted ? "Great Job!" : "Good Attempt!"}
+              </h3>
+              <p className="mb-4 text-gray-600">Success Rate</p>
+              <div className="text-4xl font-bold text-gray-900">{score}%</div>
+            </div>
+          )}
+        </div>
+      );
+    } catch (err) {
+      console.error("Classification render error:", err);
+      return (
+        <div className="mx-auto max-w-6xl p-6">
+          <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+            <h2 className="mb-4 text-2xl font-bold text-red-800">
+              Activity Render Error
+            </h2>
+            <p className="text-red-600">
+              There was an error displaying this activity. Please try refreshing
+              the page.
+            </p>
+          </div>
+        </div>
+      );
+    }
+  }
+
   // Safe render with try-catch
   try {
     const safeDroppedBlocks = droppedBlocks || [];
@@ -423,7 +922,7 @@ export default function DragDropActivity({
     const safeHints = hints || [];
 
     return (
-      <div className="mx-auto max-w-6xl p-6">
+      <div className="mx-auto max-w-6xl p-6 pb-24">
         {/* Header */}
         <div className="mb-8">
           <h2 className="mb-4 text-3xl font-bold text-gray-900">
@@ -481,7 +980,7 @@ export default function DragDropActivity({
             </div>
 
             <div
-              className="min-h-40 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4"
+              className="max-h-[60vh] min-h-40 overflow-auto rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, "available")}
             >
@@ -534,7 +1033,7 @@ export default function DragDropActivity({
               Program Structure
             </h3>
             <div
-              className={`min-h-96 rounded-lg border-2 border-dashed p-4 transition-colors ${
+              className={`max-h-[60vh] min-h-96 overflow-auto rounded-lg border-2 border-dashed p-4 transition-colors ${
                 isCorrectOrder
                   ? "border-green-500 bg-green-50"
                   : submitted && safeDroppedBlocks.length > 0
@@ -697,7 +1196,7 @@ export default function DragDropActivity({
                         onClick={handleManualComplete}
                         className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700"
                       >
-                        🎉 Complete Activity & Claim Rewards
+                        Get Reward & Close
                       </button>
                     </div>
                   </div>
