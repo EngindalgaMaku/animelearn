@@ -80,14 +80,15 @@ export async function GET(request: NextRequest) {
       quiz: quizDetails.find((q) => q.id === quiz.quizId),
     }));
 
-    // **CODE ARENA ANALYTICS**
+    // **CODE ARENA ANALYTICS (migrated to LearningActivity + ActivityAttempt)**
     const [codeArenaStats, codeSubmissions] = await Promise.all([
-      prisma.codeArenaProgress.aggregate({
+      prisma.activityAttempt.aggregate({
         where: {
           completedAt: Object.keys(dateFilter).length
             ? dateFilter
             : { gte: thirtyDaysAgo },
-          isCompleted: true,
+          completed: true,
+          activity: { activityType: "lesson" },
         },
         _count: { id: true },
         _avg: { score: true, timeSpent: true },
@@ -107,14 +108,15 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    // Top Code Arena challenges
-    const topCodeArenas = await prisma.codeArenaProgress.groupBy({
-      by: ["codeArenaId"],
+    // Top "challenges" derived from most completed attempts per activity (lesson)
+    const topActivities = await prisma.activityAttempt.groupBy({
+      by: ["activityId"],
       where: {
         completedAt: Object.keys(dateFilter).length
           ? dateFilter
           : { gte: thirtyDaysAgo },
-        isCompleted: true,
+        completed: true,
+        activity: { activityType: "lesson" },
       },
       _count: { id: true },
       _avg: { score: true },
@@ -122,14 +124,16 @@ export async function GET(request: NextRequest) {
       take: 5,
     });
 
-    const arenaDetails = await prisma.codeArena.findMany({
-      where: { id: { in: topCodeArenas.map((a) => a.codeArenaId) } },
+    const activityDetails = await prisma.learningActivity.findMany({
+      where: { id: { in: topActivities.map((a) => a.activityId) } },
       select: { id: true, title: true, difficulty: true, category: true },
     });
 
-    const topCodeArenasWithDetails = topCodeArenas.map((arena) => ({
-      ...arena,
-      codeArena: arenaDetails.find((a) => a.id === arena.codeArenaId),
+    // Keep response shape keys compatible with UI (codeArena/topChallenges)
+    const topCodeArenasWithDetails = topActivities.map((a) => ({
+      ...a,
+      codeArenaId: a.activityId,
+      codeArena: activityDetails.find((d) => d.id === a.activityId),
     }));
 
     // **LEARNING ACTIVITIES ANALYTICS**
@@ -285,8 +289,6 @@ export async function GET(request: NextRequest) {
       FROM (
         SELECT "completedAt" as activity_date FROM "quiz_attempts" WHERE "completedAt" >= ${thirtyDaysAgo}
         UNION ALL
-        SELECT "completedAt" as activity_date FROM "code_arena_progress" WHERE "completedAt" >= ${thirtyDaysAgo} AND "isCompleted" = true
-        UNION ALL
         SELECT "completedAt" as activity_date FROM "activity_attempts" WHERE "completedAt" >= ${thirtyDaysAgo} AND "completed" = true
         UNION ALL
         SELECT "firstViewedAt" as activity_date FROM "blog_post_interactions" WHERE "firstViewedAt" >= ${thirtyDaysAgo} AND "hasViewed" = true
@@ -302,6 +304,13 @@ export async function GET(request: NextRequest) {
     }));
 
     // **OVERALL SUMMARY**
+    const codeSubmissionsCount = await prisma.codeSubmission.count({
+      where: {
+        submittedAt: Object.keys(dateFilter).length
+          ? dateFilter
+          : { gte: thirtyDaysAgo },
+      },
+    });
     const totalUsers = await prisma.user.count({
       where: {
         createdAt: Object.keys(dateFilter).length ? dateFilter : undefined,
@@ -312,9 +321,6 @@ export async function GET(request: NextRequest) {
       where: {
         OR: [
           { quizAttempts: { some: { completedAt: { gte: sevenDaysAgo } } } },
-          {
-            codeArenaProgress: { some: { completedAt: { gte: sevenDaysAgo } } },
-          },
           {
             activityAttempts: { some: { completedAt: { gte: sevenDaysAgo } } },
           },
@@ -332,7 +338,7 @@ export async function GET(request: NextRequest) {
         totalUsers,
         activeUsers,
         totalQuizzes: quizStats._count.id || 0,
-        totalCodeSubmissions: codeArenaStats._count.id || 0,
+        totalCodeSubmissions: codeSubmissionsCount || 0,
         totalLearningActivities: learningStats._count.id || 0,
         totalBlogViews: blogStats._count.id || 0,
         totalPythonTipViews: pythonTipStats._count.id || 0,

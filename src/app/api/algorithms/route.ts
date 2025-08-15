@@ -3,50 +3,76 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
+function parseJson<T>(val: unknown, fallback: T): T {
+  try {
+    if (!val) return fallback;
+    if (typeof val === "string") return JSON.parse(val) as T;
+    return val as T;
+  } catch {
+    return fallback;
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     const searchParams = request.nextUrl.searchParams;
     const category = searchParams.get("category") || "algorithms";
 
-    // Get algorithm challenges from database
-    const challenges = await prisma.codeArena.findMany({
+    // Fetch "algorithm" lessons from LearningActivity
+    const activities = await prisma.learningActivity.findMany({
       where: {
-        category: category,
-        isPublished: true,
+        activityType: "lesson",
+        category,
+        isActive: true,
       },
       orderBy: {
-        order: "asc",
+        sortOrder: "asc",
       },
     });
 
-    // Get user progress if authenticated
-    let userProgress: any = {};
-    if (session?.user?.id) {
-      const progressRecords = await prisma.codeArenaProgress.findMany({
+    // Map activity IDs
+    const activityIds = activities.map((a) => a.id);
+
+    // Fetch user attempts if authenticated
+    let userProgress: Record<
+      string,
+      {
+        isStarted: boolean;
+        isCompleted: boolean;
+        score: number | null;
+        attempts: number;
+        timeSpent: number;
+        lastVisit: Date | null;
+      }
+    > = {};
+
+    if (session?.user?.id && activityIds.length) {
+      const attempts = await prisma.activityAttempt.findMany({
         where: {
           userId: session.user.id,
-          codeArenaId: {
-            in: challenges.map((c) => c.id),
-          },
+          activityId: { in: activityIds },
         },
       });
 
-      userProgress = progressRecords.reduce((acc, record) => {
-        acc[record.codeArenaId] = {
-          isStarted: record.isStarted,
-          isCompleted: record.isCompleted,
-          score: record.score,
-          attempts: record.attempts,
-          lastVisit: record.lastVisit,
-          timeSpent: record.timeSpent,
-        };
-        return acc;
-      }, {} as any);
+      userProgress = attempts.reduce(
+        (acc, at) => {
+          acc[at.activityId] = {
+            isStarted: !!at.startedAt,
+            isCompleted: !!at.completed,
+            score: at.score ?? null,
+            attempts: at.timeSpent && at.timeSpent > 0 ? 1 : 0, // no attempts field; derive a minimal value
+            timeSpent: at.timeSpent || 0,
+            lastVisit: at.completedAt || at.startedAt || null,
+          };
+          return acc;
+        },
+        {} as Record<string, any>
+      );
     }
 
     // Calculate overall progress
-    const totalChallenges = challenges.length;
+    const totalChallenges = activities.length;
     const completedChallenges = Object.values(userProgress).filter(
       (p: any) => p?.isCompleted
     ).length;
@@ -55,52 +81,66 @@ export async function GET(request: NextRequest) {
         ? Math.round((completedChallenges / totalChallenges) * 100)
         : 0;
 
-    // Transform challenges to match frontend format
-    const formattedChallenges = challenges.map((challenge) => {
-      const progress = userProgress[challenge.id];
+    // Transform to expected frontend format
+    const formattedChallenges = activities.map((activity) => {
+      const progress = userProgress[activity.id];
 
-      // Parse tags and determine challenge type
-      const tags = challenge.tags ? JSON.parse(challenge.tags) : [];
+      // tags are stored as JSON string
+      const tags = parseJson<string[]>(activity.tags, []);
       const isVisualization = tags.includes("Algorithm Viz");
       const isMatching = tags.includes("Matching");
 
-      // Determine difficulty badge
+      // Optional legacy fields are in settings JSON
+      const settings = parseJson<any>(activity.settings, null);
+      const hasCodeExercise = !!settings?.hasCodeExercise;
+      const learningObjectives = Array.isArray(settings?.learningObjectives)
+        ? settings.learningObjectives
+        : [];
+
+      // Difficulty badge/color
       let difficultyBadge = "Beginner";
       let difficultyColor = "bg-green-500";
-
-      if (challenge.difficulty >= 4) {
+      if (activity.difficulty >= 4) {
         difficultyBadge = "Expert";
         difficultyColor = "bg-red-500";
-      } else if (challenge.difficulty >= 3) {
+      } else if (activity.difficulty >= 3) {
         difficultyBadge = "Advanced";
         difficultyColor = "bg-purple-500";
-      } else if (challenge.difficulty >= 2) {
+      } else if (activity.difficulty >= 2) {
         difficultyBadge = "Intermediate";
         difficultyColor = "bg-blue-500";
       }
 
       return {
-        id: challenge.id,
-        title: challenge.title,
-        slug: challenge.slug,
-        description: challenge.description,
+        id: activity.id,
+        title: activity.title,
+        // slug lives in settings JSON if present; fall back to title slug
+        slug:
+          (typeof settings?.slug === "string" && settings.slug) ||
+          activity.title
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, "")
+            .replace(/\s+/g, "-")
+            .replace(/-+/g, "-")
+            .trim(),
+        description: activity.description || "",
         type: isVisualization
           ? "Algorithm Viz"
           : isMatching
             ? "Matching"
             : "Challenge",
         difficulty: {
-          level: challenge.difficulty,
+          level: activity.difficulty,
           badge: difficultyBadge,
           color: difficultyColor,
         },
         rewards: {
-          diamonds: challenge.diamondReward,
-          xp: challenge.experienceReward,
+          diamonds: activity.diamondReward ?? 0,
+          xp: activity.experienceReward ?? 0,
         },
-        duration: `${challenge.duration}m`,
-        estimatedMinutes: challenge.duration,
-        tags: tags,
+        duration: `${activity.estimatedMinutes ?? 30}m`,
+        estimatedMinutes: activity.estimatedMinutes ?? 30,
+        tags,
         progress: progress
           ? {
               isStarted: progress.isStarted,
@@ -118,18 +158,15 @@ export async function GET(request: NextRequest) {
               timeSpent: 0,
               lastVisit: null,
             },
-        isLocked: false, // For now, all challenges are unlocked
-        order: challenge.order,
-        hasCodeExercise: challenge.hasCodeExercise,
-        learningObjectives: challenge.learningObjectives
-          ? JSON.parse(challenge.learningObjectives)
-          : [],
-        createdAt: challenge.createdAt,
-        updatedAt: challenge.updatedAt,
+        isLocked: false,
+        order: activity.sortOrder ?? 1,
+        hasCodeExercise,
+        learningObjectives,
+        createdAt: activity.createdAt,
+        updatedAt: activity.updatedAt,
       };
     });
 
-    // Prepare response data
     const responseData = {
       success: true,
       category: {
@@ -166,7 +203,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Update user progress
+// Update user progress (mapped to ActivityAttempt)
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -178,7 +215,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { challengeId, action, data } = body;
+    const { challengeId, action, data } = body as {
+      challengeId: string;
+      action: "start" | "complete" | "update_progress";
+      data?: any;
+    };
 
     if (!challengeId || !action) {
       return NextResponse.json(
@@ -187,64 +228,70 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify challenge exists
-    const challenge = await prisma.codeArena.findUnique({
+    // Verify activity exists
+    const activity = await prisma.learningActivity.findUnique({
       where: { id: challengeId },
+      select: {
+        id: true,
+        title: true,
+        diamondReward: true,
+        experienceReward: true,
+        activityType: true,
+      },
     });
 
-    if (!challenge) {
+    if (!activity || activity.activityType !== "lesson") {
       return NextResponse.json(
         { success: false, error: "Challenge not found" },
         { status: 404 }
       );
     }
 
-    // Update or create progress record
-    const updateData: any = {
-      lastVisit: new Date(),
-    };
+    // Prepare update data for ActivityAttempt
+    const updateData: any = {};
 
     switch (action) {
       case "start":
-        updateData.isStarted = true;
         updateData.startedAt = new Date();
         break;
 
       case "complete":
-        updateData.isCompleted = true;
+        updateData.completed = true;
         updateData.completedAt = new Date();
-        updateData.score = data?.score || 100;
+        if (typeof data?.score === "number") {
+          updateData.score = data.score;
+        }
 
         // Award rewards
         await prisma.user.update({
           where: { id: session.user.id },
           data: {
-            currentDiamonds: { increment: challenge.diamondReward },
-            totalDiamonds: { increment: challenge.diamondReward },
-            experience: { increment: challenge.experienceReward },
-            codeArenasCompleted: { increment: 1 },
+            currentDiamonds: { increment: activity.diamondReward ?? 0 },
+            totalDiamonds: { increment: activity.diamondReward ?? 0 },
+            experience: { increment: activity.experienceReward ?? 0 },
+            codeArenasCompleted: { increment: 1 }, // legacy counter name retained
           },
         });
         break;
 
       case "update_progress":
-        if (data?.timeSpent) updateData.timeSpent = data.timeSpent;
-        if (data?.attempts !== undefined) updateData.attempts = data.attempts;
-        if (data?.lastCode) updateData.lastCode = data.lastCode;
+        if (typeof data?.timeSpent === "number")
+          updateData.timeSpent = data.timeSpent;
+        if (typeof data?.score === "number") updateData.score = data.score;
         break;
     }
 
-    const progress = await prisma.codeArenaProgress.upsert({
+    const progress = await prisma.activityAttempt.upsert({
       where: {
-        userId_codeArenaId: {
+        userId_activityId: {
           userId: session.user.id,
-          codeArenaId: challengeId,
+          activityId: challengeId,
         },
       },
       update: updateData,
       create: {
         userId: session.user.id,
-        codeArenaId: challengeId,
+        activityId: challengeId,
         ...updateData,
       },
     });
@@ -255,8 +302,8 @@ export async function POST(request: NextRequest) {
       rewards:
         action === "complete"
           ? {
-              diamonds: challenge.diamondReward,
-              xp: challenge.experienceReward,
+              diamonds: activity.diamondReward ?? 0,
+              xp: activity.experienceReward ?? 0,
             }
           : null,
     });

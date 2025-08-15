@@ -57,8 +57,8 @@ export async function GET(request: NextRequest) {
       // Toplam kategori sayısı
       db.category.count(),
 
-      // Toplam kod arena sayısı (challenges equivalent)
-      db.codeArena.count(),
+      // Toplam challenge sayısı
+      db.weeklyChallenge.count(),
 
       // Son 24 saatte aktif olan kullanıcılar
       db.user.count({

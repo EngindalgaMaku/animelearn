@@ -65,12 +65,18 @@ export async function GET(req: NextRequest) {
 
     // Bugünün tarihini al
     const today = new Date();
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
     const yesterday = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
 
     // Streak durumunu kontrol et
     let streakStatus = "active";
-    const lastActivityDate = userStreak.lastActivityDate ? new Date(userStreak.lastActivityDate) : null;
+    const lastActivityDate = userStreak.lastActivityDate
+      ? new Date(userStreak.lastActivityDate)
+      : null;
 
     if (!lastActivityDate) {
       streakStatus = "inactive";
@@ -83,10 +89,13 @@ export async function GET(req: NextRequest) {
     // Sonraki milestone'ı hesapla
     const nextMilestone = Object.keys(STREAK_MILESTONES)
       .map(Number)
-      .find(milestone => milestone > userStreak!.currentStreak);
+      .find((milestone) => milestone > userStreak!.currentStreak);
 
     // Günlük aktiviteleri kontrol et
-    const todayActivities = await checkTodayActivities(authUser.userId, todayStart);
+    const todayActivities = await checkTodayActivities(
+      authUser.userId,
+      todayStart
+    );
 
     return NextResponse.json({
       success: true,
@@ -102,22 +111,27 @@ export async function GET(req: NextRequest) {
         status: streakStatus,
       },
       milestones: {
-        next: nextMilestone ? {
-          day: nextMilestone,
-          reward: STREAK_MILESTONES[nextMilestone as keyof typeof STREAK_MILESTONES],
-          daysLeft: nextMilestone - userStreak.currentStreak,
-        } : null,
+        next: nextMilestone
+          ? {
+              day: nextMilestone,
+              reward:
+                STREAK_MILESTONES[
+                  nextMilestone as keyof typeof STREAK_MILESTONES
+                ],
+              daysLeft: nextMilestone - userStreak.currentStreak,
+            }
+          : null,
         completed: Object.keys(STREAK_MILESTONES)
           .map(Number)
-          .filter(milestone => milestone <= userStreak!.longestStreak)
-          .map(milestone => ({
+          .filter((milestone) => milestone <= userStreak!.longestStreak)
+          .map((milestone) => ({
             day: milestone,
-            reward: STREAK_MILESTONES[milestone as keyof typeof STREAK_MILESTONES],
+            reward:
+              STREAK_MILESTONES[milestone as keyof typeof STREAK_MILESTONES],
           })),
       },
       todayActivities,
     });
-
   } catch (error) {
     console.error("Error fetching user streak:", error);
     return NextResponse.json(
@@ -141,7 +155,7 @@ export async function POST(req: NextRequest) {
 
     // Valid activity types
     const validActivityTypes = ["login", "codeArena", "quiz", "daily_quest"];
-    
+
     if (!validActivityTypes.includes(activityType)) {
       return NextResponse.json(
         { error: "Geçersiz aktivite tipi" },
@@ -150,7 +164,11 @@ export async function POST(req: NextRequest) {
     }
 
     const today = new Date();
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
     const yesterday = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
 
     // Kullanıcının streak bilgilerini al veya oluştur
@@ -173,10 +191,16 @@ export async function POST(req: NextRequest) {
         },
       });
     } else {
-      const lastActivityDate = userStreak.lastActivityDate ? new Date(userStreak.lastActivityDate) : null;
-      
+      const lastActivityDate = userStreak.lastActivityDate
+        ? new Date(userStreak.lastActivityDate)
+        : null;
+
       // Eğer bugün zaten aktivite varsa ve force update değilse, güncelleme yapma
-      if (!forceUpdate && lastActivityDate && lastActivityDate.getTime() === todayStart.getTime()) {
+      if (
+        !forceUpdate &&
+        lastActivityDate &&
+        lastActivityDate.getTime() === todayStart.getTime()
+      ) {
         return NextResponse.json({
           success: true,
           message: "Bugün zaten aktivite kaydedildi",
@@ -188,7 +212,10 @@ export async function POST(req: NextRequest) {
       let newStreakStartDate = userStreak.streakStartDate;
 
       // Streak mantığı
-      if (!lastActivityDate || lastActivityDate.getTime() < yesterday.getTime()) {
+      if (
+        !lastActivityDate ||
+        lastActivityDate.getTime() < yesterday.getTime()
+      ) {
         // Streak kopmuş, yeniden başla
         newCurrentStreak = 1;
         newStreakStartDate = todayStart;
@@ -221,7 +248,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Milestone ödülü kontrolü
-    const milestoneReward = await checkAndGiveMilestoneReward(authUser.userId, userStreak.currentStreak);
+    const milestoneReward = await checkAndGiveMilestoneReward(
+      authUser.userId,
+      userStreak.currentStreak
+    );
 
     return NextResponse.json({
       success: true,
@@ -233,7 +263,6 @@ export async function POST(req: NextRequest) {
       },
       milestoneReward,
     });
-
   } catch (error) {
     console.error("Error updating user streak:", error);
     return NextResponse.json(
@@ -247,55 +276,58 @@ export async function POST(req: NextRequest) {
 async function checkTodayActivities(userId: string, todayStart: Date) {
   const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
-  const [codeArenaProgress, quizAttempts, dailyQuests, dailyMiniQuiz] = await Promise.all([
-    // Code arena tamamlama
-    prisma.codeArenaProgress.findFirst({
-      where: {
-        userId,
-        completedAt: {
-          gte: todayStart,
-          lt: todayEnd,
+  const [lessonCompletion, quizAttempts, dailyQuests, dailyMiniQuiz] =
+    await Promise.all([
+      // Lesson (migrated from Code Arena) tamamlama
+      prisma.activityAttempt.findFirst({
+        where: {
+          userId,
+          completed: true,
+          completedAt: {
+            gte: todayStart,
+            lt: todayEnd,
+          },
+          activity: { activityType: "lesson" },
         },
-      },
-    }),
-    
-    // Quiz çözme
-    prisma.quizAttempt.findFirst({
-      where: {
-        userId,
-        completedAt: {
-          gte: todayStart,
-          lt: todayEnd,
+      }),
+
+      // Quiz çözme
+      prisma.quizAttempt.findFirst({
+        where: {
+          userId,
+          completedAt: {
+            gte: todayStart,
+            lt: todayEnd,
+          },
         },
-      },
-    }),
-    
-    // Daily quest
-    prisma.dailyQuest.findFirst({
-      where: {
-        userId,
-        isCompleted: true,
-        date: {
-          gte: todayStart,
-          lt: todayEnd,
+      }),
+
+      // Daily quest
+      prisma.dailyQuest.findFirst({
+        where: {
+          userId,
+          isCompleted: true,
+          date: {
+            gte: todayStart,
+            lt: todayEnd,
+          },
         },
-      },
-    }),
-    
-    // Daily mini quiz
-    prisma.dailyMiniQuizAttempt.findFirst({
-      where: {
-        userId,
-        completedAt: {
-          gte: todayStart,
-          lt: todayEnd,
+      }),
+
+      // Daily mini quiz
+      prisma.dailyMiniQuizAttempt.findFirst({
+        where: {
+          userId,
+          completedAt: {
+            gte: todayStart,
+            lt: todayEnd,
+          },
         },
-      },
-    }),
-  ]);
+      }),
+    ]);
 
   return {
-    codeArena: !!codeArenaProgress,
+    codeArena: !!lessonCompletion,
     quiz: !!quizAttempts,
     dailyQuest: !!dailyQuests,
     dailyMiniQuiz: !!dailyMiniQuiz,
@@ -304,9 +336,13 @@ async function checkTodayActivities(userId: string, todayStart: Date) {
 }
 
 // Milestone ödül kontrolü
-async function checkAndGiveMilestoneReward(userId: string, currentStreak: number) {
-  const milestone = STREAK_MILESTONES[currentStreak as keyof typeof STREAK_MILESTONES];
-  
+async function checkAndGiveMilestoneReward(
+  userId: string,
+  currentStreak: number
+) {
+  const milestone =
+    STREAK_MILESTONES[currentStreak as keyof typeof STREAK_MILESTONES];
+
   if (!milestone) {
     return null;
   }

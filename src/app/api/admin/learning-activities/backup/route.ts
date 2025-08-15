@@ -57,8 +57,9 @@ async function getLearningActivitiesData() {
           orderBy: { id: "desc" },
         }),
 
-        // Code arena activities
-        prisma.codeArena.findMany({
+        // Related "lesson" activities (legacy: code arenas)
+        prisma.learningActivity.findMany({
+          where: { activityType: "lesson" },
           orderBy: { updatedAt: "desc" },
         }),
       ]);

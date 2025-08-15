@@ -531,7 +531,7 @@ function CodeArenaContent() {
 
       {/* Enhanced Hero Section with Integrated Topic Selection */}
       <section
-        className={`relative overflow-hidden bg-gradient-to-br ${uiConfig.headerGradient} py-12 sm:py-16 md:py-20`}
+        className={`relative overflow-hidden bg-gradient-to-br ${uiConfig.headerGradient} py-6 sm:py-8 md:py-12`}
       >
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-30"></div>
         {enableAnimations && uiConfig.enableAnimations && (
@@ -564,11 +564,11 @@ function CodeArenaContent() {
                   </div>
                 </div>
               </div>
-              <h1 className="mb-6 text-3xl font-black leading-tight sm:mb-8 sm:text-4xl md:text-5xl lg:text-7xl">
-                <span className="block bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent drop-shadow-2xl">
+              <h1 className="mb-6 text-2xl font-black leading-tight sm:mb-8 sm:text-3xl md:text-4xl lg:text-5xl">
+                <span className="block text-white drop-shadow-2xl">
                   {uiConfig.heroTitle}
                 </span>
-                <span className="block bg-gradient-to-r from-yellow-300 via-orange-300 to-red-300 bg-clip-text text-transparent drop-shadow-2xl">
+                <span className="block text-white drop-shadow-2xl">
                   {uiConfig.heroSubtitle}
                 </span>
               </h1>
@@ -641,6 +641,19 @@ function CodeArenaContent() {
                   </div>
                 </div>
 
+                {/* Quick Search */}
+                <div className="relative w-full sm:w-auto md:w-80">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-white/80" />
+                  <input
+                    type="text"
+                    aria-label="Quick search activities"
+                    placeholder="Quick search…"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-10 pr-3 text-sm text-slate-900 placeholder-slate-500 shadow-xl transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:rounded-3xl sm:text-base"
+                  />
+                </div>
+
                 {/* Activity count and Filter */}
                 <div className="flex w-full items-center justify-center space-x-3 sm:w-auto sm:space-x-4">
                   <div className="rounded-2xl border border-white/30 bg-gradient-to-r from-white/20 to-white/10 px-4 py-2 text-white shadow-2xl backdrop-blur-xl sm:rounded-3xl sm:px-6 sm:py-3">
@@ -701,11 +714,11 @@ function CodeArenaContent() {
                   🚀 INTERACTIVE CODING CHALLENGES
                 </div>
               </div>
-              <h1 className="mb-6 text-3xl font-black leading-tight sm:mb-8 sm:text-4xl md:text-5xl lg:text-7xl">
-                <span className="block bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent drop-shadow-2xl">
+              <h1 className="mb-6 text-2xl font-black leading-tight sm:mb-8 sm:text-3xl md:text-4xl lg:text-5xl">
+                <span className="block text-white drop-shadow-2xl">
                   {uiConfig.heroTitle}
                 </span>
-                <span className="block bg-gradient-to-r from-yellow-300 via-orange-300 to-red-300 bg-clip-text text-transparent drop-shadow-2xl">
+                <span className="block text-white drop-shadow-2xl">
                   {uiConfig.heroSubtitle}
                 </span>
               </h1>
@@ -775,6 +788,19 @@ function CodeArenaContent() {
                       </svg>
                     </div>
                   </div>
+                </div>
+
+                {/* Quick Search */}
+                <div className="relative w-full sm:w-auto md:w-80">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-white/80" />
+                  <input
+                    type="text"
+                    aria-label="Quick search activities"
+                    placeholder="Quick search…"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-10 pr-3 text-sm text-slate-900 placeholder-slate-500 shadow-xl transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:rounded-3xl sm:text-base"
+                  />
                 </div>
 
                 <div className="flex w-full items-center justify-center space-x-3 sm:w-auto sm:space-x-4">
@@ -1039,6 +1065,8 @@ function CodeArenaContent() {
               // Filter props
               selectedActivityType={selectedActivityType}
               onActivityTypeChange={setSelectedActivityType}
+              // Search term for highlighting
+              searchTerm={searchTerm}
             />
           ) : !loading ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-xl">

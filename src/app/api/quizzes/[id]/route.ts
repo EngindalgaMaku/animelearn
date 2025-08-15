@@ -45,13 +45,6 @@ export async function GET(
         isActive: true,
       },
       include: {
-        codeArena: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-          },
-        },
         attempts: {
           where: {
             userId: authUser.userId,
@@ -92,7 +85,6 @@ export async function GET(
       difficulty: quiz.difficulty,
       diamondReward: quiz.diamondReward,
       experienceReward: quiz.experienceReward,
-      codeArena: quiz.codeArena,
       questions: questions.map((q: any, index: number) => ({
         id: index + 1,
         type: q.type,
@@ -111,7 +103,8 @@ export async function GET(
         bestScore: bestAttempt?.score || 0,
         bestScorePercentage: bestAttempt
           ? Math.round(
-              (bestAttempt.score / quiz.attempts[0]?.totalQuestions || 1) * 100
+              (bestAttempt.score / (quiz.attempts[0]?.totalQuestions || 1)) *
+                100
             )
           : 0,
         lastAttempt: quiz.attempts[0] || null,

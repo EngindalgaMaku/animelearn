@@ -55,27 +55,39 @@ export async function POST(
       );
     }
 
-    // Get the code arena to determine rewards - codeArenaId is actually the slug
-    const codeArena = await prisma.codeArena.findUnique({
-      where: { slug: codeArenaId },
-    });
+    // Resolve lesson activity by slug (codeArenaId stores the slug)
+    const activity =
+      (await prisma.learningActivity.findFirst({
+        where: {
+          activityType: "lesson",
+          isActive: true,
+          settings: { contains: `"slug":"${codeArenaId}"` },
+        },
+      })) ||
+      (await prisma.learningActivity.findFirst({
+        where: {
+          activityType: "lesson",
+          isActive: true,
+          title: { equals: codeArenaId, mode: "insensitive" },
+        },
+      }));
 
-    if (!codeArena) {
-      return NextResponse.json({ error: "Code Arena not found" }, { status: 404 });
+    if (!activity) {
+      return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
     }
 
-    // Parse code arena content to get quiz data
+    // Parse activity content to get quiz data
     let quizData = null;
     try {
-      if (codeArena.content && typeof codeArena.content === "string") {
-        const contentObj = JSON.parse(codeArena.content);
+      if (activity.content && typeof activity.content === "string") {
+        const contentObj = JSON.parse(activity.content);
         if (contentObj.quiz) {
           quizData = contentObj.quiz;
         }
       }
     } catch (error) {
-      console.error("Error parsing code arena content:", error);
-      console.error("Code Arena content:", codeArena.content);
+      console.error("Error parsing activity content:", error);
+      console.error("Activity content:", activity.content);
     }
 
     // Determine if quiz passed
@@ -170,9 +182,10 @@ export async function POST(
             userId: authUser.userId,
             amount: diamondReward,
             type: "QUIZ_COMPLETE",
-            description: `Quiz completed: ${codeArena.title} (${score}%)`,
+            description: `Quiz completed: ${activity.title} (${score}%)`,
+            // keep legacy relatedType for analytics compatibility
             relatedType: "code_arena",
-            relatedId: codeArenaId,
+            relatedId: activity.id,
           },
         });
 
@@ -190,24 +203,31 @@ export async function POST(
       );
     }
 
-    // Update code arena progress if quiz passed
+    // Update lesson attempt score if quiz passed
     if (passed) {
       try {
-        await prisma.codeArenaProgress.updateMany({
+        await prisma.activityAttempt.upsert({
           where: {
-            userId: authUser.userId,
-            codeArenaId: codeArena.id, // Use actual code arena ID instead of slug
+            userId_activityId: {
+              userId: authUser.userId,
+              activityId: activity.id,
+            },
           },
-          data: {
+          update: {
             score: score,
-            lastVisit: new Date(),
+          },
+          create: {
+            userId: authUser.userId,
+            activityId: activity.id,
+            score: score,
+            startedAt: new Date(),
           },
         });
         console.log(
-          `Updated code arena progress for code arena ${codeArena.id} with score ${score}`
+          `Updated lesson attempt for activity ${activity.id} with score ${score}`
         );
       } catch (error) {
-        console.error("Error updating code arena progress:", error);
+        console.error("Error updating lesson attempt:", error);
       }
     }
 

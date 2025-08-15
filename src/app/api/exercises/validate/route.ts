@@ -190,13 +190,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Code Arena'yı kontrol et
-    const codeArena = await prisma.codeArena.findUnique({
-      where: { id: codeArenaId },
+    // LearningActivity (lesson)'ı kontrol et
+    const activity = await prisma.learningActivity.findFirst({
+      where: { id: codeArenaId, activityType: "lesson" },
     });
 
-    if (!codeArena) {
-      return NextResponse.json({ error: "Code Arena not found" }, { status: 404 });
+    if (!activity) {
+      return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
     }
 
     // Test case'leri parse et
@@ -206,8 +206,20 @@ export async function POST(req: NextRequest) {
         parsedTestCases = Array.isArray(testCases)
           ? testCases
           : JSON.parse(testCases);
-      } else if (codeArena.testCases) {
-        parsedTestCases = JSON.parse(codeArena.testCases);
+      } else {
+        // Try to read test cases from activity.settings
+        try {
+          const settings = activity.settings
+            ? JSON.parse(activity.settings)
+            : null;
+          if (settings?.testCases) {
+            parsedTestCases = Array.isArray(settings.testCases)
+              ? settings.testCases
+              : JSON.parse(settings.testCases);
+          }
+        } catch {
+          // ignore, will default to []
+        }
       }
     } catch (error) {
       console.error("Error parsing test cases:", error);
@@ -234,30 +246,29 @@ export async function POST(req: NextRequest) {
 
     // Progress'i güncelle
     if (validationResult.allPassed) {
-      await prisma.codeArenaProgress.upsert({
+      // Persist attempt for this lesson with last code and score
+      const answers = JSON.stringify({
+        lastCode: code,
+        updatedAt: new Date().toISOString(),
+      });
+
+      await prisma.activityAttempt.upsert({
         where: {
-          userId_codeArenaId: {
+          userId_activityId: {
             userId: authUser.userId,
-            codeArenaId: codeArenaId,
+            activityId: codeArenaId,
           },
         },
         update: {
-          lastCode: code,
-          bestCode: code,
-          isCodeCorrect: true,
-          lastVisit: new Date(),
-          attempts: { increment: 1 },
+          answers,
+          score: validationResult.totalScore || 0,
         },
         create: {
           userId: authUser.userId,
-          codeArenaId: codeArenaId,
-          isStarted: true,
-          lastCode: code,
-          bestCode: code,
-          isCodeCorrect: true,
+          activityId: codeArenaId,
+          answers,
+          score: validationResult.totalScore || 0,
           startedAt: new Date(),
-          lastVisit: new Date(),
-          attempts: 1,
         },
       });
 

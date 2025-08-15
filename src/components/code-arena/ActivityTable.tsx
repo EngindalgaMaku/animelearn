@@ -45,6 +45,8 @@ interface ActivityTableProps {
   // Filter props
   selectedActivityType?: string;
   onActivityTypeChange?: (type: string) => void;
+  // Search highlight
+  searchTerm?: string;
 }
 
 const ActivityTable = memo(
@@ -62,6 +64,8 @@ const ActivityTable = memo(
     // Filter props
     selectedActivityType = "",
     onActivityTypeChange,
+    // Search highlight
+    searchTerm = "",
   }: ActivityTableProps) => {
     const goToPage = (page: number) => {
       if (onPageChange) {
@@ -81,6 +85,31 @@ const ActivityTable = memo(
 
     const getActivityTypeConfig = (activityType: string) => {
       return activityTypeConfigs[activityType] || activityTypeConfigs.quiz;
+    };
+
+    // Highlight helper for search term
+    const escapeRegExp = (s: string) =>
+      s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const highlight = (text: string) => {
+      if (!searchTerm?.trim()) return text;
+      try {
+        const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, "gi");
+        const parts = text.split(regex);
+        return parts.map((part, i) =>
+          part.toLowerCase() === searchTerm.toLowerCase() ? (
+            <mark
+              key={i}
+              className="rounded bg-yellow-200 px-0.5 text-slate-900"
+            >
+              {part}
+            </mark>
+          ) : (
+            part
+          )
+        );
+      } catch {
+        return text;
+      }
     };
 
     const tableContent = (
@@ -174,7 +203,7 @@ const ActivityTable = memo(
                           <div className="min-w-0">
                             <div className="flex items-center space-x-2">
                               <p className="truncate text-sm font-bold text-slate-900">
-                                {activity.title}
+                                {highlight(activity.title)}
                               </p>
                               {activity.userProgress?.completed && (
                                 <CheckCircle className="h-4 w-4 flex-shrink-0 text-green-500" />
@@ -182,19 +211,21 @@ const ActivityTable = memo(
                             </div>
                             <div className="relative">
                               <p className="cursor-help truncate text-xs text-slate-500">
-                                {activity.description.length > 25
-                                  ? `${activity.description.slice(0, 25)}...`
-                                  : activity.description}
+                                {highlight(
+                                  activity.description.length > 25
+                                    ? `${activity.description.slice(0, 25)}...`
+                                    : activity.description
+                                )}
                               </p>
                               {/* Tooltip */}
                               {activity.description.length > 25 && (
                                 <div className="absolute bottom-full left-0 z-50 mb-2 hidden w-80 max-w-sm group-hover:block">
                                   <div className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white shadow-xl">
                                     <div className="mb-1 font-semibold">
-                                      {activity.title}
+                                      {highlight(activity.title)}
                                     </div>
                                     <div className="leading-relaxed">
-                                      {activity.description}
+                                      {highlight(activity.description)}
                                     </div>
                                     {/* Tooltip Arrow */}
                                     <div className="absolute left-4 top-full h-0 w-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>
@@ -302,7 +333,7 @@ const ActivityTable = memo(
                     <div className="group relative min-w-0 flex-1">
                       <div className="flex items-center space-x-2">
                         <h3 className="truncate text-sm font-bold text-slate-900">
-                          {activity.title}
+                          {highlight(activity.title)}
                         </h3>
                         {activity.userProgress?.completed && (
                           <CheckCircle className="h-4 w-4 flex-shrink-0 text-green-500" />
@@ -310,19 +341,21 @@ const ActivityTable = memo(
                       </div>
                       <div className="relative">
                         <p className="cursor-help truncate text-xs text-slate-500">
-                          {activity.description.length > 35
-                            ? `${activity.description.slice(0, 35)}...`
-                            : activity.description}
+                          {highlight(
+                            activity.description.length > 35
+                              ? `${activity.description.slice(0, 35)}...`
+                              : activity.description
+                          )}
                         </p>
                         {/* Mobile Tooltip */}
                         {activity.description.length > 35 && (
                           <div className="absolute bottom-full left-0 z-50 mb-2 hidden w-72 max-w-sm group-hover:block">
                             <div className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white shadow-xl">
                               <div className="mb-1 font-semibold">
-                                {activity.title}
+                                {highlight(activity.title)}
                               </div>
                               <div className="leading-relaxed">
-                                {activity.description}
+                                {highlight(activity.description)}
                               </div>
                               {/* Tooltip Arrow */}
                               <div className="absolute left-4 top-full h-0 w-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>

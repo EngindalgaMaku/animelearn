@@ -141,8 +141,12 @@ async function getAllTableData(options?: { sanitize?: boolean }) {
       db.usedCardNames.findMany(),
       db.account.findMany(),
       db.session.findMany(),
-      db.codeArena.findMany(),
-      db.codeArenaProgress.findMany(),
+      db.learningActivity.findMany({
+        where: { activityType: "lesson" },
+      }),
+      db.activityAttempt.findMany({
+        where: { activity: { activityType: "lesson" } },
+      }),
       db.codeSubmission.findMany(),
       db.quiz.findMany(),
       db.quizAttempt.findMany(),

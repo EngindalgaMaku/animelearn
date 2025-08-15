@@ -1,224 +1,87 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
+/**
+ * Re-implemented stats endpoint to use current Prisma schema:
+ * - Lessons are stored as LearningActivity with activityType = "lesson"
+ * - Progress/completions are stored as ActivityAttempt
+ */
 export async function GET(req: NextRequest) {
   try {
-    // Get lesson statistics
-    const [
-      totalLessons,
-      publishedLessons,
-      draftLessons,
-      totalStudents,
-      averageCompletion,
-      lessonsByCategory,
-      lessonsByDifficulty,
-      recentActivity
-    ] = await Promise.all([
-      // Total lessons
-      prisma.codeArena.count(),
-      
-      // Published lessons
-      prisma.codeArena.count({
-        where: { isPublished: true }
+    // Core counts
+    const [totalLessons, publishedLessons, draftLessons] = await Promise.all([
+      prisma.learningActivity.count({
+        where: { activityType: "lesson" },
       }),
-      
-      // Draft lessons
-      prisma.codeArena.count({
-        where: { isPublished: false }
+      prisma.learningActivity.count({
+        where: { activityType: "lesson", isActive: true },
       }),
-      
-      // Total unique students who started any lesson
-      prisma.codeArenaProgress.groupBy({
-        by: ['userId'],
-        _count: {
-          userId: true
-        }
-      }).then(results => results.length),
-      
-      // Average completion rate
-      prisma.codeArenaProgress.aggregate({
-        _avg: {
-          score: true
-        },
-        where: {
-          isCompleted: true
-        }
-      }).then(result => Math.round(result._avg.score || 0)),
-      
-      // Lessons by category
-      prisma.codeArena.groupBy({
-        by: ['category'],
-        _count: {
-          id: true
-        },
-        orderBy: {
-          _count: {
-            id: 'desc'
-          }
-        }
+      prisma.learningActivity.count({
+        where: { activityType: "lesson", isActive: false },
       }),
-      
-      // Lessons by difficulty
-      prisma.codeArena.groupBy({
-        by: ['difficulty'],
-        _count: {
-          id: true
-        },
-        orderBy: {
-          difficulty: 'asc'
-        }
-      }),
-      
-      // Recent lesson activity (last 30 days)
-      prisma.codeArenaProgress.findMany({
-        where: {
-          lastVisit: {
-            gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-          }
-        },
-        include: {
-          codeArena: {
-            select: {
-              title: true,
-              category: true
-            }
-          },
-          user: {
-            select: {
-              username: true,
-              firstName: true,
-              lastName: true
-            }
-          }
-        },
-        orderBy: {
-          lastVisit: 'desc'
-        },
-        take: 10
-      })
-    ])
+    ]);
 
-    // Calculate additional metrics
-    const completionRate = totalLessons > 0 
-      ? Math.round((publishedLessons / totalLessons) * 100)
-      : 0
+    // Distinct students who attempted any lesson
+    const distinctStudents = await prisma.activityAttempt.findMany({
+      where: { activity: { activityType: "lesson" } },
+      distinct: ["userId"],
+      select: { userId: true },
+    });
+    const totalStudents = distinctStudents.length;
 
-    // Format category distribution
-    const categoryDistribution = lessonsByCategory.map(cat => ({
-      category: cat.category,
-      count: cat._count.id,
-      percentage: totalLessons > 0 ? Math.round((cat._count.id / totalLessons) * 100) : 0
-    }))
+    // Average score among completed attempts for lessons
+    const avg = await prisma.activityAttempt.aggregate({
+      _avg: { score: true },
+      where: {
+        completed: true,
+        activity: { activityType: "lesson" },
+      },
+    });
+    const averageCompletion = Math.round(avg._avg.score || 0);
 
-    // Format difficulty distribution
-    const difficultyLabels = {
-      1: 'Beginner',
-      2: 'Easy', 
-      3: 'Intermediate',
-      4: 'Hard',
-      5: 'Expert'
+    // Distribution by category
+    const lessonsByCategory = await prisma.learningActivity.groupBy({
+      by: ["category"],
+      where: { activityType: "lesson" },
+      _count: { id: true },
+      orderBy: { _count: { id: "desc" } },
+    });
+    const categoryCounts: Record<string, number> = {};
+    for (const row of lessonsByCategory) {
+      categoryCounts[row.category ?? "general"] = row._count.id;
     }
 
-    const difficultyDistribution = lessonsByDifficulty.map(diff => ({
-      difficulty: diff.difficulty,
-      label: difficultyLabels[diff.difficulty as keyof typeof difficultyLabels] || 'Unknown',
-      count: diff._count.id,
-      percentage: totalLessons > 0 ? Math.round((diff._count.id / totalLessons) * 100) : 0
-    }))
+    // Distribution by difficulty (numeric)
+    const lessonsByDifficulty = await prisma.learningActivity.groupBy({
+      by: ["difficulty"],
+      where: { activityType: "lesson" },
+      _count: { id: true },
+      orderBy: { difficulty: "asc" },
+    });
+    const difficultyDistribution: Record<number, number> = {};
+    for (const row of lessonsByDifficulty) {
+      difficultyDistribution[row.difficulty as number] = row._count.id;
+    }
 
-    // Get popular lessons (most started)
-    const popularLessons = await prisma.codeArena.findMany({
-      select: {
-        id: true,
-        title: true,
-        category: true,
-        difficulty: true,
-        _count: {
-          select: {
-            progress: true
-          }
-        }
-      },
-      orderBy: {
-        progress: {
-          _count: 'desc'
-        }
-      },
-      take: 5
-    })
-
-    // Get completion stats by lesson
-    const completionStats = await prisma.codeArena.findMany({
-      select: {
-        id: true,
-        title: true,
-        _count: {
-          select: {
-            progress: {
-              where: {
-                isCompleted: true
-              }
-            }
-          }
-        }
-      },
-      orderBy: {
-        progress: {
-          _count: 'desc'
-        }
-      },
-      take: 5
-    })
-
+    // Response fields match what the AdminLessonsPage expects
     return NextResponse.json({
-      totalLessons,
-      publishedLessons,
-      draftLessons,
+      totalCodeArenas: totalLessons,
+      publishedCodeArenas: publishedLessons,
+      draftCodeArenas: draftLessons,
       totalStudents,
-      completionRate: averageCompletion,
-      overview: {
-        totalLessons,
-        publishedLessons,
-        draftLessons,
-        totalStudents,
-        completionRate: averageCompletion
-      },
-      distribution: {
-        categories: categoryDistribution,
-        difficulties: difficultyDistribution,
-        publishing: {
-          published: publishedLessons,
-          draft: draftLessons,
-          publishedPercentage: completionRate,
-          draftPercentage: 100 - completionRate
-        }
-      },
-      popular: {
-        lessons: popularLessons,
-        completions: completionStats
-      },
-      activity: {
-        recent: recentActivity.map(activity => ({
-          id: activity.id,
-          lessonTitle: activity.codeArena.title,
-          lessonCategory: activity.codeArena.category,
-          userName: activity.user.username || `${activity.user.firstName} ${activity.user.lastName}`.trim() || 'Anonymous',
-          isCompleted: activity.isCompleted,
-          score: activity.score,
-          lastVisit: activity.lastVisit,
-          timeSpent: activity.timeSpent
-        }))
-      }
-    })
+      averageCompletion,
+      categoryCounts,
+      difficultyDistribution,
+    });
   } catch (error) {
-    console.error('Admin lessons stats API error:', error)
+    console.error("Admin lessons stats API error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    )
+    );
   } finally {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   }
 }

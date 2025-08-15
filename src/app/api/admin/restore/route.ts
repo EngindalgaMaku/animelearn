@@ -81,7 +81,7 @@ async function truncateDatabase(options: any) {
       await tx.loginStreak.deleteMany();
       await tx.blogPostInteraction.deleteMany();
       await tx.activityAttempt.deleteMany();
-      await tx.codeArenaProgress.deleteMany();
+      // legacy: codeArenaProgress table removed
       await tx.codeSubmission.deleteMany();
       await tx.quizAttempt.deleteMany();
       await tx.dailyQuest.deleteMany();
@@ -100,7 +100,7 @@ async function truncateDatabase(options: any) {
       await tx.collection.deleteMany();
       await tx.animeSeries.deleteMany();
       await tx.character.deleteMany();
-      await tx.codeArena.deleteMany();
+      // legacy: codeArena model removed
       await tx.quiz.deleteMany();
       await tx.badge.deleteMany();
       await tx.dailyMiniQuiz.deleteMany();
@@ -231,10 +231,107 @@ async function restoreData(backupData: any, options: any) {
         }
       }
 
-      // 7. Code Arenas
+      // 7. Code Arenas (legacy) -> migrate to LearningActivity "lesson"
       if (backupData.codeArenas) {
         for (const arena of backupData.codeArenas) {
-          await tx.codeArena.create({ data: arena });
+          // Build settings JSON from legacy fields
+          const examplesArr = (() => {
+            try {
+              if (!arena.examples) return [];
+              if (Array.isArray(arena.examples)) return arena.examples;
+              if (typeof arena.examples === "string")
+                return JSON.parse(arena.examples);
+              return [];
+            } catch {
+              return [];
+            }
+          })();
+          const sectionsArr = (() => {
+            try {
+              if (!arena.sections) return [];
+              if (Array.isArray(arena.sections)) return arena.sections;
+              if (typeof arena.sections === "string")
+                return JSON.parse(arena.sections);
+              return [];
+            } catch {
+              return [];
+            }
+          })();
+          const learningObjectivesArr = (() => {
+            try {
+              if (!arena.learningObjectives) return [];
+              if (Array.isArray(arena.learningObjectives))
+                return arena.learningObjectives;
+              if (typeof arena.learningObjectives === "string")
+                return JSON.parse(arena.learningObjectives);
+              return [];
+            } catch {
+              return [];
+            }
+          })();
+          const resourcesArr = (() => {
+            try {
+              if (!arena.resources) return [];
+              if (Array.isArray(arena.resources)) return arena.resources;
+              if (typeof arena.resources === "string")
+                return JSON.parse(arena.resources);
+              return [];
+            } catch {
+              return [];
+            }
+          })();
+          const tagsJson = (() => {
+            try {
+              if (!arena.tags) return "[]";
+              if (typeof arena.tags === "string") return arena.tags;
+              if (Array.isArray(arena.tags)) return JSON.stringify(arena.tags);
+              return "[]";
+            } catch {
+              return "[]";
+            }
+          })();
+
+          const settings = {
+            slug: arena.slug ?? undefined,
+            hasCodeExercise: !!arena.hasCodeExercise,
+            starterCode: arena.starterCode ?? "",
+            solutionCode: arena.solutionCode ?? "",
+            testCases: arena.testCases ?? "",
+            hints: arena.hints ?? "",
+            prerequisites: arena.prerequisites ?? "",
+            examples: examplesArr,
+            sections: sectionsArr,
+            learningObjectives: learningObjectivesArr,
+            resources: resourcesArr,
+          };
+
+          await tx.learningActivity.create({
+            data: {
+              id: arena.id, // preserve id if present
+              title: arena.title || "Untitled",
+              description: arena.description || "",
+              activityType: "lesson",
+              category: arena.category || "general",
+              difficulty: Number(arena.difficulty) || 1,
+              diamondReward: Number(arena.diamondReward) || 10,
+              experienceReward: Number(arena.experienceReward) || 25,
+              content:
+                typeof arena.content === "string"
+                  ? arena.content
+                  : JSON.stringify(arena.content ?? ""),
+              settings: JSON.stringify(settings),
+              isActive: !!arena.isPublished,
+              estimatedMinutes: Number(arena.duration) || 30,
+              tags: tagsJson,
+              sortOrder: Number(arena.order) || 1,
+              createdAt: arena.createdAt
+                ? new Date(arena.createdAt)
+                : undefined,
+              updatedAt: arena.updatedAt
+                ? new Date(arena.updatedAt)
+                : undefined,
+            },
+          });
         }
       }
 

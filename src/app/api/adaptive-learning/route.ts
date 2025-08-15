@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
     const activityAttempts = await prisma.activityAttempt.findMany({
       where: { userId: authUser.userId },
       include: {
-        learningActivity: {
+        activity: {
           select: {
             id: true,
             title: true,
@@ -93,7 +93,7 @@ export async function GET(req: NextRequest) {
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { startedAt: "desc" },
     });
 
     // Get quiz attempts
@@ -191,79 +191,70 @@ function analyzeCategoryPerformance(
   ];
   const performance: Record<string, any> = {};
 
-  categories.forEach((category) => {
-    const categoryLessons = allLearningActivities.filter(
+  for (const category of categories) {
+    const lessonsInCategory = allLearningActivities.filter(
       (l) => l.category === category
     );
-    const completedLessons = activityAttempts.filter(
-      (attempt) =>
-        attempt.completed && attempt.learningActivity.category === category
-    );
-    const categoryQuizzes = quizAttempts.filter(
-      (qa) => qa.quiz.learningActivity?.category === category
+
+    const attemptsInCategory = activityAttempts.filter(
+      (attempt) => attempt.activity?.category === category
     );
 
-    // Calculate average scores and performance metrics
-    const averageQuizScore =
-      categoryQuizzes.length > 0
+    const completedAttempts = attemptsInCategory.filter((a) => a.completed);
+
+    const averageScore =
+      completedAttempts.length > 0
         ? Math.round(
-            categoryQuizzes.reduce((sum, qa) => sum + qa.score, 0) /
-              categoryQuizzes.length
+            completedAttempts.reduce((sum, a) => sum + (a.score || 0), 0) /
+              completedAttempts.length
           )
         : 0;
 
     const averageTime =
-      completedLessons.length > 0
+      completedAttempts.length > 0
         ? Math.round(
-            completedLessons.reduce(
-              (sum, attempt) => sum + (attempt.timeSpent || 0),
-              0
-            ) / completedLessons.length
+            completedAttempts.reduce((sum, a) => sum + (a.timeSpent || 0), 0) /
+              completedAttempts.length
           )
         : 0;
 
-    // Identify struggling topics (lessons with low quiz scores or multiple attempts)
-    const strugglingTopics = categoryLessons
+    // Struggling topics: lessons with avg attempt score < 70
+    const strugglingTopics = lessonsInCategory
       .filter((lesson) => {
-        const lessonQuizzes = categoryQuizzes.filter(
-          (qa) => qa.quiz && qa.quiz.id === lesson.id
+        const lessonAttempts = attemptsInCategory.filter(
+          (a) => a.activity?.id === lesson.id
         );
-        const avgScore =
-          lessonQuizzes.length > 0
-            ? lessonQuizzes.reduce((sum, qa) => sum + qa.score, 0) /
-              lessonQuizzes.length
-            : 0;
-        return avgScore < 70;
+        if (lessonAttempts.length === 0) return false;
+        const avg =
+          lessonAttempts.reduce((s, a) => s + (a.score || 0), 0) /
+          lessonAttempts.length;
+        return avg < 70;
       })
-      .map((lesson) => lesson.title);
+      .map((l) => l.title);
 
-    // Identify mastered topics (lessons completed with high scores)
-    const masteredTopics = categoryLessons
+    // Mastered topics: completed attempts with avg score >= 85
+    const masteredTopics = lessonsInCategory
       .filter((lesson) => {
-        const lessonProgress = activityAttempts.find(
-          (attempt) => attempt.activity.id === lesson.id
+        const lessonAttempts = attemptsInCategory.filter(
+          (a) => a.activity?.id === lesson.id && a.completed
         );
-        const lessonQuizzes = categoryQuizzes.filter(
-          (qa) => qa.quiz && qa.quiz.id === lesson.id
-        );
-        const avgScore =
-          lessonQuizzes.length > 0
-            ? lessonQuizzes.reduce((sum, qa) => sum + qa.score, 0) /
-              lessonQuizzes.length
-            : 0;
-        return lessonProgress?.completed && avgScore >= 85;
+        if (lessonAttempts.length === 0) return false;
+        const avg =
+          lessonAttempts.reduce((s, a) => s + (a.score || 0), 0) /
+          lessonAttempts.length;
+        return avg >= 85;
       })
-      .map((lesson) => lesson.title);
+      .map((l) => l.title);
 
     performance[category] = {
-      completedLessons: completedLessons.length,
-      totalLessons: categoryLessons.length,
-      averageScore: averageQuizScore,
+      completedLessons: completedAttempts.length,
+      totalLessons: lessonsInCategory.length,
+      averageScore,
       averageTime,
       strugglingTopics,
       masteredTopics,
     };
-  });
+  }
 
   return performance;
 }

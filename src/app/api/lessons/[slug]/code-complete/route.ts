@@ -9,70 +9,126 @@ interface AuthUser {
   username: string;
 }
 
-// Get user from token
 function getUserFromToken(request: NextRequest): AuthUser | null {
   const token = request.cookies.get("auth-token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
+  if (!token) return null;
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
-  } catch (error) {
+    return jwt.verify(token, JWT_SECRET) as AuthUser;
+  } catch {
     return null;
   }
 }
 
+function slugify(title: string): string {
+  return (title || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .trim();
+}
+
+async function findLessonBySlug(slug: string) {
+  // Match settings.slug if present
+  const direct = await prisma.learningActivity.findFirst({
+    where: {
+      activityType: "lesson",
+      isActive: true,
+      settings: { contains: `"slug":"${slug}"` },
+    },
+  });
+  if (direct) return direct;
+
+  // Fallback to slugified title
+  const candidates = await prisma.learningActivity.findMany({
+    where: { activityType: "lesson", isActive: true },
+    select: { id: true, title: true },
+  });
+  const found = candidates.find((c) => slugify(c.title) === slug);
+  if (!found) return null;
+
+  return prisma.learningActivity.findUnique({ where: { id: found.id } });
+}
+
+// POST - Code exercise completion for a lesson (LearningActivity)
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const authUser = getUserFromToken(req);
-
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { slug } = await params;
     const body = await req.json();
-    const { code, score, rewards } = body;
+    const { code, score, rewards } = body as {
+      code: string;
+      score: number;
+      rewards: { diamonds: number; experience: number };
+    };
 
     // Validate required fields
-    if (!code || score === undefined || !rewards) {
+    if (!code || typeof score !== "number" || !rewards) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    // Get the code arena
-    const codeArena = await prisma.codeArena.findUnique({
-      where: { slug, isPublished: true },
-    });
-
-    if (!codeArena) {
-      return NextResponse.json({ error: "Code Arena not found" }, { status: 404 });
+    // Resolve lesson activity
+    const activity = await findLessonBySlug(slug);
+    if (!activity) {
+      return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
     }
 
-    // Check if user has already completed this code exercise
-    const existingProgress = await prisma.codeArenaProgress.findUnique({
+    // Check existing attempt
+    const existingAttempt = await prisma.activityAttempt.findUnique({
       where: {
-        userId_codeArenaId: {
+        userId_activityId: {
           userId: authUser.userId,
-          codeArenaId: codeArena.id,
+          activityId: activity.id,
         },
       },
     });
 
-    // Only award rewards if this is the first successful completion
-    const shouldAwardRewards = !existingProgress?.isCodeCorrect && score >= 90; // 90% or higher for rewards
+    // Decide reward policy: only if previously not "correct" and now score >= 90
+    const previousScore = existingAttempt?.score ?? 0;
+    const wasCodeCorrect = previousScore >= 90;
+    const isCodeCorrectNow = score >= 90;
+    const shouldAwardRewards = !wasCodeCorrect && isCodeCorrectNow;
+
+    // Always upsert attempt with code + best score
+    const answers = JSON.stringify({
+      lastCode: code,
+      updatedAt: new Date().toISOString(),
+    });
+
+    await prisma.activityAttempt.upsert({
+      where: {
+        userId_activityId: {
+          userId: authUser.userId,
+          activityId: activity.id,
+        },
+      },
+      update: {
+        // Keep max score
+        score: Math.max(score, previousScore),
+        answers,
+      },
+      create: {
+        userId: authUser.userId,
+        activityId: activity.id,
+        score,
+        answers,
+        startedAt: new Date(),
+      },
+    });
 
     if (shouldAwardRewards) {
       try {
-        // Update user stats
+        // Update user balances
         await prisma.user.update({
           where: { id: authUser.userId },
           data: {
@@ -83,64 +139,32 @@ export async function POST(
           },
         });
 
-        // Create diamond transaction
+        // Record diamond transaction
         await prisma.diamondTransaction.create({
           data: {
             userId: authUser.userId,
             amount: rewards.diamonds,
             type: "CODE_COMPLETE",
-            description: `Code exercise completed: ${codeArena.title} (${score}%)`,
-            relatedType: "code_arena",
-            relatedId: codeArena.id,
+            description: `Code exercise completed: ${activity.title} (${score}%)`,
+            relatedType: "lesson",
+            relatedId: activity.id,
           },
         });
 
-        // Create code submission record
+        // Record code submission (legacy field name codeArenaId reused to hold activity id)
         await prisma.codeSubmission.create({
           data: {
             userId: authUser.userId,
-            codeArenaId: codeArena.id,
-            code: code,
+            codeArenaId: activity.id,
+            code,
             language: "python",
-            isCorrect: score >= 90,
-            score: score,
-            feedback:
-              score >= 90 ? "Excellent work!" : "Good effort, try for 100%!",
+            isCorrect: isCodeCorrectNow,
+            score,
+            feedback: isCodeCorrectNow
+              ? "Excellent work!"
+              : "Good effort, try for 100%!",
           },
         });
-
-        // Update code arena progress
-        if (existingProgress) {
-          await prisma.codeArenaProgress.update({
-            where: { id: existingProgress.id },
-            data: {
-              lastCode: code,
-              bestCode:
-                score > (existingProgress.score || 0)
-                  ? code
-                  : existingProgress.bestCode,
-              isCodeCorrect: score >= 90,
-              score: Math.max(score, existingProgress.score || 0),
-              lastVisit: new Date(),
-              attempts: { increment: 1 },
-            },
-          });
-        } else {
-          await prisma.codeArenaProgress.create({
-            data: {
-              userId: authUser.userId,
-              codeArenaId: codeArena.id,
-              isStarted: true,
-              lastCode: code,
-              bestCode: code,
-              isCodeCorrect: score >= 90,
-              score: score,
-              startedAt: new Date(),
-              lastVisit: new Date(),
-              attempts: 1,
-            },
-          });
-        }
 
         return NextResponse.json({
           success: true,
@@ -152,34 +176,18 @@ export async function POST(
           score,
           newCompletion: true,
         });
-      } catch (error) {
-        console.error("Error awarding code completion rewards:", error);
+      } catch (e) {
+        console.error("Error awarding code completion rewards:", e);
         return NextResponse.json(
           { error: "Failed to award rewards" },
           { status: 500 }
         );
       }
     } else {
-      // Update progress but don't award rewards
-      if (existingProgress) {
-        await prisma.codeArenaProgress.update({
-          where: { id: existingProgress.id },
-          data: {
-            lastCode: code,
-            bestCode:
-              score > (existingProgress.score || 0)
-                ? code
-                : existingProgress.bestCode,
-            score: Math.max(score, existingProgress.score || 0),
-            lastVisit: new Date(),
-            attempts: { increment: 1 },
-          },
-        });
-      }
-
+      // No reward this time, but return success with zero rewards
       return NextResponse.json({
         success: true,
-        message: existingProgress?.isCodeCorrect
+        message: wasCodeCorrect
           ? `Code exercise completed with ${score}% score! (Rewards already earned)`
           : `Code exercise completed with ${score}% score! Get 90%+ for rewards.`,
         rewards: { diamonds: 0, experience: 0 },
@@ -188,7 +196,7 @@ export async function POST(
       });
     }
   } catch (error) {
-    console.error("Error processing code completion:", error);
+    console.error("Error processing lesson code completion:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

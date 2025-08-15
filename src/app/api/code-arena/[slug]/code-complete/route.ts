@@ -29,7 +29,8 @@ async function getUserFromSession(): Promise<AuthUser | null> {
 
     return {
       userId: session.user.id,
-      username: session.user.username || session.user.email || "Unknown",
+      username:
+        (session.user as any).username || session.user.email || "Unknown",
     };
   } catch (error) {
     console.error("Error getting user from session:", error);
@@ -45,6 +46,38 @@ function calculateLevel(experience: number): number {
 // Calculate experience needed for next level
 function calculateExpToNextLevel(experience: number, level: number): number {
   return level * 1000 - experience;
+}
+
+function slugify(title: string): string {
+  return (title || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .trim();
+}
+
+async function findLessonBySlug(slug: string) {
+  // Try exact settings.slug match first
+  const bySettings = await prisma.learningActivity.findFirst({
+    where: {
+      activityType: "lesson",
+      isActive: true,
+      settings: { contains: `"slug":"${slug}"` },
+    },
+  });
+  if (bySettings) return bySettings;
+
+  // Fallback to slugified title match among active lessons
+  const candidates = await prisma.learningActivity.findMany({
+    where: { activityType: "lesson", isActive: true },
+    select: { id: true, title: true },
+  });
+
+  const found = candidates.find((c) => slugify(c.title) === slug);
+  if (!found) return null;
+
+  return prisma.learningActivity.findUnique({ where: { id: found.id } });
 }
 
 export async function POST(
@@ -95,34 +128,30 @@ export async function POST(
       );
     }
 
-    // Get the code arena
-    const codeArena = await prisma.codeArena.findUnique({
-      where: { slug, isPublished: true },
-    });
+    // Resolve the lesson activity by slug (migration from CodeArena)
+    const activity = await findLessonBySlug(slug);
 
-    if (!codeArena) {
-      return NextResponse.json(
-        { error: "Code Arena not found" },
-        { status: 404 }
-      );
+    if (!activity) {
+      return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
     }
 
-    // Check if user has already completed this code exercise (only for logged in users)
-    let existingProgress = null;
+    // Check if user has already completed this exercise (only for logged in users)
+    let existingAttempt: any = null;
     if (isLoggedIn && authUser) {
-      existingProgress = await prisma.codeArenaProgress.findUnique({
+      existingAttempt = await prisma.activityAttempt.findUnique({
         where: {
-          userId_codeArenaId: {
+          userId_activityId: {
             userId: authUser.userId,
-            codeArenaId: codeArena.id,
+            activityId: activity.id,
           },
         },
       });
     }
 
-    // Only award rewards if user is logged in, hasn't completed before, and score >= 90%
+    // Only award rewards if user is logged in, hasn't been correct before, and score >= 90%
+    const wasCodeCorrect = (existingAttempt?.score ?? 0) >= 90;
     const shouldAwardRewards =
-      isLoggedIn && authUser && !existingProgress?.isCodeCorrect && score >= 90;
+      isLoggedIn && authUser && !wasCodeCorrect && score >= 90;
 
     if (shouldAwardRewards) {
       // Get user before transaction to check current state
@@ -151,9 +180,9 @@ export async function POST(
 
       try {
         // Begin transaction - ALL updates must be atomic
-        const result = await prisma.$transaction(async (prisma) => {
+        const result = await prisma.$transaction(async (prismaTx) => {
           // Update user with main rewards
-          let updatedUser = await prisma.user.update({
+          let updatedUser = await prismaTx.user.update({
             where: { id: authUser!.userId },
             data: {
               currentDiamonds: newDiamonds,
@@ -161,13 +190,14 @@ export async function POST(
               experience: newExperience,
               level: newLevel,
               codeSubmissionCount: { increment: 1 },
+              // legacy counter name retained
               codeArenasCompleted: { increment: 1 },
             },
           });
 
           // Handle level up bonuses within the same transaction
           if (leveledUp) {
-            updatedUser = await prisma.user.update({
+            updatedUser = await prismaTx.user.update({
               where: { id: authUser!.userId },
               data: {
                 currentDiamonds: { increment: 50 },
@@ -177,7 +207,7 @@ export async function POST(
             });
 
             // Create level up transaction
-            await prisma.diamondTransaction.create({
+            await prismaTx.diamondTransaction.create({
               data: {
                 userId: authUser!.userId,
                 amount: 50,
@@ -190,22 +220,23 @@ export async function POST(
           }
 
           // Create main diamond transaction
-          await prisma.diamondTransaction.create({
+          await prismaTx.diamondTransaction.create({
             data: {
               userId: authUser!.userId,
               amount: rewards.diamonds,
               type: "CODE_COMPLETE",
-              description: `Code exercise completed: ${codeArena.title} (${score}%)`,
+              description: `Code exercise completed: ${activity.title} (${score}%)`,
+              // keep legacy relatedType to avoid breaking dashboards
               relatedType: "code_arena",
-              relatedId: codeArena.id,
+              relatedId: activity.id,
             },
           });
 
-          // Create code submission record
-          await prisma.codeSubmission.create({
+          // Create code submission record (reuse codeArenaId field to store activity id)
+          await prismaTx.codeSubmission.create({
             data: {
               userId: authUser!.userId,
-              codeArenaId: codeArena.id,
+              codeArenaId: activity.id,
               code: code,
               language: "python",
               isCorrect: score >= 90,
@@ -215,40 +246,38 @@ export async function POST(
             },
           });
 
-          // Update code arena progress
-          if (existingProgress) {
-            await prisma.codeArenaProgress.update({
-              where: { id: existingProgress.id },
+          // Update attempt (mark completed and update best score)
+          if (existingAttempt) {
+            await prismaTx.activityAttempt.update({
+              where: {
+                userId_activityId: {
+                  userId: authUser!.userId,
+                  activityId: activity.id,
+                },
+              },
               data: {
-                lastCode: code,
-                bestCode:
-                  score > (existingProgress.score || 0)
-                    ? code
-                    : existingProgress.bestCode,
-                isCodeCorrect: score >= 90,
-                isCompleted: score >= 90,
-                score: Math.max(score, existingProgress.score || 0),
-                lastVisit: new Date(),
-                completedAt:
-                  score >= 90 ? new Date() : existingProgress.completedAt,
-                attempts: { increment: 1 },
+                score: Math.max(score, existingAttempt.score || 0),
+                completed: true,
+                completedAt: new Date(),
+                answers: JSON.stringify({
+                  lastCode: code,
+                  updatedAt: new Date().toISOString(),
+                }),
               },
             });
           } else {
-            await prisma.codeArenaProgress.create({
+            await prismaTx.activityAttempt.create({
               data: {
                 userId: authUser!.userId,
-                codeArenaId: codeArena.id,
-                isStarted: true,
-                isCompleted: score >= 90,
-                lastCode: code,
-                bestCode: code,
-                isCodeCorrect: score >= 90,
+                activityId: activity.id,
                 score: score,
+                completed: true,
+                completedAt: new Date(),
                 startedAt: new Date(),
-                completedAt: score >= 90 ? new Date() : null,
-                lastVisit: new Date(),
-                attempts: 1,
+                answers: JSON.stringify({
+                  lastCode: code,
+                  updatedAt: new Date().toISOString(),
+                }),
               },
             });
           }
@@ -315,7 +344,11 @@ export async function POST(
 
         return NextResponse.json({
           success: true,
-          message: `🎉 Code exercise completed! +${finalDiamonds - userBefore.currentDiamonds} diamonds, +${finalExperience - userBefore.experience} XP${leveledUp ? `, Level up to ${finalLevel}!` : ""}`,
+          message: `🎉 Code exercise completed! +${
+            finalDiamonds - userBefore.currentDiamonds
+          } diamonds, +${
+            finalExperience - userBefore.experience
+          } XP${leveledUp ? `, Level up to ${finalLevel}!` : ""}`,
           rewards: {
             diamonds: finalDiamonds - userBefore.currentDiamonds,
             experience: finalExperience - userBefore.experience,
@@ -348,26 +381,41 @@ export async function POST(
     } else {
       // Handle non-logged users and users without rewards
       if (isLoggedIn && authUser) {
-        // Update progress for logged in users but don't award rewards
-        if (existingProgress) {
-          await prisma.codeArenaProgress.update({
-            where: { id: existingProgress.id },
+        // Update attempt for logged in users but don't award rewards
+        if (existingAttempt) {
+          await prisma.activityAttempt.update({
+            where: {
+              userId_activityId: {
+                userId: authUser.userId,
+                activityId: activity.id,
+              },
+            },
             data: {
-              lastCode: code,
-              bestCode:
-                score > (existingProgress.score || 0)
-                  ? code
-                  : existingProgress.bestCode,
-              score: Math.max(score, existingProgress.score || 0),
-              lastVisit: new Date(),
-              attempts: { increment: 1 },
+              score: Math.max(score, existingAttempt.score || 0),
+              answers: JSON.stringify({
+                lastCode: code,
+                updatedAt: new Date().toISOString(),
+              }),
+            },
+          });
+        } else {
+          await prisma.activityAttempt.create({
+            data: {
+              userId: authUser.userId,
+              activityId: activity.id,
+              score: score,
+              startedAt: new Date(),
+              answers: JSON.stringify({
+                lastCode: code,
+                updatedAt: new Date().toISOString(),
+              }),
             },
           });
         }
 
         return NextResponse.json({
           success: true,
-          message: existingProgress?.isCodeCorrect
+          message: wasCodeCorrect
             ? `Code exercise completed with ${score}% score! (Rewards already earned)`
             : `Code exercise completed with ${score}% score! Get 90%+ for rewards.`,
           rewards: { diamonds: 0, experience: 0 },

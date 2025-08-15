@@ -109,7 +109,74 @@ export type CodeArenasResponse = LearningActivitiesResponse;
 export type CodeArenaStats = LearningActivityStats;
 export type LessonExample = LearningActivityExample;
 export type LessonSection = LearningActivitySection;
-export type AdminLesson = AdminLearningActivity;
-export type LessonFormData = LearningActivityFormData;
-export type LessonsResponse = LearningActivitiesResponse;
-export type LessonStats = LearningActivityStats;
+
+// Dedicated Lessons types (legacy CodeArena UI expects these shapes)
+export interface AdminLesson {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  content: string;
+  difficulty: number;
+  order: number;
+  duration: number;
+  category: string;
+  hasCodeExercise: boolean;
+  starterCode?: string | null;
+  solutionCode?: string | null;
+  testCases?: string | null;
+  hints?: string | null;
+  prerequisites?: string | null;
+  diamondReward: number;
+  experienceReward: number;
+  isPublished: boolean;
+  tags: string[];
+  examples: LearningActivityExample[];
+  sections: LearningActivitySection[];
+  learningObjectives?: string[];
+  resources?: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
+  _count?: {
+    progress: number;
+  };
+}
+
+export interface LessonFormData {
+  title: string;
+  slug: string;
+  description: string;
+  content: string;
+  difficulty: number;
+  order: number;
+  duration: number;
+  category: string;
+  hasCodeExercise: boolean;
+  starterCode: string;
+  solutionCode: string;
+  testCases: string;
+  hints: string;
+  prerequisites: string;
+  diamondReward: number;
+  experienceReward: number;
+  isPublished: boolean;
+  examples: LearningActivityExample[];
+  sections: LearningActivitySection[];
+  tags: string[];
+  learningObjectives: string[];
+  resources: string[];
+}
+
+export interface LessonsResponse {
+  lessons: AdminLesson[];
+}
+
+export interface LessonStats {
+  totalCodeArenas: number;
+  publishedCodeArenas: number;
+  draftCodeArenas: number;
+  totalStudents: number;
+  averageCompletion: number;
+  categoryCounts: Record<string, number>;
+  difficultyDistribution: Record<number, number>;
+}

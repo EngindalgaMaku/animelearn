@@ -20,9 +20,27 @@ function getUserFromToken(request: NextRequest): AuthUser | null {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
     return decoded;
-  } catch (error) {
+  } catch {
     return null;
   }
+}
+
+function parseJSON<T>(val: string | null | undefined, fallback: T): T {
+  try {
+    if (!val) return fallback;
+    return JSON.parse(val) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function slugify(title: string): string {
+  return (title || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .trim();
 }
 
 export async function GET(req: NextRequest) {
@@ -36,14 +54,14 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const category = searchParams.get("category");
     const difficulty = searchParams.get("difficulty");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const order = searchParams.get("order");
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "10", 10);
     const skip = (page - 1) * limit;
 
-    // Build filter conditions
+    // Build filter conditions for LearningActivity "lesson"
     const where: any = {
-      isPublished: true,
+      activityType: "lesson",
+      isActive: true,
     };
 
     if (category && category !== "all") {
@@ -51,85 +69,77 @@ export async function GET(req: NextRequest) {
     }
 
     if (difficulty) {
-      where.difficulty = parseInt(difficulty);
+      where.difficulty = parseInt(difficulty, 10);
     }
 
-    if (order) {
-      where.order = parseInt(order);
-    }
-
-    // Get code arenas with user progress
-    const codeArenas = await prisma.codeArena.findMany({
+    // Fetch lessons
+    const activities = await prisma.learningActivity.findMany({
       where,
-      include: {
-        progress: {
-          where: {
-            userId: authUser.userId,
-          },
-          select: {
-            id: true,
-            isCompleted: true,
-            score: true,
-            timeSpent: true,
-            completedAt: true,
-          },
-        },
-        quizzes: {
-          select: {
-            id: true,
-            title: true,
-            difficulty: true,
-            diamondReward: true,
-            experienceReward: true,
-          },
-        },
-      },
       orderBy: {
-        order: "asc",
+        sortOrder: "asc",
       },
       skip,
       take: limit,
     });
 
-    // Get total count for pagination
-    const totalCount = await prisma.codeArena.count({
+    // Total count for pagination
+    const totalCount = await prisma.learningActivity.count({
       where,
     });
 
-    // Transform code arenas data
-    const transformedCodeArenas = codeArenas.map((codeArena) => {
-      const progress = codeArena.progress[0];
+    // Fetch user attempts for these activities
+    const activityIds = activities.map((a) => a.id);
+    const attempts =
+      activityIds.length > 0
+        ? await prisma.activityAttempt.findMany({
+            where: {
+              userId: authUser.userId,
+              activityId: { in: activityIds },
+            },
+          })
+        : [];
 
+    const attemptMap = attempts.reduce<
+      Record<string, (typeof attempts)[number]>
+    >((acc, at) => {
+      acc[at.activityId] = at;
+      return acc;
+    }, {});
+
+    // Transform to legacy "codeArena" list shape used by frontend
+    const transformedCodeArenas = activities.map((a) => {
+      const settings = parseJSON<any>(a.settings, null);
+      const userAttempt = attemptMap[a.id] || null;
+      const tags = parseJSON<string[]>(a.tags, []);
       return {
-        id: codeArena.id,
-        title: codeArena.title,
-        slug: codeArena.slug,
-        description: codeArena.description,
-        difficulty: codeArena.difficulty,
-        duration: codeArena.duration,
-        category: codeArena.category,
-        diamondReward: codeArena.diamondReward,
-        experienceReward: codeArena.experienceReward,
-        order: codeArena.order,
-        hasCodeExercise: codeArena.hasCodeExercise,
-        isCompleted: progress?.isCompleted || false,
-        progress: progress
+        id: a.id,
+        title: a.title,
+        slug:
+          (settings?.slug &&
+            typeof settings.slug === "string" &&
+            settings.slug) ||
+          slugify(a.title),
+        description: a.description || "",
+        difficulty: a.difficulty,
+        duration: a.estimatedMinutes ?? 30,
+        category: a.category,
+        diamondReward: a.diamondReward ?? 0,
+        experienceReward: a.experienceReward ?? 0,
+        order: a.sortOrder ?? 1,
+        hasCodeExercise: !!settings?.hasCodeExercise,
+        isCompleted: !!userAttempt?.completed,
+        progress: userAttempt
           ? {
-              isCompleted: progress.isCompleted,
-              score: progress.score,
-              timeSpent: progress.timeSpent,
-              completedAt: progress.completedAt,
+              isCompleted: !!userAttempt.completed,
+              score: userAttempt.score ?? null,
+              timeSpent: userAttempt.timeSpent ?? 0,
+              completedAt: userAttempt.completedAt ?? null,
             }
           : null,
-        quiz: codeArena.quizzes[0]
-          ? {
-              id: codeArena.quizzes[0].id,
-              title: codeArena.quizzes[0].title,
-              difficulty: codeArena.quizzes[0].difficulty,
-              diamondReward: codeArena.quizzes[0].diamondReward,
-              experienceReward: codeArena.quizzes[0].experienceReward,
-            }
-          : null,
+        // No direct quiz relation in current schema; keep null or infer from content elsewhere
+        quiz: null as any,
+        // Additional fields occasionally referenced by UI
+        tags,
       };
     });
 
@@ -145,7 +155,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching code arenas:", error);
+    console.error("Error fetching lessons:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

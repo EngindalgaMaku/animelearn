@@ -168,13 +168,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify code arena exists
-    const codeArena = await prisma.codeArena.findUnique({
-      where: { id: codeArenaId },
+    // Verify learning activity (lesson) exists
+    const activity = await prisma.learningActivity.findFirst({
+      where: { id: codeArenaId, activityType: "lesson" },
     });
 
-    if (!codeArena) {
-      return NextResponse.json({ error: "Code Arena not found" }, { status: 404 });
+    if (!activity) {
+      return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
     }
 
     // Create submission

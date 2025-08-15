@@ -71,43 +71,73 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Code Arena progress'lerini al
-    const codeArenaProgressQuery: any = {
+    // Lesson attempts (migrated from CodeArena progress)
+    const attempts = await prisma.activityAttempt.findMany({
       where: {
         userId: authUser.userId,
-        ...(category && {
-          codeArena: { category },
-        }),
+        ...(category && { activity: { category } }),
         ...(Object.keys(dateFilter).length > 0 && {
-          OR: [
-            { startedAt: dateFilter },
-            { completedAt: dateFilter },
-            { lastVisit: dateFilter },
-          ],
+          OR: [{ startedAt: dateFilter }, { completedAt: dateFilter }],
         }),
+        activity: { activityType: "lesson" },
       },
       include: {
-        codeArena: {
+        activity: {
           select: {
-            id: true,
             title: true,
-            slug: true,
             category: true,
             difficulty: true,
             diamondReward: true,
             experienceReward: true,
-            order: true,
+            settings: true,
           },
         },
       },
-      orderBy: {
-        lastVisit: "desc",
-      },
-    };
+      orderBy: { completedAt: "desc" },
+    });
 
-    const codeArenaProgresses = await prisma.codeArenaProgress.findMany(
-      codeArenaProgressQuery
-    );
+    // Helpers for transforming to legacy shape expected below
+    const parseJSON = <T>(val: any, fallback: T): T => {
+      try {
+        if (!val) return fallback;
+        if (typeof val === "string") return JSON.parse(val) as T;
+        return val as T;
+      } catch {
+        return fallback;
+      }
+    };
+    const slugify = (title: string) =>
+      (title || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .trim();
+
+    // Build legacy-like progress entries so the rest of the file remains unchanged
+    const codeArenaProgresses = attempts.map((at) => {
+      const settings = parseJSON<any>(at.activity?.settings, null);
+      const slug =
+        (settings?.slug &&
+          typeof settings.slug === "string" &&
+          settings.slug) ||
+        slugify(at.activity?.title || "");
+      return {
+        isCompleted: !!at.completed,
+        isStarted: !!at.startedAt,
+        lastVisit: at.completedAt || at.startedAt,
+        timeSpent: at.timeSpent || 0,
+        codeArena: {
+          title: at.activity?.title || "",
+          slug,
+          category: at.activity?.category || "general",
+          difficulty: at.activity?.difficulty || 1,
+          diamondReward: at.activity?.diamondReward || 0,
+          experienceReward: at.activity?.experienceReward || 0,
+          order: undefined,
+        },
+      };
+    });
 
     // Quiz attempts'leri al
     const quizAttemptsQuery: any = {
@@ -165,14 +195,14 @@ export async function GET(req: NextRequest) {
       take: 50,
     };
 
-    const codeSubmissions = await prisma.codeSubmission.findMany(
-      codeSubmissionsQuery
-    );
+    const codeSubmissions =
+      await prisma.codeSubmission.findMany(codeSubmissionsQuery);
 
     // İstatistikleri hesapla
     const stats = {
       totalCodeArenas: codeArenaProgresses.length,
-      completedCodeArenas: codeArenaProgresses.filter((lp) => lp.isCompleted).length,
+      completedCodeArenas: codeArenaProgresses.filter((lp) => lp.isCompleted)
+        .length,
       inProgressCodeArenas: codeArenaProgresses.filter(
         (lp) => lp.isStarted && !lp.isCompleted
       ).length,
@@ -386,8 +416,11 @@ export async function POST(req: NextRequest) {
       case "reset_progress":
         // Sadece test ortamı için - production'da kaldırılmalı
         if (process.env.NODE_ENV === "development") {
-          await prisma.codeArenaProgress.deleteMany({
-            where: { userId: authUser.userId },
+          await prisma.activityAttempt.deleteMany({
+            where: {
+              userId: authUser.userId,
+              activity: { activityType: "lesson" },
+            },
           });
 
           await prisma.quizAttempt.deleteMany({
