@@ -6,7 +6,6 @@ import { seedFillBlanksDataStructuresActivities } from "./fill-blanks-data-struc
 import { seedInteractiveCodingDataStructuresActivities } from "./interactive-coding-data-structures";
 import { seedCodeBuilderDataStructuresActivities } from "./code-builder-data-structures";
 import { seedInteractiveDemoDataStructuresActivities } from "./interactive-demo-data-structures";
-import { seedAlgorithmVisualizationDataStructuresActivities } from "./algorithm-visualization-data-structures";
 import { seedClassBuilderDataStructuresActivities } from "./class-builder-data-structures";
 import { seedDataExplorationDataStructuresActivities } from "./data-exploration-data-structures";
 
@@ -43,10 +42,6 @@ export async function seedAllDataStructuresActivities() {
     {
       name: "Interactive Demo",
       run: seedInteractiveDemoDataStructuresActivities,
-    },
-    {
-      name: "Algorithm Visualization",
-      run: seedAlgorithmVisualizationDataStructuresActivities,
     },
     { name: "Class Builder", run: seedClassBuilderDataStructuresActivities },
     {

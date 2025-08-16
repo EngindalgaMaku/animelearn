@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Play,
   Pause,
@@ -9,6 +9,8 @@ import {
   Star,
   Gift,
   ChevronRight,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 
 interface VisualizationStep {
@@ -58,6 +60,10 @@ export default function AlgorithmVisualizationActivity({
   const [isCompleted, setIsCompleted] = useState(false);
   const [showRewardAnimation, setShowRewardAnimation] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(0.3);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const synthRef = useRef<SpeechSynthesis | null>(null);
 
   // Check authentication status
   useEffect(() => {
@@ -77,6 +83,179 @@ export default function AlgorithmVisualizationActivity({
     };
     checkAuth();
   }, []);
+
+  // Initialize audio context and speech synthesis
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        // Create audio context but don't start it yet (requires user interaction)
+        audioContextRef.current = new (window.AudioContext ||
+          (window as any).webkitAudioContext)();
+        synthRef.current = window.speechSynthesis;
+
+        // Add click handler to initialize audio context on first user interaction
+        const initAudio = async () => {
+          if (
+            audioContextRef.current &&
+            audioContextRef.current.state === "suspended"
+          ) {
+            try {
+              await audioContextRef.current.resume();
+              console.log("🎵 Audio context initialized!");
+            } catch (error) {
+              console.log("Audio context initialization failed:", error);
+            }
+          }
+        };
+
+        // Listen for any user interaction to enable audio
+        document.addEventListener("click", initAudio, { once: true });
+        document.addEventListener("keydown", initAudio, { once: true });
+
+        return () => {
+          document.removeEventListener("click", initAudio);
+          document.removeEventListener("keydown", initAudio);
+        };
+      } catch (error) {
+        console.log("Audio not supported:", error);
+      }
+    }
+
+    return () => {
+      if (
+        audioContextRef.current &&
+        audioContextRef.current.state !== "closed"
+      ) {
+        audioContextRef.current.close();
+      }
+    };
+  }, []);
+
+  // Audio utility functions
+  const playBeep = async (
+    frequency: number = 440,
+    duration: number = 200,
+    type: OscillatorType = "sine"
+  ) => {
+    if (isMuted || !audioContextRef.current) {
+      console.log("🔇 Audio muted or no context");
+      return;
+    }
+
+    try {
+      // Resume audio context if suspended
+      if (audioContextRef.current.state === "suspended") {
+        await audioContextRef.current.resume();
+        console.log("🎵 Audio context resumed");
+      }
+
+      const oscillator = audioContextRef.current.createOscillator();
+      const gainNode = audioContextRef.current.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContextRef.current.destination);
+
+      oscillator.frequency.setValueAtTime(
+        frequency,
+        audioContextRef.current.currentTime
+      );
+      oscillator.type = type;
+
+      gainNode.gain.setValueAtTime(0, audioContextRef.current.currentTime);
+      gainNode.gain.linearRampToValueAtTime(
+        volume * 0.3, // Reduced volume for beeps
+        audioContextRef.current.currentTime + 0.01
+      );
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.001,
+        audioContextRef.current.currentTime + duration / 1000
+      );
+
+      oscillator.start(audioContextRef.current.currentTime);
+      oscillator.stop(audioContextRef.current.currentTime + duration / 1000);
+
+      console.log(`🔊 Playing beep: ${frequency}Hz for ${duration}ms`);
+    } catch (error) {
+      console.log("Audio playback error:", error);
+    }
+  };
+
+  const playStepSound = async (stepData: VisualizationStep) => {
+    if (isMuted) {
+      console.log("🔇 Step sound muted");
+      return;
+    }
+
+    const action = stepData.action?.toLowerCase() || "";
+    console.log(`🎵 Playing step sound for action: "${action}"`);
+
+    if (action.includes("swap") || action.includes("exchange")) {
+      // Swap sound - two-tone beep
+      await playBeep(600, 150);
+      setTimeout(() => playBeep(400, 150), 100);
+    } else if (
+      action.includes("found") ||
+      action.includes("match") ||
+      action.includes("success")
+    ) {
+      // Success sound - ascending tones
+      await playBeep(523, 200); // C
+      setTimeout(() => playBeep(659, 200), 100); // E
+      setTimeout(() => playBeep(784, 300), 200); // G
+    } else if (action.includes("compare") || action.includes("check")) {
+      // Compare sound - single beep
+      await playBeep(800, 100);
+    } else if (action.includes("minimum") || action.includes("maximum")) {
+      // Selection sound - descending beep
+      await playBeep(700, 200);
+      setTimeout(() => playBeep(500, 200), 150);
+    } else {
+      // Default step sound - soft click
+      await playBeep(440, 150, "triangle");
+    }
+  };
+
+  const speakDescription = (text: string) => {
+    if (isMuted || !synthRef.current || !text) {
+      console.log("🗣️ Speech muted or not available");
+      return;
+    }
+
+    // Cancel any ongoing speech
+    synthRef.current.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.8;
+    utterance.pitch = 1;
+    utterance.volume = volume;
+
+    // Try to use a more natural voice
+    const voices = synthRef.current.getVoices();
+    const preferredVoice = voices.find(
+      (voice) =>
+        voice.lang.includes("en") &&
+        (voice.name.includes("Google") ||
+          voice.name.includes("Alex") ||
+          voice.name.includes("Samantha"))
+    );
+
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+    }
+
+    utterance.onstart = () =>
+      console.log(`🗣️ Speaking: "${text.substring(0, 50)}..."`);
+    utterance.onerror = (error) => console.log("Speech error:", error);
+
+    synthRef.current.speak(utterance);
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    if (!isMuted && synthRef.current) {
+      synthRef.current.cancel(); // Stop any ongoing speech when muting
+    }
+  };
 
   // Normalize nested seed schema (content.algorithm.* with algorithm.steps[]) and flat schema (content.* with content.steps[])
   const contentAny: any = activity.content || {};
@@ -165,7 +344,7 @@ export default function AlgorithmVisualizationActivity({
       })
     : [];
 
-  // Auto-play functionality
+  // Auto-play functionality with sound effects
   useEffect(() => {
     const safeStepsLength = Array.isArray(normalizedSteps)
       ? normalizedSteps.length
@@ -173,7 +352,7 @@ export default function AlgorithmVisualizationActivity({
     if (isPlaying && currentStep < safeStepsLength - 1) {
       const timer = setTimeout(() => {
         setCurrentStep(currentStep + 1);
-      }, 2000); // 2 seconds per step
+      }, 2500); // 2.5 seconds per step to allow for audio
       return () => clearTimeout(timer);
     } else if (isPlaying && currentStep === safeStepsLength - 1) {
       setIsPlaying(false);
@@ -183,6 +362,24 @@ export default function AlgorithmVisualizationActivity({
       }
     }
   }, [isPlaying, currentStep, normalizedSteps, isCompleted]);
+
+  // Play sound when step changes
+  useEffect(() => {
+    if (currentStep >= 0 && normalizedSteps.length > 0) {
+      const stepData = normalizedSteps[currentStep];
+      if (stepData) {
+        console.log(`🎵 Step ${currentStep + 1}: "${stepData.description}"`);
+
+        // Play step sound immediately
+        playStepSound(stepData);
+
+        // Speak description after a short delay
+        setTimeout(() => {
+          speakDescription(stepData.description);
+        }, 400);
+      }
+    }
+  }, [currentStep, normalizedSteps, isMuted, volume]);
 
   const handleActivityCompletion = async () => {
     if (!isAuthenticated) return;
@@ -243,6 +440,15 @@ export default function AlgorithmVisualizationActivity({
     } else if (!isCompleted) {
       setIsCompleted(true);
       handleActivityCompletion();
+      // Play completion sound
+      if (!isMuted) {
+        setTimeout(() => {
+          playBeep(523, 200); // C
+          setTimeout(() => playBeep(659, 200), 200); // E
+          setTimeout(() => playBeep(784, 200), 400); // G
+          setTimeout(() => playBeep(1047, 400), 600); // C (octave)
+        }, 100);
+      }
     }
   };
 
@@ -343,14 +549,57 @@ export default function AlgorithmVisualizationActivity({
             </span>
             <div className="flex items-center space-x-2">
               <button
+                onClick={async () => {
+                  console.log("🎵 Testing audio...");
+                  await playBeep(440, 300);
+                  setTimeout(
+                    () => speakDescription("Audio test successful!"),
+                    400
+                  );
+                }}
+                className="rounded-lg bg-blue-100 p-2 text-blue-600 hover:bg-blue-200"
+                title="Test audio"
+              >
+                🔊
+              </button>
+              <button
+                onClick={toggleMute}
+                className={`rounded-lg p-2 transition-colors ${
+                  isMuted
+                    ? "bg-red-100 text-red-600 hover:bg-red-200"
+                    : "bg-green-100 text-green-600 hover:bg-green-200"
+                }`}
+                title={isMuted ? "Unmute audio" : "Mute audio"}
+              >
+                {isMuted ? (
+                  <VolumeX className="h-4 w-4" />
+                ) : (
+                  <Volume2 className="h-4 w-4" />
+                )}
+              </button>
+              {!isMuted && (
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={volume}
+                  onChange={(e) => setVolume(parseFloat(e.target.value))}
+                  className="h-2 w-16 cursor-pointer rounded-lg bg-gray-200"
+                  title="Volume"
+                />
+              )}
+              <button
                 onClick={reset}
                 className="rounded-lg bg-gray-100 p-2 text-gray-600 hover:bg-gray-200"
+                title="Reset to beginning"
               >
                 <RotateCcw className="h-4 w-4" />
               </button>
               <button
                 onClick={playPause}
                 className="rounded-lg bg-purple-600 p-2 text-white hover:bg-purple-700"
+                title={isPlaying ? "Pause animation" : "Play animation"}
               >
                 {isPlaying ? (
                   <Pause className="h-4 w-4" />
@@ -403,49 +652,61 @@ export default function AlgorithmVisualizationActivity({
             <strong>Action:</strong>{" "}
             {currentStepData?.action || "No action available"}
           </div>
+          {!isMuted && audioContextRef.current && (
+            <div className="mt-2 flex items-center text-xs text-green-600">
+              🎵 Audio enabled - Listen for step sounds and descriptions
+            </div>
+          )}
+          {isMuted && (
+            <div className="mt-2 flex items-center text-xs text-red-600">
+              🔇 Audio muted - Click volume button to enable sounds
+            </div>
+          )}
+          {!audioContextRef.current && (
+            <div className="mt-2 flex items-center text-xs text-orange-600">
+              ⚠️ Audio not supported in this browser
+            </div>
+          )}
         </div>
 
-        {/* Navigation */}
-        <div className="mt-6 flex items-center justify-between">
-          <button
-            onClick={prevStep}
-            disabled={currentStep === 0}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Previous
-          </button>
+        {/* Navigation - Only show if not completed */}
+        {!isCompleted && (
+          <div className="mt-6 flex items-center justify-between">
+            <button
+              onClick={prevStep}
+              disabled={currentStep === 0}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Previous
+            </button>
 
-          <div className="flex items-center space-x-2">
-            {(Array.isArray(normalizedSteps) ? normalizedSteps : [{}]).map(
-              (_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentStep(index)}
-                  className={`h-3 w-3 rounded-full transition-all ${
-                    index === currentStep
-                      ? "bg-purple-600"
-                      : index < currentStep
-                        ? "bg-purple-300"
-                        : "bg-gray-200"
-                  }`}
-                />
-              )
-            )}
+            <div className="flex items-center space-x-2">
+              {(Array.isArray(normalizedSteps) ? normalizedSteps : [{}]).map(
+                (_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentStep(index)}
+                    className={`h-3 w-3 rounded-full transition-all ${
+                      index === currentStep
+                        ? "bg-purple-600"
+                        : index < currentStep
+                          ? "bg-purple-300"
+                          : "bg-gray-200"
+                    }`}
+                  />
+                )
+              )}
+            </div>
+
+            <button
+              onClick={nextStep}
+              className="flex items-center space-x-2 rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700"
+            >
+              <span>Next</span>
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
-
-          <button
-            onClick={nextStep}
-            className="flex items-center space-x-2 rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700"
-          >
-            <span>
-              {currentStep ===
-              (Array.isArray(normalizedSteps) ? normalizedSteps.length : 1) - 1
-                ? "Complete"
-                : "Next"}
-            </span>
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
+        )}
       </div>
 
       {/* Completion */}

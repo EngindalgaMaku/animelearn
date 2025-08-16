@@ -17,7 +17,6 @@ import { interactiveCodingPythonFundamentalsActivities } from "./interactive-cod
 import { matchingPythonFundamentalsActivities } from "./matching-python-fundamentals";
 import { codeBuilderPythonFundamentalsActivities } from "./code-builder-python-fundamentals";
 import { interactiveDemoPythonFundamentalsActivities } from "./interactive-demo-python-fundamentals";
-import { algorithmVisualizationPythonFundamentalsActivities } from "./algorithm-visualization-python-fundamentals";
 import { classBuilderPythonFundamentalsActivities } from "./class-builder-python-fundamentals";
 import { dataExplorationPythonFundamentalsActivities } from "./data-exploration-python-fundamentals";
 
@@ -71,10 +70,6 @@ class ActivityTestRunner {
       {
         type: "INTERACTIVE_DEMO",
         activities: interactiveDemoPythonFundamentalsActivities,
-      },
-      {
-        type: "ALGORITHM_VISUALIZATION",
-        activities: algorithmVisualizationPythonFundamentalsActivities,
       },
       {
         type: "CLASS_BUILDER",

@@ -14,7 +14,6 @@ export * from "./interactive-coding-python-fundamentals";
 export * from "./matching-python-fundamentals";
 export * from "./code-builder-python-fundamentals";
 export * from "./interactive-demo-python-fundamentals";
-export * from "./algorithm-visualization-python-fundamentals";
 export * from "./class-builder-python-fundamentals";
 export * from "./data-exploration-python-fundamentals";
 
@@ -87,10 +86,6 @@ export async function seedAllPythonFundamentalsActivities() {
       () =>
         import("./interactive-demo-python-fundamentals").then((m) =>
           m.seedInteractiveDemoPythonFundamentalsActivities()
-        ),
-      () =>
-        import("./algorithm-visualization-python-fundamentals").then((m) =>
-          m.seedAlgorithmVisualizationPythonFundamentalsActivities()
         ),
       () =>
         import("./class-builder-python-fundamentals").then((m) =>

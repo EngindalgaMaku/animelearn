@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import {
   Star,
   Diamond,
@@ -35,10 +37,14 @@ import {
   FileText,
   Clock,
   Terminal,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  Copy,
+  Share2,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import PythonTipWidget from "@/components/python-tips/PythonTipWidget";
 
 interface Stats {
   totalUsers: number;
@@ -63,6 +69,8 @@ export default function HomePage() {
   const [tipProgress, setTipProgress] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isTipExpanded, setIsTipExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
   const { isAuthenticated, user } = useAuth();
 
   // Handle hydration
@@ -232,6 +240,52 @@ export default function HomePage() {
     } catch (error) {
       console.error("Tip interaction failed:", error);
     }
+  };
+
+  // Tip interaction functions
+  const handleTipLike = async () => {
+    if (!dailyTip || !isAuthenticated) return;
+
+    const action = tipProgress?.hasLiked ? "unlike" : "like";
+    await handleTipInteraction(action);
+  };
+
+  const handleTipShare = () => {
+    if (!dailyTip) return;
+
+    if (typeof navigator !== "undefined" && navigator.share) {
+      navigator.share({
+        title: `Python Tip: ${dailyTip.title}`,
+        text: dailyTip.content,
+        url: typeof window !== "undefined" ? window.location.href : "",
+      });
+    } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(
+        `Check out this Python tip: ${dailyTip.title}\n${dailyTip.content}\n\n${typeof window !== "undefined" ? window.location.href : ""}`
+      );
+    }
+
+    handleTipInteraction("share");
+  };
+
+  const handleTipCopyCode = () => {
+    if (
+      dailyTip?.codeExample &&
+      typeof navigator !== "undefined" &&
+      navigator.clipboard
+    ) {
+      navigator.clipboard.writeText(dailyTip.codeExample);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleTipComplete = async () => {
+    if (!dailyTip || !isAuthenticated) return;
+
+    await handleTipInteraction("complete", {
+      completionScore: 100,
+    });
   };
 
   // Helper function to render text without code highlighting
@@ -473,14 +527,244 @@ export default function HomePage() {
             </div>
 
             <div className="mx-auto max-w-4xl">
-              <PythonTipWidget
-                tip={dailyTip}
-                userProgress={tipProgress}
-                streak={null}
-                compact={true}
-                onInteraction={handleTipInteraction}
-                className="mx-auto max-w-2xl"
-              />
+              {/* Daily Python Tip Accordion */}
+              <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl">
+                {/* Collapsed Header */}
+                <div className="bg-gradient-to-r from-slate-800 to-slate-900 p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-purple-500">
+                        <Terminal className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-white">
+                          {dailyTip.title || "Daily Python Tip"}
+                        </h3>
+                        <div className="mt-1 flex items-center space-x-3">
+                          <span className="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-300">
+                            {dailyTip.difficulty || "beginner"}
+                          </span>
+                          <div className="flex items-center space-x-1 text-yellow-400">
+                            <Zap className="h-3 w-3" />
+                            <span className="text-sm font-bold">
+                              +{dailyTip.xpReward || 10} XP
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setIsTipExpanded(!isTipExpanded)}
+                      className="flex items-center space-x-2 rounded-lg bg-white/10 px-4 py-2 text-white transition-all hover:bg-white/20"
+                    >
+                      <span className="text-sm font-medium">
+                        {isTipExpanded ? "Collapse" : "Expand"}
+                      </span>
+                      {isTipExpanded ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Expandable Content */}
+                {isTipExpanded && (
+                  <div className="p-6">
+                    {/* Tip Content */}
+                    <div className="mb-6">
+                      <p className="text-lg leading-relaxed text-gray-700">
+                        {dailyTip.content}
+                      </p>
+                    </div>
+
+                    {/* Tip Info */}
+                    <div className="mb-6 flex items-center space-x-6 text-sm text-gray-500">
+                      <div className="flex items-center space-x-1">
+                        <Eye className="h-4 w-4" />
+                        <span>{dailyTip.viewCount || 0} views</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Heart className="h-4 w-4" />
+                        <span>{dailyTip.likeCount || 0} likes</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Clock className="h-4 w-4" />
+                        <span>{dailyTip.estimatedMinutes || 5} min read</span>
+                      </div>
+                    </div>
+
+                    {/* Code Example - VS Code Style */}
+                    {dailyTip.codeExample && (
+                      <div className="mb-6">
+                        {/* Code Editor Header */}
+                        <div className="rounded-t-lg border border-gray-700 bg-[#2d2d30] px-4 py-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              {/* VS Code Traffic Lights */}
+                              <div className="flex items-center space-x-2">
+                                <div className="h-3 w-3 rounded-full bg-red-500"></div>
+                                <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
+                                <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                              </div>
+
+                              <div className="flex items-center space-x-2">
+                                <Code className="h-4 w-4 text-blue-400" />
+                                <span className="text-sm font-medium text-white">
+                                  python_tip.py
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center space-x-3">
+                              <span className="text-xs text-gray-400">
+                                Python
+                              </span>
+                              <button
+                                onClick={handleTipCopyCode}
+                                className={`flex items-center space-x-1 rounded px-2 py-1 text-xs transition-colors ${
+                                  copied
+                                    ? "bg-green-600/20 text-green-400"
+                                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                                }`}
+                              >
+                                <Copy className="h-3 w-3" />
+                                <span>{copied ? "Copied!" : "Copy"}</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Code Content */}
+                        <div className="overflow-x-auto rounded-b-lg border-x border-b border-gray-700">
+                          <SyntaxHighlighter
+                            language="python"
+                            style={vscDarkPlus}
+                            customStyle={{
+                              margin: 0,
+                              padding: "1rem",
+                              background: "#1e1e1e",
+                              fontSize: "14px",
+                              lineHeight: "1.5",
+                            }}
+                            showLineNumbers
+                            lineNumberStyle={{
+                              color: "#6e7681",
+                              paddingRight: "1rem",
+                              textAlign: "right",
+                              userSelect: "none",
+                            }}
+                            wrapLines={true}
+                            wrapLongLines={true}
+                          >
+                            {dailyTip.codeExample}
+                          </SyntaxHighlighter>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Progress Indicator */}
+                    {tipProgress && (
+                      <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <h4 className="mb-3 font-medium text-gray-900">
+                          Your Progress
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                          <div
+                            className={`flex items-center space-x-2 ${
+                              tipProgress.hasViewed
+                                ? "text-green-600"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                            <span className="text-xs">Viewed</span>
+                          </div>
+                          <div
+                            className={`flex items-center space-x-2 ${
+                              tipProgress.hasLiked
+                                ? "text-red-500"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            <Heart className="h-4 w-4" />
+                            <span className="text-xs">Liked</span>
+                          </div>
+                          <div
+                            className={`flex items-center space-x-2 ${
+                              tipProgress.hasCompleted
+                                ? "text-purple-600"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            <Trophy className="h-4 w-4" />
+                            <span className="text-xs">Completed</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-yellow-600">
+                            <Zap className="h-4 w-4" />
+                            <span className="text-xs">
+                              {tipProgress.xpEarned || 0} XP earned
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={handleTipLike}
+                          disabled={!isAuthenticated}
+                          className={`flex items-center space-x-2 rounded-lg px-4 py-2 transition-all ${
+                            tipProgress?.hasLiked
+                              ? "bg-red-50 text-red-600 hover:bg-red-100"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          } ${!isAuthenticated ? "cursor-not-allowed opacity-50" : ""}`}
+                        >
+                          <Heart
+                            className="h-4 w-4"
+                            fill={
+                              tipProgress?.hasLiked ? "currentColor" : "none"
+                            }
+                          />
+                          <span className="text-sm">
+                            {dailyTip.likeCount || 0}
+                          </span>
+                        </button>
+
+                        <button
+                          onClick={handleTipShare}
+                          className="flex items-center space-x-2 rounded-lg bg-gray-100 px-4 py-2 text-gray-600 transition-colors hover:bg-gray-200"
+                        >
+                          <Share2 className="h-4 w-4" />
+                          <span className="text-sm">Share</span>
+                        </button>
+                      </div>
+
+                      {isAuthenticated && !tipProgress?.hasCompleted && (
+                        <button
+                          onClick={handleTipComplete}
+                          className="flex items-center space-x-2 rounded-lg bg-purple-600 px-4 py-2 font-medium text-white transition-all hover:bg-purple-700"
+                        >
+                          <Trophy className="h-4 w-4" />
+                          <span>Mark Complete</span>
+                        </button>
+                      )}
+
+                      {tipProgress?.hasCompleted && (
+                        <div className="flex items-center space-x-2 text-green-600">
+                          <CheckCircle className="h-4 w-4" />
+                          <span className="text-sm font-medium">
+                            Completed!
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {!isAuthenticated && (

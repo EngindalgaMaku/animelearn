@@ -557,6 +557,7 @@ export default function Dashboard() {
                   streak={null}
                   compact={true}
                   onInteraction={handleTipInteraction}
+                  modalPosition="top"
                   className="mx-auto"
                 />
               </div>

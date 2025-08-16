@@ -68,7 +68,14 @@ function CodeArenaContent() {
     useState<LearningActivity | null>(null);
 
   // UI states
-  const [selectedTopic, setSelectedTopic] = useState("Python Fundamentals");
+  const [selectedTopic, setSelectedTopic] = useState(() => {
+    // Check localStorage for persisted topic selection
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("codeArenaSelectedTopic");
+      return saved || "Python Fundamentals";
+    }
+    return "Python Fundamentals";
+  });
   const [selectedDifficulty, setSelectedDifficulty] = useState("");
   const [selectedActivityType, setSelectedActivityType] = useState(""); // Add activity type state
   const [searchTerm, setSearchTerm] = useState("");
@@ -92,7 +99,7 @@ function CodeArenaContent() {
   const [showRewardButton, setShowRewardButton] = useState(false);
   const [rewardClaimData, setRewardClaimData] = useState<any>(null);
 
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, refreshUser } = useAuth();
   const { showCodeArenaComplete } = useRewardHelpers();
 
   // Performance optimizations
@@ -114,41 +121,32 @@ function CodeArenaContent() {
     return () => mediaQuery.removeEventListener("change", handler);
   }, []);
 
-  // Profile stats management
-  const [userStats, setUserStats] = useState({
-    level: user?.level || 1,
-    experience: user?.experience || 0,
-    diamonds: user?.currentDiamonds || 0,
-    expToNextLevel: user?.level
-      ? (user.level + 1) * 1000 - (user.experience || 0)
-      : 1000,
-    totalXP: user?.experience || 0,
-    codeArenasCompleted: user?.codeArenasCompleted || 0,
-    quizzesCompleted: user?.quizzesCompleted || 0,
-  });
-
-  const {
-    stats: animatedStats,
-    updateStats,
-    isUpdating,
-  } = useAnimatedStats(userStats);
-
-  // Update user stats when user data changes
-  useEffect(() => {
-    if (user) {
-      const newStats = {
-        level: user.level || 1,
-        experience: user.experience || 0,
-        diamonds: user.currentDiamonds || 0,
-        expToNextLevel: (user.level + 1) * 1000 - (user.experience || 0),
-        totalXP: user.experience || 0,
-        codeArenasCompleted: user.codeArenasCompleted || 0,
-        quizzesCompleted: user.quizzesCompleted || 0,
+  // Create stats directly from AuthContext user data - no local state
+  const getCurrentUserStats = () => {
+    if (!user) {
+      return {
+        level: 1,
+        experience: 0,
+        diamonds: 0,
+        expToNextLevel: 1000,
+        totalXP: 0,
+        codeArenasCompleted: 0,
+        quizzesCompleted: 0,
       };
-      setUserStats(newStats);
-      updateStats(newStats);
     }
-  }, [user]);
+
+    return {
+      level: user.level || 1,
+      experience: user.experience || 0,
+      diamonds: user.currentDiamonds || 0,
+      expToNextLevel: (user.level + 1) * 1000 - (user.experience || 0),
+      totalXP: user.experience || 0,
+      codeArenasCompleted: user.codeArenasCompleted || 0,
+      quizzesCompleted: user.quizzesCompleted || 0,
+    };
+  };
+
+  const currentUserStats = getCurrentUserStats();
 
   // Optimize initial data fetching - combine API calls
   useEffect(() => {
@@ -161,6 +159,13 @@ function CodeArenaContent() {
     };
     initializeData();
   }, []);
+
+  // Persist selected topic to localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("codeArenaSelectedTopic", selectedTopic);
+    }
+  }, [selectedTopic]);
 
   useEffect(() => {
     setCurrentPage(1); // Reset to first page when filters change
@@ -520,7 +525,7 @@ function CodeArenaContent() {
         <div className="sticky top-16 z-40 border-b border-indigo-200/30 bg-gradient-to-r from-white/95 to-indigo-50/95 backdrop-blur-xl">
           <div className="mx-auto max-w-7xl px-3 py-3 sm:px-4 sm:px-6 sm:py-4 lg:px-8">
             <AnimatedProfileStats
-              stats={animatedStats}
+              stats={currentUserStats}
               variant="header"
               animated={true}
               className="mx-auto max-w-2xl"
@@ -987,35 +992,28 @@ function CodeArenaContent() {
           >
             <RewardClaimButton
               rewards={rewardClaimData}
-              onClaimRewards={() => {
+              onClaimRewards={async () => {
                 // Handle reward claiming with animations
                 const completionData = (window as any)._pendingCompletionData;
 
                 if (completionData) {
                   console.log("🎁 Claiming rewards with data:", completionData);
 
-                  // Update profile stats with correct property mapping
-                  if (completionData.user) {
-                    const newStats = {
-                      level: completionData.user.level,
-                      experience: completionData.user.experience,
-                      diamonds: completionData.user.diamonds,
-                      expToNextLevel: completionData.user.expToNextLevel,
-                      totalXP: completionData.user.experience,
-                      codeArenasCompleted: userStats.codeArenasCompleted + 1,
-                      quizzesCompleted: userStats.quizzesCompleted,
-                    };
-                    console.log("📊 Updating stats:", {
-                      old: userStats,
-                      new: newStats,
-                    });
-                    setUserStats(newStats);
-                    updateStats(newStats);
-                  }
-
                   // Show animated rewards using the API response
                   console.log("🎭 Showing animated rewards...");
                   showCodeArenaComplete(completionData);
+
+                  // Refresh user data from database to get latest stats
+                  if (isAuthenticated) {
+                    try {
+                      await refreshUser();
+                      console.log(
+                        "🔄 User stats refreshed - header will auto-update"
+                      );
+                    } catch (error) {
+                      console.error("❌ Failed to refresh user stats:", error);
+                    }
+                  }
                 } else {
                   console.warn(
                     "⚠️ No completion data found for reward claiming"
@@ -1141,6 +1139,22 @@ function CodeArenaContent() {
                       });
 
                       try {
+                        // Debug the request data before sending
+                        const requestData = {
+                          activityType: selectedActivity.activityType,
+                          activityId: selectedActivity.id,
+                          score: score,
+                          timeSpent: timeSpent,
+                          diamondReward: selectedActivity.diamondReward,
+                          experienceReward: selectedActivity.experienceReward,
+                          activityTitle: selectedActivity.title,
+                        };
+                        console.log("🔍 Sending request data:", requestData);
+                        console.log(
+                          "🔍 Selected activity object:",
+                          selectedActivity
+                        );
+
                         // Call enhanced completion API
                         const response = await fetch(
                           "/api/learning-activities/complete",
@@ -1149,18 +1163,11 @@ function CodeArenaContent() {
                             headers: {
                               "Content-Type": "application/json",
                             },
-                            body: JSON.stringify({
-                              activityType: selectedActivity.activityType,
-                              activityId: selectedActivity.id,
-                              score: score,
-                              timeSpent: timeSpent,
-                              diamondReward: selectedActivity.diamondReward,
-                              experienceReward:
-                                selectedActivity.experienceReward,
-                              activityTitle: selectedActivity.title,
-                            }),
+                            body: JSON.stringify(requestData),
                           }
                         );
+
+                        console.log("🔍 API Response status:", response.status);
 
                         if (response.ok) {
                           const completionData = await response.json();
@@ -1190,21 +1197,25 @@ function CodeArenaContent() {
                             showRewardButton
                           );
 
-                          // Show reward claim button - direct state update
+                          // Show reward claim button - use callback form to ensure updates
+                          console.log("🔧 Setting reward claim data...");
                           setRewardClaimData(rewardData);
+                          console.log("🔧 Setting showRewardButton to true...");
                           setShowRewardButton(true);
 
-                          // Check state after React state update
+                          // Check state immediately and after timeout
+                          console.log("🔍 State update calls completed");
                           setTimeout(() => {
+                            console.log("🔍 Checking state after timeout...");
                             console.log(
-                              "🔍 showRewardButton state after timeout:",
+                              "🔍 showRewardButton after timeout:",
                               showRewardButton
                             );
                             console.log(
                               "🔍 rewardClaimData after timeout:",
                               rewardClaimData
                             );
-                          }, 100);
+                          }, 500);
 
                           // Store completion data for later use when claiming rewards
                           (window as any)._pendingCompletionData =
@@ -1224,6 +1235,22 @@ function CodeArenaContent() {
                           // Close the activity immediately; reward claim button stays visible
                           closeActivity();
                         } else {
+                          // Log the error response for debugging
+                          const errorData = await response.text();
+                          console.error("❌ API Error Response:", errorData);
+                          console.error("❌ Response status:", response.status);
+
+                          // Try to parse as JSON for better error details
+                          try {
+                            const errorJson = JSON.parse(errorData);
+                            console.error(
+                              "❌ Parsed error details:",
+                              errorJson
+                            );
+                          } catch (e) {
+                            console.error("❌ Could not parse error as JSON");
+                          }
+
                           // Fallback to basic message if API fails
                           setShowSuccessMessage(
                             `Activity completed with ${score}% score!`

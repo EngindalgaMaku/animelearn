@@ -6,7 +6,6 @@ import { seedFillBlanksFunctionsOOPActivities } from "./fill-blanks-functions-oo
 import { seedInteractiveCodingFunctionsOOPActivities } from "./interactive-coding-functions-oop";
 import { seedCodeBuilderFunctionsOOPActivities } from "./code-builder-functions-oop";
 import { seedInteractiveDemoFunctionsOOPActivities } from "./interactive-demo-functions-oop";
-import { seedAlgorithmVisualizationFunctionsOOPActivities } from "./algorithm-visualization-functions-oop";
 import { seedClassBuilderFunctionsOOPActivities } from "./class-builder-functions-oop";
 import { seedDataExplorationFunctionsOOPActivities } from "./data-exploration-functions-oop";
 
@@ -43,10 +42,6 @@ export async function seedAllFunctionsOOPActivities() {
     {
       name: "Interactive Demo",
       run: seedInteractiveDemoFunctionsOOPActivities,
-    },
-    {
-      name: "Algorithm Visualization",
-      run: seedAlgorithmVisualizationFunctionsOOPActivities,
     },
     { name: "Class Builder", run: seedClassBuilderFunctionsOOPActivities },
     {

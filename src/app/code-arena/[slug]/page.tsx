@@ -239,12 +239,7 @@ export default function CodeArenaDetailPage() {
   } | null>(null);
 
   // Gamification states
-  const { user, isAuthenticated } = useAuth();
-  const [currentXP, setCurrentXP] = useState(user?.experience || 0);
-  const [currentLevel, setCurrentLevel] = useState(() =>
-    getCurrentLevel(user?.experience || 0)
-  );
-  const [currentStreak, setCurrentStreak] = useState(user?.loginStreak || 0);
+  const { user, isAuthenticated, refreshUser } = useAuth();
   const [hp, setHp] = useState(100);
   const [comboMultiplier, setComboMultiplier] = useState(1);
   const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>(
@@ -364,7 +359,7 @@ export default function CodeArenaDetailPage() {
   // Use safe fallbacks for anonymous users
   const safeLevelData = useMemo(() => {
     try {
-      return getCurrentLevelData(currentXP);
+      return getCurrentLevelData(user?.experience || 0);
     } catch (error) {
       console.warn("Level calculation error for anonymous user:", error);
       return {
@@ -375,7 +370,7 @@ export default function CodeArenaDetailPage() {
         totalXPForNextLevel: 1000,
       };
     }
-  }, [currentXP]);
+  }, [user?.experience]);
 
   const safeRankData = useMemo(() => {
     try {
@@ -506,8 +501,13 @@ export default function CodeArenaDetailPage() {
             result.rewards &&
             result.rewards.diamonds > 0
           ) {
-            // Update user stats immediately for UI responsiveness
-            setCurrentXP((prev) => prev + result.rewards.experience);
+            // Refresh user data from database to get latest stats
+            try {
+              await refreshUser();
+              console.log("🔄 User stats refreshed after arena completion");
+            } catch (error) {
+              console.error("❌ Failed to refresh user stats:", error);
+            }
 
             // Set earned rewards for animation
             setEarnedRewards(rewardsData);
@@ -605,8 +605,15 @@ export default function CodeArenaDetailPage() {
               `🎉 Battle challenge conquered! +${result.rewards.diamonds} diamonds, +${result.rewards.experience} XP (${score}% victory score)`
             );
 
-            // Update current stats for UI
-            setCurrentXP((prev) => prev + result.rewards.experience);
+            // Refresh user data from database to get latest stats
+            if (isAuthenticated) {
+              try {
+                await refreshUser();
+                console.log("🔄 User stats refreshed after code completion");
+              } catch (error) {
+                console.error("❌ Failed to refresh user stats:", error);
+              }
+            }
 
             // Show celebration animation
             setShowRewardAnimation(true);
@@ -919,7 +926,7 @@ export default function CodeArenaDetailPage() {
               {/* Level & XP */}
               <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
                 <Star className="h-5 w-5 text-yellow-300" />
-                <span className="font-bold">LV.{levelData?.level || 1}</span>
+                <span className="font-bold">LV.{user?.level || 1}</span>
                 <div className="h-2 w-20 rounded-full bg-white/20">
                   <div
                     className="h-2 rounded-full bg-yellow-300 transition-all duration-300"
@@ -927,7 +934,7 @@ export default function CodeArenaDetailPage() {
                   ></div>
                 </div>
                 <span className="text-xs text-white/80">
-                  {levelData?.xpNeededForNext || 1000} XP
+                  {user ? (user.level + 1) * 1000 - user.experience : 1000} XP
                 </span>
               </div>
 
@@ -948,15 +955,15 @@ export default function CodeArenaDetailPage() {
               {/* Streak */}
               <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
                 <Flame className="h-5 w-5 text-orange-300" />
-                <span className="font-bold">{currentStreak} days</span>
+                <span className="font-bold">{user?.loginStreak || 0} days</span>
               </div>
 
-              {/* Diamonds - Show potential reward for anonymous users */}
+              {/* Diamonds - Show current diamonds or potential reward */}
               <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
                 <Diamond className="h-5 w-5 text-blue-300" />
                 <span className="font-bold">
-                  {isAuthenticated
-                    ? user?.currentDiamonds || 0
+                  {isAuthenticated && user
+                    ? user.currentDiamonds
                     : `+${codeArena?.diamondReward || 0}`}
                 </span>
                 {!isAuthenticated && (
@@ -1205,7 +1212,7 @@ export default function CodeArenaDetailPage() {
             <QuizComponent
               quiz={codeArena.quiz}
               lessonId={codeArena.slug}
-              onQuizComplete={(score, passed, rewards) => {
+              onQuizComplete={async (score, passed, rewards) => {
                 if (passed) {
                   // Update arena state with quiz score immediately
                   setCodeArena((prev) => {
@@ -1226,8 +1233,20 @@ export default function CodeArenaDetailPage() {
                       `🎉 Final test conquered with ${score}%! +${rewards.diamonds} diamonds, +${rewards.experience} XP`
                     );
 
-                    // Update current stats for UI immediately
-                    setCurrentXP((prev) => prev + rewards.experience);
+                    // Refresh user data from database to get latest stats
+                    if (isAuthenticated) {
+                      try {
+                        await refreshUser();
+                        console.log(
+                          "🔄 User stats refreshed after quiz completion"
+                        );
+                      } catch (error) {
+                        console.error(
+                          "❌ Failed to refresh user stats:",
+                          error
+                        );
+                      }
+                    }
 
                     // Show celebration animation
                     setShowRewardAnimation(true);

@@ -160,13 +160,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUserFromAPI = async () => {
     try {
+      console.log("🔄 Refreshing user data from API...");
       const response = await fetch("/api/users/profile");
       if (response.ok) {
         const data = await response.json();
+        console.log("📊 API Response:", data);
         if (data.success && data.user) {
           // Map profile API response to our User interface
           const profileUser = data.user;
-          setUser((prev) =>
+          console.log("👤 Profile user data:", profileUser);
+
+          const updatedUser = (prev: User | null) =>
             prev
               ? {
                   ...prev,
@@ -201,13 +205,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   createdAt: profileUser.createdAt || prev.createdAt,
                   updatedAt: new Date().toISOString(),
                 }
-              : null
-          );
+              : null;
+
+          setUser(updatedUser);
+          console.log("✅ User state updated successfully");
           setAuthError(null);
+        } else {
+          console.warn("⚠️ Invalid API response format");
         }
+      } else {
+        console.error(
+          "❌ API request failed:",
+          response.status,
+          response.statusText
+        );
       }
     } catch (error) {
-      console.error("User refresh failed:", error);
+      console.error("❌ User refresh failed:", error);
       setAuthError("Failed to refresh user data");
     }
   };

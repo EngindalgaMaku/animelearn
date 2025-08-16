@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Terminal,
@@ -62,8 +62,11 @@ interface PythonTipWidgetProps {
   userProgress?: UserProgress | null;
   streak?: Streak | null;
   compact?: boolean;
+  startExpanded?: boolean;
   onInteraction: (action: string, data?: any) => void;
   className?: string;
+  modalPosition?: "center" | "top";
+  modalTopOffsetRem?: number;
 }
 
 const difficultyColors = {
@@ -83,15 +86,71 @@ export default function PythonTipWidget({
   userProgress,
   streak,
   compact = false,
+  startExpanded = false,
   onInteraction,
+  modalPosition = "center",
+  modalTopOffsetRem = 5,
   className = "",
 }: PythonTipWidgetProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(!!(compact && startExpanded));
   const [isCodeVisible, setIsCodeVisible] = useState(true);
   const [timeSpent, setTimeSpent] = useState(0);
   const [startTime] = useState(Date.now());
   const [copied, setCopied] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
+  const justOpenedRef = useRef(false);
+
+  const openModal = () => {
+    try {
+      // mark that we just opened, to avoid immediate close from the same click event
+      justOpenedRef.current = true;
+    } catch {
+      // ignore
+    }
+    setIsExpanded(true);
+  };
+
+  // Ensure modal never exceeds viewport (handles mobile dynamic viewport and small screens)
+  const modalSizingStyle = {
+    // prevent vertical overflow regardless of mobile browser UI bars
+    maxHeight: "85dvh",
+    // keep a nice width while preventing horizontal overflow on tiny screens
+    width: "min(100%, calc(100vw - 2rem))",
+    maxWidth: "min(40rem, calc(100vw - 2rem))",
+  };
+
+  // Lock background scroll when modal is open
+  useEffect(() => {
+    if (isExpanded) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isExpanded]);
+
+  // Clear "just opened" flag shortly after mount so backdrop clicks work normally
+  useEffect(() => {
+    if (!isExpanded) return;
+    const t = setTimeout(() => {
+      justOpenedRef.current = false;
+    }, 80);
+    return () => clearTimeout(t);
+  }, [isExpanded]);
+
+  // Allow closing with Escape key when modal is open (compact mode)
+  useEffect(() => {
+    if (!isExpanded) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsExpanded(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isExpanded]);
 
   // Early return if no tip provided
   if (!tip) {
@@ -225,7 +284,7 @@ export default function PythonTipWidget({
             </span>
           </div>
           <button
-            onClick={() => setIsExpanded(true)}
+            onClick={openModal}
             className="text-gray-400 transition-colors hover:text-white"
           >
             <Maximize2 className="h-4 w-4" />
@@ -279,14 +338,27 @@ export default function PythonTipWidget({
           {isExpanded && (
             <Portal>
               <motion.div
-                className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+                role="dialog"
+                aria-modal="true"
+                className={`fixed inset-0 z-[2147483647] flex ${modalPosition === "top" ? "items-start" : "items-center"} justify-center overscroll-contain bg-black/60 p-4 backdrop-blur-sm`}
+                style={{
+                  paddingTop:
+                    modalPosition === "top"
+                      ? `${modalTopOffsetRem}rem`
+                      : undefined,
+                  paddingBottom: "1rem",
+                }}
+                onClick={() => {
+                  if (justOpenedRef.current) return;
+                  setIsExpanded(false);
+                }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                onClick={() => setIsExpanded(false)}
               >
                 <motion.div
-                  className="max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-lg bg-[#1e1e1e]"
+                  className={`relative min-h-[40vh] w-full ${modalPosition === "top" ? "" : "-translate-y-6"} overflow-auto rounded-3xl bg-[#1e1e1e] shadow-2xl ring-1 ring-white/20`}
+                  style={modalSizingStyle}
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.9, opacity: 0 }}
@@ -405,7 +477,7 @@ function FullTipContent({
   return (
     <>
       {/* VS Code Style Window Header */}
-      <div className="flex items-center justify-between border-b border-gray-700 bg-[#2d2d30] px-4 py-2">
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-700 bg-[#2d2d30]/95 px-4 py-2 backdrop-blur-sm">
         <div className="flex items-center space-x-3">
           {/* macOS Style Traffic Lights */}
           <div className="flex items-center space-x-2">
@@ -449,7 +521,7 @@ function FullTipContent({
       </div>
 
       {/* Content Area */}
-      <div className="max-h-[calc(90vh-120px)] overflow-y-auto p-6">
+      <div className="max-h-[calc(85dvh-120px)] overflow-y-auto p-6">
         {/* Header Info */}
         <div className="mb-6 flex items-start justify-between">
           <div className="flex-1">
@@ -534,7 +606,7 @@ function FullTipContent({
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
-                  <div className="overflow-hidden rounded-lg border border-gray-700">
+                  <div className="overflow-x-auto rounded-lg border border-gray-700">
                     <SyntaxHighlighter
                       language="python"
                       style={vscDarkPlus}
