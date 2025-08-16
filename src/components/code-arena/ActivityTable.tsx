@@ -154,8 +154,8 @@ const ActivityTable = memo(
           </div>
         </div>
 
-        {/* Desktop & Tablet Table */}
-        <div className="hidden md:block">
+        {/* Desktop Table (xl and above) */}
+        <div className="hidden xl:block">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gradient-to-r from-slate-50 to-slate-100">
@@ -286,6 +286,153 @@ const ActivityTable = memo(
 
                       {/* Action Column */}
                       <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={() => onLaunch(activity)}
+                          className={`inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-bold transition-all hover:scale-105 ${
+                            activity.userProgress?.completed
+                              ? "bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-lg hover:shadow-xl"
+                              : "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg hover:shadow-xl"
+                          }`}
+                        >
+                          {activity.userProgress?.completed ? (
+                            <Trophy className="h-4 w-4" />
+                          ) : activity.userProgress ? (
+                            <Play className="h-4 w-4" />
+                          ) : (
+                            <Rocket className="h-4 w-4" />
+                          )}
+                        </button>
+                      </td>
+                    </motion.tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Tablet Table (md to xl) */}
+        <div className="hidden md:block xl:hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gradient-to-r from-slate-50 to-slate-100">
+                <tr>
+                  <th className="w-1/2 px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Challenge
+                  </th>
+                  <th className="w-1/6 px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Type
+                  </th>
+                  <th className="w-1/4 px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Rewards
+                  </th>
+                  <th className="w-1/8 px-4 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 bg-white">
+                {currentActivities.map((activity, index) => {
+                  const difficultyConfig = getDifficultyConfig(
+                    activity.difficulty
+                  );
+                  const activityTypeConfig = getActivityTypeConfig(
+                    activity.activityType
+                  );
+
+                  return (
+                    <motion.tr
+                      key={activity.id}
+                      initial={enableAnimations ? { opacity: 0, y: 20 } : false}
+                      animate={enableAnimations ? { opacity: 1, y: 0 } : false}
+                      transition={{ delay: index * 0.05 }}
+                      className="transition-colors hover:bg-slate-50"
+                    >
+                      {/* Challenge Column with Difficulty and Time underneath */}
+                      <td className="px-6 py-4">
+                        <div className="group relative">
+                          <div className="min-w-0">
+                            <div className="flex items-center space-x-2">
+                              <p className="truncate text-sm font-bold text-slate-900">
+                                {highlight(activity.title)}
+                              </p>
+                              {activity.userProgress?.completed && (
+                                <CheckCircle className="h-4 w-4 flex-shrink-0 text-green-500" />
+                              )}
+                            </div>
+                            <div className="relative">
+                              <p className="mb-2 cursor-help truncate text-xs text-slate-500">
+                                {highlight(
+                                  activity.description.length > 40
+                                    ? `${activity.description.slice(0, 40)}...`
+                                    : activity.description
+                                )}
+                              </p>
+                              {/* Difficulty and Time under challenge name */}
+                              <div className="mt-1 flex items-center space-x-3">
+                                <span
+                                  className={`inline-flex items-center rounded-lg px-2 py-1 text-xs font-bold ${difficultyConfig.textColor} ${difficultyConfig.bgColor} border ${difficultyConfig.borderColor}`}
+                                >
+                                  {difficultyConfig.icon}{" "}
+                                  {difficultyConfig.label}
+                                </span>
+                                <div className="flex items-center space-x-1">
+                                  <Clock className="h-3 w-3 text-slate-500" />
+                                  <span className="text-xs font-medium text-slate-600">
+                                    {activity.estimatedMinutes}m
+                                  </span>
+                                </div>
+                              </div>
+                              {/* Tooltip */}
+                              {activity.description.length > 40 && (
+                                <div className="absolute bottom-full left-0 z-50 mb-2 hidden w-80 max-w-sm group-hover:block">
+                                  <div className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white shadow-xl">
+                                    <div className="mb-1 font-semibold">
+                                      {highlight(activity.title)}
+                                    </div>
+                                    <div className="leading-relaxed">
+                                      {highlight(activity.description)}
+                                    </div>
+                                    {/* Tooltip Arrow */}
+                                    <div className="absolute left-4 top-full h-0 w-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Type Column */}
+                      <td className="px-4 py-4">
+                        <span
+                          className={`inline-flex items-center space-x-1 rounded-lg px-3 py-1 text-xs font-bold ${activityTypeConfig.color} bg-slate-100`}
+                        >
+                          <span>{activityTypeConfig.icon}</span>
+                          <span>{activityTypeConfig.name}</span>
+                        </span>
+                      </td>
+
+                      {/* Rewards Column */}
+                      <td className="px-4 py-4">
+                        <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-1 rounded-lg bg-gradient-to-r from-yellow-100 to-orange-100 px-2 py-1">
+                            <Diamond className="h-3 w-3 text-yellow-600" />
+                            <span className="text-xs font-bold text-yellow-700">
+                              +{activity.diamondReward}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-1 rounded-lg bg-gradient-to-r from-purple-100 to-pink-100 px-2 py-1">
+                            <Star className="h-3 w-3 text-purple-600" />
+                            <span className="text-xs font-bold text-purple-700">
+                              +{activity.experienceReward}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Action Column */}
+                      <td className="px-4 py-4 text-center">
                         <button
                           onClick={() => onLaunch(activity)}
                           className={`inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-bold transition-all hover:scale-105 ${
