@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import jwt from "jsonwebtoken";
+import { createHash } from "crypto";
+
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 export async function GET(request: NextRequest) {
   try {
@@ -39,22 +43,75 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Process cards to generate thumbnail URLs if needed
-    const processedUserCards = userCards.map((userCard) => ({
-      ...userCard,
-      card: {
-        ...userCard.card,
-        // Generate thumbnail URL if not exists
-        thumbnailUrl:
-          userCard.card.thumbnailUrl ||
-          (userCard.card.imageUrl
-            ? userCard.card.imageUrl.replace(
-                "/uploads/",
-                "/uploads/thumbs/thumb_"
-              )
-            : null),
-      },
-    }));
+    // Process cards to generate thumbnail URLs if needed and normalize category
+    const normalizeCategory = (cat?: string | null) => {
+      if (!cat) return "anime-collection";
+      const c = (cat || "").toLowerCase();
+      switch (c) {
+        case "anime":
+          return "anime-collection";
+        case "star":
+          return "star-collection";
+        case "car":
+          return "car-collection";
+        default:
+          return cat as string;
+      }
+    };
+
+    const processedUserCards = userCards.map((userCard) => {
+      // Generate secure tokens for thumbnail and full images
+      const cardId = userCard.card.id;
+
+      const thumbnailToken = jwt.sign(
+        {
+          cardId,
+          type: "thumbnail",
+          timestamp: Date.now(),
+          hash: createHash("sha256")
+            .update(`${cardId}-thumbnail-${Date.now()}`)
+            .digest("hex")
+            .substring(0, 8),
+        },
+        JWT_SECRET,
+        { expiresIn: "1h" }
+      );
+
+      const fullToken = jwt.sign(
+        {
+          cardId,
+          type: "full",
+          timestamp: Date.now(),
+          hash: createHash("sha256")
+            .update(`${cardId}-full-${Date.now()}`)
+            .digest("hex")
+            .substring(0, 8),
+        },
+        JWT_SECRET,
+        { expiresIn: "1h" }
+      );
+
+      return {
+        ...userCard,
+        card: {
+          ...userCard.card,
+          // Ensure category is present as a normalized slug
+          category: normalizeCategory((userCard.card as any).category),
+          // Generate thumbnail URL if not exists
+          thumbnailUrl:
+            userCard.card.thumbnailUrl ||
+            (userCard.card.imageUrl
+              ? userCard.card.imageUrl.replace(
+                  "/uploads/",
+                  "/uploads/thumbs/thumb_"
+                )
+              : null),
+          // Provide secure tokenized URLs to avoid rate-limiting on grids
+          secureThumbnailUrl: `/api/secure-image?cardId=${cardId}&type=thumbnail&token=${thumbnailToken}`,
+          secureFullImageUrl: `/api/secure-image?cardId=${cardId}&type=full&token=${fullToken}`,
+        },
+      };
+    });
 
     // Calculate stats
     const totalCards = processedUserCards.length;

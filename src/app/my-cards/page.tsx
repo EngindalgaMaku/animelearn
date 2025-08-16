@@ -77,8 +77,11 @@ interface UserCard {
     imagePath: string;
     imageUrl?: string;
     thumbnailUrl?: string; // Add thumbnail URL for performance
+    secureThumbnailUrl?: string;
+    secureFullImageUrl?: string;
     rarity?: "common" | "rare" | "epic" | "legendary";
     series?: string;
+    category?: string;
     character?: string;
     estimatedValue?: number;
     story?: string; // AI-generated story
@@ -312,6 +315,50 @@ export default function MyCardsPage() {
     return category ? category.name : categorySlug;
   };
 
+  // Compute a consistent display title that matches the actual category
+  const getCharacterDisplayName = (character?: string | null) => {
+    if (!character) return "Unknown Fighter";
+    const c = character.trim();
+    if (
+      !c ||
+      c === "Unknown" ||
+      c === "Unknown Fighter" ||
+      c === "Anime Character"
+    ) {
+      return "Unknown Fighter";
+    }
+    return character;
+  };
+
+  const getDisplayTitle = (card: UserCard["card"]) => {
+    const categorySlug = (card as any).category as string | undefined | null;
+    const categoryName =
+      getCategoryDisplayName(categorySlug) || categorySlug || "Card";
+    const characterName = getCharacterDisplayName(card.character);
+    const existingName = card.name || "";
+
+    // If the existing name already reflects the resolved category name, keep it
+    if (
+      existingName &&
+      categoryName &&
+      existingName.toLowerCase().includes(String(categoryName).toLowerCase())
+    ) {
+      return existingName;
+    }
+
+    // If existing name uses default "Anime Collection" but category says otherwise, rebuild
+    if (
+      existingName &&
+      /anime collection/i.test(existingName) &&
+      String(categoryName).toLowerCase() !== "anime collection"
+    ) {
+      return `${categoryName} - ${characterName}`;
+    }
+
+    // Otherwise build a canonical title from current fields
+    return `${categoryName} - ${characterName}`;
+  };
+
   // Calculate diamond price using pricing rules
   const calculateDiamondPriceFromRules = (
     rarity: string | null,
@@ -389,7 +436,7 @@ export default function MyCardsPage() {
 
   // Get primary category for description
   const primaryCategory =
-    categories.find((cat) => cat.slug === "anime") || categories[0];
+    categories.find((cat) => cat.slug === "anime-collection") || categories[0];
 
   // Filter and sort cards
   const filteredAndSortedCards = cards
@@ -476,10 +523,10 @@ export default function MyCardsPage() {
             <button
               onClick={() => setShowInfoModal(true)}
               className="ml-4 flex transform items-center space-x-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-4 py-2 text-white shadow-lg transition-all hover:scale-105 hover:from-indigo-700 hover:to-blue-700"
-              title="İkon Rehberi"
+              title="Icon Guide"
             >
               <HelpCircle className="h-4 w-4" />
-              <span className="text-sm">İkon Rehberi</span>
+              <span className="text-sm">Icon Guide</span>
             </button>
           </div>
           <p className="mx-auto max-w-3xl text-xl text-gray-600">
@@ -691,7 +738,10 @@ export default function MyCardsPage() {
                       className={`${rarityStyles.imageContainer} aspect-[2/3]`}
                     >
                       <img
-                        src={`/api/secure-image?cardId=${userCard.card.id}&type=thumbnail`}
+                        src={
+                          (userCard.card as any).secureThumbnailUrl ||
+                          `/api/secure-image?cardId=${userCard.card.id}&type=thumbnail`
+                        }
                         alt={userCard.card.name || "Card"}
                         className="h-full w-full object-cover object-[center_top] transition-transform duration-300 group-hover:scale-105"
                         onError={(e) => {
@@ -718,12 +768,15 @@ export default function MyCardsPage() {
                     {/* Card Info */}
                     <div className="p-4">
                       <h3 className="mb-1 line-clamp-1 font-semibold text-gray-900">
-                        {userCard.card.name || "Unnamed Card"}
+                        {getDisplayTitle(userCard.card)}
                       </h3>
                       <p className="mb-2 text-sm text-gray-600">
                         {userCard.card.character || "Unknown"} •{" "}
-                        {getCategoryDisplayName(userCard.card.series) ||
-                          "Unknown Series"}
+                        {getCategoryDisplayName(
+                          (userCard.card as any).category
+                        ) ||
+                          (userCard.card as any).category ||
+                          "Unknown Category"}
                       </p>
                       <div className="flex items-center justify-between text-xs text-gray-500">
                         <span>Acquired</span>
@@ -746,7 +799,10 @@ export default function MyCardsPage() {
                 >
                   <div className="flex items-center space-x-4">
                     <img
-                      src={`/api/secure-image?cardId=${userCard.card.id}&type=thumbnail`}
+                      src={
+                        (userCard.card as any).secureThumbnailUrl ||
+                        `/api/secure-image?cardId=${userCard.card.id}&type=thumbnail`
+                      }
                       alt={userCard.card.name || "Card"}
                       className="h-20 w-16 rounded-lg object-contain"
                       onError={(e) => {
@@ -765,12 +821,15 @@ export default function MyCardsPage() {
                       <div className="flex items-start justify-between">
                         <div>
                           <h3 className="mb-1 font-semibold text-gray-900">
-                            {userCard.card.name || "Unnamed Card"}
+                            {getDisplayTitle(userCard.card)}
                           </h3>
                           <p className="mb-2 text-gray-600">
                             {userCard.card.character || "Unknown"} •{" "}
-                            {getCategoryDisplayName(userCard.card.series) ||
-                              "Unknown Series"}
+                            {getCategoryDisplayName(
+                              (userCard.card as any).category
+                            ) ||
+                              (userCard.card as any).category ||
+                              "Unknown Category"}
                           </p>
                           <div className="flex items-center space-x-4 text-sm text-gray-500">
                             <span
@@ -834,7 +893,7 @@ export default function MyCardsPage() {
           <div className="max-h-[90vh] w-full max-w-4xl overflow-auto rounded-2xl bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-gray-200 p-6">
               <h2 className="text-2xl font-bold text-gray-900">
-                {selectedCard.card.name || "Unnamed Card"}
+                {getDisplayTitle(selectedCard.card)}
               </h2>
               <button
                 onClick={closeCardModal}
@@ -850,7 +909,10 @@ export default function MyCardsPage() {
                 <div className="flex flex-col items-center justify-center">
                   <div className="group relative">
                     <img
-                      src={`/api/secure-image?cardId=${selectedCard.card.id}&type=full`}
+                      src={
+                        (selectedCard.card as any).secureFullImageUrl ||
+                        `/api/secure-image?cardId=${selectedCard.card.id}&type=full`
+                      }
                       alt={selectedCard.card.name || "Anime Card"}
                       className="max-h-96 max-w-full rounded-xl object-contain shadow-lg"
                       onError={(e) => {
@@ -868,7 +930,8 @@ export default function MyCardsPage() {
                     <button
                       onClick={() =>
                         openFullScreenImage(
-                          `/api/secure-image?cardId=${selectedCard.card.id}&type=full`
+                          (selectedCard.card as any).secureFullImageUrl ||
+                            `/api/secure-image?cardId=${selectedCard.card.id}&type=full`
                         )
                       }
                       className="absolute right-3 top-3 rounded-full bg-black/60 p-2 text-white opacity-0 transition-all hover:bg-black/80 group-hover:opacity-100"
@@ -900,21 +963,25 @@ export default function MyCardsPage() {
                   <div className="rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 p-2">
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div>
-                        <span className="font-medium text-blue-700">Seri:</span>
+                        <span className="font-medium text-blue-700">
+                          Category:
+                        </span>
                         <p className="truncate font-medium text-blue-900">
                           {(() => {
-                            const category = categories.find(
-                              (cat) => cat.slug === selectedCard.card.series
+                            const categoryItem = categories.find(
+                              (cat) =>
+                                cat.slug === (selectedCard.card as any).category
                             );
-                            return category
-                              ? category.name
-                              : selectedCard.card.series || "Bilinmiyor";
+                            return categoryItem
+                              ? categoryItem.name
+                              : (selectedCard.card as any).category ||
+                                  "Unknown";
                           })()}
                         </p>
                       </div>
                       <div>
                         <span className="font-medium text-blue-700">
-                          Karakter:
+                          Character:
                         </span>
                         <p className="truncate font-medium text-blue-900">
                           {(() => {
@@ -926,7 +993,7 @@ export default function MyCardsPage() {
                               character === "Anime Character" ||
                               character.trim() === ""
                             ) {
-                              return "Gizemli Karakter";
+                              return "Mystery Character";
                             }
                             return character;
                           })()}
@@ -1069,7 +1136,7 @@ export default function MyCardsPage() {
                                     color: elementData?.color || "#15803D",
                                   }}
                                 >
-                                  {elementData.priceModifier}x değer
+                                  {elementData.priceModifier}x price effect
                                 </span>
                               )}
                           </div>
@@ -1089,7 +1156,7 @@ export default function MyCardsPage() {
                   {(selectedCard.card as any).category && (
                     <div className="rounded-lg bg-gradient-to-r from-teal-50 to-cyan-50 p-2">
                       <span className="text-xs font-medium text-teal-700">
-                        Kategori:
+                        Category:
                       </span>
                       <div className="mt-1 flex items-center space-x-1">
                         <span className="text-xs">🏷️</span>
@@ -1133,7 +1200,7 @@ export default function MyCardsPage() {
                   {selectedCard.card.estimatedValue && (
                     <div className="rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 p-2">
                       <span className="text-xs font-medium text-purple-700">
-                        Değer:
+                        Value:
                       </span>
                       <p className="font-bold text-purple-900">
                         💎{" "}
@@ -1151,18 +1218,18 @@ export default function MyCardsPage() {
                   <div className="rounded-lg border border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 p-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-medium text-amber-700">
-                        Koleksiyonda:
+                        In Collection:
                       </span>
                       <span className="font-bold text-amber-900">
                         {new Date(selectedCard.purchaseDate).toLocaleDateString(
-                          "tr-TR"
+                          "en-US"
                         )}
                       </span>
                     </div>
                     <div className="mt-1 flex items-center space-x-1">
                       <div className="h-2 w-2 rounded-full bg-green-500"></div>
                       <span className="text-xs text-green-700">
-                        Doğrulanmış Koleksiyon
+                        Verified Collection
                       </span>
                     </div>
                   </div>
@@ -1181,7 +1248,7 @@ export default function MyCardsPage() {
                     >
                       <BookOpen className="mr-2 h-4 w-4" />
                       <Heart className="mr-1 h-3 w-3" />
-                      Hikayeyi Oku
+                      Read Story
                     </button>
                   )}
                 </div>
@@ -1250,7 +1317,7 @@ export default function MyCardsPage() {
                   <div className="mb-1 flex items-center space-x-2">
                     <BookOpen className="h-5 w-5 drop-shadow-lg" />
                     <h3 className="text-base font-bold drop-shadow-lg">
-                      Kart Hikayesi
+                      Card Story
                     </h3>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -1259,7 +1326,7 @@ export default function MyCardsPage() {
                     </span>
                     <div className="flex items-center space-x-1 text-xs opacity-90">
                       <Heart className="h-3 w-3" />
-                      <span>Koleksiyonunda</span>
+                      <span>In Collection</span>
                     </div>
                   </div>
                 </div>
@@ -1318,7 +1385,7 @@ export default function MyCardsPage() {
                             : "bg-gradient-to-r from-indigo-500 to-indigo-700 hover:from-indigo-600 hover:to-indigo-800"
                 }`}
               >
-                Hikayeyi Kapat
+                Close Story
               </button>
             </div>
           </div>
@@ -1349,10 +1416,10 @@ export default function MyCardsPage() {
                     </div>
                     <div>
                       <h2 className="text-3xl font-bold drop-shadow-lg">
-                        🎴 Koleksiyon Rehberi
+                        🎴 Collection Guide
                       </h2>
                       <p className="text-lg text-amber-100 opacity-90">
-                        Kartlarınızın gücünü ve değerini keşfedin!
+                        Discover the power and value of your cards!
                       </p>
                     </div>
                   </div>
@@ -1372,7 +1439,7 @@ export default function MyCardsPage() {
               <div className="mb-8 rounded-2xl border border-green-500/30 bg-gradient-to-r from-green-500/20 to-emerald-500/20 p-6">
                 <h3 className="mb-6 flex items-center space-x-3 text-2xl font-bold text-green-300">
                   <span className="text-3xl">🏆</span>
-                  <span>Koleksiyon İstatistikleri</span>
+                  <span>Collection Statistics</span>
                   <span className="rounded-full bg-green-500/20 px-2 py-1 text-lg">
                     COLLECTION
                   </span>
@@ -1385,13 +1452,13 @@ export default function MyCardsPage() {
                     <div className="relative text-center">
                       <div className="mb-2 flex items-center justify-center space-x-2">
                         <Package className="h-6 w-6 text-blue-400" />
-                        <h4 className="font-bold text-blue-300">Toplam Kart</h4>
+                        <h4 className="font-bold text-blue-300">Total Cards</h4>
                       </div>
                       <div className="text-3xl font-bold text-blue-200">
                         {stats?.totalCards || 0}
                       </div>
                       <p className="mt-1 text-xs text-blue-300">
-                        Koleksiyonunuzda
+                        In your collection
                       </p>
                     </div>
                   </div>
@@ -1402,13 +1469,13 @@ export default function MyCardsPage() {
                     <div className="relative text-center">
                       <div className="mb-2 flex items-center justify-center space-x-2">
                         <Award className="h-6 w-6 text-purple-400" />
-                        <h4 className="font-bold text-purple-300">Benzersiz</h4>
+                        <h4 className="font-bold text-purple-300">Unique</h4>
                       </div>
                       <div className="text-3xl font-bold text-purple-200">
                         {stats?.uniqueCards || 0}
                       </div>
                       <p className="mt-1 text-xs text-purple-300">
-                        Farklı kart türü
+                        Different card types
                       </p>
                     </div>
                   </div>
@@ -1420,14 +1487,14 @@ export default function MyCardsPage() {
                       <div className="mb-2 flex items-center justify-center space-x-2">
                         <Diamond className="h-6 w-6 text-yellow-400" />
                         <h4 className="font-bold text-yellow-300">
-                          Toplam Değer
+                          Total Value
                         </h4>
                       </div>
                       <div className="text-3xl font-bold text-yellow-200">
                         💎{stats?.totalValue || 0}
                       </div>
                       <p className="mt-1 text-xs text-yellow-300">
-                        Diamond değeri
+                        Diamond value
                       </p>
                     </div>
                   </div>
@@ -1438,7 +1505,7 @@ export default function MyCardsPage() {
                     <div className="relative text-center">
                       <div className="mb-2 flex items-center justify-center space-x-2">
                         <TrendingUp className="h-6 w-6 text-green-400" />
-                        <h4 className="font-bold text-green-300">Çeşitlilik</h4>
+                        <h4 className="font-bold text-green-300">Diversity</h4>
                       </div>
                       <div className="text-3xl font-bold text-green-200">
                         {Math.round(
@@ -1447,7 +1514,7 @@ export default function MyCardsPage() {
                         %
                       </div>
                       <p className="mt-1 text-xs text-green-300">
-                        Unique oranı
+                        Unique ratio
                       </p>
                     </div>
                   </div>
@@ -1457,7 +1524,7 @@ export default function MyCardsPage() {
                 <div className="mt-6 rounded-xl border border-indigo-500/30 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 p-4">
                   <h4 className="mb-3 flex items-center space-x-2 font-bold text-indigo-300">
                     <span>🏅</span>
-                    <span>Koleksiyon Başarıları</span>
+                    <span>Collection Achievements</span>
                   </h4>
                   <div className="grid gap-4 text-sm md:grid-cols-3">
                     <div className="rounded bg-indigo-800/30 p-3">
@@ -1466,10 +1533,10 @@ export default function MyCardsPage() {
                       </p>
                       <div className="mt-1 text-xs text-indigo-100">
                         {(stats?.totalCards || 0) < 5
-                          ? "🥉 Yeni Koleksiyoncu"
+                          ? "🥉 New Collector"
                           : (stats?.totalCards || 0) < 20
-                            ? "🥈 Deneyimli Koleksiyoncu"
-                            : "🥇 Usta Koleksiyoncu"}
+                            ? "🥈 Experienced Collector"
+                            : "🥇 Master Collector"}
                       </div>
                     </div>
                     <div className="rounded bg-purple-800/30 p-3">
@@ -1478,8 +1545,8 @@ export default function MyCardsPage() {
                       </p>
                       <div className="mt-1 text-xs text-purple-100">
                         {stats?.rarityBreakdown?.legendary
-                          ? `${Object.keys(stats.rarityBreakdown).length} farklı rarity`
-                          : "Legendary arıyorsun!"}
+                          ? `${Object.keys(stats.rarityBreakdown).length} different rarities`
+                          : "Hunting for Legendary!"}
                       </div>
                     </div>
                     <div className="rounded bg-pink-800/30 p-3">
@@ -1503,7 +1570,7 @@ export default function MyCardsPage() {
                 <div className="rounded-2xl border border-yellow-500/30 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 p-6">
                   <h3 className="mb-6 flex items-center space-x-3 text-2xl font-bold text-yellow-300">
                     <span className="text-3xl">💎</span>
-                    <span>Nadir Seviyeler</span>
+                    <span>Rarity Levels</span>
                     <span className="rounded-full bg-yellow-500/20 px-2 py-1 text-lg">
                       OWNED
                     </span>
@@ -1535,7 +1602,7 @@ export default function MyCardsPage() {
                             <div
                               className={`absolute right-2 top-2 rounded-full px-2 py-1 text-xs font-bold ${isOwned ? "bg-green-500/80 text-white" : "bg-gray-500/80 text-white"}`}
                             >
-                              {isOwned ? `${ownedCount} Adet` : "Henüz Yok"}
+                              {isOwned ? `${ownedCount} Owned` : "Not Yet"}
                             </div>
 
                             <div className="flex items-center justify-between">
@@ -1562,7 +1629,7 @@ export default function MyCardsPage() {
                                     }}
                                   >
                                     {rarity.description ||
-                                      "Efsanevi güç seviyesi"}
+                                      "Legendary power level"}
                                   </p>
                                   <div className="mt-1 flex items-center space-x-2">
                                     <span className="rounded bg-black/30 px-2 py-1 text-xs">
@@ -1570,7 +1637,7 @@ export default function MyCardsPage() {
                                     </span>
                                     {isOwned && (
                                       <span className="rounded bg-green-500/30 px-2 py-1 text-xs text-green-200">
-                                        ✅ Koleksiyonda
+                                        ✅ In Collection
                                       </span>
                                     )}
                                   </div>
@@ -1580,7 +1647,7 @@ export default function MyCardsPage() {
                                 {isOwned ? (
                                   <div>
                                     <p className="text-lg font-bold text-green-300">
-                                      🏆 Sahibi
+                                      🏆 Owned
                                     </p>
                                     <p className="text-xs text-green-400">
                                       Drop: %{rarity.dropRate}
@@ -1589,7 +1656,7 @@ export default function MyCardsPage() {
                                 ) : (
                                   <div>
                                     <p className="text-lg font-bold text-gray-400">
-                                      🔍 Arıyor
+                                      🔍 Searching
                                     </p>
                                     <p className="text-xs text-gray-500">
                                       Drop: %{rarity.dropRate}
@@ -1604,7 +1671,7 @@ export default function MyCardsPage() {
                     ) : (
                       <div className="py-12 text-center text-gray-400">
                         <div className="mb-4 animate-spin text-6xl">💎</div>
-                        <p className="text-lg">Nadir veriler yükleniyor...</p>
+                        <p className="text-lg">Loading rarity data...</p>
                       </div>
                     )}
                   </div>
@@ -1614,7 +1681,7 @@ export default function MyCardsPage() {
                 <div className="rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-purple-500/20 p-6">
                   <h3 className="mb-6 flex items-center space-x-3 text-2xl font-bold text-blue-300">
                     <span className="text-3xl">🌟</span>
-                    <span>Element Güçleri</span>
+                    <span>Element Powers</span>
                     <span className="rounded-full bg-blue-500/20 px-2 py-1 text-lg">
                       POWER
                     </span>
@@ -1665,25 +1732,25 @@ export default function MyCardsPage() {
                               >
                                 {element.effectDescription ||
                                   element.description ||
-                                  "Büyülü element gücü"}
+                                  "Magical element power"}
                               </p>
                               {element.priceModifier !== 1 && (
                                 <div className="mt-3 rounded-lg bg-black/20 p-2">
                                   <p className="text-xs font-bold text-amber-300">
-                                    💰 Değer Çarpanı:
+                                    💰 Value Multiplier:
                                   </p>
                                   <p className="text-xs text-amber-200">
-                                    {element.priceModifier}x fiyat etkisi
+                                    {element.priceModifier}x price effect
                                   </p>
                                 </div>
                               )}
                               <div className="mt-2 flex items-center space-x-2">
                                 <span className="rounded bg-black/30 px-2 py-1 text-xs">
-                                  Element Bonusu: +{Math.floor(5 + index * 3)}%
+                                  Element Bonus: +{Math.floor(5 + index * 3)}%
                                 </span>
                                 <span className="rounded bg-black/30 px-2 py-1 text-xs">
-                                  Koleksiyon Değeri: +
-                                  {Math.floor(2 + index * 2)}%
+                                  Collection Value: +{Math.floor(2 + index * 2)}
+                                  %
                                 </span>
                               </div>
                             </div>
@@ -1693,9 +1760,7 @@ export default function MyCardsPage() {
                     ) : (
                       <div className="py-12 text-center text-gray-400">
                         <div className="mb-4 animate-bounce text-6xl">🌟</div>
-                        <p className="text-lg">
-                          Element büyüleri yükleniyor...
-                        </p>
+                        <p className="text-lg">Loading element data...</p>
                       </div>
                     )}
                   </div>
@@ -1706,40 +1771,40 @@ export default function MyCardsPage() {
               <div className="mt-8 rounded-2xl border border-teal-500/30 bg-gradient-to-r from-teal-500/20 to-cyan-500/20 p-6">
                 <h4 className="mb-4 flex items-center space-x-3 text-xl font-bold text-teal-300">
                   <span className="text-2xl">📋</span>
-                  <span>Koleksiyon Yönetimi</span>
+                  <span>Collection Management</span>
                 </h4>
                 <div className="grid gap-4 text-sm md:grid-cols-3">
                   <div className="rounded-lg bg-teal-800/30 p-4">
                     <h5 className="mb-2 font-bold text-teal-200">
-                      🔍 Keşif Stratejisi
+                      🔍 Exploration Strategy
                     </h5>
                     <ul className="space-y-1 text-xs text-teal-100">
-                      <li>• Eksik rarity seviyelerini belirle</li>
-                      <li>• Element çeşitliliğini artır</li>
-                      <li>• Düşük drop rate'li kartları hedefle</li>
-                      <li>• Özel etkinlikleri takip et</li>
+                      <li>• Identify missing rarity levels</li>
+                      <li>• Increase element diversity</li>
+                      <li>• Target low drop-rate cards</li>
+                      <li>• Follow special events</li>
                     </ul>
                   </div>
                   <div className="rounded-lg bg-blue-800/30 p-4">
                     <h5 className="mb-2 font-bold text-blue-200">
-                      💎 Değer Optimizasyonu
+                      💎 Value Optimization
                     </h5>
                     <ul className="space-y-1 text-xs text-blue-100">
-                      <li>• Yüksek value/card oranını hedefle</li>
-                      <li>• Legendary kartları prioritize et</li>
-                      <li>• Element bonuslarını değerlendir</li>
-                      <li>• Market trendlerini analiz et</li>
+                      <li>• Aim for a high value/card ratio</li>
+                      <li>• Prioritize Legendary cards</li>
+                      <li>• Leverage element bonuses</li>
+                      <li>• Analyze market trends</li>
                     </ul>
                   </div>
                   <div className="rounded-lg bg-purple-800/30 p-4">
                     <h5 className="mb-2 font-bold text-purple-200">
-                      🏆 Başarı Takibi
+                      🏆 Achievement Tracking
                     </h5>
                     <ul className="space-y-1 text-xs text-purple-100">
-                      <li>• Koleksiyon hedeflerini belirle</li>
-                      <li>• Progress tracking yap</li>
-                      <li>• Milestone rewards'ları kovala</li>
-                      <li>• Community ile kartlarını paylaş</li>
+                      <li>• Set collection goals</li>
+                      <li>• Track progress</li>
+                      <li>• Pursue milestone rewards</li>
+                      <li>• Share your cards with the community</li>
                     </ul>
                   </div>
                 </div>
@@ -1758,7 +1823,7 @@ export default function MyCardsPage() {
                       {stats?.totalCards || 0} Cards
                     </p>
                     <p className="text-xs text-purple-300">
-                      Koleksiyonunuzu büyütmeye devam edin!
+                      Keep growing your collection!
                     </p>
                   </div>
                 </div>
@@ -1766,7 +1831,7 @@ export default function MyCardsPage() {
                   onClick={() => setShowInfoModal(false)}
                   className="rounded-xl bg-gradient-to-r from-amber-600 to-purple-600 px-6 py-3 font-bold text-white transition-all hover:scale-110 hover:shadow-lg hover:shadow-amber-500/50"
                 >
-                  Koleksiyona Dön 🎴
+                  Back to Collection 🎴
                 </button>
               </div>
             </div>

@@ -16,14 +16,15 @@ interface AuthUser {
 async function getUserFromSession(): Promise<AuthUser | null> {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.id) {
       return null;
     }
 
     return {
       userId: session.user.id,
-      username: session.user.username || session.user.email?.split('@')[0] || 'User'
+      username:
+        session.user.username || session.user.email?.split("@")[0] || "User",
     };
   } catch (error) {
     console.error("Session error:", error);
@@ -63,10 +64,11 @@ export async function GET(request: NextRequest) {
       const categoryMappings = {
         "anime-collection": ["anime-collection", "anime"],
         "star-collection": ["star-collection", "star"],
-        "car-collection": ["car-collection", "car"]
+        "car-collection": ["car-collection", "car"],
       };
-      
-      const mappedCategories = categoryMappings[category as keyof typeof categoryMappings];
+
+      const mappedCategories =
+        categoryMappings[category as keyof typeof categoryMappings];
       if (mappedCategories) {
         where.category = { in: mappedCategories };
       } else {
@@ -105,6 +107,7 @@ export async function GET(request: NextRequest) {
         name: true,
         cardTitle: true,
         series: true,
+        category: true,
         character: true,
         rarity: true,
         element: true,
@@ -140,23 +143,48 @@ export async function GET(request: NextRequest) {
     const totalCards = await prisma.card.count({ where });
 
     // Güvenli resim token'ları oluştur
-    const generateSecureImageToken = (cardId: string, type: 'preview' | 'thumbnail' = 'preview') => {
+    const generateSecureImageToken = (
+      cardId: string,
+      type: "preview" | "thumbnail" = "preview"
+    ) => {
       const tokenData = {
         cardId,
         type,
         timestamp: Date.now(),
-        hash: createHash('sha256').update(`${cardId}-${type}-${Date.now()}`).digest('hex').substring(0, 8)
+        hash: createHash("sha256")
+          .update(`${cardId}-${type}-${Date.now()}`)
+          .digest("hex")
+          .substring(0, 8),
       };
       return jwt.sign(tokenData, JWT_SECRET, { expiresIn: "1h" });
     };
 
+    // Category normalization to ensure consistent slugs in responses
+    const normalizeCategory = (cat?: string | null) => {
+      if (!cat) return "anime-collection";
+      const c = cat.toLowerCase();
+      switch (c) {
+        case "anime":
+          return "anime-collection";
+        case "star":
+          return "star-collection";
+        case "car":
+          return "car-collection";
+        default:
+          return cat;
+      }
+    };
+
     // Kart verilerini hazırla - GÜVENLİ URL'lerle
     const cardsWithOwnership = cards.map((card) => {
-      const previewToken = generateSecureImageToken(card.id, 'preview');
-      const thumbnailToken = generateSecureImageToken(card.id, 'thumbnail');
-      
+      const previewToken = generateSecureImageToken(card.id, "preview");
+      const thumbnailToken = generateSecureImageToken(card.id, "thumbnail");
+      const normalizedCategory = normalizeCategory((card as any).category);
+
       return {
         ...card,
+        // Ensure category is a consistent slug for frontend display and logic
+        category: normalizedCategory,
         // GÜVENLİ TOKEN-BASED URL'ler
         secureImageUrl: `/api/secure-image?cardId=${card.id}&type=preview&token=${previewToken}`,
         secureThumbnailUrl: `/api/secure-image?cardId=${card.id}&type=thumbnail&token=${thumbnailToken}`,
@@ -165,7 +193,9 @@ export async function GET(request: NextRequest) {
         thumbnailUrl: undefined,
         isOwned: false, // Auth olmayan kullanıcılar için
         ownersCount: card.currentOwners,
-        isLimited: card.maxOwners ? card.currentOwners >= card.maxOwners : false,
+        isLimited: card.maxOwners
+          ? card.currentOwners >= card.maxOwners
+          : false,
         userCards: undefined, // Güvenlik için kaldır
       };
     });
@@ -185,18 +215,26 @@ export async function GET(request: NextRequest) {
 
       cardsWithOwnership.forEach((card) => {
         card.isOwned = ownedCardIds.has(card.id);
-        
+
         // Sahip olunan kartlar için full resolution token'ı da ekle
         if (card.isOwned) {
-          const fullToken = jwt.sign({
-            cardId: card.id,
-            type: 'full',
-            userId: authUser.userId,
-            timestamp: Date.now(),
-            hash: createHash('sha256').update(`${card.id}-full-${authUser.userId}-${Date.now()}`).digest('hex').substring(0, 8)
-          }, JWT_SECRET, { expiresIn: "1h" });
-          
-          (card as any).secureFullImageUrl = `/api/secure-image?cardId=${card.id}&type=full&token=${fullToken}`;
+          const fullToken = jwt.sign(
+            {
+              cardId: card.id,
+              type: "full",
+              userId: authUser.userId,
+              timestamp: Date.now(),
+              hash: createHash("sha256")
+                .update(`${card.id}-full-${authUser.userId}-${Date.now()}`)
+                .digest("hex")
+                .substring(0, 8),
+            },
+            JWT_SECRET,
+            { expiresIn: "1h" }
+          );
+
+          (card as any).secureFullImageUrl =
+            `/api/secure-image?cardId=${card.id}&type=full&token=${fullToken}`;
         }
       });
     }

@@ -48,6 +48,7 @@ interface Card {
   name: string;
   cardTitle: string;
   series: string;
+  category: string;
   character: string;
   rarity: string;
   element: string;
@@ -736,7 +737,7 @@ function ShopPageContent() {
                 key={card.id}
                 card={card}
                 viewMode={viewMode}
-                onCardClick={setSelectedCard}
+                onCardClick={(c) => setSelectedCard(c)}
                 onPurchase={purchaseCard}
                 purchasing={purchasing === card.id}
                 rarities={rarities}
@@ -1011,14 +1012,14 @@ function ShopPageContent() {
                       </h3>
 
                       <div className="grid gap-2 text-xs sm:gap-3 sm:text-sm">
-                        {selectedCard.series && (
+                        {selectedCard.category && (
                           <div className="flex items-center justify-between">
                             <span className="font-medium text-gray-600">
                               Category
                             </span>
                             <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
-                              {getCategoryDisplayName(selectedCard.series) ||
-                                selectedCard.series}
+                              {getCategoryDisplayName(selectedCard.category) ||
+                                selectedCard.category}
                             </span>
                           </div>
                         )}

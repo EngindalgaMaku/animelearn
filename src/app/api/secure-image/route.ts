@@ -12,7 +12,7 @@ const IMAGE_CACHE = new Map<
 >();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const RATE_LIMIT = new Map<string, { count: number; resetTime: number }>();
-const MAX_REQUESTS = 100; // per minute
+const BASE_MAX_REQUESTS = 600; // per minute default (higher for thumbnails)
 
 interface AuthUser {
   userId: string;
@@ -32,7 +32,10 @@ function getUserFromToken(request: NextRequest): AuthUser | null {
 }
 
 // Rate limiting kontrolü
-function checkRateLimit(ip: string): boolean {
+function checkRateLimit(
+  ip: string,
+  limit: number = BASE_MAX_REQUESTS
+): boolean {
   const now = Date.now();
   const userLimit = RATE_LIMIT.get(ip);
 
@@ -41,7 +44,7 @@ function checkRateLimit(ip: string): boolean {
     return true;
   }
 
-  if (userLimit.count >= MAX_REQUESTS) {
+  if (userLimit.count >= limit) {
     return false;
   }
 
@@ -66,24 +69,30 @@ export async function GET(request: NextRequest) {
       request.headers.get("x-real-ip") ||
       "unknown";
 
-    // Rate limiting kontrolü
-    if (!checkRateLimit(clientIp)) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-    }
-
     const { searchParams } = new URL(request.url);
     const cardId = searchParams.get("cardId");
-    const type = searchParams.get("type") || "preview"; // preview, thumbnail, full
+    const type = (searchParams.get("type") || "preview").toLowerCase(); // preview, thumbnail, full
     const token = searchParams.get("token");
 
     if (!cardId) {
       return NextResponse.json({ error: "Card ID required" }, { status: 400 });
     }
 
-    // Cache anahtarı oluştur
-    const cacheKey = `${cardId}-${type}-${clientIp}`;
+    // Validate token if provided (tokened requests can bypass rate limit)
+    let hasValidToken = false;
+    if (token) {
+      try {
+        const decoded: any = jwt.verify(token, JWT_SECRET);
+        hasValidToken = decoded?.cardId === cardId && decoded?.type === type;
+      } catch {
+        hasValidToken = false;
+      }
+    }
 
-    // Cache kontrolü
+    // Cache key (do not include client IP so we can serve cached responses broadly)
+    const cacheKey = `${cardId}-${type}`;
+
+    // Cache kontrolü (serve without touching rate limit)
     cleanExpiredCache();
     const cached = IMAGE_CACHE.get(cacheKey);
     if (cached) {
@@ -97,6 +106,19 @@ export async function GET(request: NextRequest) {
       });
 
       return new NextResponse(cached.buffer as any, { headers });
+    }
+
+    // Rate limiting (skip if token is valid)
+    if (!hasValidToken) {
+      // Allow generous limit (e.g., grids) especially for thumbnails
+      const limit =
+        type === "thumbnail" ? BASE_MAX_REQUESTS : BASE_MAX_REQUESTS;
+      if (!checkRateLimit(clientIp, limit)) {
+        return NextResponse.json(
+          { error: "Too many requests" },
+          { status: 429 }
+        );
+      }
     }
 
     // Veritabanından kart bilgilerini al
