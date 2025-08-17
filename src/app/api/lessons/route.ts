@@ -43,6 +43,162 @@ function slugify(title: string): string {
     .trim();
 }
 
+/**
+ * Seed a minimal set of "lesson" activities if DB is empty.
+ * Returns number of records created.
+ */
+async function seedDefaultLessons() {
+  const now = new Date();
+  const samples = [
+    {
+      title: "Python Basics & Your First Program",
+      description:
+        "Start your Python journey with hello world and fundamentals",
+      category: "Python Fundamentals",
+      activityType: "lesson" as const,
+      isActive: true,
+      difficulty: 1,
+      diamondReward: 25,
+      experienceReward: 50,
+      estimatedMinutes: 12,
+      sortOrder: 1,
+      settings: JSON.stringify({
+        slug: "python-basics-first-program",
+        hasCodeExercise: true,
+      }),
+      content: JSON.stringify({
+        introduction: "Welcome to Python programming!",
+        syntax: "",
+        examples: "",
+      }),
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      title: "Variables & Data Types",
+      description: "Store and work with different kinds of data in Python",
+      category: "Python Fundamentals",
+      activityType: "lesson" as const,
+      isActive: true,
+      difficulty: 1,
+      diamondReward: 25,
+      experienceReward: 50,
+      estimatedMinutes: 15,
+      sortOrder: 2,
+      settings: JSON.stringify({
+        slug: "variables-data-types",
+        hasCodeExercise: true,
+      }),
+      content: JSON.stringify({
+        introduction: "Understanding variables and core data types.",
+        syntax: "",
+        examples: "",
+      }),
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      title: "If Statements & Decisions",
+      description: "Make your code react to conditions",
+      category: "Python Fundamentals",
+      activityType: "lesson" as const,
+      isActive: true,
+      difficulty: 1,
+      diamondReward: 25,
+      experienceReward: 50,
+      estimatedMinutes: 15,
+      sortOrder: 3,
+      settings: JSON.stringify({
+        slug: "if-statements-decisions",
+        hasCodeExercise: true,
+      }),
+      content: JSON.stringify({
+        introduction: "Conditional logic with if/elif/else.",
+        syntax: "",
+        examples: "",
+      }),
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      title: "Loops: Repeating Actions",
+      description: "Automate repetition with for/while loops",
+      category: "Python Fundamentals",
+      activityType: "lesson" as const,
+      isActive: true,
+      difficulty: 1,
+      diamondReward: 25,
+      experienceReward: 50,
+      estimatedMinutes: 15,
+      sortOrder: 4,
+      settings: JSON.stringify({
+        slug: "loops-repetition",
+        hasCodeExercise: true,
+      }),
+      content: JSON.stringify({
+        introduction: "Use loops to iterate efficiently.",
+        syntax: "",
+        examples: "",
+      }),
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      title: "Functions: Reusable Code",
+      description: "Write functions to organize your logic",
+      category: "Python Fundamentals",
+      activityType: "lesson" as const,
+      isActive: true,
+      difficulty: 2,
+      diamondReward: 30,
+      experienceReward: 60,
+      estimatedMinutes: 18,
+      sortOrder: 5,
+      settings: JSON.stringify({
+        slug: "functions-basics",
+        hasCodeExercise: true,
+      }),
+      content: JSON.stringify({
+        introduction: "Build reusable blocks of code.",
+        syntax: "",
+        examples: "",
+      }),
+      createdAt: now,
+      updatedAt: now,
+    },
+    {
+      title: "Lists & Collections",
+      description: "Manage multiple values with lists",
+      category: "Data Structures",
+      activityType: "lesson" as const,
+      isActive: true,
+      difficulty: 2,
+      diamondReward: 30,
+      experienceReward: 60,
+      estimatedMinutes: 18,
+      sortOrder: 6,
+      settings: JSON.stringify({
+        slug: "lists-collections",
+        hasCodeExercise: true,
+      }),
+      content: JSON.stringify({
+        introduction: "Lists are versatile containers.",
+        syntax: "",
+        examples: "",
+      }),
+      createdAt: now,
+      updatedAt: now,
+    },
+  ];
+
+  await prisma.learningActivity.createMany({
+    data: samples,
+    skipDuplicates: true,
+  });
+
+  return samples.length;
+}
+
 export async function GET(req: NextRequest) {
   try {
     const authUser = getUserFromToken(req);
@@ -57,6 +213,14 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "10", 10);
     const skip = (page - 1) * limit;
+
+    // Ensure minimal "learn" lessons exist in DB
+    const existingLessonCount = await prisma.learningActivity.count({
+      where: { activityType: "lesson" },
+    });
+    if (existingLessonCount === 0) {
+      await seedDefaultLessons();
+    }
 
     // Build filter conditions for LearningActivity "lesson"
     const where: any = {

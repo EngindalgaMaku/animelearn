@@ -469,13 +469,7 @@ export default function LessonPage() {
   ) => {
     if (isCorrect && lesson) {
       try {
-        // Award XP and diamonds for code completion
-        const codeReward = {
-          diamonds: Math.floor(lesson.diamondReward * 0.6), // 60% of lesson diamond reward
-          experience: Math.floor(lesson.experienceReward * 0.6), // 60% of lesson XP reward
-        };
-
-        // Call API to award code completion rewards
+        // Call API to award code completion rewards (server computes rewards)
         const response = await fetch(
           `/api/lessons/${lesson.slug}/code-complete`,
           {
@@ -486,7 +480,6 @@ export default function LessonPage() {
             body: JSON.stringify({
               code,
               score,
-              rewards: codeReward,
             }),
           }
         );
@@ -724,10 +717,14 @@ export default function LessonPage() {
                 <span className="font-bold">{currentStreak} days</span>
               </div>
 
-              {/* Diamonds */}
+              {/* Standard Rewards: 25 Diamonds & 25 XP (UI only) */}
               <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
                 <Diamond className="h-5 w-5 text-blue-300" />
-                <span className="font-bold">{lesson.diamondReward}</span>
+                <span className="font-bold">25</span>
+              </div>
+              <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
+                <Star className="h-5 w-5 text-yellow-300" />
+                <span className="font-bold">25 XP</span>
               </div>
 
               {/* Sound Toggle */}
@@ -747,6 +744,22 @@ export default function LessonPage() {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Standard Rewards Notice */}
+        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+            <span className="font-semibold">Standard Rewards:</span>
+            <span className="inline-flex items-center gap-1 font-bold">
+              <Star className="h-4 w-4 text-purple-500" />
+              25 XP
+            </span>
+            <span>+</span>
+            <span className="inline-flex items-center gap-1 font-bold">
+              <Diamond className="h-4 w-4 text-yellow-500" />
+              25 Diamonds
+            </span>
+            <span className="text-sm text-amber-700">per topic</span>
+          </div>
+        </div>
         {/* Character & Progress Section */}
         <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-4">
           {/* Anime Character */}
@@ -1023,19 +1036,6 @@ export default function LessonPage() {
           </div>
         )}
 
-        {/* Complete Lesson Button */}
-        {lessonStarted && !lesson.isCompleted && (
-          <div className="mt-8 text-center">
-            <button
-              onClick={() => setIsCompletionModalOpen(true)}
-              className="mx-auto flex items-center gap-2 rounded-lg bg-purple-600 px-8 py-3 font-medium text-white hover:bg-purple-700"
-            >
-              <Award className="h-5 w-5" />
-              Complete Lesson
-            </button>
-          </div>
-        )}
-
         {/* Navigation */}
         <div className="mt-12 flex justify-between">
           <button
@@ -1053,6 +1053,19 @@ export default function LessonPage() {
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>
+
+        {/* Bottom: Complete Lesson & Reward */}
+        {lessonStarted && !lesson.isCompleted && (
+          <div className="mt-8 text-center">
+            <button
+              onClick={() => setIsCompletionModalOpen(true)}
+              className="mx-auto mt-6 flex items-center gap-2 rounded-lg bg-green-600 px-8 py-3 font-medium text-white hover:bg-green-700"
+            >
+              <Trophy className="h-5 w-5" />
+              Dersi Bitir – Ödül Al
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Completion Modal */}

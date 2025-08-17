@@ -50,6 +50,13 @@ async function findLessonBySlug(slug: string) {
   return prisma.learningActivity.findUnique({ where: { id: found.id } });
 }
 
+// Reward partition helper: deterministically split base into 60% (code) + remainder (quiz)
+function partitionReward(base: number, ratio = 0.6) {
+  const code = Math.floor((base || 0) * ratio);
+  const quiz = (base || 0) - code;
+  return { code, quiz };
+}
+
 // POST - Code exercise completion for a lesson (LearningActivity)
 export async function POST(
   req: NextRequest,
@@ -63,14 +70,13 @@ export async function POST(
 
     const { slug } = await params;
     const body = await req.json();
-    const { code, score, rewards } = body as {
+    const { code, score } = body as {
       code: string;
       score: number;
-      rewards: { diamonds: number; experience: number };
     };
 
     // Validate required fields
-    if (!code || typeof score !== "number" || !rewards) {
+    if (!code || typeof score !== "number") {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -93,18 +99,35 @@ export async function POST(
       },
     });
 
-    // Decide reward policy: only if previously not "correct" and now score >= 90
     const previousScore = existingAttempt?.score ?? 0;
-    const wasCodeCorrect = previousScore >= 90;
-    const isCodeCorrectNow = score >= 90;
-    const shouldAwardRewards = !wasCodeCorrect && isCodeCorrectNow;
 
-    // Always upsert attempt with code + best score
-    const answers = JSON.stringify({
+    // Parse existing answers to track flags
+    let answersObj: any = {};
+    try {
+      if (existingAttempt?.answers)
+        answersObj = JSON.parse(existingAttempt.answers as any);
+    } catch {
+      answersObj = {};
+    }
+    const flags = answersObj?.flags || {};
+    const wasCodeRewarded = !!flags.codeRewarded;
+
+    const isCodeCorrectNow = score >= 90;
+    const shouldAwardRewards = isCodeCorrectNow && !wasCodeRewarded;
+
+    // Prepare updated answers payload
+    const updatedFlags = {
+      ...flags,
+      codeRewarded: flags.codeRewarded || shouldAwardRewards,
+    };
+    const newAnswers = {
+      ...answersObj,
       lastCode: code,
       updatedAt: new Date().toISOString(),
-    });
+      flags: updatedFlags,
+    };
 
+    // Upsert attempt with best score and updated answers
     await prisma.activityAttempt.upsert({
       where: {
         userId_activityId: {
@@ -113,28 +136,37 @@ export async function POST(
         },
       },
       update: {
-        // Keep max score
         score: Math.max(score, previousScore),
-        answers,
+        answers: JSON.stringify(newAnswers),
       },
       create: {
         userId: authUser.userId,
         activityId: activity.id,
         score,
-        answers,
+        answers: JSON.stringify(newAnswers),
         startedAt: new Date(),
       },
     });
 
     if (shouldAwardRewards) {
       try {
+        // Compute server-side rewards (ignore client-provided values)
+        const { code: codeDiamonds } = partitionReward(
+          activity.diamondReward ?? 0,
+          0.6
+        );
+        const { code: codeXP } = partitionReward(
+          activity.experienceReward ?? 0,
+          0.6
+        );
+
         // Update user balances
         await prisma.user.update({
           where: { id: authUser.userId },
           data: {
-            currentDiamonds: { increment: rewards.diamonds },
-            totalDiamonds: { increment: rewards.diamonds },
-            experience: { increment: rewards.experience },
+            currentDiamonds: { increment: codeDiamonds },
+            totalDiamonds: { increment: codeDiamonds },
+            experience: { increment: codeXP },
             codeSubmissionCount: { increment: 1 },
           },
         });
@@ -143,7 +175,7 @@ export async function POST(
         await prisma.diamondTransaction.create({
           data: {
             userId: authUser.userId,
-            amount: rewards.diamonds,
+            amount: codeDiamonds,
             type: "CODE_COMPLETE",
             description: `Code exercise completed: ${activity.title} (${score}%)`,
             relatedType: "lesson",
@@ -168,10 +200,10 @@ export async function POST(
 
         return NextResponse.json({
           success: true,
-          message: `🎉 Code exercise completed! +${rewards.diamonds} diamonds, +${rewards.experience} XP`,
+          message: `🎉 Code exercise completed! +${codeDiamonds} diamonds, +${codeXP} XP`,
           rewards: {
-            diamonds: rewards.diamonds,
-            experience: rewards.experience,
+            diamonds: codeDiamonds,
+            experience: codeXP,
           },
           score,
           newCompletion: true,
@@ -187,7 +219,7 @@ export async function POST(
       // No reward this time, but return success with zero rewards
       return NextResponse.json({
         success: true,
-        message: wasCodeCorrect
+        message: wasCodeRewarded
           ? `Code exercise completed with ${score}% score! (Rewards already earned)`
           : `Code exercise completed with ${score}% score! Get 90%+ for rewards.`,
         rewards: { diamonds: 0, experience: 0 },

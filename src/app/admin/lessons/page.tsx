@@ -32,7 +32,12 @@ import RichTextEditor from "@/components/admin/RichTextEditor";
 import ExamplesManager from "@/components/admin/ExamplesManager";
 import LessonSectionsManager from "@/components/admin/LessonSectionsManager";
 import CodeBlock from "@/components/ui/CodeBlock";
-import { AdminLesson, LessonFormData, LessonStats, LessonsResponse } from '@/types/admin'
+import {
+  AdminLesson,
+  LessonFormData,
+  LessonStats,
+  LessonsResponse,
+} from "@/types/admin";
 
 export default function AdminLessonsPage() {
   const [lessons, setLessons] = useState<AdminLesson[]>([]);
@@ -44,13 +49,17 @@ export default function AdminLessonsPage() {
   const [sortBy, setSortBy] = useState("order");
 
   // Modal states
-  const [selectedLesson, setSelectedLesson] = useState<AdminLesson | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<AdminLesson | null>(
+    null
+  );
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const [activeTab, setActiveTab] = useState<'basic' | 'content' | 'examples' | 'sections' | 'advanced'>('basic');
+  const [activeTab, setActiveTab] = useState<
+    "basic" | "content" | "examples" | "sections" | "advanced"
+  >("basic");
 
   // Form states
   const [lessonForm, setLessonForm] = useState<LessonFormData>({
@@ -77,7 +86,7 @@ export default function AdminLessonsPage() {
     learningObjectives: [],
     resources: [],
   });
-  
+
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(false);
 
@@ -108,6 +117,23 @@ export default function AdminLessonsPage() {
     { value: "data-science", label: "Data Science", icon: "📈" },
     { value: "advanced", label: "Advanced Topics", icon: "🚀" },
   ];
+
+  // Accent colors for categories (used for left border accents)
+  const categoryAccentColors: Record<string, string> = {
+    "python-basics": "#16a34a", // green-600
+    "data-types": "#2563eb", // blue-600
+    "control-flow": "#7c3aed", // violet-600
+    functions: "#ea580c", // orange-600
+    oop: "#0ea5e9", // sky-500
+    "data-structures": "#059669", // emerald-600
+    algorithms: "#9333ea", // purple-600
+    "file-handling": "#475569", // slate-600
+    "error-handling": "#e11d48", // rose-600
+    libraries: "#6366f1", // indigo-500
+    "web-dev": "#06b6d4", // cyan-500
+    "data-science": "#22c55e", // green-500
+    advanced: "#f59e0b", // amber-500
+  };
 
   const difficulties = [
     { value: 1, label: "Beginner", color: "bg-green-100 text-green-800" },
@@ -231,7 +257,11 @@ export default function AdminLessonsPage() {
   };
 
   const deleteLesson = async (lessonId: string, lessonTitle: string) => {
-    if (!confirm(`Are you sure you want to delete lesson "${lessonTitle}"? This action cannot be undone.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to delete lesson "${lessonTitle}"? This action cannot be undone.`
+      )
+    ) {
       return;
     }
 
@@ -254,7 +284,10 @@ export default function AdminLessonsPage() {
     }
   };
 
-  const togglePublishStatus = async (lessonId: string, isPublished: boolean) => {
+  const togglePublishStatus = async (
+    lessonId: string,
+    isPublished: boolean
+  ) => {
     try {
       const response = await fetch("/api/admin/lessons", {
         method: "PATCH",
@@ -268,7 +301,9 @@ export default function AdminLessonsPage() {
       if (response.ok) {
         fetchLessons();
         fetchStats();
-        showSuccess(`Lesson ${!isPublished ? "published" : "unpublished"} successfully!`);
+        showSuccess(
+          `Lesson ${!isPublished ? "published" : "unpublished"} successfully!`
+        );
       } else {
         const error = await response.json();
         alert(`Failed to update lesson status: ${error.error}`);
@@ -374,18 +409,22 @@ export default function AdminLessonsPage() {
   const generateSlugFromTitle = (title: string) => {
     return title
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
       .trim();
   };
 
   const getDifficultyInfo = (difficulty: number) => {
-    return difficulties.find(d => d.value === difficulty) || difficulties[0];
+    return difficulties.find((d) => d.value === difficulty) || difficulties[0];
   };
 
   const getCategoryInfo = (category: string) => {
-    return categories.find(c => c.value === category) || categories[0];
+    return categories.find((c) => c.value === category) || categories[0];
+  };
+
+  const getCategoryAccent = (category: string) => {
+    return categoryAccentColors[category] || "#e5e7eb";
   };
 
   // Content preview and template functions
@@ -394,36 +433,41 @@ export default function AdminLessonsPage() {
 
     // Handle existing HTML content and code blocks
     const parts = content.split(/(```[\s\S]*?```)/);
-    
+
     return parts.map((part, index) => {
-      if (part.startsWith('```') && part.endsWith('```')) {
+      if (part.startsWith("```") && part.endsWith("```")) {
         const codeContent = part.slice(3, -3).trim();
-        const lines = codeContent.split('\n');
-        const language = lines[0].includes('python') ? 'python' : 'python';
-        const code = lines.slice(1).join('\n') || codeContent;
-        
+        const lines = codeContent.split("\n");
+        const language = lines[0].includes("python") ? "python" : "python";
+        const code = lines.slice(1).join("\n") || codeContent;
+
         return (
           <div key={index} className="my-4">
-            <CodeBlock
-              code={code}
-              language={language}
-              title="Code Preview"
-            />
+            <CodeBlock code={code} language={language} title="Code Preview" />
           </div>
         );
       }
-      
+
       // For HTML content that's already in the database, render it safely
-      if (part.includes('<') && part.includes('>')) {
+      if (part.includes("<") && part.includes(">")) {
         // Clean and format the HTML
         const cleanHTML = part
-          .replace(/<h3>/g, '<h3 class="text-lg font-semibold mb-3 text-gray-900">')
-          .replace(/<h2>/g, '<h2 class="text-xl font-semibold mb-4 text-gray-900">')
-          .replace(/<h1>/g, '<h1 class="text-2xl font-bold mb-4 text-gray-900">')
+          .replace(
+            /<h3>/g,
+            '<h3 class="text-lg font-semibold mb-3 text-gray-900">'
+          )
+          .replace(
+            /<h2>/g,
+            '<h2 class="text-xl font-semibold mb-4 text-gray-900">'
+          )
+          .replace(
+            /<h1>/g,
+            '<h1 class="text-2xl font-bold mb-4 text-gray-900">'
+          )
           .replace(/<div>/g, '<div class="mb-4">')
           .replace(/<p>/g, '<p class="mb-3 text-gray-700 leading-relaxed">')
-          .replace(/<br\/>/g, '<br/>')
-          .replace(/<br>/g, '<br/>')
+          .replace(/<br\/>/g, "<br/>")
+          .replace(/<br>/g, "<br/>")
           .replace(/⚡/g, '<span class="text-yellow-600">⚡</span>')
           .replace(/🎯/g, '<span class="text-blue-600">🎯</span>')
           .replace(/💡/g, '<span class="text-yellow-500">💡</span>')
@@ -431,38 +475,63 @@ export default function AdminLessonsPage() {
           .replace(/🐍/g, '<span class="text-green-600">🐍</span>')
           .replace(/⭐/g, '<span class="text-yellow-500">⭐</span>')
           .replace(/🚀/g, '<span class="text-purple-600">🚀</span>');
-          
+
         return (
           <div key={index} className="prose prose-lg max-w-none">
             <div dangerouslySetInnerHTML={{ __html: cleanHTML }} />
           </div>
         );
       }
-      
+
       // Fallback for plain text - markdown style
-      const lines = part.split('\n').filter(line => line.trim());
+      const lines = part.split("\n").filter((line) => line.trim());
       return (
         <div key={index} className="prose prose-lg max-w-none space-y-4">
           {lines.map((line, lineIndex) => {
             // Handle headers
-            if (line.startsWith('# ')) {
-              return <h1 key={lineIndex} className="text-2xl font-bold mb-4 text-gray-900">{line.slice(2)}</h1>;
+            if (line.startsWith("# ")) {
+              return (
+                <h1
+                  key={lineIndex}
+                  className="mb-4 text-2xl font-bold text-gray-900"
+                >
+                  {line.slice(2)}
+                </h1>
+              );
             }
-            if (line.startsWith('## ')) {
-              return <h2 key={lineIndex} className="text-xl font-semibold mb-3 text-gray-900">{line.slice(3)}</h2>;
+            if (line.startsWith("## ")) {
+              return (
+                <h2
+                  key={lineIndex}
+                  className="mb-3 text-xl font-semibold text-gray-900"
+                >
+                  {line.slice(3)}
+                </h2>
+              );
             }
-            if (line.startsWith('### ')) {
-              return <h3 key={lineIndex} className="text-lg font-medium mb-2 text-gray-900">{line.slice(4)}</h3>;
+            if (line.startsWith("### ")) {
+              return (
+                <h3
+                  key={lineIndex}
+                  className="mb-2 text-lg font-medium text-gray-900"
+                >
+                  {line.slice(4)}
+                </h3>
+              );
             }
-            
+
             // Handle lists
-            if (line.startsWith('- ')) {
-              return <li key={lineIndex} className="ml-4 text-gray-700 mb-2">• {line.slice(2)}</li>;
+            if (line.startsWith("- ")) {
+              return (
+                <li key={lineIndex} className="mb-2 ml-4 text-gray-700">
+                  • {line.slice(2)}
+                </li>
+              );
             }
-            
+
             // Regular paragraph
             return (
-              <p key={lineIndex} className="mb-4 text-gray-700 leading-relaxed">
+              <p key={lineIndex} className="mb-4 leading-relaxed text-gray-700">
                 {line}
               </p>
             );
@@ -472,7 +541,9 @@ export default function AdminLessonsPage() {
     });
   };
 
-  const insertTemplate = (type: 'codeblock' | 'example' | 'tip' | 'exercise') => {
+  const insertTemplate = (
+    type: "codeblock" | "example" | "tip" | "exercise"
+  ) => {
     const templates = {
       codeblock: `\n\`\`\`python
 # Write your Python code here
@@ -498,13 +569,13 @@ Try to write a program that:
 \`\`\`python
 # Your code here
 pass
-\`\`\`\n`
+\`\`\`\n`,
     };
 
     const template = templates[type];
     setLessonForm({
       ...lessonForm,
-      content: lessonForm.content + template
+      content: lessonForm.content + template,
     });
   };
 
@@ -524,9 +595,12 @@ pass
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Python Lessons Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Python Lessons Management
+          </h1>
           <p className="mt-2 text-gray-600">
-            {stats.totalCodeArenas} lessons • {stats.publishedCodeArenas} published • {stats.totalStudents} students
+            {stats.totalCodeArenas} lessons • {stats.publishedCodeArenas}{" "}
+            published • {stats.totalStudents} students
           </p>
         </div>
 
@@ -535,19 +609,33 @@ pass
           <div className="flex space-x-4">
             <div className="rounded-lg bg-blue-50 p-3 text-center">
               <div className="text-sm font-medium text-blue-600">Total</div>
-              <div className="text-xl font-bold text-blue-900">{stats.totalCodeArenas}</div>
+              <div className="text-xl font-bold text-blue-900">
+                {stats.totalCodeArenas}
+              </div>
             </div>
             <div className="rounded-lg bg-green-50 p-3 text-center">
-              <div className="text-sm font-medium text-green-600">Published</div>
-              <div className="text-xl font-bold text-green-900">{stats.publishedCodeArenas}</div>
+              <div className="text-sm font-medium text-green-600">
+                Published
+              </div>
+              <div className="text-xl font-bold text-green-900">
+                {stats.publishedCodeArenas}
+              </div>
             </div>
             <div className="rounded-lg bg-purple-50 p-3 text-center">
-              <div className="text-sm font-medium text-purple-600">Students</div>
-              <div className="text-xl font-bold text-purple-900">{stats.totalStudents}</div>
+              <div className="text-sm font-medium text-purple-600">
+                Students
+              </div>
+              <div className="text-xl font-bold text-purple-900">
+                {stats.totalStudents}
+              </div>
             </div>
             <div className="rounded-lg bg-yellow-50 p-3 text-center">
-              <div className="text-sm font-medium text-yellow-600">Completion</div>
-              <div className="text-xl font-bold text-yellow-900">{stats.averageCompletion}%</div>
+              <div className="text-sm font-medium text-yellow-600">
+                Completion
+              </div>
+              <div className="text-xl font-bold text-yellow-900">
+                {stats.averageCompletion}%
+              </div>
             </div>
           </div>
 
@@ -650,30 +738,44 @@ pass
           <div className="mb-4 text-gray-400">
             <BookOpen className="mx-auto h-16 w-16" />
           </div>
-          <h3 className="mb-2 text-lg font-medium text-gray-900">No lessons found</h3>
-          <p className="text-gray-600">Create your first Python lesson to get started</p>
+          <h3 className="mb-2 text-lg font-medium text-gray-900">
+            No lessons found
+          </h3>
+          <p className="text-gray-600">
+            Create your first Python lesson to get started
+          </p>
         </div>
       ) : (
         <div className="space-y-4">
           {lessons.map((lesson) => {
             const difficultyInfo = getDifficultyInfo(lesson.difficulty);
             const categoryInfo = getCategoryInfo(lesson.category);
-            
+            const categoryAccent = getCategoryAccent(lesson.category);
+
             return (
               <div
                 key={lesson.id}
                 className="rounded-lg bg-white p-6 shadow transition-shadow hover:shadow-lg"
+                style={{ borderLeft: `4px solid ${categoryAccent}` }}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="mb-2 flex items-center space-x-3">
-                      <h3 className="text-lg font-semibold text-gray-900">{lesson.title}</h3>
-                      <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${difficultyInfo.color}`}>
+                    <div className="mb-2 flex items-center space-x-2">
+                      <h3 className="flex items-center text-lg font-semibold text-gray-900">
+                        {lesson.title}
+                        <span
+                          className="ml-2 text-base opacity-90"
+                          title={categoryInfo.label}
+                          aria-label={categoryInfo.label}
+                          role="img"
+                        >
+                          {categoryInfo.icon}
+                        </span>
+                      </h3>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${difficultyInfo.color}`}
+                      >
                         {difficultyInfo.label}
-                      </span>
-                      <span className="inline-flex items-center space-x-1 rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-800">
-                        <span>{categoryInfo.icon}</span>
-                        <span>{categoryInfo.label}</span>
                       </span>
                       <span
                         className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
@@ -685,9 +787,9 @@ pass
                         {lesson.isPublished ? "Published" : "Draft"}
                       </span>
                     </div>
-                    
+
                     <p className="mb-3 text-gray-600">{lesson.description}</p>
-                    
+
                     <div className="flex items-center space-x-6 text-sm text-gray-500">
                       <div className="flex items-center space-x-1">
                         <Clock className="h-4 w-4" />
@@ -719,7 +821,7 @@ pass
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => {
@@ -746,7 +848,9 @@ pass
                       <Edit className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => togglePublishStatus(lesson.id, lesson.isPublished)}
+                      onClick={() =>
+                        togglePublishStatus(lesson.id, lesson.isPublished)
+                      }
                       className={`rounded-md p-2 ${
                         lesson.isPublished
                           ? "bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
@@ -754,7 +858,11 @@ pass
                       }`}
                       title={lesson.isPublished ? "Unpublish" : "Publish"}
                     >
-                      {lesson.isPublished ? <X className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                      {lesson.isPublished ? (
+                        <X className="h-4 w-4" />
+                      ) : (
+                        <CheckCircle className="h-4 w-4" />
+                      )}
                     </button>
                     <button
                       onClick={() => deleteLesson(lesson.id, lesson.title)}
@@ -813,11 +921,11 @@ pass
             <div className="border-b border-gray-200">
               <nav className="flex space-x-8 px-6" aria-label="Tabs">
                 {[
-                  { id: 'basic', name: 'Basic Info', icon: FileText },
-                  { id: 'content', name: 'Rich Content', icon: Palette },
-                  { id: 'examples', name: 'Examples', icon: Code },
-                  { id: 'sections', name: 'Sections', icon: Layers },
-                  { id: 'advanced', name: 'Advanced', icon: Target }
+                  { id: "basic", name: "Basic Info", icon: FileText },
+                  { id: "content", name: "Rich Content", icon: Palette },
+                  { id: "examples", name: "Examples", icon: Code },
+                  { id: "sections", name: "Sections", icon: Layers },
+                  { id: "advanced", name: "Advanced", icon: Target },
                 ].map((tab) => {
                   const Icon = tab.icon;
                   return (
@@ -826,9 +934,9 @@ pass
                       onClick={() => setActiveTab(tab.id as any)}
                       className={`${
                         activeTab === tab.id
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                      } flex items-center space-x-2 border-b-2 py-4 px-1 text-sm font-medium`}
+                          ? "border-blue-500 text-blue-600"
+                          : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                      } flex items-center space-x-2 border-b-2 px-1 py-4 text-sm font-medium`}
                     >
                       <Icon className="h-4 w-4" />
                       <span>{tab.name}</span>
@@ -840,311 +948,367 @@ pass
 
             <div className="space-y-6 p-6">
               {/* Basic Info Tab */}
-              {activeTab === 'basic' && (
+              {activeTab === "basic" && (
                 <div className="space-y-6">
                   {/* Basic Info */}
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Title *
-                  </label>
-                  <input
-                    type="text"
-                    value={lessonForm.title}
-                    onChange={(e) => {
-                      const title = e.target.value;
-                      setLessonForm({
-                        ...lessonForm,
-                        title,
-                        slug: generateSlugFromTitle(title),
-                      });
-                    }}
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="Enter lesson title"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Slug
-                  </label>
-                  <input
-                    type="text"
-                    value={lessonForm.slug}
-                    onChange={(e) =>
-                      setLessonForm({ ...lessonForm, slug: e.target.value })
-                    }
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="lesson-slug"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Description *
-                </label>
-                <textarea
-                  value={lessonForm.description}
-                  onChange={(e) =>
-                    setLessonForm({ ...lessonForm, description: e.target.value })
-                  }
-                  rows={3}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-                  placeholder="Brief description of the lesson"
-                />
-              </div>
-
-              {/* Lesson Details */}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Category
-                  </label>
-                  <select
-                    value={lessonForm.category}
-                    onChange={(e) =>
-                      setLessonForm({ ...lessonForm, category: e.target.value })
-                    }
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-                  >
-                    {categories.map((cat) => (
-                      <option key={cat.value} value={cat.value}>
-                        {cat.icon} {cat.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Difficulty
-                  </label>
-                  <select
-                    value={lessonForm.difficulty}
-                    onChange={(e) =>
-                      setLessonForm({ ...lessonForm, difficulty: parseInt(e.target.value) })
-                    }
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-                  >
-                    {difficulties.map((diff) => (
-                      <option key={diff.value} value={diff.value}>
-                        {diff.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Order
-                  </label>
-                  <input
-                    type="number"
-                    value={lessonForm.order}
-                    onChange={(e) =>
-                      setLessonForm({ ...lessonForm, order: parseInt(e.target.value) || 1 })
-                    }
-                    min="1"
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Duration (min)
-                  </label>
-                  <input
-                    type="number"
-                    value={lessonForm.duration}
-                    onChange={(e) =>
-                      setLessonForm({ ...lessonForm, duration: parseInt(e.target.value) || 30 })
-                    }
-                    min="1"
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              {/* Rewards */}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    💎 Diamond Reward
-                  </label>
-                  <input
-                    type="number"
-                    value={lessonForm.diamondReward}
-                    onChange={(e) =>
-                      setLessonForm({ ...lessonForm, diamondReward: parseInt(e.target.value) || 10 })
-                    }
-                    min="0"
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    ⚡ Experience Reward
-                  </label>
-                  <input
-                    type="number"
-                    value={lessonForm.experienceReward}
-                    onChange={(e) =>
-                      setLessonForm({ ...lessonForm, experienceReward: parseInt(e.target.value) || 50 })
-                    }
-                    min="0"
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              {/* Content */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Lesson Content
-                </label>
-                <textarea
-                  value={lessonForm.content}
-                  onChange={(e) =>
-                    setLessonForm({ ...lessonForm, content: e.target.value })
-                  }
-                  rows={8}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-                  placeholder="Write your lesson content here. You can use Markdown formatting."
-                />
-              </div>
-
-              {/* Code Exercise */}
-              <div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="hasCodeExercise"
-                    checked={lessonForm.hasCodeExercise}
-                    onChange={(e) =>
-                      setLessonForm({ ...lessonForm, hasCodeExercise: e.target.checked })
-                    }
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <label htmlFor="hasCodeExercise" className="text-sm font-medium text-gray-700">
-                    This lesson includes a code exercise
-                  </label>
-                </div>
-
-                {lessonForm.hasCodeExercise && (
-                  <div className="mt-4 space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Starter Code
+                        Title *
                       </label>
-                      <textarea
-                        value={lessonForm.starterCode}
-                        onChange={(e) =>
-                          setLessonForm({ ...lessonForm, starterCode: e.target.value })
-                        }
-                        rows={4}
-                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500 font-mono text-sm"
-                        placeholder="# Write starter code here"
+                      <input
+                        type="text"
+                        value={lessonForm.title}
+                        onChange={(e) => {
+                          const title = e.target.value;
+                          setLessonForm({
+                            ...lessonForm,
+                            title,
+                            slug: generateSlugFromTitle(title),
+                          });
+                        }}
+                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                        placeholder="Enter lesson title"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Solution Code
+                        Slug
                       </label>
-                      <textarea
-                        value={lessonForm.solutionCode}
+                      <input
+                        type="text"
+                        value={lessonForm.slug}
                         onChange={(e) =>
-                          setLessonForm({ ...lessonForm, solutionCode: e.target.value })
+                          setLessonForm({ ...lessonForm, slug: e.target.value })
                         }
-                        rows={4}
-                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500 font-mono text-sm"
-                        placeholder="# Write solution code here"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Test Cases (JSON)
-                      </label>
-                      <textarea
-                        value={lessonForm.testCases}
-                        onChange={(e) =>
-                          setLessonForm({ ...lessonForm, testCases: e.target.value })
-                        }
-                        rows={3}
-                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500 font-mono text-sm"
-                        placeholder='[{"input": [1, 2], "expected": 3}]'
+                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                        placeholder="lesson-slug"
                       />
                     </div>
                   </div>
-                )}
-              </div>
 
-              {/* Additional Fields */}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Prerequisites
-                  </label>
-                  <textarea
-                    value={lessonForm.prerequisites}
-                    onChange={(e) =>
-                      setLessonForm({ ...lessonForm, prerequisites: e.target.value })
-                    }
-                    rows={2}
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="List any prerequisites"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Hints
-                  </label>
-                  <textarea
-                    value={lessonForm.hints}
-                    onChange={(e) =>
-                      setLessonForm({ ...lessonForm, hints: e.target.value })
-                    }
-                    rows={2}
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="Add helpful hints"
-                  />
-                </div>
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Description *
+                    </label>
+                    <textarea
+                      value={lessonForm.description}
+                      onChange={(e) =>
+                        setLessonForm({
+                          ...lessonForm,
+                          description: e.target.value,
+                        })
+                      }
+                      rows={3}
+                      className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                      placeholder="Brief description of the lesson"
+                    />
+                  </div>
 
-              {/* Publish Status */}
-              <div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="isPublished"
-                    checked={lessonForm.isPublished}
-                    onChange={(e) =>
-                      setLessonForm({ ...lessonForm, isPublished: e.target.checked })
-                    }
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <label htmlFor="isPublished" className="text-sm font-medium text-gray-700">
-                    Publish this lesson immediately
-                  </label>
-                </div>
+                  {/* Lesson Details */}
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Category
+                      </label>
+                      <select
+                        value={lessonForm.category}
+                        onChange={(e) =>
+                          setLessonForm({
+                            ...lessonForm,
+                            category: e.target.value,
+                          })
+                        }
+                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                      >
+                        {categories.map((cat) => (
+                          <option key={cat.value} value={cat.value}>
+                            {cat.icon} {cat.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Difficulty
+                      </label>
+                      <select
+                        value={lessonForm.difficulty}
+                        onChange={(e) =>
+                          setLessonForm({
+                            ...lessonForm,
+                            difficulty: parseInt(e.target.value),
+                          })
+                        }
+                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                      >
+                        {difficulties.map((diff) => (
+                          <option key={diff.value} value={diff.value}>
+                            {diff.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Order
+                      </label>
+                      <input
+                        type="number"
+                        value={lessonForm.order}
+                        onChange={(e) =>
+                          setLessonForm({
+                            ...lessonForm,
+                            order: parseInt(e.target.value) || 1,
+                          })
+                        }
+                        min="1"
+                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Duration (min)
+                      </label>
+                      <input
+                        type="number"
+                        value={lessonForm.duration}
+                        onChange={(e) =>
+                          setLessonForm({
+                            ...lessonForm,
+                            duration: parseInt(e.target.value) || 30,
+                          })
+                        }
+                        min="1"
+                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Rewards */}
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        💎 Diamond Reward
+                      </label>
+                      <input
+                        type="number"
+                        value={lessonForm.diamondReward}
+                        onChange={(e) =>
+                          setLessonForm({
+                            ...lessonForm,
+                            diamondReward: parseInt(e.target.value) || 10,
+                          })
+                        }
+                        min="0"
+                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        ⚡ Experience Reward
+                      </label>
+                      <input
+                        type="number"
+                        value={lessonForm.experienceReward}
+                        onChange={(e) =>
+                          setLessonForm({
+                            ...lessonForm,
+                            experienceReward: parseInt(e.target.value) || 50,
+                          })
+                        }
+                        min="0"
+                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Lesson Content
+                    </label>
+                    <textarea
+                      value={lessonForm.content}
+                      onChange={(e) =>
+                        setLessonForm({
+                          ...lessonForm,
+                          content: e.target.value,
+                        })
+                      }
+                      rows={8}
+                      className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                      placeholder="Write your lesson content here. You can use Markdown formatting."
+                    />
+                  </div>
+
+                  {/* Code Exercise */}
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="hasCodeExercise"
+                        checked={lessonForm.hasCodeExercise}
+                        onChange={(e) =>
+                          setLessonForm({
+                            ...lessonForm,
+                            hasCodeExercise: e.target.checked,
+                          })
+                        }
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <label
+                        htmlFor="hasCodeExercise"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        This lesson includes a code exercise
+                      </label>
+                    </div>
+
+                    {lessonForm.hasCodeExercise && (
+                      <div className="mt-4 space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Starter Code
+                          </label>
+                          <textarea
+                            value={lessonForm.starterCode}
+                            onChange={(e) =>
+                              setLessonForm({
+                                ...lessonForm,
+                                starterCode: e.target.value,
+                              })
+                            }
+                            rows={4}
+                            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm focus:border-blue-500 focus:ring-blue-500"
+                            placeholder="# Write starter code here"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Solution Code
+                          </label>
+                          <textarea
+                            value={lessonForm.solutionCode}
+                            onChange={(e) =>
+                              setLessonForm({
+                                ...lessonForm,
+                                solutionCode: e.target.value,
+                              })
+                            }
+                            rows={4}
+                            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm focus:border-blue-500 focus:ring-blue-500"
+                            placeholder="# Write solution code here"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Test Cases (JSON)
+                          </label>
+                          <textarea
+                            value={lessonForm.testCases}
+                            onChange={(e) =>
+                              setLessonForm({
+                                ...lessonForm,
+                                testCases: e.target.value,
+                              })
+                            }
+                            rows={3}
+                            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm focus:border-blue-500 focus:ring-blue-500"
+                            placeholder='[{"input": [1, 2], "expected": 3}]'
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Additional Fields */}
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Prerequisites
+                      </label>
+                      <textarea
+                        value={lessonForm.prerequisites}
+                        onChange={(e) =>
+                          setLessonForm({
+                            ...lessonForm,
+                            prerequisites: e.target.value,
+                          })
+                        }
+                        rows={2}
+                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                        placeholder="List any prerequisites"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Hints
+                      </label>
+                      <textarea
+                        value={lessonForm.hints}
+                        onChange={(e) =>
+                          setLessonForm({
+                            ...lessonForm,
+                            hints: e.target.value,
+                          })
+                        }
+                        rows={2}
+                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                        placeholder="Add helpful hints"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Publish Status */}
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="isPublished"
+                        checked={lessonForm.isPublished}
+                        onChange={(e) =>
+                          setLessonForm({
+                            ...lessonForm,
+                            isPublished: e.target.checked,
+                          })
+                        }
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <label
+                        htmlFor="isPublished"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        Publish this lesson immediately
+                      </label>
+                    </div>
                   </div>
                 </div>
               )}
 
               {/* Rich Content Tab */}
-              {activeTab === 'content' && (
+              {activeTab === "content" && (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     {/* Content Editor */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         📝 Lesson Content Editor
                       </label>
-                      <div className="border rounded-lg bg-white">
+                      <div className="rounded-lg border bg-white">
                         <div className="border-b bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700">
                           Markdown Editor
                         </div>
                         <textarea
                           value={lessonForm.content}
-                          onChange={(e) => setLessonForm({ ...lessonForm, content: e.target.value })}
+                          onChange={(e) =>
+                            setLessonForm({
+                              ...lessonForm,
+                              content: e.target.value,
+                            })
+                          }
                           rows={20}
-                          className="w-full border-0 p-4 font-mono text-sm focus:ring-0 resize-none"
+                          className="w-full resize-none border-0 p-4 font-mono text-sm focus:ring-0"
                           placeholder={`Write your lesson content here using Markdown...
 
 Examples:
@@ -1164,68 +1328,94 @@ print(f"The sum is: {result}")
 - List item 2`}
                         />
                       </div>
-                      
+
                       {/* Content Guidelines */}
-                      <div className="mt-4 rounded-lg bg-blue-50 border border-blue-200 p-4">
-                        <h4 className="font-medium text-blue-900 mb-2">📚 Content Guidelines</h4>
-                        <ul className="text-sm text-blue-800 space-y-1">
-                          <li>• Use <code className="bg-blue-100 px-1 rounded">```python</code> for code blocks</li>
+                      <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                        <h4 className="mb-2 font-medium text-blue-900">
+                          📚 Content Guidelines
+                        </h4>
+                        <ul className="space-y-1 text-sm text-blue-800">
+                          <li>
+                            • Use{" "}
+                            <code className="rounded bg-blue-100 px-1">
+                              ```python
+                            </code>{" "}
+                            for code blocks
+                          </li>
                           <li>• Split content into logical sections</li>
                           <li>• Include practical examples</li>
                           <li>• Use headers for organization</li>
                         </ul>
                       </div>
                     </div>
-                    
+
                     {/* Live Preview */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         👁️ Live Preview
                       </label>
-                      <div className="border rounded-lg bg-white">
+                      <div className="rounded-lg border bg-white">
                         <div className="border-b bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700">
                           How students will see it
                         </div>
-                        <div className="p-4 max-h-96 overflow-y-auto">
+                        <div className="max-h-96 overflow-y-auto p-4">
                           {lessonForm.content ? (
                             <div className="prose prose-sm max-w-none">
                               {renderContentPreview(lessonForm.content)}
                             </div>
                           ) : (
-                            <p className="text-gray-500 italic">Preview will appear here as you type...</p>
+                            <p className="italic text-gray-500">
+                              Preview will appear here as you type...
+                            </p>
                           )}
                         </div>
                       </div>
-                      
+
                       {/* Quick Insert Templates */}
                       <div className="mt-4 grid grid-cols-2 gap-2">
                         <button
-                          onClick={() => insertTemplate('codeblock')}
-                          className="text-left p-3 bg-green-50 border border-green-200 rounded-lg text-sm hover:bg-green-100 transition-colors"
+                          onClick={() => insertTemplate("codeblock")}
+                          className="rounded-lg border border-green-200 bg-green-50 p-3 text-left text-sm transition-colors hover:bg-green-100"
                         >
-                          <div className="font-medium text-green-800">🐍 Python Code</div>
-                          <div className="text-green-600 text-xs">Insert code block</div>
+                          <div className="font-medium text-green-800">
+                            🐍 Python Code
+                          </div>
+                          <div className="text-xs text-green-600">
+                            Insert code block
+                          </div>
                         </button>
                         <button
-                          onClick={() => insertTemplate('example')}
-                          className="text-left p-3 bg-purple-50 border border-purple-200 rounded-lg text-sm hover:bg-purple-100 transition-colors"
+                          onClick={() => insertTemplate("example")}
+                          className="rounded-lg border border-purple-200 bg-purple-50 p-3 text-left text-sm transition-colors hover:bg-purple-100"
                         >
-                          <div className="font-medium text-purple-800">💡 Example</div>
-                          <div className="text-purple-600 text-xs">Insert example section</div>
+                          <div className="font-medium text-purple-800">
+                            💡 Example
+                          </div>
+                          <div className="text-xs text-purple-600">
+                            Insert example section
+                          </div>
                         </button>
                         <button
-                          onClick={() => insertTemplate('tip')}
-                          className="text-left p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm hover:bg-blue-100 transition-colors"
+                          onClick={() => insertTemplate("tip")}
+                          className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-left text-sm transition-colors hover:bg-blue-100"
                         >
-                          <div className="font-medium text-blue-800">💭 Tip</div>
-                          <div className="text-blue-600 text-xs">Insert tip callout</div>
+                          <div className="font-medium text-blue-800">
+                            💭 Tip
+                          </div>
+                          <div className="text-xs text-blue-600">
+                            Insert tip callout
+                          </div>
                         </button>
                         <button
-                          onClick={() => insertTemplate('exercise')}
-                          className="text-left p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm hover:bg-orange-100 transition-colors"
+                          onClick={() => insertTemplate("exercise")}
+                          className="rounded-lg border border-orange-200 bg-orange-50 p-3 text-left text-sm transition-colors hover:bg-orange-100"
                         >
-                          <div className="font-medium text-orange-800">🎯 Exercise</div>
-                          <div className="text-orange-600 text-xs">Insert exercise</div>
+                          <div className="font-medium text-orange-800">
+                            🎯 Exercise
+                          </div>
+                          <div className="text-xs text-orange-600">
+                            Insert exercise
+                          </div>
                         </button>
                       </div>
                     </div>
@@ -1234,14 +1424,16 @@ print(f"The sum is: {result}")
               )}
 
               {/* Examples Tab */}
-              {activeTab === 'examples' && (
+              {activeTab === "examples" && (
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                       Lesson Examples
                     </label>
-                    <div className="border rounded-lg p-4 bg-gray-50">
-                      <p className="text-sm text-gray-600">Examples Manager will be integrated here</p>
+                    <div className="rounded-lg border bg-gray-50 p-4">
+                      <p className="text-sm text-gray-600">
+                        Examples Manager will be integrated here
+                      </p>
                       <div className="mt-2 text-xs text-gray-500">
                         Current examples: {lessonForm.examples.length}
                       </div>
@@ -1251,14 +1443,16 @@ print(f"The sum is: {result}")
               )}
 
               {/* Sections Tab */}
-              {activeTab === 'sections' && (
+              {activeTab === "sections" && (
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                       Lesson Sections
                     </label>
-                    <div className="border rounded-lg p-4 bg-gray-50">
-                      <p className="text-sm text-gray-600">Sections Manager will be integrated here</p>
+                    <div className="rounded-lg border bg-gray-50 p-4">
+                      <p className="text-sm text-gray-600">
+                        Sections Manager will be integrated here
+                      </p>
                       <div className="mt-2 text-xs text-gray-500">
                         Current sections: {lessonForm.sections.length}
                       </div>
@@ -1268,7 +1462,7 @@ print(f"The sum is: {result}")
               )}
 
               {/* Advanced Tab */}
-              {activeTab === 'advanced' && (
+              {activeTab === "advanced" && (
                 <div className="space-y-6">
                   {/* Tags */}
                   <div>
@@ -1277,11 +1471,14 @@ print(f"The sum is: {result}")
                     </label>
                     <input
                       type="text"
-                      value={lessonForm.tags.join(', ')}
+                      value={lessonForm.tags.join(", ")}
                       onChange={(e) =>
                         setLessonForm({
                           ...lessonForm,
-                          tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean)
+                          tags: e.target.value
+                            .split(",")
+                            .map((tag) => tag.trim())
+                            .filter(Boolean),
                         })
                       }
                       className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
@@ -1295,11 +1492,13 @@ print(f"The sum is: {result}")
                       Learning Objectives
                     </label>
                     <textarea
-                      value={lessonForm.learningObjectives.join('\n')}
+                      value={lessonForm.learningObjectives.join("\n")}
                       onChange={(e) =>
                         setLessonForm({
                           ...lessonForm,
-                          learningObjectives: e.target.value.split('\n').filter(Boolean)
+                          learningObjectives: e.target.value
+                            .split("\n")
+                            .filter(Boolean),
                         })
                       }
                       rows={4}
@@ -1314,11 +1513,11 @@ print(f"The sum is: {result}")
                       Additional Resources
                     </label>
                     <textarea
-                      value={lessonForm.resources.join('\n')}
+                      value={lessonForm.resources.join("\n")}
                       onChange={(e) =>
                         setLessonForm({
                           ...lessonForm,
-                          resources: e.target.value.split('\n').filter(Boolean)
+                          resources: e.target.value.split("\n").filter(Boolean),
                         })
                       }
                       rows={4}
@@ -1353,8 +1552,10 @@ print(f"The sum is: {result}")
                     <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
                     {showCreateModal ? "Creating..." : "Updating..."}
                   </div>
+                ) : showCreateModal ? (
+                  "Create Lesson"
                 ) : (
-                  showCreateModal ? "Create Lesson" : "Update Lesson"
+                  "Update Lesson"
                 )}
               </button>
             </div>
@@ -1364,15 +1565,16 @@ print(f"The sum is: {result}")
 
       {/* Preview Modal */}
       {showPreviewModal && selectedLesson && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
           <div className="max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-xl bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b p-6">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">
                   📖 Lesson Preview
                 </h2>
-                <p className="text-sm text-gray-600 mt-1">
-                  {selectedLesson.title} • {getCategoryInfo(selectedLesson.category).label}
+                <p className="mt-1 text-sm text-gray-600">
+                  {selectedLesson.title} •{" "}
+                  {getCategoryInfo(selectedLesson.category).label}
                 </p>
               </div>
               <button
@@ -1391,14 +1593,16 @@ print(f"The sum is: {result}")
               <div className="mb-6 rounded-lg border bg-gradient-to-r from-blue-50 to-purple-50 p-6">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                    <h1 className="mb-2 text-2xl font-bold text-gray-900">
                       {selectedLesson.title}
                     </h1>
-                    <p className="text-gray-700 mb-4">
+                    <p className="mb-4 text-gray-700">
                       {selectedLesson.description}
                     </p>
                     <div className="flex items-center space-x-4 text-sm">
-                      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getDifficultyInfo(selectedLesson.difficulty).color}`}>
+                      <span
+                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getDifficultyInfo(selectedLesson.difficulty).color}`}
+                      >
                         {getDifficultyInfo(selectedLesson.difficulty).label}
                       </span>
                       <span className="flex items-center space-x-1 text-gray-600">
@@ -1421,8 +1625,8 @@ print(f"The sum is: {result}")
               {/* Content Preview */}
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <BookOpen className="h-5 w-5 mr-2" />
+                  <h3 className="mb-4 flex items-center text-lg font-semibold text-gray-900">
+                    <BookOpen className="mr-2 h-5 w-5" />
                     Lesson Content
                   </h3>
                   <div className="rounded-lg border bg-white p-6">
@@ -1431,7 +1635,9 @@ print(f"The sum is: {result}")
                         {renderContentPreview(selectedLesson.content)}
                       </div>
                     ) : (
-                      <p className="text-gray-500 italic">No content available</p>
+                      <p className="italic text-gray-500">
+                        No content available
+                      </p>
                     )}
                   </div>
                 </div>
@@ -1439,14 +1645,16 @@ print(f"The sum is: {result}")
                 {/* Code Exercise Preview */}
                 {selectedLesson.hasCodeExercise && (
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                      <Code className="h-5 w-5 mr-2" />
+                    <h3 className="mb-4 flex items-center text-lg font-semibold text-gray-900">
+                      <Code className="mr-2 h-5 w-5" />
                       Code Exercise
                     </h3>
                     <div className="space-y-4">
                       {selectedLesson.starterCode && (
                         <div>
-                          <h4 className="font-medium text-gray-900 mb-2">Starter Code:</h4>
+                          <h4 className="mb-2 font-medium text-gray-900">
+                            Starter Code:
+                          </h4>
                           <CodeBlock
                             code={selectedLesson.starterCode}
                             language="python"
@@ -1456,7 +1664,9 @@ print(f"The sum is: {result}")
                       )}
                       {selectedLesson.solutionCode && (
                         <div>
-                          <h4 className="font-medium text-gray-900 mb-2">Solution:</h4>
+                          <h4 className="mb-2 font-medium text-gray-900">
+                            Solution:
+                          </h4>
                           <CodeBlock
                             code={selectedLesson.solutionCode}
                             language="python"
@@ -1466,9 +1676,13 @@ print(f"The sum is: {result}")
                       )}
                       {selectedLesson.hints && (
                         <div>
-                          <h4 className="font-medium text-gray-900 mb-2">Hints:</h4>
-                          <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4">
-                            <p className="text-yellow-800">{selectedLesson.hints}</p>
+                          <h4 className="mb-2 font-medium text-gray-900">
+                            Hints:
+                          </h4>
+                          <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+                            <p className="text-yellow-800">
+                              {selectedLesson.hints}
+                            </p>
                           </div>
                         </div>
                       )}
@@ -1477,21 +1691,28 @@ print(f"The sum is: {result}")
                 )}
 
                 {/* Additional Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   {selectedLesson.prerequisites && (
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Prerequisites:</h4>
-                      <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
-                        <p className="text-blue-800 text-sm">{selectedLesson.prerequisites}</p>
+                      <h4 className="mb-2 font-medium text-gray-900">
+                        Prerequisites:
+                      </h4>
+                      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                        <p className="text-sm text-blue-800">
+                          {selectedLesson.prerequisites}
+                        </p>
                       </div>
                     </div>
                   )}
                   {selectedLesson.tags && selectedLesson.tags.length > 0 && (
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Tags:</h4>
+                      <h4 className="mb-2 font-medium text-gray-900">Tags:</h4>
                       <div className="flex flex-wrap gap-2">
                         {selectedLesson.tags.map((tag, index) => (
-                          <span key={index} className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-800">
+                          <span
+                            key={index}
+                            className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-800"
+                          >
                             {tag}
                           </span>
                         ))}

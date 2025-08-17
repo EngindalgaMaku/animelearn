@@ -259,7 +259,7 @@ export async function GET(
       updatedAt: activity.updatedAt,
     };
 
-    return NextResponse.json({ success: true, codeArena: transformed });
+    return NextResponse.json({ success: true, lesson: transformed });
   } catch (error) {
     console.error("Error fetching lesson by slug:", error);
     return NextResponse.json(
@@ -356,6 +356,7 @@ export async function POST(
     }
 
     if (action === "complete") {
+      // Load current attempt
       const existing = await prisma.activityAttempt.findUnique({
         where: {
           userId_activityId: {
@@ -367,70 +368,144 @@ export async function POST(
 
       const alreadyCompleted = !!existing?.completed;
 
-      const progress = await prisma.activityAttempt.upsert({
-        where: {
-          userId_activityId: {
+      // Parse existing answers/flags
+      let answersObj: any = {};
+      try {
+        if (existing?.answers) answersObj = JSON.parse(existing.answers as any);
+      } catch {
+        answersObj = {};
+      }
+      const flags = answersObj?.flags || {};
+      const prevScore = existing?.score ?? 0;
+      const quizPassed = !!flags.quizPassed;
+      const codeRewarded = !!flags.codeRewarded;
+      const quizRewarded = !!flags.quizRewarded;
+
+      // Compute reward partition (60% code, 40% quiz)
+      const baseDiamonds = activity.diamondReward ?? 0;
+      const baseXP = activity.experienceReward ?? 0;
+      const codeDiamonds = Math.floor(baseDiamonds * 0.6);
+      const quizDiamonds = baseDiamonds - codeDiamonds;
+      const codeXP = Math.floor(baseXP * 0.6);
+      const quizXP = baseXP - codeXP;
+
+      // Determine catch-up awards (only if not rewarded yet)
+      const awardCode = !codeRewarded && prevScore >= 90;
+      const awardQuiz = !quizRewarded && quizPassed;
+
+      const awardDiamonds =
+        (awardCode ? codeDiamonds : 0) + (awardQuiz ? quizDiamonds : 0);
+      const awardExperience =
+        (awardCode ? codeXP : 0) + (awardQuiz ? quizXP : 0);
+
+      // Update flags to reflect any catch-up being awarded
+      const updatedFlags = {
+        ...flags,
+        codeRewarded: flags.codeRewarded || awardCode,
+        quizRewarded: flags.quizRewarded || awardQuiz,
+      };
+
+      const updatedAnswers = {
+        ...answersObj,
+        flags: updatedFlags,
+        completedAt: new Date().toISOString(),
+      };
+
+      // Perform atomic updates
+      const txResult = await prisma.$transaction(async (tx) => {
+        // Upsert attempt completion and flags
+        const updatedAttempt = await tx.activityAttempt.upsert({
+          where: {
+            userId_activityId: {
+              userId: authUser.userId,
+              activityId: activity.id,
+            },
+          },
+          update: {
+            completed: true,
+            completedAt: new Date(),
+            timeSpent: { increment: Math.max(0, Number(timeSpent || 0)) },
+            answers: JSON.stringify(updatedAnswers),
+          },
+          create: {
             userId: authUser.userId,
             activityId: activity.id,
+            completed: true,
+            completedAt: new Date(),
+            startedAt: new Date(),
+            timeSpent: Math.max(0, Number(timeSpent || 0)),
+            answers: JSON.stringify(updatedAnswers),
           },
-        },
-        update: {
-          completed: true,
-          completedAt: new Date(),
-          timeSpent: { increment: Math.max(0, Number(timeSpent || 0)) },
-        },
-        create: {
-          userId: authUser.userId,
-          activityId: activity.id,
-          completed: true,
-          completedAt: new Date(),
-          startedAt: new Date(),
-          timeSpent: Math.max(0, Number(timeSpent || 0)),
-        },
+        });
+
+        // Increment legacy completion counter only once
+        if (!alreadyCompleted) {
+          await tx.user.update({
+            where: { id: authUser.userId },
+            data: { codeArenasCompleted: { increment: 1 } },
+          });
+        }
+
+        // Apply catch-up rewards if any
+        if (awardDiamonds > 0 || awardExperience > 0) {
+          await tx.user.update({
+            where: { id: authUser.userId },
+            data: {
+              currentDiamonds: { increment: awardDiamonds },
+              totalDiamonds: { increment: awardDiamonds },
+              experience: { increment: awardExperience },
+            },
+          });
+
+          // Record transactions per share for clarity
+          if (awardCode) {
+            await tx.diamondTransaction.create({
+              data: {
+                userId: authUser.userId,
+                amount: codeDiamonds,
+                type: "ACTIVITY_COMPLETION",
+                description: `Lesson completion catch-up (code share): ${activity.title}`,
+                relatedType: "lesson",
+                relatedId: activity.id,
+              },
+            });
+          }
+          if (awardQuiz) {
+            await tx.diamondTransaction.create({
+              data: {
+                userId: authUser.userId,
+                amount: quizDiamonds,
+                type: "ACTIVITY_COMPLETION",
+                description: `Lesson completion catch-up (quiz share): ${activity.title}`,
+                relatedType: "lesson",
+                relatedId: activity.id,
+              },
+            });
+          }
+        }
+
+        return { updatedAttempt };
       });
 
+      // Badge awarding after transactional updates
       let newBadges: any[] = [];
-
-      if (!alreadyCompleted) {
-        // Reward user for first-time completion
-        await prisma.user.update({
-          where: { id: authUser.userId },
-          data: {
-            currentDiamonds: { increment: activity.diamondReward ?? 0 },
-            totalDiamonds: { increment: activity.diamondReward ?? 0 },
-            experience: { increment: activity.experienceReward ?? 0 },
-            codeArenasCompleted: { increment: 1 }, // legacy counter name retained
-          },
-        });
-
-        await prisma.diamondTransaction.create({
-          data: {
-            userId: authUser.userId,
-            amount: activity.diamondReward ?? 0,
-            type: "LESSON_COMPLETE",
-            description: `Lesson completed: ${activity.title}`,
-            relatedType: "lesson",
-            relatedId: activity.id,
-          },
-        });
-
-        try {
-          newBadges = await checkAndAwardBadges(authUser.userId);
-        } catch (e) {
-          console.error("Badge check error:", e);
-        }
+      try {
+        newBadges = await checkAndAwardBadges(authUser.userId);
+      } catch (e) {
+        console.error("Badge check error:", e);
       }
 
       return NextResponse.json({
         success: true,
         message: "Lesson completed",
-        progress,
-        rewards: !alreadyCompleted
-          ? {
-              diamonds: activity.diamondReward ?? 0,
-              experience: activity.experienceReward ?? 0,
-            }
-          : null,
+        progress: txResult.updatedAttempt,
+        rewards:
+          awardDiamonds > 0 || awardExperience > 0
+            ? {
+                diamonds: awardDiamonds,
+                experience: awardExperience,
+              }
+            : null,
         alreadyCompleted,
         newBadges: newBadges.length ? newBadges : undefined,
       });

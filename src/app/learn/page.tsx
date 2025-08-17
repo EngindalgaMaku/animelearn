@@ -7978,6 +7978,10 @@ export default function LearnPage() {
 
   // UI/UX: lesson search within selected topic
   const [lessonSearch, setLessonSearch] = useState("");
+  // Category view mode: 'compact' pill bar or 'detailed' grid cards
+  const [categoryView, setCategoryView] = useState<"compact" | "detailed">(
+    "compact"
+  );
 
   useEffect(() => {
     loadTopicsAndProgress();
@@ -8241,11 +8245,11 @@ export default function LearnPage() {
                   </div>
                   <div className="flex items-center">
                     <Diamond className="mr-1 h-4 w-4 text-yellow-500" />
-                    {selectedLesson.diamondReward}
+                    {25}
                   </div>
                   <div className="flex items-center">
                     <Star className="mr-1 h-4 w-4 text-purple-500" />
-                    {selectedLesson.experienceReward} XP
+                    {25} XP
                   </div>
                 </div>
               </div>
@@ -8707,6 +8711,24 @@ export default function LearnPage() {
           </motion.div>
         </div>
 
+        {/* Standard Rewards Notice */}
+        <div className="mx-auto mb-4 max-w-3xl">
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+              <span className="font-semibold">Standard Rewards:</span>
+              <span className="inline-flex items-center gap-1 font-bold">
+                <Star className="h-4 w-4 text-purple-500" />
+                25 XP
+              </span>
+              <span>+</span>
+              <span className="inline-flex items-center gap-1 font-bold">
+                <Diamond className="h-4 w-4 text-yellow-500" />
+                25 Diamonds
+              </span>
+              <span className="text-sm text-amber-700">per topic</span>
+            </div>
+          </div>
+        </div>
         {/* Quick Stats Strip */}
         <div className="mx-auto mb-10 max-w-5xl">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -8747,72 +8769,127 @@ export default function LearnPage() {
         </div>
 
         {/* Topic Selection */}
-        <div className="mb-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {topics.map((topic) => (
-            <motion.div
-              key={topic.id}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              whileHover={{ scale: 1.02 }}
-              className={`relative cursor-pointer rounded-2xl p-6 shadow-lg transition-all ${
-                selectedTopic === topic.id
-                  ? "border-2 border-purple-500 bg-white shadow-xl"
-                  : "border border-gray-200 bg-white/80 hover:shadow-xl"
-              }`}
-              onClick={() => setSelectedTopic(topic.id)}
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900">Topics</h2>
+          <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1 text-sm shadow-sm">
+            <button
+              type="button"
+              onClick={() => setCategoryView("compact")}
+              className={`rounded-md px-3 py-1 ${categoryView === "compact" ? "bg-purple-600 text-white" : "text-gray-700 hover:bg-gray-50"}`}
+              aria-pressed={categoryView === "compact"}
             >
-              {/* Locked badge */}
-              {!topic.isUnlocked && (
-                <div className="absolute right-3 top-3 rounded-full bg-gray-900/80 px-2 py-1 text-xs font-semibold text-white shadow">
-                  Locked
-                </div>
-              )}
-              <div className="mb-4 flex items-center space-x-3">
-                <div
-                  className={`rounded-xl bg-gradient-to-r ${topic.color} p-3 text-white`}
-                >
-                  <span className="text-2xl">{topic.icon}</span>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900">{topic.title}</h3>
-                  <p className="text-sm text-gray-600">{topic.description}</p>
-                </div>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="mb-4">
-                <div className="mb-2 flex justify-between text-sm">
-                  <span className="text-gray-600">Progress</span>
-                  <span className="font-semibold text-gray-800">
-                    {topic.overallProgress}%
-                  </span>
-                </div>
-                <div className="h-2 rounded-full bg-gray-200">
-                  <div
-                    className={`h-2 rounded-full bg-gradient-to-r ${topic.color}`}
-                    style={{ width: `${topic.overallProgress}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Stats */}
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="rounded-lg bg-blue-50 p-2 text-center">
-                  <div className="font-bold text-blue-600">
-                    {topic.completedLessons}/{topic.totalLessons}
-                  </div>
-                  <div className="text-blue-500">Lessons</div>
-                </div>
-                <div className="rounded-lg bg-green-50 p-2 text-center">
-                  <div className="font-bold text-green-600">
-                    {topic.completedChallenges}/{topic.totalChallenges}
-                  </div>
-                  <div className="text-green-500">Challenges</div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+              Compact
+            </button>
+            <button
+              type="button"
+              onClick={() => setCategoryView("detailed")}
+              className={`rounded-md px-3 py-1 ${categoryView === "detailed" ? "bg-purple-600 text-white" : "text-gray-700 hover:bg-gray-50"}`}
+              aria-pressed={categoryView === "detailed"}
+            >
+              Detailed
+            </button>
+          </div>
         </div>
+
+        {categoryView === "compact" ? (
+          <div className="mb-8 overflow-x-auto pb-1">
+            <div className="flex items-center gap-3">
+              {topics.map((topic) => {
+                const isSelected = selectedTopic === topic.id;
+                const isLocked = !topic.isUnlocked;
+                return (
+                  <button
+                    key={topic.id}
+                    type="button"
+                    title={`${topic.title} • ${topic.overallProgress}%`}
+                    onClick={() => {
+                      if (!isLocked) setSelectedTopic(topic.id);
+                    }}
+                    className={`flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-sm transition ${
+                      isSelected
+                        ? "border-purple-500 bg-purple-50 text-purple-800"
+                        : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                    } ${isLocked ? "cursor-not-allowed opacity-60" : ""}`}
+                    aria-disabled={isLocked}
+                  >
+                    <span className="text-lg">{topic.icon}</span>
+                    <span className="font-medium">{topic.title}</span>
+                    <span className="ml-1 text-xs text-gray-500">
+                      {topic.overallProgress}%
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div className="mb-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {topics.map((topic) => (
+              <motion.div
+                key={topic.id}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                whileHover={{ scale: 1.02 }}
+                className={`relative cursor-pointer rounded-2xl p-6 shadow-lg transition-all ${
+                  selectedTopic === topic.id
+                    ? "border-2 border-purple-500 bg-white shadow-xl"
+                    : "border border-gray-200 bg-white/80 hover:shadow-xl"
+                }`}
+                onClick={() => setSelectedTopic(topic.id)}
+              >
+                {/* Locked badge */}
+                {!topic.isUnlocked && (
+                  <div className="absolute right-3 top-3 rounded-full bg-gray-900/80 px-2 py-1 text-xs font-semibold text-white shadow">
+                    Locked
+                  </div>
+                )}
+                <div className="mb-4 flex items-center space-x-3">
+                  <div
+                    className={`rounded-xl bg-gradient-to-r ${topic.color} p-3 text-white`}
+                  >
+                    <span className="text-2xl">{topic.icon}</span>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">{topic.title}</h3>
+                    <p className="text-sm text-gray-600">{topic.description}</p>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="mb-4">
+                  <div className="mb-2 flex justify-between text-sm">
+                    <span className="text-gray-600">Progress</span>
+                    <span className="font-semibold text-gray-800">
+                      {topic.overallProgress}%
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-gray-200">
+                    <div
+                      className={`h-2 rounded-full bg-gradient-to-r ${topic.color}`}
+                      style={{ width: `${topic.overallProgress}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="rounded-lg bg-blue-50 p-2 text-center">
+                    <div className="font-bold text-blue-600">
+                      {topic.completedLessons}/{topic.totalLessons}
+                    </div>
+                    <div className="text-blue-500">Lessons</div>
+                  </div>
+                  <div className="rounded-lg bg-green-50 p-2 text-center">
+                    <div className="font-bold text-green-600">
+                      {topic.completedChallenges}/{topic.totalChallenges}
+                    </div>
+                    <div className="text-green-500">Challenges</div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
 
         {/* Selected Topic Details */}
         {selectedTopicData && (

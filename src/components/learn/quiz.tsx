@@ -169,32 +169,33 @@ export default function QuizComponent({
     };
     localStorage.setItem(quizStorageKey, JSON.stringify(completedState));
 
-    // Submit to API
+    // Submit to API (server computes rewards and ensures idempotency)
     try {
-      const response = await fetch(`/api/quizzes/${quiz.id}/submit`, {
+      const response = await fetch(`/api/lessons/${lessonId}/quiz-complete`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          lessonId,
-          answers,
-          timeSpent: actualTimeSpent,
           score,
-          correctAnswers,
-          totalQuestions: quiz.questions.length,
+          passingScore: quiz.passingScore,
         }),
       });
 
       if (response.ok) {
         const result = await response.json();
-        onQuizComplete(score, passed, {
-          diamonds: passed ? quiz.diamondReward || 0 : 0,
-          experience: passed ? quiz.experienceReward || 0 : 0,
-        });
+        onQuizComplete(
+          score,
+          typeof result.passed === "boolean" ? result.passed : passed,
+          result.rewards || { diamonds: 0, experience: 0 }
+        );
+      } else {
+        // Fallback: no rewards on failure
+        onQuizComplete(score, passed, { diamonds: 0, experience: 0 });
       }
     } catch (error) {
       console.error("Error submitting quiz:", error);
+      onQuizComplete(score, passed, { diamonds: 0, experience: 0 });
     }
   }, [
     quiz,
