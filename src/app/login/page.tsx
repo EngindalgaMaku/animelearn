@@ -67,9 +67,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+    <div className="relative flex min-h-screen overflow-hidden bg-white dark:bg-slate-900 md:bg-gradient-to-br md:from-indigo-900 md:via-purple-900 md:to-pink-900">
       {/* Animated Background Elements */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 hidden md:block">
         {/* Floating Gaming Icons */}
         <motion.div
           className="absolute left-10 top-20 text-yellow-400 opacity-20"
@@ -101,7 +101,7 @@ export default function LoginPage() {
         </motion.div>
 
         {/* Particle Effects */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 hidden md:block">
           {Array.from({ length: 20 }).map((_, i) => (
             <motion.div
               key={i}
@@ -265,26 +265,26 @@ export default function LoginPage() {
               </Link>
 
               <motion.h2
-                className="mb-2 text-3xl font-bold text-white"
+                className="mb-2 text-3xl font-bold text-slate-900 dark:text-white"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                Welcome Back, Coder! 🎮
+                Sign in to your account
               </motion.h2>
               <motion.p
-                className="text-gray-300"
+                className="text-slate-600 dark:text-gray-300"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                Continue your epic Python learning journey
+                Enter your credentials to continue
               </motion.p>
             </div>
 
             {/* Login Form */}
             <motion.div
-              className="rounded-2xl border border-white/20 bg-white/10 p-8 shadow-2xl backdrop-blur-lg"
+              className="rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-700 dark:bg-gray-800 sm:p-8"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4 }}
@@ -293,9 +293,9 @@ export default function LoginPage() {
                 <div>
                   <label
                     htmlFor="username"
-                    className="mb-2 block text-sm font-medium text-gray-300"
+                    className="mb-2 block text-sm font-medium text-slate-700 dark:text-gray-300"
                   >
-                    Username
+                    Email or Username
                   </label>
                   <input
                     id="username"
@@ -304,15 +304,17 @@ export default function LoginPage() {
                     required
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="relative block w-full appearance-none rounded-xl border border-white/30 bg-white/10 px-4 py-3 text-white placeholder-gray-300 backdrop-blur-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Enter your username"
+                    className="relative block w-full appearance-none rounded-xl border border-gray-300 bg-white px-4 py-3 text-slate-900 placeholder-gray-400 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                    placeholder="Enter your email or username"
+                    aria-label="Email or Username"
+                    autoComplete="username"
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="password"
-                    className="mb-2 block text-sm font-medium text-gray-300"
+                    className="mb-2 block text-sm font-medium text-slate-700 dark:text-gray-300"
                   >
                     Password
                   </label>
@@ -324,20 +326,34 @@ export default function LoginPage() {
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="relative block w-full appearance-none rounded-xl border border-white/30 bg-white/10 px-4 py-3 text-white placeholder-gray-300 backdrop-blur-sm focus:z-10 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="relative block w-full appearance-none rounded-xl border border-gray-300 bg-white px-4 py-3 text-slate-900 placeholder-gray-400 focus:z-10 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                       placeholder="Enter your password"
+                      aria-label="Password"
+                      autoComplete="current-password"
                     />
                     <button
                       type="button"
                       className="absolute inset-y-0 right-0 flex items-center pr-3"
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      aria-pressed={showPassword}
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? (
-                        <EyeOff className="h-5 w-5 text-gray-300 hover:text-white" />
+                        <EyeOff className="h-5 w-5 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white" />
                       ) : (
-                        <Eye className="h-5 w-5 text-gray-300 hover:text-white" />
+                        <Eye className="h-5 w-5 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white" />
                       )}
                     </button>
+                  </div>
+                  <div className="mt-2 text-right">
+                    <Link
+                      href="/forgot-password"
+                      className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                    >
+                      Forgot password?
+                    </Link>
                   </div>
                 </div>
 
@@ -362,19 +378,19 @@ export default function LoginPage() {
                   <motion.button
                     type="submit"
                     disabled={isLoading}
-                    className="group relative flex w-full justify-center rounded-xl border border-transparent bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-medium text-white transition-all hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="group relative flex w-full justify-center rounded-xl border border-transparent bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-medium text-white transition-all hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     {isLoading ? (
                       <div className="flex items-center space-x-2">
                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                        <span>Logging into your adventure...</span>
+                        <span>Signing you in...</span>
                       </div>
                     ) : (
                       <div className="flex items-center space-x-2">
                         <LogIn className="h-4 w-4" />
-                        <span>Start Gaming! 🚀</span>
+                        <span>Sign In</span>
                       </div>
                     )}
                   </motion.button>
@@ -385,10 +401,10 @@ export default function LoginPage() {
               <div className="mt-6">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-white/30" />
+                    <div className="w-full border-t border-gray-300 dark:border-gray-700" />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="bg-white/10 px-2 text-gray-300 backdrop-blur-sm">
+                    <span className="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-300">
                       Or continue with
                     </span>
                   </div>
@@ -397,7 +413,7 @@ export default function LoginPage() {
                 <div className="mt-6">
                   <motion.button
                     onClick={handleGoogleSignIn}
-                    className="group relative flex w-full justify-center rounded-xl border border-white/30 bg-white/10 px-4 py-3 text-sm font-medium text-white backdrop-blur-sm transition-all hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                    className="group relative flex w-full justify-center rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -426,58 +442,58 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Demo Info */}
+              {/* Account Prompt */}
               <motion.div
-                className="mt-6 rounded-xl border border-purple-400/30 bg-gradient-to-r from-purple-500/20 to-pink-500/20 p-4 backdrop-blur-sm"
+                className="mt-6 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
               >
                 <div className="text-sm">
-                  <h4 className="mb-2 flex items-center space-x-2 font-medium text-white">
-                    <Star className="h-4 w-4 text-yellow-400" />
+                  <h4 className="mb-2 flex items-center space-x-2 font-medium text-slate-900 dark:text-white">
+                    <Star className="h-4 w-4 text-yellow-500" />
                     <span>Ready to start your journey?</span>
                   </h4>
-                  <p className="mb-3 text-gray-300">
+                  <p className="mb-3 text-slate-600 dark:text-gray-300">
                     Join thousands of learners mastering Python through gamified
-                    challenges!
+                    challenges.
                   </p>
                   <Link
                     href="/register"
-                    className="inline-flex items-center space-x-2 font-medium text-yellow-400 transition-colors hover:text-yellow-300"
+                    className="inline-flex items-center space-x-2 font-medium text-blue-600 hover:underline dark:text-blue-400"
                   >
                     <Award className="h-4 w-4" />
-                    <span>Create Free Account →</span>
+                    <span>Create Free Account</span>
                   </Link>
                 </div>
               </motion.div>
 
               {/* Mobile Benefits Preview */}
               <motion.div
-                className="mt-6 rounded-xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm lg:hidden"
+                className="mt-6 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 lg:hidden"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 }}
               >
-                <h4 className="mb-3 flex items-center space-x-2 font-medium text-white">
-                  <Trophy className="h-4 w-4 text-yellow-400" />
+                <h4 className="mb-3 flex items-center space-x-2 font-medium text-slate-900 dark:text-white">
+                  <Trophy className="h-4 w-4 text-yellow-500" />
                   <span>What you'll unlock:</span>
                 </h4>
                 <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="flex items-center space-x-2 text-gray-300">
-                    <Target className="h-3 w-3 text-blue-400" />
+                  <div className="flex items-center space-x-2 text-slate-600 dark:text-gray-300">
+                    <Target className="h-3 w-3 text-blue-500 dark:text-blue-400" />
                     <span>Daily Challenges</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-gray-300">
-                    <Diamond className="h-3 w-3 text-purple-400" />
+                  <div className="flex items-center space-x-2 text-slate-600 dark:text-gray-300">
+                    <Diamond className="h-3 w-3 text-purple-500 dark:text-purple-400" />
                     <span>Collect Cards</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-gray-300">
-                    <Zap className="h-3 w-3 text-yellow-400" />
+                  <div className="flex items-center space-x-2 text-slate-600 dark:text-gray-300">
+                    <Zap className="h-3 w-3 text-yellow-500 dark:text-yellow-400" />
                     <span>Earn XP</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-gray-300">
-                    <TrendingUp className="h-3 w-3 text-green-400" />
+                  <div className="flex items-center space-x-2 text-slate-600 dark:text-gray-300">
+                    <TrendingUp className="h-3 w-3 text-green-500 dark:text-green-400" />
                     <span>Track Progress</span>
                   </div>
                 </div>
@@ -493,7 +509,7 @@ export default function LoginPage() {
             >
               <Link
                 href="/"
-                className="inline-flex items-center space-x-2 text-gray-400 transition-colors hover:text-white"
+                className="inline-flex items-center space-x-2 text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
               >
                 <svg
                   className="h-4 w-4"

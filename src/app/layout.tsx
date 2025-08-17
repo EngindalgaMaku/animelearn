@@ -261,20 +261,10 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Zumenzu" />
 
         {/* Icons and Manifest */}
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        {/* Optional Apple Touch icon (keep if provided) */}
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="/favicon-32x32.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="/favicon-16x16.png"
-        />
+        {/* Fallback PNGs can be added later if needed */}
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="msapplication-TileColor" content="#3b82f6" />
         <meta name="msapplication-config" content="/browserconfig.xml" />

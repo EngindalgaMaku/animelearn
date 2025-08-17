@@ -166,7 +166,10 @@ export default function MainNavigation() {
   // Prevent hydration mismatch during SSR
   if (!mounted || loading) {
     return (
-      <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
+      <nav
+        className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm"
+        aria-label="Primary"
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
@@ -174,11 +177,13 @@ export default function MainNavigation() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-purple-600">
                 <Gamepad2 className="h-5 w-5 text-white" />
               </div>
-              <div className="hidden sm:block">
-                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-xl font-bold text-transparent">
+              <div className="block">
+                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-lg font-bold text-transparent sm:text-xl">
                   Zumenzu
                 </span>
-                <div className="text-xs text-gray-500">Level Up Learning</div>
+                <div className="hidden text-xs text-gray-500 sm:block">
+                  Level Up Learning
+                </div>
               </div>
             </Link>
 
@@ -220,7 +225,10 @@ export default function MainNavigation() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
+    <nav
+      className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm"
+      aria-label="Primary"
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -228,11 +236,13 @@ export default function MainNavigation() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-purple-600">
               <Gamepad2 className="h-5 w-5 text-white" />
             </div>
-            <div className="hidden sm:block">
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-xl font-bold text-transparent">
+            <div className="block">
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-lg font-bold text-transparent sm:text-xl">
                 Zumenzu
               </span>
-              <div className="text-xs text-gray-500">Level Up Learning</div>
+              <div className="hidden text-xs text-gray-500 sm:block">
+                Level Up Learning
+              </div>
             </div>
           </Link>
 
@@ -340,6 +350,11 @@ export default function MainNavigation() {
               {/* More dropdown - simplified logic */}
               <div className="relative" ref={moreDropdownRef}>
                 <button
+                  id="more-menu-button"
+                  aria-haspopup="menu"
+                  aria-expanded={moreDropdownOpen}
+                  aria-controls="more-menu"
+                  aria-label="More menu"
                   onClick={() => setMoreDropdownOpen(!moreDropdownOpen)}
                   className="flex items-center space-x-1 rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                 >
@@ -349,7 +364,12 @@ export default function MainNavigation() {
                 </button>
 
                 {moreDropdownOpen && (
-                  <div className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                  <div
+                    id="more-menu"
+                    role="menu"
+                    aria-labelledby="more-menu-button"
+                    className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+                  >
                     {navigation
                       .filter((item) => {
                         // Always include items marked for More dropdown
@@ -371,6 +391,7 @@ export default function MainNavigation() {
                           <Link
                             key={item.name}
                             href={item.href}
+                            role="menuitem"
                             onClick={() => setMoreDropdownOpen(false)}
                             className={`flex items-center space-x-3 px-4 py-2 text-sm transition-colors ${
                               isActive
@@ -407,6 +428,11 @@ export default function MainNavigation() {
                 {/* User Dropdown */}
                 <div className="relative" ref={dropdownRef}>
                   <button
+                    id="user-menu-button"
+                    aria-haspopup="menu"
+                    aria-expanded={userDropdownOpen}
+                    aria-controls="user-menu"
+                    aria-label="User menu"
                     onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                     className="flex items-center space-x-2 rounded-lg border border-gray-200 p-2 transition-colors hover:bg-gray-50"
                   >
@@ -431,7 +457,12 @@ export default function MainNavigation() {
 
                   {/* Dropdown Menu */}
                   {userDropdownOpen && (
-                    <div className="absolute right-0 z-50 mt-2 w-64 rounded-xl border border-gray-200 bg-white py-2 shadow-lg">
+                    <div
+                      id="user-menu"
+                      role="menu"
+                      aria-labelledby="user-menu-button"
+                      className="absolute right-0 z-50 mt-2 w-64 rounded-xl border border-gray-200 bg-white py-2 shadow-lg"
+                    >
                       {/* User Info Header */}
                       <div className="border-b border-gray-100 px-4 py-3">
                         <div className="flex items-center space-x-3">
@@ -483,6 +514,7 @@ export default function MainNavigation() {
                       <div className="py-1">
                         <Link
                           href="/profile"
+                          role="menuitem"
                           onClick={() => setUserDropdownOpen(false)}
                           className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
                         >
@@ -493,6 +525,7 @@ export default function MainNavigation() {
                         {isAdmin && (
                           <Link
                             href="/admin"
+                            role="menuitem"
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={() => setUserDropdownOpen(false)}
@@ -506,6 +539,7 @@ export default function MainNavigation() {
                         <div className="my-1 border-t border-gray-100"></div>
 
                         <button
+                          role="menuitem"
                           onClick={() => {
                             setUserDropdownOpen(false);
                             handleLogout();
@@ -532,6 +566,9 @@ export default function MainNavigation() {
 
             {/* Mobile menu button */}
             <button
+              aria-label="Toggle navigation"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="rounded-lg p-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 md:hidden"
             >
@@ -546,7 +583,12 @@ export default function MainNavigation() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden">
+          <div
+            id="mobile-nav"
+            className="md:hidden"
+            role="navigation"
+            aria-label="Mobile"
+          >
             <div className="space-y-1 border-t border-gray-200 bg-white px-2 pb-3 pt-2">
               {/* User Stats - Mobile */}
               {isAuthenticated && user && (

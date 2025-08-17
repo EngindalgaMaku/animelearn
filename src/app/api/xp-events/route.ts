@@ -1,37 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 interface AuthUser {
   userId: string;
   username: string;
 }
 
-function getUserFromToken(request: NextRequest): AuthUser | null {
-  const token = request.cookies.get("auth-token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
-  } catch (error) {
-    return null;
-  }
-}
-
 // GET - Aktif XP multiplier etkinliklerini listele
 export async function GET(req: NextRequest) {
   try {
-    const authUser = getUserFromToken(req);
-
-    if (!authUser) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const authUser: AuthUser = {
+      userId: session.user.id,
+      username:
+        (session.user as any).username || session.user.email || "Unknown",
+    };
 
     const now = new Date();
 
@@ -135,20 +123,18 @@ export async function GET(req: NextRequest) {
 // POST - Yeni XP multiplier etkinliği oluştur (Admin)
 export async function POST(req: NextRequest) {
   try {
-    const authUser = getUserFromToken(req);
-
-    if (!authUser) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    // Admin kontrolü (şimdilik basit)
-    const user = await prisma.user.findUnique({
-      where: { id: authUser.userId },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if ((session.user as any).role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
+    const authUser: AuthUser = {
+      userId: session.user.id,
+      username:
+        (session.user as any).username || session.user.email || "Unknown",
+    };
 
     const body = await req.json();
     const {

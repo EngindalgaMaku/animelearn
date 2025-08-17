@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import {
@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import HeroSection from "@/app/clean/components/HeroSection";
 
 interface Stats {
   totalUsers: number;
@@ -72,6 +73,8 @@ export default function HomePage() {
   const [isTipExpanded, setIsTipExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
   const { isAuthenticated, user } = useAuth();
+  const dailyTipRef = useRef<HTMLDivElement | null>(null);
+  const [dailyTipVisible, setDailyTipVisible] = useState(false);
 
   // Handle hydration
   useEffect(() => {
@@ -128,8 +131,36 @@ export default function HomePage() {
     fetchStats();
     fetchSampleCards();
     fetchSampleQuiz();
-    fetchDailyTip();
   }, []);
+
+  // Lazy-load Daily Tip: observe sentinel near the section and fetch when in view
+  useEffect(() => {
+    const el = dailyTipRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setDailyTipVisible(true);
+            observer.disconnect();
+          }
+        });
+      },
+      { root: null, rootMargin: "200px", threshold: 0.1 }
+    );
+
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (dailyTipVisible && !dailyTip) {
+      fetchDailyTip();
+    }
+  }, [dailyTipVisible, dailyTip]);
 
   const fetchStats = async () => {
     try {
@@ -323,479 +354,7 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 py-16 lg:py-24">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20"></div>
-
-        {/* Floating Elements */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -right-4 top-1/4 h-72 w-72 rounded-full bg-gradient-to-r from-purple-500/30 to-pink-500/30 blur-3xl"></div>
-          <div className="absolute -left-4 bottom-1/4 h-72 w-72 rounded-full bg-gradient-to-r from-blue-500/30 to-cyan-500/30 blur-3xl"></div>
-        </div>
-
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center text-white">
-            {/* Hero Badge */}
-            <div className="mb-6 inline-flex items-center rounded-full bg-white/20 px-6 py-3 text-sm font-semibold backdrop-blur-sm">
-              <Sparkles className="mr-2 h-4 w-4 text-yellow-300" />
-              #1 Python Learning Platform with Gamification
-            </div>
-
-            {/* Main Headlines */}
-            <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
-              <span className="block">Master Python</span>
-              <span className="block bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
-                Through Gamified Learning
-              </span>
-            </h1>
-
-            <p className="mx-auto mb-8 max-w-3xl text-lg text-blue-100 sm:text-xl lg:text-2xl">
-              Learn Python programming in the{" "}
-              <strong className="text-yellow-300">Code Arena</strong> • Earn{" "}
-              <strong className="text-yellow-300">💎 diamonds</strong> • Collect{" "}
-              <strong className="text-pink-300">🎌 anime cards</strong> • Unlock{" "}
-              <strong className="text-green-300">🏆 achievements</strong>
-            </p>
-
-            {/* Unified Dashboard Section */}
-            <div className="mb-8 flex flex-col items-center justify-center">
-              {isAuthenticated ? (
-                <div className="w-full max-w-5xl space-y-6">
-                  {/* Welcome Header */}
-                  <div className="rounded-2xl bg-white/95 p-6 shadow-xl backdrop-blur-sm">
-                    <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 text-2xl font-bold text-white">
-                          🎮
-                        </div>
-                        <div className="text-center sm:text-left">
-                          <h3 className="text-xl font-bold text-slate-900">
-                            Welcome back!
-                          </h3>
-                          <p className="text-slate-600">
-                            Continue your Python mastery with Zumenzu
-                          </p>
-                        </div>
-                      </div>
-                      <Link
-                        href="/dashboard"
-                        className="group flex items-center space-x-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 px-6 py-3 font-semibold text-white transition-all hover:from-blue-600 hover:to-purple-600"
-                      >
-                        <Gamepad2 className="h-5 w-5" />
-                        <span>Full Dashboard</span>
-                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                      </Link>
-                    </div>
-                  </div>
-
-                  {/* Navigation Grid - Dashboard Style */}
-                  <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                    {/* Dashboard */}
-                    <Link
-                      href="/dashboard"
-                      className="group rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 p-6 text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
-                    >
-                      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
-                        <BarChart3 className="h-6 w-6" />
-                      </div>
-                      <div className="mb-2 text-xl font-bold">Dashboard</div>
-                      <div className="text-sm text-emerald-100">
-                        🎮 Overview
-                      </div>
-                    </Link>
-
-                    {/* Code Arena */}
-                    <Link
-                      href="/code-arena"
-                      className="group rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 p-6 text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
-                    >
-                      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
-                        <Terminal className="h-6 w-6" />
-                      </div>
-                      <div className="mb-2 text-xl font-bold">Code Arena</div>
-                      <div className="text-sm text-orange-100">
-                        ⚔️ Learn & Battle
-                      </div>
-                    </Link>
-
-                    {/* Quiz Arena */}
-                    <Link
-                      href="/quiz-arena"
-                      className="group rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-500 p-6 text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
-                    >
-                      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
-                        <Brain className="h-6 w-6" />
-                      </div>
-                      <div className="mb-2 text-xl font-bold">Quiz Arena</div>
-                      <div className="text-sm text-purple-100">
-                        🧠 Test Skills
-                      </div>
-                    </Link>
-
-                    {/* Card Shop */}
-                    <Link
-                      href="/shop"
-                      className="group rounded-2xl border-2 border-purple-300 bg-white/95 p-6 text-purple-700 shadow-lg transition-all hover:scale-105 hover:border-purple-400 hover:bg-purple-50 hover:shadow-xl"
-                    >
-                      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100">
-                        <ShoppingBag className="h-6 w-6 text-purple-600" />
-                      </div>
-                      <div className="mb-2 text-xl font-bold text-purple-700">
-                        Card Shop
-                      </div>
-                      <div className="text-sm text-purple-600">
-                        🛒 Collect Cards
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {/* Primary Action */}
-                  <Link
-                    href="/login"
-                    className="group inline-flex items-center space-x-3 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 px-8 py-3 text-lg font-bold text-white shadow-lg transition-all hover:scale-105 hover:from-yellow-600 hover:to-orange-600"
-                  >
-                    <Crown className="h-5 w-5" />
-                    <span>Start Free Journey</span>
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
-
-                  {/* Secondary Actions */}
-                  <div className="mt-2 flex gap-4">
-                    <Link
-                      href="/code-arena"
-                      className="group inline-flex items-center space-x-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-all hover:bg-white/20"
-                    >
-                      <Monitor className="h-4 w-4" />
-                      <span>Preview Code Arena</span>
-                    </Link>
-                    <Link
-                      href="/quiz-arena"
-                      className="group inline-flex items-center space-x-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-all hover:bg-white/20"
-                    >
-                      <Brain className="h-4 w-4" />
-                      <span>Preview Quiz Arena</span>
-                    </Link>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Trust Indicators */}
-            <div className="mx-auto grid max-w-5xl grid-cols-2 gap-6 md:grid-cols-4">
-              <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
-                <div className="text-2xl font-bold">
-                  {stats.totalUsers.toLocaleString()}
-                </div>
-                <div className="text-sm text-blue-200">Learning Python</div>
-              </div>
-              <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
-                <div className="text-2xl font-bold">{stats.totalLessons}</div>
-                <div className="text-sm text-blue-200">Code Challenges</div>
-              </div>
-              <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
-                <div className="text-2xl font-bold">
-                  {stats.animeCards + stats.carCards}
-                </div>
-                <div className="text-sm text-blue-200">Collectible Cards</div>
-              </div>
-              <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
-                <div className="text-2xl font-bold">98%</div>
-                <div className="text-sm text-blue-200">Satisfaction</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Daily Python Tip Section */}
-      {dailyTip && (
-        <section className="py-12 lg:py-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="mb-8 text-center">
-              <div className="mb-4 inline-flex items-center rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 px-6 py-3 text-sm font-semibold text-blue-700">
-                <Terminal className="mr-2 h-4 w-4" />
-                🐍 Daily Python Tip
-              </div>
-              <h2 className="mb-2 text-3xl font-bold text-slate-900 lg:text-4xl">
-                Learn Something New Every Day
-              </h2>
-              <p className="mx-auto max-w-2xl text-lg text-slate-600">
-                Discover practical Python tips and tricks that will improve your
-                coding skills
-              </p>
-            </div>
-
-            <div className="mx-auto max-w-4xl">
-              {/* Daily Python Tip Accordion */}
-              <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl">
-                {/* Collapsed Header */}
-                <div className="bg-gradient-to-r from-slate-800 to-slate-900 p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-purple-500">
-                        <Terminal className="h-6 w-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-white">
-                          {dailyTip.title || "Daily Python Tip"}
-                        </h3>
-                        <div className="mt-1 flex items-center space-x-3">
-                          <span className="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-300">
-                            {dailyTip.difficulty || "beginner"}
-                          </span>
-                          <div className="flex items-center space-x-1 text-yellow-400">
-                            <Zap className="h-3 w-3" />
-                            <span className="text-sm font-bold">
-                              +{dailyTip.xpReward || 10} XP
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setIsTipExpanded(!isTipExpanded)}
-                      className="flex items-center space-x-2 rounded-lg bg-white/10 px-4 py-2 text-white transition-all hover:bg-white/20"
-                    >
-                      <span className="text-sm font-medium">
-                        {isTipExpanded ? "Collapse" : "Expand"}
-                      </span>
-                      {isTipExpanded ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Expandable Content */}
-                {isTipExpanded && (
-                  <div className="p-6">
-                    {/* Tip Content */}
-                    <div className="mb-6">
-                      <p className="text-lg leading-relaxed text-gray-700">
-                        {dailyTip.content}
-                      </p>
-                    </div>
-
-                    {/* Tip Info */}
-                    <div className="mb-6 flex items-center space-x-6 text-sm text-gray-500">
-                      <div className="flex items-center space-x-1">
-                        <Eye className="h-4 w-4" />
-                        <span>{dailyTip.viewCount || 0} views</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Heart className="h-4 w-4" />
-                        <span>{dailyTip.likeCount || 0} likes</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Clock className="h-4 w-4" />
-                        <span>{dailyTip.estimatedMinutes || 5} min read</span>
-                      </div>
-                    </div>
-
-                    {/* Code Example - VS Code Style */}
-                    {dailyTip.codeExample && (
-                      <div className="mb-6">
-                        {/* Code Editor Header */}
-                        <div className="rounded-t-lg border border-gray-700 bg-[#2d2d30] px-4 py-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              {/* VS Code Traffic Lights */}
-                              <div className="flex items-center space-x-2">
-                                <div className="h-3 w-3 rounded-full bg-red-500"></div>
-                                <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
-                                <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                              </div>
-
-                              <div className="flex items-center space-x-2">
-                                <Code className="h-4 w-4 text-blue-400" />
-                                <span className="text-sm font-medium text-white">
-                                  python_tip.py
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center space-x-3">
-                              <span className="text-xs text-gray-400">
-                                Python
-                              </span>
-                              <button
-                                onClick={handleTipCopyCode}
-                                className={`flex items-center space-x-1 rounded px-2 py-1 text-xs transition-colors ${
-                                  copied
-                                    ? "bg-green-600/20 text-green-400"
-                                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                                }`}
-                              >
-                                <Copy className="h-3 w-3" />
-                                <span>{copied ? "Copied!" : "Copy"}</span>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Code Content */}
-                        <div className="overflow-x-auto rounded-b-lg border-x border-b border-gray-700">
-                          <SyntaxHighlighter
-                            language="python"
-                            style={vscDarkPlus}
-                            customStyle={{
-                              margin: 0,
-                              padding: "1rem",
-                              background: "#1e1e1e",
-                              fontSize: "14px",
-                              lineHeight: "1.5",
-                            }}
-                            showLineNumbers
-                            lineNumberStyle={{
-                              color: "#6e7681",
-                              paddingRight: "1rem",
-                              textAlign: "right",
-                              userSelect: "none",
-                            }}
-                            wrapLines={true}
-                            wrapLongLines={true}
-                          >
-                            {dailyTip.codeExample}
-                          </SyntaxHighlighter>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Progress Indicator */}
-                    {tipProgress && (
-                      <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
-                        <h4 className="mb-3 font-medium text-gray-900">
-                          Your Progress
-                        </h4>
-                        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                          <div
-                            className={`flex items-center space-x-2 ${
-                              tipProgress.hasViewed
-                                ? "text-green-600"
-                                : "text-gray-400"
-                            }`}
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                            <span className="text-xs">Viewed</span>
-                          </div>
-                          <div
-                            className={`flex items-center space-x-2 ${
-                              tipProgress.hasLiked
-                                ? "text-red-500"
-                                : "text-gray-400"
-                            }`}
-                          >
-                            <Heart className="h-4 w-4" />
-                            <span className="text-xs">Liked</span>
-                          </div>
-                          <div
-                            className={`flex items-center space-x-2 ${
-                              tipProgress.hasCompleted
-                                ? "text-purple-600"
-                                : "text-gray-400"
-                            }`}
-                          >
-                            <Trophy className="h-4 w-4" />
-                            <span className="text-xs">Completed</span>
-                          </div>
-                          <div className="flex items-center space-x-2 text-yellow-600">
-                            <Zap className="h-4 w-4" />
-                            <span className="text-xs">
-                              {tipProgress.xpEarned || 0} XP earned
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Action Buttons */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <button
-                          onClick={handleTipLike}
-                          disabled={!isAuthenticated}
-                          className={`flex items-center space-x-2 rounded-lg px-4 py-2 transition-all ${
-                            tipProgress?.hasLiked
-                              ? "bg-red-50 text-red-600 hover:bg-red-100"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                          } ${!isAuthenticated ? "cursor-not-allowed opacity-50" : ""}`}
-                        >
-                          <Heart
-                            className="h-4 w-4"
-                            fill={
-                              tipProgress?.hasLiked ? "currentColor" : "none"
-                            }
-                          />
-                          <span className="text-sm">
-                            {dailyTip.likeCount || 0}
-                          </span>
-                        </button>
-
-                        <button
-                          onClick={handleTipShare}
-                          className="flex items-center space-x-2 rounded-lg bg-gray-100 px-4 py-2 text-gray-600 transition-colors hover:bg-gray-200"
-                        >
-                          <Share2 className="h-4 w-4" />
-                          <span className="text-sm">Share</span>
-                        </button>
-                      </div>
-
-                      {isAuthenticated && !tipProgress?.hasCompleted && (
-                        <button
-                          onClick={handleTipComplete}
-                          className="flex items-center space-x-2 rounded-lg bg-purple-600 px-4 py-2 font-medium text-white transition-all hover:bg-purple-700"
-                        >
-                          <Trophy className="h-4 w-4" />
-                          <span>Mark Complete</span>
-                        </button>
-                      )}
-
-                      {tipProgress?.hasCompleted && (
-                        <div className="flex items-center space-x-2 text-green-600">
-                          <CheckCircle className="h-4 w-4" />
-                          <span className="text-sm font-medium">
-                            Completed!
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {!isAuthenticated && (
-              <div className="mt-8 text-center">
-                <div className="mx-auto max-w-md rounded-xl border-2 border-dashed border-yellow-300 bg-gradient-to-r from-yellow-50 to-orange-50 p-6">
-                  <div className="mb-3 flex justify-center">
-                    <div className="rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 p-2">
-                      <Crown className="h-6 w-6 text-white" />
-                    </div>
-                  </div>
-                  <h4 className="mb-2 text-lg font-bold text-slate-900">
-                    🔓 Login to Earn XP!
-                  </h4>
-                  <p className="mb-4 text-sm text-slate-600">
-                    Complete daily tips and earn{" "}
-                    <strong className="text-purple-600">XP + diamonds</strong>{" "}
-                    to level up your Python skills
-                  </p>
-                  <Link
-                    href="/login"
-                    className="inline-flex items-center space-x-2 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 px-4 py-2 text-sm font-bold text-white transition-all hover:from-yellow-600 hover:to-orange-600"
-                  >
-                    <Crown className="h-4 w-4" />
-                    <span>Login & Start Learning</span>
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
+      <HeroSection isAuthenticated={isAuthenticated} />
 
       {/* Login Benefits & Challenge Showcase */}
       <section className="relative bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50 py-20 lg:py-24">
@@ -1566,6 +1125,295 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Daily Python Tip Section */}
+      <div id="daily-tip-observer" ref={dailyTipRef}></div>
+      {dailyTip && (
+        <section className="py-12 lg:py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-8 text-center">
+              <div className="mb-4 inline-flex items-center rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 px-6 py-3 text-sm font-semibold text-blue-700">
+                <Terminal className="mr-2 h-4 w-4" />
+                🐍 Daily Python Tip
+              </div>
+              <h2 className="mb-2 text-3xl font-bold text-slate-900 lg:text-4xl">
+                Learn Something New Every Day
+              </h2>
+              <p className="mx-auto max-w-2xl text-lg text-slate-600">
+                Discover practical Python tips and tricks that will improve your
+                coding skills
+              </p>
+            </div>
+
+            <div className="mx-auto max-w-4xl">
+              {/* Daily Python Tip Accordion */}
+              <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl">
+                {/* Collapsed Header */}
+                <div className="bg-gradient-to-r from-slate-800 to-slate-900 p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-purple-500">
+                        <Terminal className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-white">
+                          {dailyTip.title || "Daily Python Tip"}
+                        </h3>
+                        <div className="mt-1 flex items-center space-x-3">
+                          <span className="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-300">
+                            {dailyTip.difficulty || "beginner"}
+                          </span>
+                          <div className="flex items-center space-x-1 text-yellow-400">
+                            <Zap className="h-3 w-3" />
+                            <span className="text-sm font-bold">
+                              +{dailyTip.xpReward || 10} XP
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setIsTipExpanded(!isTipExpanded)}
+                      className="flex items-center space-x-2 rounded-lg bg-white/10 px-4 py-2 text-white transition-all hover:bg-white/20"
+                    >
+                      <span className="text-sm font-medium">
+                        {isTipExpanded ? "Collapse" : "Expand"}
+                      </span>
+                      {isTipExpanded ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Expandable Content */}
+                {isTipExpanded && (
+                  <div className="p-6">
+                    {/* Tip Content */}
+                    <div className="mb-6">
+                      <p className="text-lg leading-relaxed text-gray-700">
+                        {dailyTip.content}
+                      </p>
+                    </div>
+
+                    {/* Tip Info */}
+                    <div className="mb-6 flex items-center space-x-6 text-sm text-gray-500">
+                      <div className="flex items-center space-x-1">
+                        <Eye className="h-4 w-4" />
+                        <span>{dailyTip.viewCount || 0} views</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Heart className="h-4 w-4" />
+                        <span>{dailyTip.likeCount || 0} likes</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Clock className="h-4 w-4" />
+                        <span>{dailyTip.estimatedMinutes || 5} min read</span>
+                      </div>
+                    </div>
+
+                    {/* Code Example - VS Code Style */}
+                    {dailyTip.codeExample && (
+                      <div className="mb-6">
+                        {/* Code Editor Header */}
+                        <div className="rounded-t-lg border border-gray-700 bg-[#2d2d30] px-4 py-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              {/* VS Code Traffic Lights */}
+                              <div className="flex items-center space-x-2">
+                                <div className="h-3 w-3 rounded-full bg-red-500"></div>
+                                <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
+                                <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                              </div>
+
+                              <div className="flex items-center space-x-2">
+                                <Code className="h-4 w-4 text-blue-400" />
+                                <span className="text-sm font-medium text-white">
+                                  python_tip.py
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center space-x-3">
+                              <span className="text-xs text-gray-400">
+                                Python
+                              </span>
+                              <button
+                                onClick={handleTipCopyCode}
+                                className={`flex items-center space-x-1 rounded px-2 py-1 text-xs transition-colors ${
+                                  copied
+                                    ? "bg-green-600/20 text-green-400"
+                                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                                }`}
+                              >
+                                <Copy className="h-3 w-3" />
+                                <span>{copied ? "Copied!" : "Copy"}</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Code Content */}
+                        <div className="overflow-x-auto rounded-b-lg border-x border-b border-gray-700">
+                          <SyntaxHighlighter
+                            language="python"
+                            style={vscDarkPlus}
+                            customStyle={{
+                              margin: 0,
+                              padding: "1rem",
+                              background: "#1e1e1e",
+                              fontSize: "14px",
+                              lineHeight: "1.5",
+                            }}
+                            showLineNumbers
+                            lineNumberStyle={{
+                              color: "#6e7681",
+                              paddingRight: "1rem",
+                              textAlign: "right",
+                              userSelect: "none",
+                            }}
+                            wrapLines={true}
+                            wrapLongLines={true}
+                          >
+                            {dailyTip.codeExample}
+                          </SyntaxHighlighter>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Progress Indicator */}
+                    {tipProgress && (
+                      <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <h4 className="mb-3 font-medium text-gray-900">
+                          Your Progress
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                          <div
+                            className={`flex items-center space-x-2 ${
+                              tipProgress.hasViewed
+                                ? "text-green-600"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                            <span className="text-xs">Viewed</span>
+                          </div>
+                          <div
+                            className={`flex items-center space-x-2 ${
+                              tipProgress.hasLiked
+                                ? "text-red-500"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            <Heart className="h-4 w-4" />
+                            <span className="text-xs">Liked</span>
+                          </div>
+                          <div
+                            className={`flex items-center space-x-2 ${
+                              tipProgress.hasCompleted
+                                ? "text-purple-600"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            <Trophy className="h-4 w-4" />
+                            <span className="text-xs">Completed</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-yellow-600">
+                            <Zap className="h-4 w-4" />
+                            <span className="text-xs">
+                              {tipProgress.xpEarned || 0} XP earned
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={handleTipLike}
+                          disabled={!isAuthenticated}
+                          className={`flex items-center space-x-2 rounded-lg px-4 py-2 transition-all ${
+                            tipProgress?.hasLiked
+                              ? "bg-red-50 text-red-600 hover:bg-red-100"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          } ${!isAuthenticated ? "cursor-not-allowed opacity-50" : ""}`}
+                        >
+                          <Heart
+                            className="h-4 w-4"
+                            fill={
+                              tipProgress?.hasLiked ? "currentColor" : "none"
+                            }
+                          />
+                          <span className="text-sm">
+                            {dailyTip.likeCount || 0}
+                          </span>
+                        </button>
+
+                        <button
+                          onClick={handleTipShare}
+                          className="flex items-center space-x-2 rounded-lg bg-gray-100 px-4 py-2 text-gray-600 transition-colors hover:bg-gray-200"
+                        >
+                          <Share2 className="h-4 w-4" />
+                          <span className="text-sm">Share</span>
+                        </button>
+                      </div>
+
+                      {isAuthenticated && !tipProgress?.hasCompleted && (
+                        <button
+                          onClick={handleTipComplete}
+                          className="flex items-center space-x-2 rounded-lg bg-purple-600 px-4 py-2 font-medium text-white transition-all hover:bg-purple-700"
+                        >
+                          <Trophy className="h-4 w-4" />
+                          <span>Mark Complete</span>
+                        </button>
+                      )}
+
+                      {tipProgress?.hasCompleted && (
+                        <div className="flex items-center space-x-2 text-green-600">
+                          <CheckCircle className="h-4 w-4" />
+                          <span className="text-sm font-medium">
+                            Completed!
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {!isAuthenticated && (
+              <div className="mt-8 text-center">
+                <div className="mx-auto max-w-md rounded-xl border-2 border-dashed border-yellow-300 bg-gradient-to-r from-yellow-50 to-orange-50 p-6">
+                  <div className="mb-3 flex justify-center">
+                    <div className="rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 p-2">
+                      <Crown className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                  <h4 className="mb-2 text-lg font-bold text-slate-900">
+                    🔓 Login to Earn XP!
+                  </h4>
+                  <p className="mb-4 text-sm text-slate-600">
+                    Complete daily tips and earn{" "}
+                    <strong className="text-purple-600">XP + diamonds</strong>{" "}
+                    to level up your Python skills
+                  </p>
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center space-x-2 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 px-4 py-2 text-sm font-bold text-white transition-all hover:from-yellow-600 hover:to-orange-600"
+                  >
+                    <Crown className="h-4 w-4" />
+                    <span>Login & Start Learning</span>
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
       {/* Card Collection Showcase */}
       <section className="bg-gradient-to-r from-pink-50 via-purple-50 to-blue-50 py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -1931,85 +1779,6 @@ export default function HomePage() {
           )}
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-slate-900 py-16 text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-8 grid grid-cols-1 gap-8 md:grid-cols-4">
-            <div className="md:col-span-2">
-              <div className="mb-4 flex items-center space-x-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-purple-500">
-                  <Code className="h-6 w-6" />
-                </div>
-                <h3 className="text-2xl font-bold">Zumenzu</h3>
-              </div>
-              <p className="mb-4 text-lg text-slate-300">
-                Master Python programming through gamified learning. Collect
-                cards, earn rewards, and become a coding expert!
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="rounded-full bg-blue-500/20 px-3 py-1 text-sm text-blue-300">
-                  🐍 Python
-                </span>
-                <span className="rounded-full bg-purple-500/20 px-3 py-1 text-sm text-purple-300">
-                  🎮 Gamification
-                </span>
-                <span className="rounded-full bg-pink-500/20 px-3 py-1 text-sm text-pink-300">
-                  🎌 Anime Cards
-                </span>
-                <span className="rounded-full bg-yellow-500/20 px-3 py-1 text-sm text-yellow-300">
-                  ⭐ Star Cards
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="mb-4 text-lg font-semibold">🚀 Features</h4>
-              <ul className="space-y-2 text-slate-300">
-                <li>⚔️ Interactive Code Arena</li>
-                <li>💎 Diamond Reward System</li>
-                <li>🏆 Achievement Badges</li>
-                <li>📈 Progress Tracking</li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="mb-4 text-lg font-semibold">📊 Platform Stats</h4>
-              <div className="space-y-2 text-slate-300">
-                <div className="flex justify-between">
-                  <span>Students:</span>
-                  <span className="font-bold text-blue-400">
-                    {stats.totalUsers.toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Challenges:</span>
-                  <span className="font-bold text-green-400">
-                    {stats.totalLessons}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Cards:</span>
-                  <span className="font-bold text-pink-400">
-                    {stats.animeCards + stats.carCards}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-slate-700 pt-8 text-center">
-            <p className="text-lg text-slate-400">
-              🎯 Master Python • 💎 Earn Rewards • 🎌 Collect Anime & Star Cards
-              • 🏆 Achieve Greatness
-            </p>
-            <p className="mt-2 text-sm text-slate-500">
-              © 2024 Zumenzu. The ultimate Python learning platform with
-              gamification.
-            </p>
-          </div>
-        </div>
-      </footer>
     </main>
   );
 }

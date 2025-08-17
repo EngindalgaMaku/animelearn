@@ -742,6 +742,7 @@ model DiamondPackage {
 model LearningActivity {
   id                  String             @id @default(cuid())
   title               String
+  slug                String?            @unique
   description         String?
   activityType        String
   category            String             @default("general")
@@ -763,6 +764,8 @@ model LearningActivity {
   prerequisite        LearningActivity?  @relation("ActivityPrerequisites", fields: [prerequisiteId], references: [id])
   dependentActivities LearningActivity[] @relation("ActivityPrerequisites")
 
+  @@index([activityType, isActive, sortOrder])
+  @@index([activityType, isActive, category, difficulty])
   @@map("learning_activities")
 }
 

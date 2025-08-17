@@ -1,30 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { updateQuestProgress } from "@/lib/quests";
-import jwt from "jsonwebtoken";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-interface AuthUser {
-  userId: string;
-  username: string;
-}
-
-// Extract user information from token
-function getUserFromToken(request: NextRequest): AuthUser | null {
-  const token = request.cookies.get("auth-token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
-  } catch (error) {
-    return null;
-  }
-}
+type AuthUser = { userId: string; username: string };
 
 // Daily quest templates
 const DAILY_QUEST_TEMPLATES = [
@@ -181,11 +161,15 @@ async function completeQuest(questId: string, userId: string): Promise<any> {
 // GET - List daily quests
 export async function GET(request: NextRequest) {
   try {
-    const authUser = getUserFromToken(request);
-
-    if (!authUser) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Login required" }, { status: 401 });
     }
+    const authUser: AuthUser = {
+      userId: session.user.id,
+      username:
+        (session.user as any).username || session.user.email || "Unknown",
+    };
 
     // Get or create today's quests
     const quests = await generateDailyQuests(authUser.userId);
@@ -255,11 +239,15 @@ export async function GET(request: NextRequest) {
 // POST - Update quest progress or manual completion
 export async function POST(request: NextRequest) {
   try {
-    const authUser = getUserFromToken(request);
-
-    if (!authUser) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Login required" }, { status: 401 });
     }
+    const authUser: AuthUser = {
+      userId: session.user.id,
+      username:
+        (session.user as any).username || session.user.email || "Unknown",
+    };
 
     const body = await request.json();
     const { action, questType, questId, increment } = body;
@@ -306,7 +294,7 @@ export async function POST(request: NextRequest) {
       });
     } else if (action === "reset_daily") {
       // Admin operation - Reset daily quests
-      if (authUser.username !== "admin") {
+      if ((session.user as any).role !== "admin") {
         return NextResponse.json(
           { error: "You don't have permission for this operation" },
           { status: 403 }

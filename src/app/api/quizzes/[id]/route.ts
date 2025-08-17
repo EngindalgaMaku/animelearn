@@ -1,27 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 interface AuthUser {
   userId: string;
   username: string;
-}
-
-function getUserFromToken(request: NextRequest): AuthUser | null {
-  const token = request.cookies.get("auth-token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
-  } catch (error) {
-    return null;
-  }
 }
 
 // GET - Quiz sorularını getir
@@ -30,11 +14,15 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authUser = getUserFromToken(req);
-
-    if (!authUser) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const authUser: AuthUser = {
+      userId: session.user.id,
+      username:
+        (session.user as any).username || session.user.email || "Unknown",
+    };
 
     const { id } = await params;
 
@@ -130,11 +118,15 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authUser = getUserFromToken(req);
-
-    if (!authUser) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const authUser: AuthUser = {
+      userId: session.user.id,
+      username:
+        (session.user as any).username || session.user.email || "Unknown",
+    };
 
     const { id } = await params;
     const body = await req.json();

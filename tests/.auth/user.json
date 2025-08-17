@@ -1,0 +1,35 @@
+{
+  "cookies": [
+    {
+      "name": "__Host-next-auth.csrf-token",
+      "value": "4683b7686e01ed7d45413af43a0f69f8c6c82550f8ee314da8909817b7a7fb61%7C877338c2e94c369d9f2359af9afc0b1d019e71bc3ee4e4806494776eaadcec12",
+      "domain": "zumenzu.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "__Secure-next-auth.callback-url",
+      "value": "https%3A%2F%2Fzumenzu.com",
+      "domain": "zumenzu.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "__Secure-next-auth.session-token",
+      "value": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..21kXl5gncbOtNJe7.hhK1XByfXZZh5O-Bu4cz43ln8fGruOQVKGxX-ioH_P1S-o_8vlCXtOUBqstSTZ6Wq2xWxCQ-rvEeQe6nmitvhdtxjElUbRTL4MnllvjOcdDFLyxkbBfmix7oKY9ssOrKq2pUValRKV2xMak5F8Q0FNc3oOZlrpptAxWZ81qmMeQ99gilM_eTQ9UPSrpFRGZE4r_lR49IQhavRmqk243nm4_4eiumLbff9_FuqBQHeAPKgX6K_8NqfWnyim1zQjejm-7x4dVD-zVEZqcZXGoT-UAFKACxa0wSWJpuYqs48tKMH3XT8qb-Q24b2UuJKc2tBftZEwEpf3AksWiFOtBWw5rYPP9Cslw2QhWSTjKkAO0OVzNIypX9XFbi5togiC5YsKCV1WhNHNM0qajOIbXHSYtFG3-thg-iqbeDlplnBaMUBZoAm5AYDWJaSWtoiFk.efYxEA7v00BVVSUbRkkbkA",
+      "domain": "zumenzu.com",
+      "path": "/",
+      "expires": 1756065951,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

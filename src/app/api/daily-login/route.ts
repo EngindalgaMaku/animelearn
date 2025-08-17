@@ -1,28 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-interface AuthUser {
-  userId: string;
-  username: string;
-}
-
-function getUserFromToken(request: NextRequest): AuthUser | null {
-  const token = request.cookies.get("auth-token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
-  } catch (error) {
-    return null;
-  }
-}
+type AuthUser = { userId: string; username: string };
 
 // Günlük giriş ödül tablosu (7 günlük cycle)
 const DEFAULT_LOGIN_REWARDS = [
@@ -38,15 +19,23 @@ const DEFAULT_LOGIN_REWARDS = [
 // GET - Kullanıcının günlük giriş durumunu getir
 export async function GET(req: NextRequest) {
   try {
-    const authUser = getUserFromToken(req);
-
-    if (!authUser) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const authUser: AuthUser = {
+      userId: session.user.id,
+      username:
+        (session.user as any).username || session.user.email || "Unknown",
+    };
 
     // Bugünün tarihini al
     const today = new Date();
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
 
     // Kullanıcının günlük giriş bilgilerini al veya oluştur
     let userDailyLogin = await prisma.userDailyLogin.findUnique({
@@ -75,7 +64,7 @@ export async function GET(req: NextRequest) {
 
     if (loginBonuses.length === 0) {
       // Varsayılan ödülleri oluştur
-      const bonusPromises = DEFAULT_LOGIN_REWARDS.map(reward =>
+      const bonusPromises = DEFAULT_LOGIN_REWARDS.map((reward) =>
         prisma.dailyLoginBonus.create({
           data: {
             day: reward.day,
@@ -85,13 +74,16 @@ export async function GET(req: NextRequest) {
           },
         })
       );
-      
+
       loginBonuses = await Promise.all(bonusPromises);
     }
 
     // Bugün claim edildi mi kontrol et
-    const lastLoginDate = userDailyLogin.lastLoginDate ? new Date(userDailyLogin.lastLoginDate) : null;
-    const canClaimToday = !lastLoginDate || lastLoginDate.getTime() < todayStart.getTime();
+    const lastLoginDate = userDailyLogin.lastLoginDate
+      ? new Date(userDailyLogin.lastLoginDate)
+      : null;
+    const canClaimToday =
+      !lastLoginDate || lastLoginDate.getTime() < todayStart.getTime();
 
     // Streak durumunu hesapla
     let streakStatus = "active";
@@ -108,15 +100,15 @@ export async function GET(req: NextRequest) {
 
     // Mevcut günü hesapla (consecutiveDays % 7 + 1)
     const currentDay = (userDailyLogin.consecutiveDays % 7) + 1;
-    
+
     // Bugünün ödülünü hesapla
-    const todayReward = loginBonuses.find(bonus => bonus.day === currentDay);
+    const todayReward = loginBonuses.find((bonus) => bonus.day === currentDay);
 
     // Sonraki 7 günün ödüllerini göster
     const upcomingRewards = [];
     for (let i = 0; i < 7; i++) {
       const dayNumber = ((currentDay - 1 + i) % 7) + 1;
-      const reward = loginBonuses.find(bonus => bonus.day === dayNumber);
+      const reward = loginBonuses.find((bonus) => bonus.day === dayNumber);
       upcomingRewards.push({
         day: i + 1,
         cycleDay: dayNumber,
@@ -144,7 +136,6 @@ export async function GET(req: NextRequest) {
         cycleStartDate: userDailyLogin.cycleStartDate,
       },
     });
-
   } catch (error) {
     console.error("Error fetching daily login status:", error);
     return NextResponse.json(
@@ -157,14 +148,22 @@ export async function GET(req: NextRequest) {
 // POST - Günlük giriş bonusunu claim et
 export async function POST(req: NextRequest) {
   try {
-    const authUser = getUserFromToken(req);
-
-    if (!authUser) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const authUser: AuthUser = {
+      userId: session.user.id,
+      username:
+        (session.user as any).username || session.user.email || "Unknown",
+    };
 
     const today = new Date();
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
     const yesterday = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
 
     // Kullanıcının günlük giriş bilgilerini al
@@ -173,27 +172,38 @@ export async function POST(req: NextRequest) {
     });
 
     if (!userDailyLogin) {
-      return NextResponse.json({ error: "Daily login record not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Daily login record not found" },
+        { status: 404 }
+      );
     }
 
     // Bugün claim edildi mi kontrol et
-    const lastLoginDate = userDailyLogin.lastLoginDate ? new Date(userDailyLogin.lastLoginDate) : null;
+    const lastLoginDate = userDailyLogin.lastLoginDate
+      ? new Date(userDailyLogin.lastLoginDate)
+      : null;
     if (lastLoginDate && lastLoginDate.getTime() >= todayStart.getTime()) {
-      return NextResponse.json({
-        error: "Bugün zaten günlük bonus aldınız"
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Bugün zaten günlük bonus aldınız",
+        },
+        { status: 400 }
+      );
     }
 
     // Mevcut günü hesapla
     const currentDay = (userDailyLogin.consecutiveDays % 7) + 1;
-    
+
     // Bugünün ödülünü al
     const todayReward = await prisma.dailyLoginBonus.findUnique({
       where: { day: currentDay },
     });
 
     if (!todayReward) {
-      return NextResponse.json({ error: "Today's reward not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Today's reward not found" },
+        { status: 404 }
+      );
     }
 
     // Streak durumunu kontrol et
@@ -301,7 +311,6 @@ export async function POST(req: NextRequest) {
         consecutiveDays: newConsecutiveDays,
       },
     });
-
   } catch (error) {
     console.error("Error claiming daily login bonus:", error);
     return NextResponse.json(

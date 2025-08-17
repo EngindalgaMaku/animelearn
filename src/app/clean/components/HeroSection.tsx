@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Play, Code, Sparkles } from "lucide-react";
+import { ArrowRight, Monitor, Brain, Code, Sparkles } from "lucide-react";
 
 interface HeroSectionProps {
   isAuthenticated: boolean;
@@ -11,8 +11,8 @@ export default function HeroSection({ isAuthenticated }: HeroSectionProps) {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 to-white py-20 sm:py-32">
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]"></div>
-      
+      <div className="bg-grid-pattern absolute inset-0 opacity-[0.02]"></div>
+
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           {/* Badge */}
@@ -25,32 +25,38 @@ export default function HeroSection({ isAuthenticated }: HeroSectionProps) {
           <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl lg:text-7xl">
             Master Python Through
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              {" "}Interactive Challenges
+              {" "}
+              Interactive Challenges
             </span>
           </h1>
 
           {/* Subtext */}
           <p className="mb-10 text-lg leading-8 text-gray-600 sm:text-xl">
-            Join thousands of developers learning Python with our gamified platform. 
-            Collect cards, earn badges, and build real skills through hands-on coding challenges.
+            Join thousands of developers learning Python with our gamified
+            platform. Collect cards, earn badges, and build real skills through
+            hands-on coding challenges.
           </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
-              href={isAuthenticated ? "/dashboard" : "/register"}
+              href={isAuthenticated ? "/dashboard" : "/code-arena"}
               className="group flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all hover:from-blue-700 hover:to-purple-700 hover:shadow-xl sm:w-auto"
             >
-              {isAuthenticated ? "Go to Dashboard" : "Start Learning Free"}
+              {isAuthenticated ? "Go to Dashboard" : "Preview Code Arena"}
               <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Link>
-            
+
             <Link
-              href="/code-arena"
-              className="group flex w-full items-center justify-center rounded-lg border border-gray-300 bg-white px-8 py-4 text-lg font-semibold text-gray-700 transition-all hover:bg-gray-50 hover:border-gray-400 sm:w-auto"
+              href={isAuthenticated ? "/code-arena" : "/quiz-arena"}
+              className="group flex w-full items-center justify-center rounded-lg border border-gray-300 bg-white px-8 py-4 text-lg font-semibold text-gray-700 transition-all hover:border-gray-400 hover:bg-gray-50 sm:w-auto"
             >
-              <Play className="mr-2 h-5 w-5" />
-              Watch Demo
+              {isAuthenticated ? (
+                <Monitor className="mr-2 h-5 w-5" />
+              ) : (
+                <Brain className="mr-2 h-5 w-5" />
+              )}
+              {isAuthenticated ? "Enter Code Arena" : "Preview Quiz Arena"}
             </Link>
           </div>
 

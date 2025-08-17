@@ -1,29 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-interface AuthUser {
-  userId: string;
-  username: string;
-}
-
-// Token'dan kullanıcı bilgilerini çıkart
-function getUserFromToken(request: NextRequest): AuthUser | null {
-  const token = request.cookies.get("auth-token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
-  } catch {
-    return null;
-  }
-}
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 function parseJSON<T>(val: string | null | undefined, fallback: T): T {
   try {
@@ -52,6 +30,7 @@ async function seedDefaultLessons() {
   const samples = [
     {
       title: "Python Basics & Your First Program",
+      slug: "python-basics-first-program",
       description:
         "Start your Python journey with hello world and fundamentals",
       category: "Python Fundamentals",
@@ -76,6 +55,7 @@ async function seedDefaultLessons() {
     },
     {
       title: "Variables & Data Types",
+      slug: "variables-data-types",
       description: "Store and work with different kinds of data in Python",
       category: "Python Fundamentals",
       activityType: "lesson" as const,
@@ -99,6 +79,7 @@ async function seedDefaultLessons() {
     },
     {
       title: "If Statements & Decisions",
+      slug: "if-statements-decisions",
       description: "Make your code react to conditions",
       category: "Python Fundamentals",
       activityType: "lesson" as const,
@@ -122,6 +103,7 @@ async function seedDefaultLessons() {
     },
     {
       title: "Loops: Repeating Actions",
+      slug: "loops-repetition",
       description: "Automate repetition with for/while loops",
       category: "Python Fundamentals",
       activityType: "lesson" as const,
@@ -145,6 +127,7 @@ async function seedDefaultLessons() {
     },
     {
       title: "Functions: Reusable Code",
+      slug: "functions-basics",
       description: "Write functions to organize your logic",
       category: "Python Fundamentals",
       activityType: "lesson" as const,
@@ -168,6 +151,7 @@ async function seedDefaultLessons() {
     },
     {
       title: "Lists & Collections",
+      slug: "lists-collections",
       description: "Manage multiple values with lists",
       category: "Data Structures",
       activityType: "lesson" as const,
@@ -201,11 +185,12 @@ async function seedDefaultLessons() {
 
 export async function GET(req: NextRequest) {
   try {
-    const authUser = getUserFromToken(req);
-
-    if (!authUser) {
+    // Require NextAuth session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const userId = session.user.id;
 
     const searchParams = req.nextUrl.searchParams;
     const category = searchParams.get("category");
@@ -214,12 +199,14 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "10", 10);
     const skip = (page - 1) * limit;
 
-    // Ensure minimal "learn" lessons exist in DB
-    const existingLessonCount = await prisma.learningActivity.count({
-      where: { activityType: "lesson" },
-    });
-    if (existingLessonCount === 0) {
-      await seedDefaultLessons();
+    // Conditionally seed minimal lessons on first run (guarded by env)
+    if (process.env.LESSON_AUTO_SEED === "true") {
+      const existingLessonCount = await prisma.learningActivity.count({
+        where: { activityType: "lesson" },
+      });
+      if (existingLessonCount === 0) {
+        await seedDefaultLessons();
+      }
     }
 
     // Build filter conditions for LearningActivity "lesson"
@@ -236,9 +223,22 @@ export async function GET(req: NextRequest) {
       where.difficulty = parseInt(difficulty, 10);
     }
 
-    // Fetch lessons
+    // Fetch lessons (select only required fields)
     const activities = await prisma.learningActivity.findMany({
       where,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        difficulty: true,
+        estimatedMinutes: true,
+        category: true,
+        diamondReward: true,
+        experienceReward: true,
+        sortOrder: true,
+        settings: true,
+        tags: true,
+      },
       orderBy: {
         sortOrder: "asc",
       },
@@ -257,7 +257,7 @@ export async function GET(req: NextRequest) {
       activityIds.length > 0
         ? await prisma.activityAttempt.findMany({
             where: {
-              userId: authUser.userId,
+              userId,
               activityId: { in: activityIds },
             },
           })
@@ -308,6 +308,9 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json({
+      // New canonical key
+      lessons: transformedCodeArenas,
+      // Legacy alias for backward compatibility
       codeArenas: transformedCodeArenas,
       pagination: {
         page,

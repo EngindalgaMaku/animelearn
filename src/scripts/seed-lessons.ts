@@ -852,73 +852,51 @@ async function seedLessons() {
     console.log("🌱 Starting lesson seeding...");
 
     for (const lessonData of lessonsData) {
-      // Check if learning activity already exists
-      const existingActivity = await prisma.learningActivity.findFirst({
+      const payload = {
+        title: lessonData.title,
+        slug: lessonData.slug,
+        description: lessonData.description,
+        content: JSON.stringify({
+          instructions: lessonData.description,
+          starterCode: lessonData.starterCode,
+          solutionCode: lessonData.solutionCode,
+          testCases: lessonData.testCases,
+          hints: lessonData.hints,
+          ...lessonData.content,
+          quiz: lessonData.quiz,
+        }),
+        activityType: "interactive_coding",
+        category: lessonData.category,
+        difficulty: lessonData.difficulty,
+        diamondReward: lessonData.diamondReward,
+        experienceReward: lessonData.experienceReward,
+        estimatedMinutes: lessonData.duration,
+        isActive: true,
+        isLocked: false,
+        sortOrder: lessonData.order,
+        tags: JSON.stringify(["python", "coding", "basics"]),
+        settings: JSON.stringify({
+          slug: lessonData.slug,
+          hasCodeExercise: true,
+          duration: lessonData.duration,
+        }),
+      } as const;
+
+      // Use title-based lookup to avoid depending on slug typing in Prisma client
+      const existing = await prisma.learningActivity.findFirst({
         where: { title: lessonData.title },
+        select: { id: true },
       });
 
-      if (existingActivity) {
-        // Update existing learning activity
+      if (existing) {
         await prisma.learningActivity.update({
-          where: { id: existingActivity.id },
-          data: {
-            title: lessonData.title,
-            description: lessonData.description,
-            content: JSON.stringify({
-              instructions: lessonData.description,
-              starterCode: lessonData.starterCode,
-              solutionCode: lessonData.solutionCode,
-              testCases: lessonData.testCases,
-              hints: lessonData.hints,
-              ...lessonData.content,
-              quiz: lessonData.quiz,
-            }),
-            activityType: "interactive_coding",
-            category: lessonData.category,
-            difficulty: lessonData.difficulty,
-            diamondReward: lessonData.diamondReward,
-            experienceReward: lessonData.experienceReward,
-            estimatedMinutes: lessonData.duration,
-            isActive: true,
-            sortOrder: lessonData.order,
-            tags: JSON.stringify(["python", "coding", "basics"]),
-            settings: JSON.stringify({
-              hasCodeExercise: true,
-              duration: lessonData.duration,
-            }),
-          },
+          where: { id: existing.id },
+          data: payload, // includes slug field for backfilled consistency
         });
         console.log(`✅ Updated learning activity: ${lessonData.title}`);
       } else {
-        // Create new learning activity
         await prisma.learningActivity.create({
-          data: {
-            title: lessonData.title,
-            description: lessonData.description,
-            content: JSON.stringify({
-              instructions: lessonData.description,
-              starterCode: lessonData.starterCode,
-              solutionCode: lessonData.solutionCode,
-              testCases: lessonData.testCases,
-              hints: lessonData.hints,
-              ...lessonData.content,
-              quiz: lessonData.quiz,
-            }),
-            activityType: "interactive_coding",
-            category: lessonData.category,
-            difficulty: lessonData.difficulty,
-            diamondReward: lessonData.diamondReward,
-            experienceReward: lessonData.experienceReward,
-            estimatedMinutes: lessonData.duration,
-            isActive: true,
-            isLocked: false,
-            sortOrder: lessonData.order,
-            tags: JSON.stringify(["python", "coding", "basics"]),
-            settings: JSON.stringify({
-              hasCodeExercise: true,
-              duration: lessonData.duration,
-            }),
-          },
+          data: payload,
         });
         console.log(`✅ Created learning activity: ${lessonData.title}`);
       }
