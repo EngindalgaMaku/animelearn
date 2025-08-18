@@ -4,6 +4,8 @@ import { existsSync } from "fs";
 import path from "path";
 import jwt from "jsonwebtoken";
 import { createHash } from "crypto";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const IMAGE_CACHE = new Map<
@@ -19,14 +21,20 @@ interface AuthUser {
   username: string;
 }
 
-// Token'dan kullanıcı bilgilerini çıkart
-function getUserFromToken(request: NextRequest): AuthUser | null {
-  const token = request.cookies.get("auth-token")?.value;
-  if (!token) return null;
+async function getUserFromSession(): Promise<AuthUser | null> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
-  } catch (error) {
+    const session = await getServerSession(authOptions);
+    if (session?.user?.id) {
+      return {
+        userId: session.user.id as string,
+        username:
+          (session.user as any).username ||
+          (session.user.email as string) ||
+          "Unknown",
+      };
+    }
+    return null;
+  } catch {
     return null;
   }
 }
@@ -123,7 +131,7 @@ export async function GET(request: NextRequest) {
 
     // Veritabanından kart bilgilerini al
     const { prisma } = await import("@/lib/prisma");
-    const authUser = getUserFromToken(request);
+    const authUser = await getUserFromSession();
 
     const card = await prisma.card.findUnique({
       where: { id: cardId },
@@ -349,7 +357,7 @@ async function addWatermark(
 // POST - Secure image token oluşturma
 export async function POST(request: NextRequest) {
   try {
-    const authUser = getUserFromToken(request);
+    const authUser = await getUserFromSession();
     const body = await request.json();
     const { cardId, type = "preview" } = body;
 

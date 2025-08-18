@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import crypto from "crypto";
 
 interface ShopierPaymentRequest {
@@ -22,14 +23,20 @@ export async function POST(request: NextRequest) {
     const body: ShopierPaymentRequest = await request.json();
     const { packageId, packageName, diamonds, price, userId } = body;
 
-    // Verify user authentication
-    const cookieStore = await cookies();
-    const authCookie = cookieStore.get("auth-token");
-
-    if (!authCookie) {
+    // Verify user authentication via NextAuth
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: "Authentication required" },
         { status: 401 }
+      );
+    }
+
+    // Ensure the request user matches the authenticated session user
+    if (userId !== session.user.id) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
+        { status: 403 }
       );
     }
 
@@ -47,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     // Generate unique order ID
     const orderId = `DMD_${Date.now()}_${userId.substring(0, 8)}`;
-    
+
     // Create pending payment record in database
     const paymentRecord = await prisma.diamondPurchase.create({
       data: {
@@ -74,7 +81,10 @@ export async function POST(request: NextRequest) {
       buyer_name: user.firstName || user.username,
       buyer_phone: user.phone || "5551234567",
       buyer_email: user.email,
-      buyer_account_age: Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)), // Days
+      buyer_account_age: Math.floor(
+        (Date.now() - new Date(user.createdAt).getTime()) /
+          (1000 * 60 * 60 * 24)
+      ), // Days
       total_order_value: price,
       currency: "TRY",
       platform: "web",
@@ -118,7 +128,7 @@ export async function POST(request: NextRequest) {
     }
 
     const shopierResult = await shopierResponse.text();
-    
+
     // Shopier returns HTML redirect page or JSON with payment URL
     // For simplicity, we'll construct the payment URL manually
     const paymentUrl = `https://www.shopier.com/payment/${SHOPIER_WEBSITE_ID}/${orderId}`;
@@ -128,7 +138,6 @@ export async function POST(request: NextRequest) {
       paymentUrl: paymentUrl,
       orderId: orderId,
     });
-
   } catch (error) {
     console.error("Shopier payment creation failed:", error);
     return NextResponse.json(

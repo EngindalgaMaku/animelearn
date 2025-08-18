@@ -3,11 +3,58 @@ import { ArrowLeft, Calendar, Clock, FileText, User, Tag } from "lucide-react";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { marked } from "marked";
+import type { Metadata } from "next";
+import { generateBlogMetadata } from "@/lib/seo/metadata";
 
 interface BlogPostPageProps {
   params: Promise<{
     slug: string;
   }>;
+}
+export async function generateMetadata({
+  params,
+}: BlogPostPageProps): Promise<Metadata> {
+  const { slug } = await params;
+
+  try {
+    const post = await prisma.blogPost.findUnique({
+      where: { slug, isPublished: true },
+      select: {
+        title: true,
+        description: true,
+        excerpt: true,
+        slug: true,
+        tags: true,
+        publishedAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!post) {
+      return {
+        robots: { index: false, follow: false },
+      };
+    }
+
+    const description =
+      post.description || post.excerpt || "Python blog post on Zumenzu";
+    const tags = post.tags ? JSON.parse(post.tags as any) : [];
+    const date =
+      (post.updatedAt as Date | null) || (post.publishedAt as Date | null);
+    const publishDate = date ? date.toISOString() : undefined;
+
+    return generateBlogMetadata(
+      post.title,
+      description,
+      post.slug,
+      publishDate,
+      tags
+    );
+  } catch {
+    return {
+      robots: { index: false, follow: true },
+    };
+  }
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {

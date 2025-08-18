@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import jwt from "jsonwebtoken";
-import { prisma } from "@/lib/prisma";
 
 // Admin credentials - gerçek projede environment variables'dan alınmalı
 const ADMIN_CREDENTIALS = {
   username: "admin",
   password: "admin123", // Demo için basit şifre
 };
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 // Session store (gerçek projede Redis/Database kullanılmalı)
 const activeSessions = new Map<
@@ -149,9 +145,7 @@ export async function GET(request: NextRequest) {
   try {
     cleanExpiredSessions(); // Expired session'ları temizle
 
-    // İki farklı auth yöntemini kontrol et: admin session ve JWT token
-
-    // 1. Admin session kontrolü
+    // Admin session kontrolü
     const sessionId = request.cookies.get("admin-session")?.value;
     if (sessionId) {
       const session = activeSessions.get(sessionId);
@@ -168,58 +162,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 2. JWT token kontrolü (normal kullanıcılar için)
-    const authToken = request.cookies.get("auth-token")?.value;
-    if (authToken) {
-      try {
-        const decoded = jwt.verify(authToken, JWT_SECRET) as any;
-
-        // Kullanıcı bilgilerini veritabanından al
-        const user = await prisma.user.findUnique({
-          where: { id: decoded.userId },
-          select: {
-            id: true,
-            username: true,
-            email: true,
-            role: true,
-            level: true,
-            experience: true,
-            currentDiamonds: true,
-            totalDiamonds: true,
-            loginStreak: true,
-            maxLoginStreak: true,
-            codeArenasCompleted: true,
-            quizzesCompleted: true,
-            isPremium: true,
-            isActive: true,
-          },
-        });
-
-        if (user && user.isActive) {
-          return NextResponse.json({
-            authenticated: true,
-            user: {
-              id: user.id,
-              username: user.username,
-              email: user.email,
-              role: user.role,
-              level: user.level,
-              experience: user.experience,
-              currentDiamonds: user.currentDiamonds,
-              totalDiamonds: user.totalDiamonds,
-              loginStreak: user.loginStreak,
-              maxLoginStreak: user.maxLoginStreak,
-              codeArenasCompleted: user.codeArenasCompleted,
-              quizzesCompleted: user.quizzesCompleted,
-              isPremium: user.isPremium,
-            },
-          });
-        }
-      } catch (jwtError) {
-        console.error("JWT verification error:", jwtError);
-      }
-    }
-
+    // User JWT auth disabled (migrated to NextAuth). Only admin-session is supported here.
     return NextResponse.json({ authenticated: false });
   } catch (error) {
     console.error("Auth verification error:", error);

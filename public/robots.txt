@@ -11,8 +11,11 @@ Sitemap: https://zumenzu.com/sitemap-categories.xml
 # Disallow admin and API routes
 Disallow: /admin/
 Disallow: /api/
-Disallow: /_next/
 Disallow: /setup/
+
+# Allow Next.js assets for rendering (critical for Google rendering)
+Allow: /_next/static/
+Allow: /_next/image/
 
 # Allow important SEO pages
 Allow: /
@@ -23,10 +26,6 @@ Allow: /blog
 Allow: /dashboard
 Allow: /register
 Allow: /login
-Allow: /python-kursu
-Allow: /kart-koleksiyonu
-Allow: /rozetler-basarimlar
-Allow: /gunluk-gorevler
 
 # Crawl-delay
 Crawl-delay: 1

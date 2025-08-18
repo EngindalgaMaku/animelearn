@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import Stripe from "stripe";
 
 // Initialize Stripe only when needed to avoid build-time errors
@@ -28,14 +29,20 @@ export async function POST(request: NextRequest) {
     const body: StripePaymentRequest = await request.json();
     const { packageId, packageName, diamonds, price, currency, userId } = body;
 
-    // Verify user authentication
-    const cookieStore = await cookies();
-    const authCookie = cookieStore.get("auth-token");
-
-    if (!authCookie) {
+    // Verify user authentication via NextAuth
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: "Authentication required" },
         { status: 401 }
+      );
+    }
+
+    // Ensure the request user matches the authenticated session user
+    if (userId !== session.user.id) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
+        { status: 403 }
       );
     }
 
@@ -68,7 +75,7 @@ export async function POST(request: NextRequest) {
 
     // Create Stripe Checkout Session
     const stripe = getStripeClient();
-    const session = await stripe.checkout.sessions.create({
+    const stripeSession = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
         {
@@ -112,11 +119,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      checkoutUrl: session.url,
-      sessionId: session.id,
+      checkoutUrl: stripeSession.url,
+      sessionId: stripeSession.id,
       orderId: orderId,
     });
-
   } catch (error) {
     console.error("Stripe payment creation failed:", error);
     return NextResponse.json(

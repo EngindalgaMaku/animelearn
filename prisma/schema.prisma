@@ -199,6 +199,9 @@ model User {
   rarityStats           UserRarityStats?
   userStreak            UserStreak?
   xpEventParticipations XPEventParticipation[]
+  // Gamification relations
+  skillMasteries        UserSkillMastery[]
+  recommendationQueues  RecommendationQueue[]
 
   @@map("users")
 }
@@ -337,6 +340,7 @@ model Badge {
   totalProgress       Int         @default(0)
   prerequisite        Badge?      @relation("BadgePrerequisites", fields: [prerequisiteBadgeId], references: [id])
   dependentBadges     Badge[]     @relation("BadgePrerequisites")
+  rules               BadgeRule[]
   users               UserBadge[]
 
   @@map("badges")
@@ -761,6 +765,7 @@ model LearningActivity {
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
   attempts            ActivityAttempt[]
+  activitySkills      ActivitySkill[]
   prerequisite        LearningActivity?  @relation("ActivityPrerequisites", fields: [prerequisiteId], references: [id])
   dependentActivities LearningActivity[] @relation("ActivityPrerequisites")
 
@@ -1331,4 +1336,114 @@ model ArenaUIConfig {
   config           ArenaConfiguration  @relation(fields: [configId], references: [id], onDelete: Cascade)
 
   @@map("arena_ui_configs")
+}
+
+//
+// Gamification: Badge Rules, Skills, Mastery, and Recommendations
+//
+
+model BadgeRule {
+  id             String   @id @default(cuid())
+  badgeId        String
+  ruleType       String              // e.g., "count", "streak", "milestone", "time_based", "combo", "skill_mastery"
+  metric         String              // e.g., "activities_completed", "quizzes_completed", "quiz_correct", "login_streak", "diamonds_earned", "code_submissions", "skill_mastery"
+  target         Int?                 // target value for this rule (if applicable)
+  weight         Float    @default(1) // contribution weight when aggregating multiple rules
+  definition     Json?                // JSON filters and details (e.g., {category, difficultyGte, difficultyLte, tags, skillKey, masteryThreshold})
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  badge          Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@index([badgeId])
+  @@map("badge_rules")
+}
+
+model Skill {
+  id            String             @id @default(cuid())
+  key           String             @unique
+  name          String
+  description   String?
+  category      String?
+  difficulty    Int                @default(1)   // 1=beginner, 2=intermediate, 3=advanced
+  isActive      Boolean            @default(true)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  // Relations
+  parents       SkillEdge[]        @relation("SkillPrereqParent")
+  children      SkillEdge[]        @relation("SkillPrereqChild")
+  activities    ActivitySkill[]
+  userMastery   UserSkillMastery[]
+
+  @@map("skills")
+}
+
+model SkillEdge {
+  id              String   @id @default(cuid())
+  parentId        String
+  childId         String
+  weight          Float    @default(1.0)
+  isPrerequisite  Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  parent          Skill    @relation("SkillPrereqParent", fields: [parentId], references: [id], onDelete: Cascade)
+  child           Skill    @relation("SkillPrereqChild", fields: [childId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, childId])
+  @@index([childId])
+  @@map("skill_edges")
+}
+
+model ActivitySkill {
+  id          String             @id @default(cuid())
+  activityId  String
+  skillId     String
+  weight      Float              @default(1.0)    // contribution of this activity to the skill
+  difficulty  Int                @default(1)
+  createdAt   DateTime           @default(now())
+
+  activity    LearningActivity   @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  skill       Skill              @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([activityId, skillId])
+  @@index([skillId])
+  @@map("activity_skills")
+}
+
+model UserSkillMastery {
+  id              String    @id @default(cuid())
+  userId          String
+  skillId         String
+  mastery         Float     @default(0.0)   // 0..100
+  proficiency     Int       @default(0)     // optional discrete level
+  evidenceCount   Int       @default(0)
+  correctCount    Int       @default(0)
+  incorrectCount  Int       @default(0)
+  streak          Int       @default(0)
+  decayFactor     Float     @default(0.99)  // daily decay multiplier
+  lastPracticedAt DateTime?
+  lastDecayAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill           Skill     @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+  @@index([skillId])
+  @@index([userId])
+  @@map("user_skill_mastery")
+}
+
+model RecommendationQueue {
+  id          String    @id @default(cuid())
+  userId      String
+  items       Json                      // [{activityId, score, reasons:[], generatedAt}]
+  generatedAt DateTime  @default(now())
+  expiresAt   DateTime?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, generatedAt])
+  @@map("recommendation_queues")
 }

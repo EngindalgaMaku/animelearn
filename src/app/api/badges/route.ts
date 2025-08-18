@@ -1,27 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkAndAwardBadges } from "@/lib/badges";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 interface AuthUser {
   userId: string;
   username: string;
 }
 
-// Token'dan kullanıcı bilgilerini çıkart
-function getUserFromToken(request: NextRequest): AuthUser | null {
-  const token = request.cookies.get("auth-token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
+async function getUserFromSession(): Promise<AuthUser | null> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
-  } catch (error) {
+    const session = await getServerSession(authOptions);
+    if (session?.user?.id) {
+      return {
+        userId: session.user.id as string,
+        username:
+          (session.user as any).username ||
+          (session.user.email as string) ||
+          "Unknown",
+      };
+    }
+    return null;
+  } catch {
     return null;
   }
 }
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
     const rarity = searchParams.get("rarity");
     const earned = searchParams.get("earned"); // "true", "false", "all"
 
-    const authUser = getUserFromToken(request);
+    const authUser = await getUserFromSession();
 
     // Filtreler
     const where: any = {
@@ -111,7 +112,7 @@ export async function GET(request: NextRequest) {
 // POST - Rozet kontrol et ve ödüllendir / Yeni rozet oluştur (Admin)
 export async function POST(request: NextRequest) {
   try {
-    const authUser = getUserFromToken(request);
+    const authUser = await getUserFromSession();
 
     if (!authUser) {
       return NextResponse.json(
@@ -214,7 +215,7 @@ export async function POST(request: NextRequest) {
 // PUT - Rozet güncelleme (Admin only)
 export async function PUT(request: NextRequest) {
   try {
-    const authUser = getUserFromToken(request);
+    const authUser = await getUserFromSession();
 
     if (!authUser) {
       return NextResponse.json(
@@ -268,7 +269,7 @@ export async function PUT(request: NextRequest) {
 // DELETE - Rozet silme (Admin only)
 export async function DELETE(request: NextRequest) {
   try {
-    const authUser = getUserFromToken(request);
+    const authUser = await getUserFromSession();
 
     if (!authUser) {
       return NextResponse.json(

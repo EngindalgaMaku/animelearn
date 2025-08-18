@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { pbkdf2Sync } from "crypto";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,7 +35,10 @@ export async function POST(request: NextRequest) {
     // Handle users without password (OAuth users)
     if (!user.passwordHash) {
       return NextResponse.json(
-        { error: "Bu hesap için şifre girişi kullanılamaz. OAuth ile giriş yapın." },
+        {
+          error:
+            "Bu hesap için şifre girişi kullanılamaz. OAuth ile giriş yapın.",
+        },
         { status: 401 }
       );
     }
@@ -104,13 +104,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Create JWT token
-    const token = jwt.sign(
-      { userId: user.id, username: user.username },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
     // Prepare user data (exclude sensitive info)
     const userData = {
       id: user.id,
@@ -133,14 +126,6 @@ export async function POST(request: NextRequest) {
       success: true,
       message: "Giriş başarılı",
       user: userData,
-    });
-
-    // Set JWT token as httpOnly cookie
-    response.cookies.set("auth-token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60, // 7 days
     });
 
     return response;

@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 export async function POST(request: NextRequest) {
   try {
@@ -72,26 +69,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Create JWT token
-    const token = jwt.sign(
-      { userId: user.id, username: user.username },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
     // Create response
     const response = NextResponse.json({
       success: true,
       message: "Kayıt başarılı",
       user: user,
-    });
-
-    // Set JWT token as httpOnly cookie
-    response.cookies.set("auth-token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60, // 7 days
     });
 
     return response;

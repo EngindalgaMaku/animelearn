@@ -10,7 +10,6 @@ import {
   Globe,
 } from "lucide-react";
 import Link from "next/link";
-import Head from "next/head";
 import { BlogCategoryFilter } from "@/components/blog/BlogCategoryFilter";
 import { BlogPostCard } from "@/components/blog/BlogPostCard";
 import { BreadcrumbSchema, WebSiteSchema } from "@/components/seo/SchemaMarkup";
@@ -124,29 +123,6 @@ export default function BlogPage() {
 
   return (
     <>
-      <Head>
-        <title>Python Blog | Programming Guides and Tips - Zumenzu</title>
-        <meta
-          name="description"
-          content="Comprehensive Python programming guides, tips and latest content. Learn Python from beginner to advanced level with data analysis, web development and career guides."
-        />
-        <meta
-          name="keywords"
-          content="python blog, python tutorial, programming tips, python guide, coding blog, python examples, data analysis, web development, python career, learn python, python programming, coding tutorials"
-        />
-        <link rel="canonical" href="/blog" />
-        <meta
-          property="og:title"
-          content="Python Blog | Programming Guides - Zumenzu"
-        />
-        <meta
-          property="og:description"
-          content="Comprehensive blog articles to guide your Python learning journey. From basic concepts to advanced applications."
-        />
-        <meta property="og:image" content="/blog/blog-og-image.jpg" />
-        <meta property="og:type" content="website" />
-      </Head>
-
       {/* Schema Markup */}
       <BreadcrumbSchema
         items={[

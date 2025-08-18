@@ -340,10 +340,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Auto-login after successful registration
-        setIsAuthenticated(true);
-        setUser(data.user);
-        return { success: true };
+        // Immediately sign-in with NextAuth (Credentials)
+        const signInResult = await signIn("credentials", {
+          usernameOrEmail: email || username,
+          password,
+          redirect: false,
+        });
+
+        if (signInResult?.ok) {
+          setIsAuthenticated(true);
+          await refreshUser();
+          return { success: true };
+        } else {
+          // Fallback: try to refresh session/user even if signIn did not return ok
+          await refreshUser();
+          return { success: true };
+        }
       } else {
         return { success: false, error: data.error || "Registration failed" };
       }

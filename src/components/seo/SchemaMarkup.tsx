@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 interface SchemaMarkupProps {
   schema: Record<string, any>;
@@ -21,7 +21,8 @@ export function EducationalOrganizationSchema() {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
     name: "Zumenzu",
-    description: "Learn Python programming while collecting anime cards, earning badges, and completing daily quests. The world's most engaging gamified Python learning platform.",
+    description:
+      "Learn Python programming while collecting anime cards, earning badges, and completing daily quests. The world's most engaging gamified Python learning platform.",
     url: "https://zumenzu.com",
     logo: "https://zumenzu.com/logo.png",
     image: "https://zumenzu.com/og-image.jpg",
@@ -44,7 +45,8 @@ export function EducationalOrganizationSchema() {
       "@type": "Offer",
       category: "Educational Course",
       name: "Python Programming with Gamification",
-      description: "Learn Python programming with anime card collection and gamification",
+      description:
+        "Learn Python programming with anime card collection and gamification",
       price: "0",
       priceCurrency: "USD",
       availability: "https://schema.org/InStock",
@@ -61,13 +63,13 @@ export function EducationalOrganizationSchema() {
 }
 
 // Course Schema for Code Arena
-export function CourseSchema({ 
-  title, 
-  description, 
+export function CourseSchema({
+  title,
+  description,
   slug,
   difficulty,
   duration,
-  category 
+  category,
 }: {
   title: string;
   description: string;
@@ -84,9 +86,14 @@ export function CourseSchema({
     provider: {
       "@type": "EducationalOrganization",
       name: "Zumenzu",
-      url: "https://zumenzu.com"
+      url: "https://zumenzu.com",
     },
-    educationalLevel: difficulty <= 2 ? "Beginner" : difficulty <= 4 ? "Intermediate" : "Advanced",
+    educationalLevel:
+      difficulty <= 2
+        ? "Beginner"
+        : difficulty <= 4
+          ? "Intermediate"
+          : "Advanced",
     timeRequired: `PT${duration}M`,
     inLanguage: "tr-TR",
     courseCode: slug,
@@ -95,7 +102,7 @@ export function CourseSchema({
       "Python Programming",
       "Programming Fundamentals",
       "Problem Solving",
-      "Algorithm Thinking"
+      "Algorithm Thinking",
     ],
     coursePrerequisites: difficulty > 2 ? "Basic Python Knowledge" : "None",
     educationalUse: "Interactive Learning",
@@ -103,16 +110,16 @@ export function CourseSchema({
     learningResourceType: "Interactive Exercise",
     audience: {
       "@type": "EducationalAudience",
-      educationalRole: "Student"
+      educationalRole: "Student",
     },
     hasCourseInstance: {
       "@type": "CourseInstance",
       courseMode: "Online",
       courseSchedule: {
         "@type": "Schedule",
-        duration: `PT${duration}M`
-      }
-    }
+        duration: `PT${duration}M`,
+      },
+    },
   };
 
   return <SchemaMarkup schema={schema} />;
@@ -126,7 +133,7 @@ export function ArticleSchema({
   publishDate,
   modifiedDate,
   author = "Zumenzu Team",
-  tags = []
+  tags = [],
 }: {
   title: string;
   description: string;
@@ -144,39 +151,39 @@ export function ArticleSchema({
     author: {
       "@type": "Organization",
       name: author,
-      url: "https://zumenzu.com"
+      url: "https://zumenzu.com",
     },
     publisher: {
       "@type": "Organization",
       name: "Zumenzu",
       logo: {
         "@type": "ImageObject",
-        url: "https://zumenzu.com/logo.png"
-      }
+        url: "https://zumenzu.com/logo.png",
+      },
     },
     datePublished: publishDate,
     dateModified: modifiedDate || publishDate,
     image: `https://zumenzu.com/blog/images/${slug}-og.jpg`,
     url: `https://zumenzu.com/blog/${slug}`,
-    keywords: tags.join(', '),
+    keywords: tags.join(", "),
     articleSection: "Python Programming",
     inLanguage: "tr-TR",
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://zumenzu.com/blog/${slug}`
+      "@id": `https://zumenzu.com/blog/${slug}`,
     },
     about: [
       {
         "@type": "Thing",
         name: "Python Programming",
-        sameAs: "https://en.wikipedia.org/wiki/Python_(programming_language)"
+        sameAs: "https://en.wikipedia.org/wiki/Python_(programming_language)",
       },
       {
-        "@type": "Thing", 
+        "@type": "Thing",
         name: "Programming Education",
-        sameAs: "https://en.wikipedia.org/wiki/Computer_programming"
-      }
-    ]
+        sameAs: "https://en.wikipedia.org/wiki/Computer_programming",
+      },
+    ],
   };
 
   return <SchemaMarkup schema={schema} />;
@@ -190,7 +197,7 @@ export function ProductSchema({
   rarity,
   category,
   diamondCost,
-  imageUrl
+  imageUrl,
 }: {
   name: string;
   description: string;
@@ -208,21 +215,21 @@ export function ProductSchema({
     category: `${category} Cards`,
     brand: {
       "@type": "Brand",
-      name: "Zumenzu"
+      name: "Zumenzu",
     },
     image: imageUrl,
-    url: `https://zumenzu.com/cards/${cardId}`,
+    url: `https://zumenzu.com/shop`,
     additionalProperty: [
       {
         "@type": "PropertyValue",
         name: "Rarity",
-        value: rarity
+        value: rarity,
       },
       {
-        "@type": "PropertyValue", 
+        "@type": "PropertyValue",
         name: "Category",
-        value: category
-      }
+        value: category,
+      },
     ],
     offers: {
       "@type": "Offer",
@@ -232,34 +239,38 @@ export function ProductSchema({
       seller: {
         "@type": "Organization",
         name: "Zumenzu",
-        url: "https://zumenzu.com"
-      }
+        url: "https://zumenzu.com",
+      },
     },
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: "4.8",
       reviewCount: "150",
       bestRating: "5",
-      worstRating: "1"
-    }
+      worstRating: "1",
+    },
   };
 
   return <SchemaMarkup schema={schema} />;
 }
 
 // FAQ Schema for FAQ Pages
-export function FAQSchema({ faqs }: { faqs: Array<{ question: string; answer: string }> }) {
+export function FAQSchema({
+  faqs,
+}: {
+  faqs: Array<{ question: string; answer: string }>;
+}) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: faqs.map(faq => ({
+    mainEntity: faqs.map((faq) => ({
       "@type": "Question",
       name: faq.question,
       acceptedAnswer: {
         "@type": "Answer",
-        text: faq.answer
-      }
-    }))
+        text: faq.answer,
+      },
+    })),
   };
 
   return <SchemaMarkup schema={schema} />;
@@ -271,7 +282,7 @@ export function QuizSchema({
   description,
   questions,
   timeLimit,
-  diamondReward
+  diamondReward,
 }: {
   title: string;
   description: string;
@@ -290,20 +301,20 @@ export function QuizSchema({
     about: {
       "@type": "Thing",
       name: "Python Programming",
-      sameAs: "https://en.wikipedia.org/wiki/Python_(programming_language)"
+      sameAs: "https://en.wikipedia.org/wiki/Python_(programming_language)",
     },
     publisher: {
       "@type": "Organization",
       name: "Zumenzu",
-      url: "https://zumenzu.com"
+      url: "https://zumenzu.com",
     },
     inLanguage: "tr-TR",
     learningResourceType: "Interactive Quiz",
     interactivityType: "Active",
     audience: {
       "@type": "EducationalAudience",
-      educationalRole: "Student"
-    }
+      educationalRole: "Student",
+    },
   };
 
   return <SchemaMarkup schema={schema} />;
@@ -317,29 +328,32 @@ export function WebSiteSchema() {
     name: "Zumenzu",
     alternateName: "Zumenzu Python Learning Platform",
     url: "https://zumenzu.com",
-    description: "Learn Python programming while collecting anime cards, earning badges, and completing daily quests. The world's most engaging gamified Python learning platform.",
+    description:
+      "Learn Python programming while collecting anime cards, earning badges, and completing daily quests. The world's most engaging gamified Python learning platform.",
     inLanguage: "tr-TR",
     potentialAction: {
       "@type": "SearchAction",
       target: "https://zumenzu.com/search?q={search_term_string}",
-      "query-input": "required name=search_term_string"
+      "query-input": "required name=search_term_string",
     },
     publisher: {
       "@type": "Organization",
       name: "Zumenzu",
       logo: {
         "@type": "ImageObject",
-        url: "https://zumenzu.com/logo.png"
-      }
-    }
+        url: "https://zumenzu.com/logo.png",
+      },
+    },
   };
 
   return <SchemaMarkup schema={schema} />;
 }
 
 // Breadcrumb Schema
-export function BreadcrumbSchema({ items }: { 
-  items: Array<{ name: string; url: string }> 
+export function BreadcrumbSchema({
+  items,
+}: {
+  items: Array<{ name: string; url: string }>;
 }) {
   const schema = {
     "@context": "https://schema.org",
@@ -348,8 +362,8 @@ export function BreadcrumbSchema({ items }: {
       "@type": "ListItem",
       position: index + 1,
       name: item.name,
-      item: `https://zumenzu.com${item.url}`
-    }))
+      item: `https://zumenzu.com${item.url}`,
+    })),
   };
 
   return <SchemaMarkup schema={schema} />;

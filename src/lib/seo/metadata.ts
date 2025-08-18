@@ -301,7 +301,7 @@ export function generateCardMetadata(
       "anime kart",
       "kart koleksiyonu",
     ],
-    canonical: `/cards/${cardId}`,
+    canonical: `/shop`,
     openGraph: {
       title,
       description,
@@ -329,7 +329,7 @@ export function generateCardMetadata(
         },
       },
       image: `https://zumenzu.com/api/secure-image?cardId=${cardId}`,
-      url: `https://zumenzu.com/cards/${cardId}`,
+      url: `https://zumenzu.com/shop`,
     },
   });
 }

@@ -1,25 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 interface AuthUser {
   userId: string;
   username: string;
 }
 
-function getUserFromToken(request: NextRequest): AuthUser | null {
-  const token = request.cookies.get("auth-token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
+async function getUserFromSession(): Promise<AuthUser | null> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
-  } catch (error) {
+    const session = await getServerSession(authOptions);
+    if (session?.user?.id) {
+      return {
+        userId: session.user.id as string,
+        username:
+          (session.user as any).username ||
+          (session.user.email as string) ||
+          "Unknown",
+      };
+    }
+    return null;
+  } catch {
     return null;
   }
 }
@@ -27,7 +29,7 @@ function getUserFromToken(request: NextRequest): AuthUser | null {
 // GET - Günün mini quiz'ini getir
 export async function GET(req: NextRequest) {
   try {
-    const authUser = getUserFromToken(req);
+    const authUser = await getUserFromSession();
 
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -35,7 +37,11 @@ export async function GET(req: NextRequest) {
 
     // Bugünün tarihini al (UTC)
     const today = new Date();
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
     const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
     // Bugün için aktif quiz'i bul
@@ -50,9 +56,12 @@ export async function GET(req: NextRequest) {
     });
 
     if (!todayQuiz) {
-      return NextResponse.json({ 
-        error: "Bugün için aktif quiz bulunamadı" 
-      }, { status: 404 });
+      return NextResponse.json(
+        {
+          error: "Bugün için aktif quiz bulunamadı",
+        },
+        { status: 404 }
+      );
     }
 
     // Kullanıcının bugün bu quiz'i çözüp çözmediğini kontrol et
@@ -71,9 +80,12 @@ export async function GET(req: NextRequest) {
       questions = JSON.parse(todayQuiz.questions);
     } catch (error) {
       console.error("Error parsing quiz questions:", error);
-      return NextResponse.json({ 
-        error: "Quiz verileri hatalı" 
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          error: "Quiz verileri hatalı",
+        },
+        { status: 500 }
+      );
     }
 
     // Eğer kullanıcı quiz'i çözmişse, sonuçları göster
@@ -137,7 +149,6 @@ export async function GET(req: NextRequest) {
       },
       completed: false,
     });
-
   } catch (error) {
     console.error("Error fetching daily mini quiz:", error);
     return NextResponse.json(
@@ -150,7 +161,7 @@ export async function GET(req: NextRequest) {
 // POST - Günlük mini quiz oluştur (Admin only)
 export async function POST(req: NextRequest) {
   try {
-    const authUser = getUserFromToken(req);
+    const authUser = await getUserFromSession();
 
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -184,7 +195,12 @@ export async function POST(req: NextRequest) {
     } = body;
 
     // Validation
-    if (!title || !questions || !Array.isArray(questions) || questions.length !== 5) {
+    if (
+      !title ||
+      !questions ||
+      !Array.isArray(questions) ||
+      questions.length !== 5
+    ) {
       return NextResponse.json(
         { error: "Title ve 5 adet soru gerekli" },
         { status: 400 }
@@ -193,9 +209,18 @@ export async function POST(req: NextRequest) {
 
     // Her sorunun gerekli alanları kontrol et
     for (const q of questions) {
-      if (!q.question || !q.options || !Array.isArray(q.options) || q.options.length < 2 || q.correctAnswer === undefined) {
+      if (
+        !q.question ||
+        !q.options ||
+        !Array.isArray(q.options) ||
+        q.options.length < 2 ||
+        q.correctAnswer === undefined
+      ) {
         return NextResponse.json(
-          { error: "Her soru için question, options (min 2) ve correctAnswer gerekli" },
+          {
+            error:
+              "Her soru için question, options (min 2) ve correctAnswer gerekli",
+          },
           { status: 400 }
         );
       }
@@ -203,7 +228,11 @@ export async function POST(req: NextRequest) {
 
     // Belirtilen tarihte quiz var mı kontrol et
     const quizDate = date ? new Date(date) : new Date();
-    const dateStart = new Date(quizDate.getFullYear(), quizDate.getMonth(), quizDate.getDate());
+    const dateStart = new Date(
+      quizDate.getFullYear(),
+      quizDate.getMonth(),
+      quizDate.getDate()
+    );
     const dateEnd = new Date(dateStart.getTime() + 24 * 60 * 60 * 1000);
 
     const existingQuiz = await prisma.dailyMiniQuiz.findFirst({
@@ -248,7 +277,6 @@ export async function POST(req: NextRequest) {
         date: newQuiz.date,
       },
     });
-
   } catch (error) {
     console.error("Error creating daily mini quiz:", error);
     return NextResponse.json(

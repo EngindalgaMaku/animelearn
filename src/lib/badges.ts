@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { recomputeAllBadges } from "@/lib/achievements-engine";
 
 // Rozet koşulunu kontrol et
 async function checkBadgeCondition(
@@ -174,56 +175,71 @@ async function checkBadgeCondition(
   }
 }
 
-// Kullanıcının yeni rozetlerini kontrol et ve ver
+/**
+ * Kullanıcının rozet ilerlemelerini kurallara göre yeniden hesaplar ve
+ * tamamlananları ödüllendirir. Eski 'condition' tabanlı rozetler için
+ * geriye dönük uyumluluk sağlanır.
+ */
 export async function checkAndAwardBadges(userId: string): Promise<any[]> {
-  const newBadges = [];
-
   try {
-    // Aktif tüm rozetleri getir
-    const allBadges = await prisma.badge.findMany({
-      where: { isActive: true },
+    // 1) Yeni BadgeRule tabanlı motoru çalıştır
+    const { newlyCompletedBadgeIds } = await recomputeAllBadges(userId, {
+      awardOnComplete: true,
     });
 
-    // Kullanıcının mevcut rozetlerini getir
+    // 2) Geriye dönük uyumluluk: 'condition' string'ine sahip, fakat kural tanımı olmayan rozetleri kontrol et
+    const legacyBadges = await prisma.badge.findMany({
+      where: {
+        isActive: true,
+        // BadgeRule ilişkisi olmayan (veya boş) rozetler için basic condition kontrolü
+        // Prisma tarafında direkt "empty relation" filtrelemek zor olduğundan basit yaklaşım:
+      },
+    });
+
     const userBadges = await prisma.userBadge.findMany({
       where: { userId },
       select: { badgeId: true },
     });
-
     const userBadgeIds = new Set(userBadges.map((ub: any) => ub.badgeId));
 
-    // Her rozet için kontrol yap
-    for (const badge of allBadges) {
-      // Kullanıcı zaten bu rozete sahip mi?
-      if (userBadgeIds.has(badge.id)) continue;
+    const legacyNewIds: string[] = [];
+    for (const badge of legacyBadges) {
+      if (!badge.condition) continue; // condition yoksa atla
+      if (userBadgeIds.has(badge.id)) continue; // zaten alınmış
 
-      // Koşulu kontrol et
-      const conditionMet = await checkBadgeCondition(userId, badge.condition);
-
-      if (conditionMet) {
-        // Rozeti kullanıcıya ver
-        const userBadge = await prisma.userBadge.create({
+      const met = await checkBadgeCondition(userId, badge.condition);
+      if (met) {
+        await prisma.userBadge.create({
           data: {
             userId,
             badgeId: badge.id,
-          },
-          include: {
-            badge: true,
+            isUnlocked: true,
+            isCompleted: true,
+            earnedAt: new Date(),
+            unlockedAt: new Date(),
+            progress: 100,
           },
         });
-
-        // Badge totalEarned sayısını artır
         await prisma.badge.update({
           where: { id: badge.id },
           data: { totalEarned: { increment: 1 } },
         });
-
-        newBadges.push(userBadge);
+        legacyNewIds.push(badge.id);
       }
     }
+
+    const allNew = [...newlyCompletedBadgeIds, ...legacyNewIds];
+    if (allNew.length === 0) return [];
+
+    // 3) Yeni kazanılan rozet kayıtlarını badge ile birlikte döndür
+    const newBadges = await prisma.userBadge.findMany({
+      where: { userId, badgeId: { in: allNew } },
+      include: { badge: true },
+    });
+
+    return newBadges;
   } catch (error) {
     console.error("Check and award badges error:", error);
+    return [];
   }
-
-  return newBadges;
 }

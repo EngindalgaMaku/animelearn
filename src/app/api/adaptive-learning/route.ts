@@ -1,25 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import {
+  getOrGenerateRecommendationQueue,
+  generateRecommendationQueue,
+} from "@/lib/adaptive";
+import { updateMasteryForActivityCompletion } from "@/lib/mastery";
+import { recomputeAllBadges } from "@/lib/achievements-engine";
 
 interface AuthUser {
   userId: string;
   username: string;
 }
 
-function getUserFromToken(request: NextRequest): AuthUser | null {
-  const token = request.cookies.get("auth-token")?.value;
-
-  if (!token) {
-    return null;
-  }
-
+async function getUserFromSession(): Promise<AuthUser | null> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
-    return decoded;
-  } catch (error) {
+    const session = await getServerSession(authOptions);
+    if (session?.user?.id) {
+      return {
+        userId: session.user.id as string,
+        username:
+          (session.user as any).username ||
+          (session.user.email as string) ||
+          "Unknown",
+      };
+    }
+    return null;
+  } catch {
     return null;
   }
 }
@@ -55,7 +63,7 @@ interface LearningAnalytics {
 // GET - Get adaptive learning recommendations
 export async function GET(req: NextRequest) {
   try {
-    const authUser = getUserFromToken(req);
+    const authUser = await getUserFromSession();
 
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -162,9 +170,34 @@ export async function GET(req: NextRequest) {
       recommendations,
     };
 
+    // Mastery-based adaptive recommendations (queue)
+    const queue = await getOrGenerateRecommendationQueue(authUser.userId, {
+      limit: 8,
+      ttlHours: 6,
+    });
+    const activityIds = queue.items.map((i) => i.activityId);
+    const recActivities = activityIds.length
+      ? await prisma.learningActivity.findMany({
+          where: { id: { in: activityIds } },
+          select: {
+            id: true,
+            title: true,
+            category: true,
+            difficulty: true,
+            estimatedMinutes: true,
+          },
+        })
+      : [];
+    const actMap = new Map(recActivities.map((a) => [a.id, a]));
+    const recommendationsQueue = queue.items.map((i) => ({
+      ...i,
+      activity: actMap.get(i.activityId) || null,
+    }));
+
     return NextResponse.json({
       success: true,
       analytics,
+      recommendationsQueue,
       lastUpdated: new Date().toISOString(),
     });
   } catch (error) {
@@ -392,7 +425,7 @@ function generateRecommendations(
 // POST - Update learning preferences or feedback
 export async function POST(req: NextRequest) {
   try {
-    const authUser = getUserFromToken(req);
+    const authUser = await getUserFromSession();
 
     if (!authUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -425,6 +458,73 @@ export async function POST(req: NextRequest) {
           success: true,
           message: "Preferences updated",
         });
+
+      case "refresh_recommendations": {
+        // Force re-generate recommendation queue using mastery gaps
+        const limit = typeof data?.limit === "number" ? data.limit : 10;
+        const ttlHours = typeof data?.ttlHours === "number" ? data.ttlHours : 6;
+        const queue = await generateRecommendationQueue(authUser.userId, {
+          limit,
+          ttlHours,
+        });
+        return NextResponse.json({
+          success: true,
+          message: "Recommendations refreshed",
+          queue,
+        });
+      }
+
+      case "activity_completed": {
+        // Update mastery and recompute achievements on activity completion
+        const {
+          activityId,
+          score,
+          completed,
+          correctCount,
+          incorrectCount,
+          timeSpent,
+        } = data || {};
+
+        if (!activityId) {
+          return NextResponse.json(
+            { error: "activityId required" },
+            { status: 400 }
+          );
+        }
+
+        await updateMasteryForActivityCompletion({
+          userId: authUser.userId,
+          activityId,
+          score: typeof score === "number" ? score : undefined,
+          completed: typeof completed === "boolean" ? completed : true,
+          correctCount: typeof correctCount === "number" ? correctCount : 0,
+          incorrectCount:
+            typeof incorrectCount === "number" ? incorrectCount : 0,
+          timeSpent: typeof timeSpent === "number" ? timeSpent : undefined,
+        });
+
+        // Recompute achievements and award completions if any
+        const recompute = await recomputeAllBadges(authUser.userId, {
+          awardOnComplete: true,
+        });
+
+        // Refresh adaptive recommendations
+        const queue = await generateRecommendationQueue(authUser.userId, {
+          limit: 8,
+          ttlHours: 6,
+        });
+
+        return NextResponse.json({
+          success: true,
+          message: "Activity completion recorded",
+          masteryUpdated: true,
+          achievements: {
+            newlyCompleted: recompute.newlyCompletedBadgeIds,
+            totalEvaluated: recompute.results.length,
+          },
+          queue,
+        });
+      }
 
       default:
         return NextResponse.json({ error: "Invalid action" }, { status: 400 });

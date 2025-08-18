@@ -157,6 +157,24 @@ const adminNavigation = [
         icon: Gamepad2,
         description: "Create interactive games & activities",
       },
+      {
+        name: "Achievements",
+        href: "/admin/achievements",
+        icon: Crown,
+        description: "View achievements, user progress and recompute awards",
+      },
+      {
+        name: "Skills & Mastery",
+        href: "/admin/skills",
+        icon: GraduationCap,
+        description: "Manage skills taxonomy, mappings and mastery analytics",
+      },
+      {
+        name: "Adaptive Learning",
+        href: "/admin/adaptive-learning",
+        icon: Brain,
+        description: "Inspect and refresh recommendation queues",
+      },
     ],
   },
   {
@@ -334,13 +352,11 @@ export default function AdminLayout({
         {/* Sidebar Header */}
         <div className="flex h-16 items-center justify-between border-b border-gray-200 px-6">
           <Link href="/" className="flex items-center space-x-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-red-600 to-orange-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-indigo-600 to-cyan-600">
               <Crown className="h-5 w-5 text-white" />
             </div>
             <div>
-              <span className="bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-lg font-bold text-transparent">
-                Zumenzu
-              </span>
+              <span className="text-lg font-bold text-indigo-700">Zumenzu</span>
               <div className="text-xs text-gray-500">Admin Panel</div>
             </div>
           </Link>
@@ -413,14 +429,12 @@ export default function AdminLayout({
                     onClick={() => toggleMenu(item.name)}
                     className={`flex w-full items-center justify-between rounded-lg px-4 py-3 font-medium transition-colors ${
                       hasActiveSubmenu
-                        ? "bg-gradient-to-r from-red-100 to-orange-100 text-red-700 shadow-sm"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                        ? "bg-indigo-50 text-indigo-700 shadow-sm"
+                        : "text-slate-700 hover:bg-indigo-50 hover:text-indigo-700"
                     }`}
                   >
                     <div className="flex items-center space-x-3">
-                      <IconComponent
-                        className={`h-5 w-5 ${item.color || "text-current"}`}
-                      />
+                      <IconComponent className="h-5 w-5 text-slate-600" />
                       <span>{item.name}</span>
                     </div>
                     {isExpanded ? (
@@ -448,8 +462,8 @@ export default function AdminLayout({
                             }}
                             className={`flex items-start space-x-3 rounded-lg px-3 py-2 text-sm transition-colors ${
                               isSubActive
-                                ? "bg-red-50 font-medium text-red-700"
-                                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                ? "bg-indigo-50 font-medium text-indigo-700"
+                                : "text-slate-700 hover:bg-indigo-50 hover:text-indigo-700"
                             }`}
                           >
                             <SubIconComponent className="mt-0.5 h-4 w-4 flex-shrink-0" />
@@ -481,13 +495,11 @@ export default function AdminLayout({
                 }}
                 className={`flex items-center space-x-3 rounded-lg px-4 py-3 font-medium transition-colors ${
                   isActive
-                    ? "bg-gradient-to-r from-red-100 to-orange-100 text-red-700 shadow-sm"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    ? "bg-indigo-600 text-white shadow-sm"
+                    : "text-slate-700 hover:bg-indigo-50 hover:text-indigo-700"
                 }`}
               >
-                <IconComponent
-                  className={`h-5 w-5 ${item.color || "text-current"}`}
-                />
+                <IconComponent className="h-5 w-5 text-slate-600" />
                 <span>{item.name}</span>
               </Link>
             );
