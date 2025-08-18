@@ -7982,10 +7982,34 @@ export default function LearnPage() {
   const [categoryView, setCategoryView] = useState<"compact" | "detailed">(
     "compact"
   );
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
+  // Lesson completion UX state
+  const [lessonStartTs, setLessonStartTs] = useState<number | null>(null);
+  const [finishLoading, setFinishLoading] = useState(false);
+  const [finishResult, setFinishResult] = useState<{
+    diamonds?: number;
+    experience?: number;
+    message?: string;
+    success?: boolean;
+  } | null>(null);
 
   useEffect(() => {
     loadTopicsAndProgress();
   }, []);
+
+  // Reset pagination when search text or selected topic changes
+  useEffect(() => {
+    setPage(1);
+  }, [lessonSearch, selectedTopic]);
+
+  // Track reading time & reset claim result when opening a lesson
+  useEffect(() => {
+    if (selectedLesson) {
+      setLessonStartTs(Date.now());
+      setFinishResult(null);
+    }
+  }, [selectedLesson]);
 
   const loadTopicsAndProgress = async () => {
     try {
@@ -8146,8 +8170,7 @@ export default function LearnPage() {
                     (lessons.length + challenges.length)) *
                     100
                 ) || 0,
-              isUnlocked:
-                topicName === "Python Fundamentals" || completedChallenges > 0,
+              isUnlocked: true,
             };
           }
         );
@@ -8189,6 +8212,18 @@ export default function LearnPage() {
     );
   });
 
+  const totalPages = Math.max(1, Math.ceil(filteredLessons.length / PAGE_SIZE));
+  const startIndex = (page - 1) * PAGE_SIZE;
+  const endIndex = Math.min(startIndex + PAGE_SIZE, filteredLessons.length);
+  const paginatedLessons = filteredLessons.slice(startIndex, endIndex);
+
+  // Clamp current page if filters change and reduce total pages
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [totalPages, page]);
+
   const handleStartLesson = (lesson: Lesson) => {
     setSelectedLesson(lesson);
   };
@@ -8200,6 +8235,103 @@ export default function LearnPage() {
       `/code-arena?category=${lesson.category}&challenges=${challengeIds}`,
       "_blank"
     );
+  };
+
+  // Safe slugification to match backend fallback (slugified title)
+  const slugifyTitle = (s: string) =>
+    s
+      .toString()
+      .toLowerCase()
+      .replace(/&/g, " ")
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .trim();
+
+  // Finish lesson and claim reward without requiring a "start" step
+  const handleFinishLesson = async () => {
+    if (!selectedLesson) return;
+    if (!isAuthenticated) {
+      setFinishResult({
+        message: "Login required to claim rewards.",
+      });
+      return;
+    }
+    setFinishLoading(true);
+    setFinishResult(null);
+
+    const seconds =
+      lessonStartTs !== null
+        ? Math.max(0, Math.floor((Date.now() - lessonStartTs) / 1000))
+        : 0;
+
+    // Try slugified title first (DB fallback), then provided slug
+    const candidates = Array.from(
+      new Set(
+        [slugifyTitle(selectedLesson.title), selectedLesson.slug].filter(
+          Boolean
+        )
+      )
+    ) as string[];
+
+    let lastError: string | null = null;
+    for (const slug of candidates) {
+      try {
+        const res = await fetch(`/api/lessons/${slug}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "complete", timeSpent: seconds }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          lastError = data?.error || res.statusText;
+          continue;
+        }
+
+        const diamonds = data?.rewards?.diamonds || 0;
+        const experience = data?.rewards?.experience || 0;
+        const message = data?.message || "Lesson completed";
+        setFinishResult({ diamonds, experience, message, success: true });
+
+        // Mark completed in topics state and recalc progress
+        setTopics((prev) =>
+          prev.map((t) => {
+            if (t.id !== selectedLesson.category) return t;
+            const lessons = t.lessons.map((l) =>
+              l.slug === selectedLesson.slug || slugifyTitle(l.title) === slug
+                ? { ...l, isCompleted: true }
+                : l
+            );
+            const completedLessons = lessons.filter(
+              (l) => l.isCompleted
+            ).length;
+            const totalLessons = lessons.length;
+            const completedChallenges = t.completedChallenges;
+            const totalChallenges = t.totalChallenges;
+            const overallProgress =
+              Math.round(
+                ((completedLessons + completedChallenges) /
+                  Math.max(1, totalLessons + totalChallenges)) *
+                  100
+              ) || 0;
+            return { ...t, lessons, completedLessons, overallProgress };
+          })
+        );
+
+        // Update local selected lesson state
+        setSelectedLesson((prev) =>
+          prev ? { ...prev, isCompleted: true } : prev
+        );
+        setLessonStartTs(Date.now()); // reset timer for potential revisit
+        setFinishLoading(false);
+        return;
+      } catch (err: any) {
+        lastError = err?.message || "Request failed";
+      }
+    }
+
+    setFinishResult({ message: lastError || "Failed to complete lesson" });
+    setFinishLoading(false);
   };
 
   if (loading) {
@@ -8270,6 +8402,96 @@ export default function LearnPage() {
           {/* Lesson Content */}
           <div className="mb-8 rounded-2xl bg-white/80 shadow-lg backdrop-blur-sm">
             <LessonContent content={selectedLesson.content} />
+          </div>
+
+          {/* Finish Lesson & Claim Reward */}
+          <div className="mb-8 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50 p-6">
+            <h2 className="mb-2 text-xl font-bold text-emerald-900">
+              Finish lesson and get reward
+            </h2>
+            <p className="mb-4 text-emerald-800">
+              Mark this lesson complete and claim your rewards.
+            </p>
+
+            {finishResult && (
+              <div
+                className={`mb-4 rounded-lg border p-3 ${
+                  finishResult.success
+                    ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+                    : "border-amber-300 bg-amber-50 text-amber-800"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <CheckCircle
+                    className={`h-5 w-5 ${
+                      finishResult.success
+                        ? "text-emerald-600"
+                        : "text-amber-600"
+                    }`}
+                  />
+                  <span>{finishResult.message || "Completed"}</span>
+                </div>
+                {(finishResult.diamonds || finishResult.experience) && (
+                  <div className="mt-2 flex items-center gap-4 text-sm">
+                    <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
+                      <Diamond className="h-4 w-4 text-yellow-500" />+
+                      {finishResult.diamonds || 0}
+                    </span>
+                    <span className="inline-flex items-center gap-1 font-semibold text-purple-700">
+                      <Star className="h-4 w-4 text-purple-500" />+
+                      {finishResult.experience || 0} XP
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={handleFinishLesson}
+              disabled={finishLoading || !isAuthenticated}
+              className={`inline-flex items-center rounded-xl px-6 py-3 text-white transition-all ${
+                finishLoading || !isAuthenticated
+                  ? "cursor-not-allowed bg-gray-400"
+                  : "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
+              }`}
+            >
+              {finishLoading ? (
+                <span className="inline-flex items-center gap-2">
+                  <svg
+                    className="h-4 w-4 animate-spin"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8H4z"
+                    />
+                  </svg>
+                  Processing...
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-white" />
+                  Finish Lesson & Claim Reward
+                </span>
+              )}
+            </button>
+            {!isAuthenticated && (
+              <p className="mt-2 text-sm text-emerald-800">
+                You need to log in to claim rewards.
+              </p>
+            )}
           </div>
 
           {/* Practice Challenges */}
@@ -8731,38 +8953,38 @@ export default function LearnPage() {
         </div>
         {/* Quick Stats Strip */}
         <div className="mx-auto mb-10 max-w-5xl">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-blue-50 p-5 shadow-sm">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-blue-50 p-3 shadow-sm sm:p-5">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-indigo-700">Topics</p>
-                  <p className="text-2xl font-bold text-indigo-900">
+                  <p className="text-lg font-bold text-indigo-900 sm:text-2xl">
                     {totalTopics}
                   </p>
                 </div>
-                <BookOpen className="h-8 w-8 text-indigo-500" />
+                <BookOpen className="h-6 w-6 text-indigo-500 sm:h-8 sm:w-8" />
               </div>
             </div>
-            <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-teal-50 p-5 shadow-sm">
+            <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-teal-50 p-3 shadow-sm sm:p-5">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-emerald-700">Lessons</p>
-                  <p className="text-2xl font-bold text-emerald-900">
+                  <p className="text-lg font-bold text-emerald-900 sm:text-2xl">
                     {totalLessonsAll}
                   </p>
                 </div>
-                <Clock className="h-8 w-8 text-emerald-500" />
+                <Clock className="h-6 w-6 text-emerald-500 sm:h-8 sm:w-8" />
               </div>
             </div>
-            <div className="rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 to-yellow-50 p-5 shadow-sm">
+            <div className="rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 to-yellow-50 p-3 shadow-sm sm:p-5">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-amber-700">Challenges</p>
-                  <p className="text-2xl font-bold text-amber-900">
+                  <p className="text-lg font-bold text-amber-900 sm:text-2xl">
                     {totalChallengesAll}
                   </p>
                 </div>
-                <Trophy className="h-8 w-8 text-amber-500" />
+                <Trophy className="h-6 w-6 text-amber-500 sm:h-8 sm:w-8" />
               </div>
             </div>
           </div>
@@ -8958,14 +9180,14 @@ export default function LearnPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {filteredLessons.map((lesson, index) => (
+                  {paginatedLessons.map((lesson, index) => (
                     <div
                       key={lesson.id}
                       className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
                     >
                       <div className="flex items-center space-x-4">
                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 font-bold text-white">
-                          {index + 1}
+                          {startIndex + index + 1}
                         </div>
                         <div>
                           <h4 className="font-semibold text-gray-900">
@@ -8998,6 +9220,48 @@ export default function LearnPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+              {filteredLessons.length > 0 && totalPages > 1 && (
+                <div className="mt-6 flex flex-col items-center justify-between gap-3 sm:flex-row">
+                  <div className="text-sm text-gray-600">
+                    Showing {startIndex + 1}–{endIndex} of{" "}
+                    {filteredLessons.length} lessons
+                  </div>
+                  <nav
+                    className="inline-flex items-center gap-1"
+                    aria-label="Pagination"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setPage(Math.max(1, page - 1))}
+                      disabled={page === 1}
+                      className={`rounded-md border px-3 py-1 text-sm ${page === 1 ? "cursor-not-allowed opacity-50" : "bg-white hover:bg-gray-50"}`}
+                    >
+                      Previous
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (p) => (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => setPage(p)}
+                          aria-current={p === page ? "page" : undefined}
+                          className={`h-9 w-9 rounded-md border text-sm font-medium ${p === page ? "border-purple-600 bg-purple-600 text-white" : "bg-white hover:bg-gray-50"}`}
+                        >
+                          {p}
+                        </button>
+                      )
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setPage(Math.min(totalPages, page + 1))}
+                      disabled={page === totalPages}
+                      className={`rounded-md border px-3 py-1 text-sm ${page === totalPages ? "cursor-not-allowed opacity-50" : "bg-white hover:bg-gray-50"}`}
+                    >
+                      Next
+                    </button>
+                  </nav>
                 </div>
               )}
             </div>

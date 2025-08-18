@@ -388,9 +388,9 @@ export async function POST(
       const codeXP = Math.floor(baseXP * 0.6);
       const quizXP = baseXP - codeXP;
 
-      // Determine catch-up awards (only if not rewarded yet)
-      const awardCode = !codeRewarded && prevScore >= 90;
-      const awardQuiz = !quizRewarded && quizPassed;
+      // Determine awards for any not-yet-rewarded shares (no code/quiz gating)
+      const awardCode = !codeRewarded;
+      const awardQuiz = !quizRewarded;
 
       const awardDiamonds =
         (awardCode ? codeDiamonds : 0) + (awardQuiz ? quizDiamonds : 0);

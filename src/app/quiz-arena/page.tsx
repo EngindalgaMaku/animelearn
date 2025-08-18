@@ -50,6 +50,9 @@ interface QuizSession {
   startTime: Date;
   totalTime: number;
   isActive: boolean;
+  attemptId?: string;
+  quizId?: string;
+  isDemo?: boolean;
 }
 
 interface QuizStats {
@@ -143,19 +146,18 @@ export default function QuizArenaPage() {
       const response = await fetch("/api/quiz-arena/categories");
       if (response.ok) {
         const data = await response.json();
-        setCategories(data.categories || []);
-        if (data.categories.length > 0 && !selectedCategory) {
-          setSelectedCategory(data.categories[0].name);
+        const list = data.categories || [];
+        setCategories(list);
+        const names = list.map((c: any) => c.name);
+        // If current selection isn't available (or empty), default to first valid category
+        if (names.length > 0 && !names.includes(selectedCategory)) {
+          setSelectedCategory(names[0]);
         }
       }
     } catch (error) {
       console.error("Failed to load categories:", error);
-      // For anonymous users, provide default categories
-      setCategories([
-        { name: "Python Basics", questionCount: 50 },
-        { name: "Data Structures", questionCount: 30 },
-        { name: "Algorithms", questionCount: 25 },
-      ]);
+      // Enforce rule: do not show fallback categories if request fails
+      setCategories([]);
     }
   };
 
@@ -187,30 +189,44 @@ export default function QuizArenaPage() {
         console.log(
           "Anonymous user starting quiz with potential rewards preview"
         );
-        // For now, continue with a demo quiz
-        const demoQuestion = {
-          id: "demo_1",
-          question:
-            "Welcome to Python Quiz Arena! This is a demo question. Which operator is used to concatenate strings in Python?",
-          options: ["&", "+", ".", "*"],
-          correctAnswer: 1,
-          explanation:
-            "The + operator is used to concatenate strings in Python. Example: 'Hello' + ' World' = 'Hello World'",
-          difficulty: 1,
-          category: selectedCategory,
-          tags: [],
-        };
+        // Fallback demo quiz (2 questions) if the server responds 401 (should be rare)
+        const demoQuestions: Question[] = [
+          {
+            id: "demo_1",
+            question:
+              "Welcome to Python Quiz Arena! This is a demo question. Which operator is used to concatenate strings in Python?",
+            options: ["&", "+", ".", "*"],
+            correctAnswer: 1,
+            explanation:
+              "The + operator is used to concatenate strings in Python. Example: 'Hello' + ' World' = 'Hello World'",
+            difficulty: 1,
+            category: selectedCategory,
+            tags: [],
+          },
+          {
+            id: "demo_2",
+            question: "Which brackets are used to create a list in Python?",
+            options: ["()", "{}", "[]", "<>"],
+            correctAnswer: 2,
+            explanation:
+              "Lists use square brackets: []. Example: my_list = [1, 2, 3]",
+            difficulty: 1,
+            category: selectedCategory,
+            tags: [],
+          },
+        ];
 
         setQuizSession({
           id: "demo_session",
           currentStreak: 0,
-          questions: [demoQuestion],
+          questions: demoQuestions,
           currentQuestionIndex: 0,
           startTime: new Date(),
           totalTime: 0,
           isActive: true,
+          isDemo: true,
         });
-        setCurrentQuestion(demoQuestion);
+        setCurrentQuestion(demoQuestions[0]);
         setGameState("playing");
         setTimeLeft(30);
         setSelectedAnswer(null);
@@ -239,17 +255,33 @@ export default function QuizArenaPage() {
       playSound("wrong");
     }
 
-    // For anonymous users, handle demo quiz locally
+    // For anonymous users, handle demo quiz locally with multiple questions
     if (!isAuthenticated && quizSession.id === "demo_session") {
+      const projectedStreak = isCorrect ? currentStreak + 1 : currentStreak;
+      const nextIndex = (quizSession.currentQuestionIndex ?? 0) + 1;
+      const hasNext = nextIndex < (quizSession.questions?.length ?? 0);
+      const nextQuestion = hasNext ? quizSession.questions[nextIndex] : null;
+
       setTimeout(() => {
-        setGameState("gameOver");
-        // Show potential rewards for anonymous users
-        setRewardData({
-          diamonds: currentStreak * 2,
-          experience: currentStreak * 5,
-          cards: [],
-          loginMessage: "Login to earn real rewards!",
-        });
+        if (isCorrect && nextQuestion) {
+          // Go to next demo question
+          setQuizSession((prev) =>
+            prev ? { ...prev, currentQuestionIndex: nextIndex } : prev
+          );
+          setCurrentQuestion(nextQuestion);
+          setTimeLeft(30);
+          setSelectedAnswer(null);
+          setIsAnswerRevealed(false);
+        } else {
+          // End demo and show login incentive
+          setGameState("gameOver");
+          setRewardData({
+            diamonds: Math.max(1, projectedStreak * 2),
+            experience: Math.max(5, projectedStreak * 5),
+            cards: [],
+            loginMessage: "Login to earn real rewards!",
+          });
+        }
       }, 2000);
       return;
     }
@@ -263,6 +295,7 @@ export default function QuizArenaPage() {
           questionId: currentQuestion.id,
           answerIndex,
           timeSpent: 30 - timeLeft,
+          attemptId: (quizSession as any).attemptId,
         }),
       });
 

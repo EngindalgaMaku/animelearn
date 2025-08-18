@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { checkAndAwardBadges } from "@/lib/badges";
-
-const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     const body = await request.json();
-    const { sessionId, questionId, answerIndex, timeSpent } = body;
+    const { sessionId, questionId, answerIndex, timeSpent, attemptId } = body;
 
     // Handle anonymous users with demo sessions
     if (!session?.user?.email) {
@@ -52,18 +51,23 @@ export async function POST(request: NextRequest) {
     // In a real implementation, you'd retrieve session data from Redis/cache
     // For now, we'll work with the data provided and validate the answer
 
-    // Get the quiz and attempt (we'd need the quiz ID from session)
-    // For this demo, we'll work with the latest quiz attempt for the user
-    const latestAttempt = await prisma.quizAttempt.findFirst({
-      where: {
-        userId: user.id,
-        isCompleted: false,
-      },
-      orderBy: { startedAt: "desc" },
-      include: { quiz: true },
-    });
+    // Prefer the attemptId sent by the client, fall back to latest active attempt
+    let currentAttempt = await (async () => {
+      if (attemptId) {
+        const attempt = await prisma.quizAttempt.findFirst({
+          where: { id: attemptId, userId: user.id },
+          include: { quiz: true },
+        });
+        if (attempt) return attempt;
+      }
+      return prisma.quizAttempt.findFirst({
+        where: { userId: user.id, isCompleted: false },
+        orderBy: { startedAt: "desc" },
+        include: { quiz: true },
+      });
+    })();
 
-    if (!latestAttempt) {
+    if (!currentAttempt) {
       return NextResponse.json(
         { error: "No active quiz session found" },
         { status: 404 }
@@ -71,9 +75,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse questions from quiz
-    const questions = JSON.parse(latestAttempt.quiz.questions);
+    const questions = JSON.parse(currentAttempt.quiz.questions);
     const currentQuestionIndex = JSON.parse(
-      latestAttempt.answers || "[]"
+      currentAttempt.answers || "[]"
     ).length;
     const currentQuestion = questions.find((q: any) => q.id === questionId);
 
@@ -87,7 +91,7 @@ export async function POST(request: NextRequest) {
     const isCorrect = answerIndex === currentQuestion.correctAnswer;
 
     // Update answers array
-    const currentAnswers = JSON.parse(latestAttempt.answers || "[]");
+    const currentAnswers = JSON.parse(currentAttempt.answers || "[]");
     currentAnswers.push({
       questionId,
       answerIndex,
@@ -140,12 +144,12 @@ export async function POST(request: NextRequest) {
 
     // Update quiz attempt first (simple update, no transaction needed)
     const updatedAttempt = await prisma.quizAttempt.update({
-      where: { id: latestAttempt.id },
+      where: { id: currentAttempt.id },
       data: {
         answers: JSON.stringify(currentAnswers),
         score: finalStreak * 10,
         correctAnswers: currentAnswers.filter((a: any) => a.isCorrect).length,
-        timeSpent: latestAttempt.timeSpent + timeSpent,
+        timeSpent: currentAttempt.timeSpent + timeSpent,
         isCompleted: gameOver,
         completedAt: gameOver ? new Date() : undefined,
       },
@@ -175,7 +179,7 @@ export async function POST(request: NextRequest) {
                 type: "QUIZ_COMPLETION",
                 description: `Quiz Arena Streak: ${finalStreak} questions`,
                 relatedType: "QUIZ",
-                relatedId: latestAttempt.quizId,
+                relatedId: currentAttempt.quizId,
               },
             });
           },
@@ -218,7 +222,7 @@ export async function POST(request: NextRequest) {
                   packId: rewards.cardPack.id,
                   cardsReceived: JSON.stringify(rewards.cards.map((c) => c.id)),
                   sourceType: "QUIZ_REWARD",
-                  sourceId: latestAttempt.id,
+                  sourceId: currentAttempt.id,
                 },
               });
             } catch (packError) {

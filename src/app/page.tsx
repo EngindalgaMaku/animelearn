@@ -424,28 +424,37 @@ export default function HomePage() {
                         "func myFunc(): pass",
                         "define myFunc(): pass",
                       ]
-                    ).map((option: string, index: number) => (
-                      <button
-                        key={index}
-                        className={`w-full rounded-lg border-2 p-3 text-left transition-all hover:border-purple-300 hover:bg-purple-50 ${
-                          (sampleQuiz?.correctAnswer || 1) === index
-                            ? "border-purple-300 bg-purple-50"
-                            : "border-slate-200 bg-white"
-                        }`}
-                      >
-                        <span
-                          className={`font-semibold ${
-                            (sampleQuiz?.correctAnswer || 1) === index
-                              ? "text-purple-700"
-                              : "text-slate-700"
-                          }`}
+                    ).map((option: string, index: number) => {
+                      const isCorrect =
+                        (sampleQuiz?.correctAnswer || 1) === index;
+                      return (
+                        <button
+                          key={index}
+                          type="button"
+                          className={`w-full rounded-lg border-2 p-3 text-left transition-colors hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
+                            isCorrect
+                              ? "border-purple-400 bg-purple-100"
+                              : "border-slate-300 bg-white"
+                          } text-slate-900`}
                         >
-                          {String.fromCharCode(65 + index)})
-                        </span>{" "}
-                        {renderOption(option)}{" "}
-                        {(sampleQuiz?.correctAnswer || 1) === index && " ✓"}
-                      </button>
-                    ))}
+                          <span
+                            className={`mr-2 inline-flex h-6 w-6 items-center justify-center rounded-md font-semibold ${
+                              isCorrect
+                                ? "bg-purple-200 text-purple-900"
+                                : "bg-slate-200 text-slate-900"
+                            }`}
+                          >
+                            {String.fromCharCode(65 + index)}
+                          </span>
+                          <span className="align-middle">
+                            {renderOption(option)}
+                          </span>
+                          {isCorrect && (
+                            <span className="ml-2 text-green-700">✓</span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 

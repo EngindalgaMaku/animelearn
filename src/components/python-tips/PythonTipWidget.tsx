@@ -67,6 +67,7 @@ interface PythonTipWidgetProps {
   className?: string;
   modalPosition?: "center" | "top";
   modalTopOffsetRem?: number;
+  expandMode?: "modal" | "accordion";
 }
 
 const difficultyColors = {
@@ -91,6 +92,7 @@ export default function PythonTipWidget({
   modalPosition = "center",
   modalTopOffsetRem = 5,
   className = "",
+  expandMode = "modal",
 }: PythonTipWidgetProps) {
   const [isExpanded, setIsExpanded] = useState(!!(compact && startExpanded));
   const [isCodeVisible, setIsCodeVisible] = useState(true);
@@ -119,9 +121,9 @@ export default function PythonTipWidget({
     maxWidth: "min(40rem, calc(100vw - 2rem))",
   };
 
-  // Lock background scroll when modal is open
+  // Lock background scroll only when modal is open
   useEffect(() => {
-    if (isExpanded) {
+    if (isExpanded && expandMode === "modal") {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -129,20 +131,20 @@ export default function PythonTipWidget({
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isExpanded]);
+  }, [isExpanded, expandMode]);
 
-  // Clear "just opened" flag shortly after mount so backdrop clicks work normally
+  // Clear "just opened" flag shortly after mount so backdrop clicks work normally (modal only)
   useEffect(() => {
-    if (!isExpanded) return;
+    if (!isExpanded || expandMode !== "modal") return;
     const t = setTimeout(() => {
       justOpenedRef.current = false;
     }, 80);
     return () => clearTimeout(t);
-  }, [isExpanded]);
+  }, [isExpanded, expandMode]);
 
   // Allow closing with Escape key when modal is open (compact mode)
   useEffect(() => {
-    if (!isExpanded) return;
+    if (!isExpanded || expandMode !== "modal") return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setIsExpanded(false);
@@ -150,7 +152,7 @@ export default function PythonTipWidget({
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isExpanded]);
+  }, [isExpanded, expandMode]);
 
   // Early return if no tip provided
   if (!tip) {
@@ -179,6 +181,7 @@ export default function PythonTipWidget({
     likeCount: tip.likeCount || 0,
     estimatedMinutes: tip.estimatedMinutes || 5,
   };
+  const accordionId = `python-tip-accordion-${safeTip.id || "default"}`;
 
   // Track time spent
   useEffect(() => {
@@ -284,10 +287,27 @@ export default function PythonTipWidget({
             </span>
           </div>
           <button
-            onClick={openModal}
+            onClick={() =>
+              expandMode === "accordion"
+                ? setIsExpanded((v) => !v)
+                : openModal()
+            }
+            aria-expanded={isExpanded}
+            aria-controls={accordionId}
             className="text-gray-400 transition-colors hover:text-white"
           >
-            <Maximize2 className="h-4 w-4" />
+            {expandMode === "accordion" ? (
+              <ChevronRight
+                className={`h-4 w-4 transition-transform ${
+                  isExpanded ? "rotate-90" : ""
+                }`}
+              />
+            ) : (
+              <Maximize2 className="h-4 w-4" />
+            )}
+            <span className="sr-only">
+              {isExpanded ? "Hide Python tip" : "Show Python tip"}
+            </span>
           </button>
         </div>
 
@@ -333,14 +353,38 @@ export default function PythonTipWidget({
           </div>
         </div>
 
-        {/* Expanded Modal */}
+        {/* Expanded content */}
         <AnimatePresence>
-          {isExpanded && (
+          {expandMode === "accordion" && isExpanded && (
+            <motion.div
+              id={accordionId}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="border-t border-gray-700 bg-[#1e1e1e]"
+              aria-hidden={!isExpanded}
+            >
+              <div className="p-3 sm:p-4">
+                <FullTipContent
+                  tip={safeTip}
+                  userProgress={userProgress}
+                  streak={streak}
+                  timeSpent={timeSpent}
+                  onInteraction={onInteraction}
+                />
+              </div>
+            </motion.div>
+          )}
+
+          {expandMode === "modal" && isExpanded && (
             <Portal>
               <motion.div
                 role="dialog"
                 aria-modal="true"
-                className={`fixed inset-0 z-[2147483647] flex ${modalPosition === "top" ? "items-start" : "items-center"} justify-center overscroll-contain bg-black/60 p-4 backdrop-blur-sm`}
+                className={`fixed inset-0 z-[2147483647] flex ${
+                  modalPosition === "top" ? "items-start" : "items-center"
+                } justify-center overscroll-contain bg-black/60 p-4 backdrop-blur-sm`}
                 style={{
                   paddingTop:
                     modalPosition === "top"
@@ -357,7 +401,9 @@ export default function PythonTipWidget({
                 exit={{ opacity: 0 }}
               >
                 <motion.div
-                  className={`relative min-h-[40vh] w-full ${modalPosition === "top" ? "" : "-translate-y-6"} overflow-auto rounded-3xl bg-[#1e1e1e] shadow-2xl ring-1 ring-white/20`}
+                  className={`relative min-h-[40vh] w-full ${
+                    modalPosition === "top" ? "" : "-translate-y-6"
+                  } overflow-auto rounded-3xl bg-[#1e1e1e] shadow-2xl ring-1 ring-white/20`}
                   style={modalSizingStyle}
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}

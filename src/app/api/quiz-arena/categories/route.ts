@@ -19,10 +19,13 @@ export async function GET(request: NextRequest) {
         },
       });
 
-      const categoriesWithCounts = categories.map((cat: any) => ({
-        name: cat.category,
-        questionCount: cat._count.id,
-      }));
+      const categoriesWithCounts = categories
+        .filter((cat: any) => (cat._count?.id ?? 0) >= 100)
+        .map((cat: any) => ({
+          name: cat.category,
+          questionCount: cat._count.id,
+        }))
+        .sort((a: any, b: any) => b.questionCount - a.questionCount);
 
       return NextResponse.json({
         success: true,
@@ -33,13 +36,7 @@ export async function GET(request: NextRequest) {
       // Fallback categories for anonymous users when database is unavailable
       return NextResponse.json({
         success: true,
-        categories: [
-          { name: "Python Basics", questionCount: 50 },
-          { name: "Data Structures", questionCount: 30 },
-          { name: "Algorithms", questionCount: 25 },
-          { name: "Object-Oriented Programming", questionCount: 20 },
-          { name: "Web Development", questionCount: 15 },
-        ],
+        categories: [],
       });
     }
   } catch (error) {

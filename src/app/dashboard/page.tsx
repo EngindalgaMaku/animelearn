@@ -65,7 +65,6 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [authTimeout, setAuthTimeout] = useState(false);
   const [dailyTip, setDailyTip] = useState<any>(null);
   const [tipProgress, setTipProgress] = useState<any>(null);
@@ -76,6 +75,10 @@ export default function Dashboard() {
   const [claimingReward, setClaimingReward] = useState(false);
   const [weeklyChallenges, setWeeklyChallenges] = useState<any>(null);
   const [challengesLoading, setChallengesLoading] = useState(true);
+  const [message, setMessage] = useState<{
+    type: "success" | "error" | "info";
+    text: string;
+  } | null>(null);
 
   // Load site settings
   useEffect(() => {
@@ -267,6 +270,7 @@ export default function Dashboard() {
 
     try {
       setClaimingReward(true);
+      setMessage(null);
       const response = await fetch("/api/daily-login-reward", {
         method: "POST",
       });
@@ -278,19 +282,32 @@ export default function Dashboard() {
         // Refresh daily rewards data
         await loadDailyRewardsData();
 
-        // Refresh user data by reloading the page data
-        window.location.reload();
+        // Inform user and refresh shortly to update header stats
+        setMessage({
+          type: "success",
+          text: "Daily reward claimed successfully!",
+        });
+        setTimeout(() => window.location.reload(), 800);
       } else {
         const error = await response.json();
         if (error.alreadyClaimed) {
-          alert("You have already claimed your reward today!");
+          setMessage({
+            type: "info",
+            text: "You have already claimed your reward today!",
+          });
         } else {
-          alert(error.error || "Failed to claim reward");
+          setMessage({
+            type: "error",
+            text: error.error || "Failed to claim reward",
+          });
         }
       }
     } catch (error) {
       console.error("Error claiming reward:", error);
-      alert("Failed to claim reward. Please try again.");
+      setMessage({
+        type: "error",
+        text: "Failed to claim reward. Please try again.",
+      });
     } finally {
       setClaimingReward(false);
     }
@@ -347,14 +364,8 @@ export default function Dashboard() {
     }
   }, [showDailyRewardsModal, user]);
 
-  // Update current time
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
   const getGreeting = () => {
-    const hour = currentTime.getHours();
+    const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
     if (hour < 18) return "Good afternoon";
     return "Good evening";
@@ -364,11 +375,6 @@ export default function Dashboard() {
     if (!user) return 0;
     const currentLevelXp = user.experience % 100;
     return (currentLevelXp / 100) * 100;
-  };
-
-  const getNextLevelXp = () => {
-    if (!user) return 100;
-    return (user.level + 1) * 100;
   };
 
   if ((loading && !authTimeout) || !settings) {
@@ -441,24 +447,42 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
       {/* Background Pattern */}
-      <div className="bg-grid-pattern absolute inset-0 opacity-[0.02]"></div>
+      <div className="bg-grid-pattern pointer-events-none absolute inset-0 opacity-[0.02]"></div>
 
       <div className="relative py-6 lg:py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {message && (
+            <div
+              role="status"
+              aria-live="polite"
+              className={`mb-6 rounded-lg border p-3 text-sm sm:p-4 sm:text-base ${
+                message.type === "success"
+                  ? "border-green-200 bg-green-50 text-green-800"
+                  : message.type === "error"
+                    ? "border-red-200 bg-red-50 text-red-800"
+                    : "border-blue-200 bg-blue-50 text-blue-800"
+              }`}
+            >
+              {message.text}
+            </div>
+          )}
           {/* Unified Header with Stats - Combined Layout */}
           <div className="mb-8 lg:mb-12">
             {/* Combined Header Section */}
             <div className="mb-6 rounded-2xl border border-white/60 bg-white/80 p-6 shadow-xl backdrop-blur-sm lg:p-8">
-              <div className="flex flex-col items-start space-y-6 lg:flex-row lg:items-center lg:space-x-8 lg:space-y-0">
-                <div className="relative">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shadow-xl ring-4 ring-white/50 lg:h-24 lg:w-24">
-                    <span className="text-2xl font-bold text-white lg:text-3xl">
+              <div className="flex flex-col items-start space-y-3 lg:flex-row lg:items-center lg:space-x-8 lg:space-y-0">
+                <div className="relative hidden sm:block">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shadow-lg ring-0 ring-white/50 sm:h-16 sm:w-16 sm:rounded-2xl sm:ring-2 lg:h-20 lg:w-20 lg:ring-4">
+                    <span className="text-base font-bold text-white sm:text-xl lg:text-3xl">
                       {currentUser.username.charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <div className="ring-3 absolute -right-2 -top-2 h-6 w-6 animate-pulse rounded-full bg-green-500 shadow-lg ring-white"></div>
+                  <div
+                    className="absolute -right-2 -top-2 hidden h-5 w-5 rounded-full bg-green-500 shadow-lg ring-2 ring-white motion-safe:animate-pulse sm:block"
+                    aria-hidden="true"
+                  ></div>
                   {currentUser.isPremium && (
-                    <div className="absolute -bottom-1 -right-1 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-1.5 shadow-lg">
+                    <div className="absolute -bottom-1 -right-1 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-1 shadow-lg sm:p-1.5">
                       <Crown className="h-3 w-3 text-white" />
                     </div>
                   )}
@@ -490,46 +514,34 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
-
-                <div className="flex items-center space-x-3 lg:flex-col lg:space-x-0 lg:space-y-2">
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-gray-500">
-                      Next Level
-                    </p>
-                    <p className="text-lg font-bold text-gray-900">
-                      {currentUser.level + 1}
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-gray-500">
-                      XP Needed
-                    </p>
-                    <p className="text-lg font-bold text-blue-600">
-                      {getNextLevelXp() - currentUser.experience}
-                    </p>
-                  </div>
-                </div>
               </div>
 
               {/* Progress Bar */}
               <div className="mt-6 lg:mt-8">
                 <div className="mb-2 flex justify-between text-sm font-medium text-gray-600">
-                  <span>Level {currentUser.level} Progress</span>
+                  <span>Level Progress</span>
                   <span>{currentUser.experience % 100}/100 XP</span>
                 </div>
-                <div className="relative h-3 w-full overflow-hidden rounded-full bg-gray-200 shadow-inner">
+                <div
+                  className="relative h-3 w-full overflow-hidden rounded-full bg-gray-200 shadow-inner"
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(calculateNextLevelProgress())}
+                  aria-label="Level progress"
+                >
                   <div
                     className="absolute left-0 top-0 h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transition-all duration-700 ease-out"
                     style={{ width: `${calculateNextLevelProgress()}%` }}
                   >
-                    <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent motion-safe:animate-pulse"></div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Compact Daily Python Tip */}
+          {/* Daily Python Tip */}
           <div className="mb-6">
             <div className="mb-2 flex items-center">
               <h2 className="flex items-center text-base font-semibold text-gray-900">
@@ -550,17 +562,15 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : dailyTip ? (
-              <div className="rounded-lg border border-white/60 bg-white/95 shadow-sm backdrop-blur-sm">
-                <PythonTipWidget
-                  tip={dailyTip}
-                  userProgress={tipProgress}
-                  streak={null}
-                  compact={true}
-                  onInteraction={handleTipInteraction}
-                  modalPosition="top"
-                  className="mx-auto"
-                />
-              </div>
+              <PythonTipWidget
+                tip={dailyTip}
+                userProgress={tipProgress}
+                streak={null}
+                compact={true}
+                expandMode="accordion"
+                onInteraction={handleTipInteraction}
+                className="mx-auto"
+              />
             ) : (
               <div className="rounded-lg border border-white/60 bg-white/95 p-3 text-center shadow-sm backdrop-blur-sm">
                 <div className="text-gray-500">
@@ -693,7 +703,7 @@ export default function Dashboard() {
                     🎴 My Collection
                   </h2>
                   <div className="ml-auto rounded-full bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-800">
-                    127 Cards
+                    {statsLoading ? "..." : `${stats?.totalCards ?? 0} Cards`}
                   </div>
                 </div>
 
@@ -749,9 +759,9 @@ export default function Dashboard() {
 
             {/* Single Unified Card */}
             <div className="border-gradient rounded-2xl border-2 bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 p-8 shadow-xl backdrop-blur-sm">
-              <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+              <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-3">
                 {/* Daily Rewards */}
-                <div className="space-y-4">
+                <div className="flex h-full min-h-[260px] flex-col space-y-4">
                   <div className="flex items-center space-x-3">
                     <div className="rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 p-3 shadow-lg">
                       <Gift className="h-6 w-6 text-white" />
@@ -777,14 +787,14 @@ export default function Dashboard() {
 
                   <button
                     onClick={() => setShowDailyRewardsModal(true)}
-                    className="block w-full rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 py-3 text-center font-semibold text-white shadow-lg transition-all hover:from-orange-600 hover:to-pink-600 hover:shadow-xl"
+                    className="mt-auto flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-center font-semibold text-white shadow-lg transition-all hover:from-orange-600 hover:to-pink-600 hover:shadow-xl"
                   >
                     Claim Reward
                   </button>
                 </div>
 
                 {/* Weekly Goals */}
-                <div className="space-y-4">
+                <div className="flex h-full min-h-[260px] flex-col space-y-4">
                   <div className="flex items-center space-x-3">
                     <div className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 p-3 shadow-lg">
                       <Target className="h-6 w-6 text-white" />
@@ -857,14 +867,14 @@ export default function Dashboard() {
 
                   <Link
                     href="/weekly-challenges"
-                    className="block w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-3 text-center font-semibold text-white shadow-lg transition-all hover:from-emerald-600 hover:to-teal-600 hover:shadow-xl"
+                    className="mt-auto flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-center font-semibold text-white shadow-lg transition-all hover:from-emerald-600 hover:to-teal-600 hover:shadow-xl"
                   >
                     View All Goals
                   </Link>
                 </div>
 
                 {/* Achievements */}
-                <div className="space-y-4">
+                <div className="flex h-full min-h-[260px] flex-col space-y-4">
                   <div className="flex items-center space-x-3">
                     <div className="rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 p-3 shadow-lg">
                       <Trophy className="h-6 w-6 text-white" />
@@ -894,7 +904,7 @@ export default function Dashboard() {
 
                   <Link
                     href="/achievements"
-                    className="block w-full rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 py-3 text-center font-semibold text-white shadow-lg transition-all hover:from-yellow-600 hover:to-orange-600 hover:shadow-xl"
+                    className="mt-auto flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-center font-semibold text-white shadow-lg transition-all hover:from-yellow-600 hover:to-orange-600 hover:shadow-xl"
                   >
                     View All
                   </Link>
@@ -917,8 +927,9 @@ export default function Dashboard() {
                   </h2>
                 </div>
                 <Link
-                  href="/activity"
+                  href="/profile"
                   className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                  title="View all transactions in Profile Settings"
                 >
                   View All
                 </Link>
@@ -962,7 +973,10 @@ export default function Dashboard() {
                           {activity.description}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {new Date(activity.timestamp).toLocaleTimeString()}
+                          {new Date(activity.timestamp).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </p>
                       </div>
                       {activity.reward && (
@@ -1124,7 +1138,7 @@ export default function Dashboard() {
                         <h3 className="mb-4 text-lg font-semibold text-gray-900">
                           Weekly Rewards
                         </h3>
-                        <div className="grid grid-cols-7 gap-2">
+                        <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
                           {dailyRewardsData.upcomingRewards?.map(
                             (dayData: any, index: number) => {
                               const isToday = dayData.isToday;
