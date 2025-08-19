@@ -11,6 +11,8 @@ import {
   Trophy,
 } from "lucide-react";
 import CodeBlock from "@/components/ui/CodeBlock";
+import CodeEditor from "@/components/learn/code-editor";
+import QuizComponent from "@/components/learn/quiz";
 
 interface LessonTabSystemProps {
   lesson: any;
@@ -22,6 +24,8 @@ interface LessonTabSystemProps {
   timeOnContent: number;
   isCodeCorrect?: boolean;
   onStartLesson: () => void;
+  onCodeSubmit?: (code: string, isCorrect: boolean, score: number) => void;
+  onQuizComplete?: (score: number, passed: boolean, rewards: any) => void;
 }
 
 export default function LessonTabSystem({
@@ -32,6 +36,8 @@ export default function LessonTabSystem({
   timeOnContent,
   isCodeCorrect = false,
   onStartLesson,
+  onCodeSubmit,
+  onQuizComplete,
 }: LessonTabSystemProps) {
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -49,7 +55,7 @@ export default function LessonTabSystem({
       name: "Syntax",
       icon: Code,
       color: "green",
-      unlocked: lessonStarted,
+      unlocked: timeOnContent >= 20, // intro read 20s
       content: lesson?.content?.syntax,
     },
     {
@@ -57,7 +63,7 @@ export default function LessonTabSystem({
       name: "Examples",
       icon: Target,
       color: "purple",
-      unlocked: lessonStarted && timeOnContent >= 120, // 2 minutes
+      unlocked: timeOnContent >= 20, // 20 seconds
       content: lesson?.content?.examples,
     },
     {
@@ -65,7 +71,7 @@ export default function LessonTabSystem({
       name: "Practice",
       icon: Code,
       color: "orange",
-      unlocked: lessonStarted && timeOnContent >= 300, // 5 minutes
+      unlocked: timeOnContent >= 20, // 20 seconds
       exercise: lesson?.exercise,
     },
     {
@@ -73,7 +79,7 @@ export default function LessonTabSystem({
       name: "Test",
       icon: Trophy,
       color: "red",
-      unlocked: lessonStarted && (timeOnContent >= 300 || isCodeCorrect),
+      unlocked: timeOnContent >= 20 || isCodeCorrect,
       quiz: lesson?.quiz,
     },
   ];
@@ -114,6 +120,10 @@ export default function LessonTabSystem({
             <CodeBlock
               code={code}
               language={language}
+              runnable={
+                language === "python" &&
+                (activeSection === "syntax" || activeSection === "examples")
+              }
               title={`Example ${Math.floor(index / 2) + 1}`}
             />
           </div>
@@ -283,7 +293,7 @@ export default function LessonTabSystem({
               className="flex items-center space-x-2 rounded-lg bg-blue-600 px-8 py-3 font-medium text-white transition-colors hover:bg-blue-700"
             >
               <BookOpen className="h-5 w-5" />
-              <span></span>
+              <span>Start Lesson</span>
             </button>
           </div>
         ) : currentTab?.unlocked ? (
@@ -302,28 +312,28 @@ export default function LessonTabSystem({
                     </div>
                     <div className="text-sm text-blue-600">
                       {Math.floor(timeOnContent / 60)}:
-                      {(timeOnContent % 60).toString().padStart(2, "0")} / 5:00
+                      {(timeOnContent % 60).toString().padStart(2, "0")} / 0:20
                     </div>
                   </div>
 
-                  {timeOnContent < 300 && !isCodeCorrect && (
+                  {timeOnContent < 20 && !isCodeCorrect && (
                     <div className="mt-3">
                       <p className="mb-2 text-sm text-blue-700">
-                        📚 Spend 5 minutes learning to unlock Practice & Test
+                        📚 Spend 20 seconds learning to unlock Practice & Test
                         sections
                       </p>
                       <div className="h-2 w-full rounded-full bg-blue-200">
                         <div
                           className="h-2 rounded-full bg-blue-500 transition-all duration-300"
                           style={{
-                            width: `${Math.min((timeOnContent / 300) * 100, 100)}%`,
+                            width: `${Math.min((timeOnContent / 20) * 100, 100)}%`,
                           }}
                         ></div>
                       </div>
                     </div>
                   )}
 
-                  {(timeOnContent >= 300 || isCodeCorrect) && (
+                  {(timeOnContent >= 20 || isCodeCorrect) && (
                     <p className="mt-3 text-sm text-green-700">
                       ✅ All sections unlocked! You can now access Practice and
                       Test.
@@ -391,24 +401,38 @@ export default function LessonTabSystem({
                 )}
               </div>
             ) : activeSection === "exercise" ? (
-              <div className="py-12 text-center">
-                <Code className="mx-auto mb-4 h-16 w-16 text-gray-400" />
-                <h3 className="mb-2 text-lg font-medium text-gray-900">
-                  Practice Exercise
-                </h3>
-                <p className="text-gray-600">
-                  Interactive coding exercise will be displayed here
-                </p>
+              <div className="mt-4">
+                {lesson?.exercise ? (
+                  <CodeEditor
+                    lessonId={lesson.slug}
+                    exercise={lesson.exercise}
+                    onCodeSubmit={onCodeSubmit || (() => {})}
+                  />
+                ) : (
+                  <div className="flex h-64 items-center justify-center rounded-lg bg-gray-100">
+                    <p className="text-gray-500">
+                      No exercise defined for this lesson.
+                    </p>
+                  </div>
+                )}
               </div>
             ) : activeSection === "quiz" ? (
-              <div className="py-12 text-center">
-                <Trophy className="mx-auto mb-4 h-16 w-16 text-gray-400" />
-                <h3 className="mb-2 text-lg font-medium text-gray-900">
-                  Knowledge Test
-                </h3>
-                <p className="text-gray-600">
-                  Quiz component will be displayed here
-                </p>
+              <div className="mt-4">
+                {lesson?.quiz ? (
+                  <QuizComponent
+                    quiz={lesson.quiz}
+                    lessonId={lesson.slug}
+                    onQuizComplete={(score, passed, rewards) => {
+                      onQuizComplete && onQuizComplete(score, passed, rewards);
+                    }}
+                  />
+                ) : (
+                  <div className="flex h-64 items-center justify-center rounded-lg bg-gray-100">
+                    <p className="text-gray-500">
+                      No quiz defined for this lesson.
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="py-12 text-center">

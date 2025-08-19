@@ -8,6 +8,23 @@ interface AuthUser {
   username: string;
 }
 
+// Session helper
+async function getUserFromSession(): Promise<AuthUser | null> {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return null;
+    return {
+      userId: session.user.id,
+      username:
+        (session.user as any).username || session.user.email || "Unknown",
+    };
+  } catch (e) {
+    console.error("session error:", e);
+    return null;
+  }
+}
+
+// Slug helpers (be tolerant of small wording differences)
 function slugify(title: string): string {
   return (title || "")
     .toLowerCase()
@@ -17,73 +34,123 @@ function slugify(title: string): string {
     .trim();
 }
 
+function looseNormalize(s: string): string {
+  // remove common stopwords that often vary in slugs (e.g., "your")
+  const stop = new Set(["your", "and"]);
+  return s
+    .toLowerCase()
+    .split(/-+/)
+    .filter((t) => t && !stop.has(t))
+    .join("-");
+}
+
 async function findLessonBySlug(slug: string) {
-  // Match settings.slug if present
-  const direct = await prisma.learningActivity.findFirst({
+  // Try exact settings slug first (active lessons only)
+  const bySettings = await prisma.learningActivity.findFirst({
     where: {
       activityType: "lesson",
       isActive: true,
       settings: { contains: `"slug":"${slug}"` },
     },
   });
-  if (direct) return direct;
+  if (bySettings) return bySettings;
 
-  // Fallback to slugified title
+  // Load active lesson candidates
   const candidates = await prisma.learningActivity.findMany({
     where: { activityType: "lesson", isActive: true },
-    select: { id: true, title: true },
+    select: { id: true, title: true, slug: true },
   });
-  const found = candidates.find((c) => slugify(c.title) === slug);
-  if (!found) return null;
 
-  return prisma.learningActivity.findUnique({ where: { id: found.id } });
+  // 1) Direct DB slug match if present
+  const direct = candidates.find((c) => (c.slug || "").toLowerCase() === slug);
+  if (direct)
+    return prisma.learningActivity.findUnique({ where: { id: direct.id } });
+
+  // 2) Match on strict slugify of title
+  const byStrict = candidates.find((c) => slugify(c.title) === slug);
+  if (byStrict)
+    return prisma.learningActivity.findUnique({ where: { id: byStrict.id } });
+
+  // 3) Loose match ignoring minor words like "your", "and"
+  const looseSlug = looseNormalize(slug);
+  const byLoose = candidates.find(
+    (c) => looseNormalize(slugify(c.title)) === looseSlug
+  );
+  if (byLoose)
+    return prisma.learningActivity.findUnique({ where: { id: byLoose.id } });
+
+  return null;
 }
 
-// Reward partition helper: deterministically split base into 60% (code) + remainder (quiz)
-function partitionReward(base: number, ratio = 0.6) {
-  const code = Math.floor((base || 0) * ratio);
-  const quiz = (base || 0) - code;
-  return { code, quiz };
-}
-
-// POST - Code exercise completion for a lesson (LearningActivity)
+/**
+ * POST /api/lessons/[slug]/code-complete
+ * Body: { code: string, score: number }
+ *
+ * Notes:
+ * - This endpoint updates attempt score/code for the lesson.
+ * - It does NOT award diamonds/xp here to avoid double-reward with the final "complete" action.
+ * - Rewards are granted by POST /api/lessons/[slug] with action:"complete".
+ * - We still ensure idempotent score updates and return a helpful message.
+ */
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const authUser: AuthUser = {
-      userId: session.user.id,
-      username:
-        (session.user as any).username || session.user.email || "Unknown",
-    };
-
     const { slug } = await params;
     const body = await req.json();
-    const { code, score } = body as {
-      code: string;
-      score: number;
-    };
+    const code = typeof body?.code === "string" ? (body.code as string) : "";
+    const rawScore = body?.score;
 
-    // Validate required fields
-    if (!code || typeof score !== "number") {
+    // Validate score (allow 0..100)
+    if (
+      typeof rawScore !== "number" ||
+      isNaN(rawScore) ||
+      rawScore < 0 ||
+      rawScore > 100
+    ) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Score must be a number between 0 and 100" },
         { status: 400 }
       );
     }
+    const score = Math.round(rawScore);
 
-    // Resolve lesson activity
+    // Resolve lesson record
     const activity = await findLessonBySlug(slug);
     if (!activity) {
       return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
     }
 
-    // Check existing attempt
+    const authUser = await getUserFromSession();
+    const isLoggedIn = !!authUser;
+
+    // Anonymous users: accept and encourage login (no persistence)
+    if (!isLoggedIn || !authUser) {
+      return NextResponse.json({
+        success: true,
+        message:
+          score >= 90
+            ? `🎉 Excellent work! You scored ${score}%! 🔓 Login to save progress and claim rewards when you complete the lesson.`
+            : `Great job! You scored ${score}%! 🔓 Login to save progress and claim rewards on completion.`,
+        score,
+        rewards: { diamonds: 0, experience: 0 },
+        newCompletion: false,
+        isLoggedIn: false,
+        loginPrompt: {
+          title: "🚀 Unlock Rewards!",
+          message:
+            "Login to track your coding journey and claim diamonds/XP when you finish lessons.",
+          benefits: [
+            "💾 Save your code and progress",
+            "💎 Earn diamonds and ⭐ XP on completion",
+            "🏆 Unlock achievement badges",
+          ],
+        },
+      });
+    }
+
+    // Logged-in path: upsert/update attempt data without marking completed
     const existingAttempt = await prisma.activityAttempt.findUnique({
       where: {
         userId_activityId: {
@@ -93,136 +160,67 @@ export async function POST(
       },
     });
 
-    const previousScore = existingAttempt?.score ?? 0;
+    const wasCodeCorrect = (existingAttempt?.score ?? 0) >= 90;
+    const newBest = Math.max(score, existingAttempt?.score ?? 0);
+    const nowCodeCorrect = newBest >= 90;
+    const newCompletion = nowCodeCorrect && !wasCodeCorrect;
 
-    // Parse existing answers to track flags
-    let answersObj: any = {};
-    try {
-      if (existingAttempt?.answers)
-        answersObj = JSON.parse(existingAttempt.answers as any);
-    } catch {
-      answersObj = {};
-    }
-    const flags = answersObj?.flags || {};
-    const wasCodeRewarded = !!flags.codeRewarded;
-
-    const isCodeCorrectNow = score >= 90;
-    const shouldAwardRewards = isCodeCorrectNow && !wasCodeRewarded;
-
-    // Prepare updated answers payload
-    const updatedFlags = {
-      ...flags,
-      codeRewarded: flags.codeRewarded || shouldAwardRewards,
-    };
-    const newAnswers = {
-      ...answersObj,
-      lastCode: code,
+    const answersPayload = JSON.stringify({
+      ...(existingAttempt?.answers
+        ? (() => {
+            try {
+              return JSON.parse(existingAttempt.answers);
+            } catch {
+              return {};
+            }
+          })()
+        : {}),
+      lastCode: code || "",
       updatedAt: new Date().toISOString(),
-      flags: updatedFlags,
-    };
-
-    // Upsert attempt with best score and updated answers
-    await prisma.activityAttempt.upsert({
-      where: {
-        userId_activityId: {
-          userId: authUser.userId,
-          activityId: activity.id,
-        },
-      },
-      update: {
-        score: Math.max(score, previousScore),
-        answers: JSON.stringify(newAnswers),
-      },
-      create: {
-        userId: authUser.userId,
-        activityId: activity.id,
-        score,
-        answers: JSON.stringify(newAnswers),
-        startedAt: new Date(),
-      },
     });
 
-    if (shouldAwardRewards) {
-      try {
-        // Compute server-side rewards (ignore client-provided values)
-        const { code: codeDiamonds } = partitionReward(
-          activity.diamondReward ?? 0,
-          0.6
-        );
-        const { code: codeXP } = partitionReward(
-          activity.experienceReward ?? 0,
-          0.6
-        );
-
-        // Update user balances
-        await prisma.user.update({
-          where: { id: authUser.userId },
-          data: {
-            currentDiamonds: { increment: codeDiamonds },
-            totalDiamonds: { increment: codeDiamonds },
-            experience: { increment: codeXP },
-            codeSubmissionCount: { increment: 1 },
-          },
-        });
-
-        // Record diamond transaction
-        await prisma.diamondTransaction.create({
-          data: {
+    if (existingAttempt) {
+      await prisma.activityAttempt.update({
+        where: {
+          userId_activityId: {
             userId: authUser.userId,
-            amount: codeDiamonds,
-            type: "CODE_COMPLETE",
-            description: `Code exercise completed: ${activity.title} (${score}%)`,
-            relatedType: "lesson",
-            relatedId: activity.id,
+            activityId: activity.id,
           },
-        });
-
-        // Record code submission (legacy field name codeArenaId reused to hold activity id)
-        await prisma.codeSubmission.create({
-          data: {
-            userId: authUser.userId,
-            codeArenaId: activity.id,
-            code,
-            language: "python",
-            isCorrect: isCodeCorrectNow,
-            score,
-            feedback: isCodeCorrectNow
-              ? "Excellent work!"
-              : "Good effort, try for 100%!",
-          },
-        });
-
-        return NextResponse.json({
-          success: true,
-          message: `🎉 Code exercise completed! +${codeDiamonds} diamonds, +${codeXP} XP`,
-          rewards: {
-            diamonds: codeDiamonds,
-            experience: codeXP,
-          },
-          score,
-          newCompletion: true,
-        });
-      } catch (e) {
-        console.error("Error awarding code completion rewards:", e);
-        return NextResponse.json(
-          { error: "Failed to award rewards" },
-          { status: 500 }
-        );
-      }
+        },
+        data: {
+          score: newBest,
+          // Do NOT set completed here; final reward flow happens in action:"complete"
+          answers: answersPayload,
+        },
+      });
     } else {
-      // No reward this time, but return success with zero rewards
-      return NextResponse.json({
-        success: true,
-        message: wasCodeRewarded
-          ? `Code exercise completed with ${score}% score! (Rewards already earned)`
-          : `Code exercise completed with ${score}% score! Get 90%+ for rewards.`,
-        rewards: { diamonds: 0, experience: 0 },
-        score,
-        newCompletion: false,
+      await prisma.activityAttempt.create({
+        data: {
+          userId: authUser.userId,
+          activityId: activity.id,
+          score,
+          startedAt: new Date(),
+          answers: answersPayload,
+          // completed: false (default)
+        },
       });
     }
+
+    const message =
+      score >= 90
+        ? `Code exercise completed with ${score}% score! Rewards will be granted when you complete the lesson.`
+        : `Code exercise completed with ${score}% score! Get 90%+ and complete the lesson to claim rewards.`;
+
+    return NextResponse.json({
+      success: true,
+      message,
+      rewards: { diamonds: 0, experience: 0 },
+      score,
+      newCompletion,
+      isLoggedIn: true,
+    });
   } catch (error) {
-    console.error("Error processing lesson code completion:", error);
+    console.error("Lessons code-complete error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

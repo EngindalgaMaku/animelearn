@@ -621,3 +621,233 @@ html {
 .max-w-none {
   max-width: none;
 }
+
+/* Admin Dark Theme - Scoped Overrides (quick contrast fix) */
+.admin-dark {
+  color-scheme: dark;
+}
+
+/* Component tokens for anything that reads CSS variables */
+.admin-dark {
+  --background: #0f172a; /* slate-900 */
+  --foreground: #e5e7eb; /* slate-200 */
+  --border: #1f2937; /* slate-800 */
+}
+
+/* Backgrounds commonly used in admin pages */
+.admin-dark .bg-white,
+.admin-dark .bg-gray-50,
+.admin-dark .bg-gray-100,
+.admin-dark .bg-slate-50,
+.admin-dark .bg-neutral-50 {
+  background-color: #0f172a !important; /* slate-900 */
+}
+
+.admin-dark .bg-gray-200,
+.admin-dark .bg-slate-100,
+.admin-dark .bg-neutral-100 {
+  background-color: #111827 !important; /* gray-900-ish elevated surface */
+}
+
+/* Indigo highlight mapping used by menus/badges */
+.admin-dark .bg-indigo-50 {
+  background-color: rgba(30, 27, 75, 0.45) !important; /* indigo-950/45 */
+}
+.admin-dark .text-indigo-700 {
+  color: #a5b4fc !important; /* indigo-300 */
+}
+
+/* Text color mappings for better contrast on dark surfaces */
+.admin-dark .text-black,
+.admin-dark .text-gray-900,
+.admin-dark .text-slate-900,
+.admin-dark .text-neutral-900 {
+  color: #e5e7eb !important; /* slate-200 */
+}
+.admin-dark .text-gray-800,
+.admin-dark .text-slate-800,
+.admin-dark .text-neutral-800 {
+  color: #e2e8f0 !important; /* slate-200/100 */
+}
+.admin-dark .text-gray-700,
+.admin-dark .text-slate-700,
+.admin-dark .text-neutral-700 {
+  color: #cbd5e1 !important; /* slate-300 */
+}
+.admin-dark .text-gray-600,
+.admin-dark .text-slate-600,
+.admin-dark .text-neutral-600 {
+  color: #94a3b8 !important; /* slate-400 */
+}
+.admin-dark .text-gray-500,
+.admin-dark .text-slate-500,
+.admin-dark .text-neutral-500 {
+  color: #94a3b8 !important; /* slate-400 */
+}
+
+/* Borders and dividers */
+.admin-dark .border-gray-100 {
+  border-color: #0b1220 !important;
+}
+.admin-dark .border-gray-200,
+.admin-dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #1f2937 !important; /* slate-800 */
+}
+.admin-dark .border-gray-300 {
+  border-color: #334155 !important; /* slate-700 */
+}
+
+/* Hover utilities frequently seen in admin UIs */
+.admin-dark .hover\:bg-gray-50:hover {
+  background-color: #1f2937 !important; /* slate-800 */
+}
+.admin-dark .hover\:bg-gray-100:hover {
+  background-color: #1f2937 !important;
+}
+.admin-dark .hover\:bg-indigo-50:hover {
+  background-color: rgba(30, 27, 75, 0.45) !important;
+}
+.admin-dark .hover\:text-gray-900:hover {
+  color: #e5e7eb !important;
+}
+
+/* Forms */
+.admin-dark input,
+.admin-dark select,
+.admin-dark textarea,
+.admin-dark .form-input,
+.admin-dark .form-select,
+.admin-dark .form-textarea {
+  background-color: #111827 !important; /* gray-900 */
+  color: #e5e7eb !important; /* slate-200 */
+  border-color: #334155 !important; /* slate-700 */
+}
+.admin-dark input::placeholder,
+.admin-dark textarea::placeholder {
+  color: #94a3b8 !important; /* slate-400 */
+}
+
+/* Prose and rich text within admin pages */
+.admin-dark .prose,
+.admin-dark .prose p {
+  color: #cbd5e1 !important; /* slate-300 */
+}
+.admin-dark .prose h1,
+.admin-dark .prose h2,
+.admin-dark .prose h3,
+.admin-dark .prose h4,
+.admin-dark .prose strong,
+.admin-dark .prose b {
+  color: #e5e7eb !important; /* slate-200 */
+}
+.admin-dark .prose a {
+  color: #93c5fd !important; /* blue-300 */
+}
+.admin-dark .prose blockquote {
+  border-left-color: #334155 !important; /* slate-700 */
+  background-color: #0b1220 !important; /* deep surface */
+  color: #94a3b8 !important; /* slate-400 */
+}
+.admin-dark .prose code {
+  background-color: #0b1220 !important;
+  color: #fca5a5 !important; /* red-300 */
+  border-color: #334155 !important; /* slate-700 */
+}
+.admin-dark .prose pre {
+  background-color: #111827 !important; /* gray-900 */
+  color: #e5e7eb !important; /* slate-200 */
+  border-color: #374151 !important; /* gray-700 */
+}
+.admin-dark .prose table,
+.admin-dark .prose th,
+.admin-dark .prose td {
+  border-color: #1f2937 !important; /* slate-800 */
+}
+.admin-dark .prose thead {
+  background-color: #0b1220 !important;
+  border-bottom-color: #1f2937 !important;
+}
+.admin-dark .prose tbody tr:hover {
+  background-color: #0b1220 !important;
+}
+
+/* Admin Dark: Compact layout and full-width adjustments to reduce excessive whitespace */
+.admin-dark .container {
+  max-width: 100% !important;
+}
+.admin-dark .max-w-7xl,
+.admin-dark .max-w-6xl,
+.admin-dark .max-w-5xl,
+.admin-dark .max-w-4xl {
+  max-width: 100% !important;
+}
+
+/* Reduce large paddings commonly used in admin pages */
+.admin-dark .p-6 {
+  padding: 1rem !important;
+} /* 24px -> 16px */
+.admin-dark .px-6 {
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+.admin-dark .py-6 {
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+}
+
+.admin-dark .p-8 {
+  padding: 1.25rem !important;
+} /* 32px -> 20px */
+.admin-dark .px-8 {
+  padding-left: 1.25rem !important;
+  padding-right: 1.25rem !important;
+}
+.admin-dark .py-8 {
+  padding-top: 1.25rem !important;
+  padding-bottom: 1.25rem !important;
+}
+
+/* Tighten vertical gaps (space-y-*) frequently used in admin pages */
+.admin-dark .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(
+    1rem * calc(1 - var(--tw-space-y-reverse))
+  ) !important; /* 24px -> 16px */
+  margin-bottom: calc(1rem * var(--tw-space-y-reverse)) !important;
+}
+.admin-dark .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(
+    1.25rem * calc(1 - var(--tw-space-y-reverse))
+  ) !important; /* 32px -> 20px */
+  margin-bottom: calc(1.25rem * var(--tw-space-y-reverse)) !important;
+}
+
+/* Ensure page content uses full width (minus sidebar) */
+.admin-dark main.flex-1,
+.admin-dark .flex-1.w-full {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Admin Dark: keep modal widths intact even when page-wide max-widths are relaxed */
+.admin-dark .fixed .max-w-4xl {
+  max-width: 56rem !important;
+} /* 896px */
+.admin-dark .fixed .max-w-5xl {
+  max-width: 64rem !important;
+} /* 1024px */
+.admin-dark .fixed .max-w-6xl {
+  max-width: 72rem !important;
+} /* 1152px */
+.admin-dark .fixed .max-w-7xl {
+  max-width: 80rem !important;
+} /* 1280px */
+
+/* Admin Dark: reduce common grid gaps to remove excess whitespace */
+.admin-dark .gap-6 {
+  gap: 1rem !important;
+} /* 24px -> 16px */
+.admin-dark .gap-8 {
+  gap: 1.25rem !important;
+} /* 32px -> 20px */

@@ -136,6 +136,7 @@ export async function GET(req: NextRequest) {
         category: true,
         difficulty: true,
         sortOrder: true,
+        estimatedMinutes: true,
       },
     });
 
@@ -216,12 +217,25 @@ function analyzeCategoryPerformance(
   codeSubmissions: any[],
   allLearningActivities: any[]
 ): Record<string, any> {
-  const categories = [
+  // Derive categories dynamically from available learning activities;
+  // fallback to defaults if none found (ensures stable sections for empty DB).
+  const defaultCategories = [
     "Python Fundamentals",
     "Intermediate Python",
     "Advanced Python",
     "Projects",
   ];
+  const derivedCategories = Array.from(
+    new Set(
+      allLearningActivities
+        .map((l) => l.category)
+        .filter(
+          (c): c is string => typeof c === "string" && c.trim().length > 0
+        )
+    )
+  );
+  const categories =
+    derivedCategories.length > 0 ? derivedCategories : defaultCategories;
   const performance: Record<string, any> = {};
 
   for (const category of categories) {

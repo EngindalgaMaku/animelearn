@@ -168,11 +168,11 @@ export default function AdminPanel() {
       {/* Background Pattern */}
       <div className="bg-grid-pattern absolute inset-0 opacity-[0.02]"></div>
 
-      <div className="relative z-10 py-6 lg:py-8">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 py-3 lg:py-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
           {/* Header */}
           <div className="mb-8">
-            <div className="rounded-2xl border border-white/60 bg-white/90 p-6 shadow-xl backdrop-blur-sm lg:p-8">
+            <div className="rounded-2xl border border-white/60 bg-white/90 p-4 shadow-xl backdrop-blur-sm lg:p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 via-purple-500 to-pink-500 shadow-xl">
@@ -507,7 +507,7 @@ export default function AdminPanel() {
 
           {/* Recent Activities */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="rounded-2xl border border-white/60 bg-white/90 p-6 shadow-xl backdrop-blur-sm lg:p-8">
+            <div className="rounded-2xl border border-white/60 bg-white/90 p-4 shadow-xl backdrop-blur-sm lg:p-6">
               <div className="mb-6 flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-gray-900">
                   📈 Recent Activities
@@ -544,7 +544,7 @@ export default function AdminPanel() {
             </div>
 
             {/* Quick Stats */}
-            <div className="rounded-2xl border border-white/60 bg-white/90 p-6 shadow-xl backdrop-blur-sm lg:p-8">
+            <div className="rounded-2xl border border-white/60 bg-white/90 p-4 shadow-xl backdrop-blur-sm lg:p-6">
               <h2 className="mb-6 text-2xl font-bold text-gray-900">
                 📊 Quick Stats
               </h2>

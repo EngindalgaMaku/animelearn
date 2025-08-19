@@ -36,6 +36,9 @@ export async function GET(request: NextRequest) {
     const earned = searchParams.get("earned"); // "true", "false", "all"
 
     const authUser = await getUserFromSession();
+    if (!authUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     // Filtreler
     const where: any = {
@@ -51,23 +54,37 @@ export async function GET(request: NextRequest) {
       orderBy: [{ rarity: "desc" }, { name: "asc" }],
       include: {
         users: {
-          where: authUser ? { userId: authUser.userId } : undefined,
+          where: { userId: authUser.userId },
           select: {
+            isCompleted: true,
+            isUnlocked: true,
             earnedAt: true,
-            progress: true,
+            unlockedAt: true,
+            progress: true, // stored as percent 0..100
           },
         },
       },
     });
 
-    // Rozet verilerini hazırla
-    let processedBadges = badges.map((badge) => ({
-      ...badge,
-      isEarned: badge.users.length > 0,
-      earnedAt: badge.users[0]?.earnedAt || null,
-      progress: badge.users[0]?.progress || 0,
-      users: undefined, // Güvenlik için kaldır
-    }));
+    // Prepare badge data for current user (earned = isCompleted or has earnedAt)
+    let processedBadges = badges.map((badge: any) => {
+      const ub = (badge.users && badge.users[0]) || null;
+      const isEarned = !!(ub && (ub.isCompleted || ub.earnedAt));
+      const target = badge.targetValue || 1;
+
+      // Convert stored percent (0..100) to absolute progress out of targetValue for UI bar
+      const progressPercent =
+        typeof ub?.progress === "number" ? ub.progress : 0;
+      const progressAbsolute = Math.round((progressPercent / 100) * target);
+
+      return {
+        ...badge,
+        isEarned,
+        earnedAt: ub?.earnedAt || null,
+        progress: progressAbsolute,
+        users: undefined, // strip relation from payload
+      };
+    });
 
     // Earned filtresini uygula
     if (earned === "true") {
@@ -76,23 +93,60 @@ export async function GET(request: NextRequest) {
       processedBadges = processedBadges.filter((badge) => !badge.isEarned);
     }
 
-    // İstatistikler
+    // Stats in the shape expected by the BadgesPage
+    const totalBadges = badges.length;
+    const earnedBadges = processedBadges.filter((b: any) => b.isEarned).length;
+    const completionRate =
+      totalBadges > 0 ? Math.round((earnedBadges / totalBadges) * 100) : 0;
+
+    const totalDiamonds = processedBadges
+      .filter((b: any) => b.isEarned)
+      .reduce((s: number, b: any) => s + (b.rewardDiamonds || 0), 0);
+
+    const totalXp = processedBadges
+      .filter((b: any) => b.isEarned)
+      .reduce((s: number, b: any) => s + (b.rewardXp || 0), 0);
+
+    // Category breakdown
+    const categoryMap = new Map<
+      string,
+      { category: string; total: number; earned: number; percentage: number }
+    >();
+    for (const b of processedBadges as any[]) {
+      const cat = b.category || "General";
+      const row = categoryMap.get(cat) || {
+        category: cat,
+        total: 0,
+        earned: 0,
+        percentage: 0,
+      };
+      row.total += 1;
+      if (b.isEarned) row.earned += 1;
+      categoryMap.set(cat, row);
+    }
+    const categories = Array.from(categoryMap.values()).map((c) => ({
+      ...c,
+      percentage: c.total > 0 ? (c.earned / c.total) * 100 : 0,
+    }));
+
+    // Recent earned badges (last 8 by earnedAt)
+    const recentBadges = (processedBadges as any[])
+      .filter((b) => b.isEarned && b.earnedAt)
+      .sort(
+        (a, b) =>
+          new Date(b.earnedAt as string).getTime() -
+          new Date(a.earnedAt as string).getTime()
+      )
+      .slice(0, 8);
+
     const stats = {
-      total: badges.length,
-      earned: authUser ? processedBadges.filter((b) => b.isEarned).length : 0,
-      remaining: authUser
-        ? processedBadges.filter((b) => !b.isEarned).length
-        : badges.length,
-      categories: await prisma.badge.groupBy({
-        by: ["category"],
-        where: { isActive: true },
-        _count: { category: true },
-      }),
-      rarities: await prisma.badge.groupBy({
-        by: ["rarity"],
-        where: { isActive: true },
-        _count: { rarity: true },
-      }),
+      totalBadges,
+      earnedBadges,
+      completionRate,
+      totalDiamonds,
+      totalXp,
+      categories,
+      recentBadges,
     };
 
     return NextResponse.json({

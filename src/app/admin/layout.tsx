@@ -280,10 +280,12 @@ export default function AdminLayout({
   // Show loading spinner during loading
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-slate-900">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Checking permissions...</p>
+          <p className="mt-4 text-gray-600 dark:text-slate-300">
+            Checking permissions...
+          </p>
         </div>
       </div>
     );
@@ -292,10 +294,12 @@ export default function AdminLayout({
   // Don't render anything if not authenticated after loading
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-slate-900">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Redirecting...</p>
+          <p className="mt-4 text-gray-600 dark:text-slate-300">
+            Redirecting...
+          </p>
         </div>
       </div>
     );
@@ -304,10 +308,12 @@ export default function AdminLayout({
   // Wait if user info hasn't loaded yet
   if (!user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-slate-900">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-purple-600"></div>
-          <p className="mt-4 text-gray-600">Loading user information...</p>
+          <p className="mt-4 text-gray-600 dark:text-slate-300">
+            Loading user information...
+          </p>
         </div>
       </div>
     );
@@ -316,10 +322,10 @@ export default function AdminLayout({
   // Redirect to homepage if not admin
   if (user.role !== "admin") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-slate-900">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-red-600"></div>
-          <p className="mt-4 text-gray-600">
+          <p className="mt-4 text-gray-600 dark:text-slate-300">
             Insufficient permissions, redirecting to homepage...
           </p>
         </div>
@@ -328,257 +334,267 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar Overlay for mobile */}
-      {sidebarOpen && (
+    <div className="admin-dark dark">
+      <div className="flex min-h-screen bg-gray-50 text-slate-900 transition-colors duration-300 dark:bg-slate-900 dark:text-slate-100">
+        {/* Sidebar Overlay for mobile */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 z-[9998] bg-black bg-opacity-50 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* Sidebar */}
         <div
-          className="fixed inset-0 z-[9998] bg-black bg-opacity-50 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 bg-white shadow-xl transition-all duration-300 ease-in-out md:static ${
-          sidebarOpen
-            ? "w-64 translate-x-0 md:w-64"
-            : "w-64 -translate-x-full md:w-0 md:translate-x-0"
-        } admin-sidebar overflow-hidden`}
-        style={{
-          zIndex: 99999,
-          pointerEvents: "auto",
-        }}
-      >
-        {/* Sidebar Header */}
-        <div className="flex h-16 items-center justify-between border-b border-gray-200 px-6">
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-indigo-600 to-cyan-600">
-              <Crown className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <span className="text-lg font-bold text-indigo-700">Zumenzu</span>
-              <div className="text-xs text-gray-500">Admin Panel</div>
-            </div>
-          </Link>
-          {sidebarOpen && (
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="rounded-lg p-2 text-gray-400 hover:text-gray-600"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          )}
-        </div>
-
-        {/* User Info */}
-        <div className="border-b border-gray-200 p-6">
-          <div className="flex items-center space-x-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-red-500 to-orange-500">
-              {user.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt={user.username}
-                  className="h-12 w-12 rounded-full"
-                />
-              ) : (
-                <User className="h-6 w-6 text-white" />
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center space-x-2 font-medium text-gray-900">
-                <span className="truncate">{user.username}</span>
-                <Shield className="h-4 w-4 text-red-600" />
-              </div>
-              <div className="truncate text-sm text-gray-500">{user.email}</div>
-              <div className="mt-2 flex items-center space-x-3">
-                <div className="flex items-center space-x-1 text-xs">
-                  <Diamond className="h-3 w-3 text-yellow-500" />
-                  <span className="text-gray-600">{user.currentDiamonds}</span>
-                </div>
-                <div className="flex items-center space-x-1 text-xs">
-                  <Star className="h-3 w-3 text-blue-500" />
-                  <span className="text-gray-600">Lv.{user.level}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav
-          className="admin-nav relative flex-1 space-y-2 p-4"
+          className={`fixed inset-y-0 left-0 bg-white shadow-xl transition-all duration-300 ease-in-out md:static ${
+            sidebarOpen
+              ? "w-64 translate-x-0 md:w-64"
+              : "w-64 -translate-x-full md:w-0 md:translate-x-0"
+          } admin-sidebar overflow-hidden dark:bg-slate-900`}
           style={{
-            zIndex: 100000,
+            zIndex: 99999,
             pointerEvents: "auto",
           }}
         >
-          {adminNavigation.map((item) => {
-            const IconComponent = item.icon;
-            const isExpanded = expandedMenus.has(item.name);
-
-            // If item has submenu
-            if (item.submenu) {
-              const hasActiveSubmenu = item.submenu.some((sub) =>
-                pathname.startsWith(sub.href)
-              );
-
-              return (
-                <div key={item.name} className="space-y-1">
-                  {/* Parent Menu Item */}
-                  <button
-                    onClick={() => toggleMenu(item.name)}
-                    className={`flex w-full items-center justify-between rounded-lg px-4 py-3 font-medium transition-colors ${
-                      hasActiveSubmenu
-                        ? "bg-indigo-50 text-indigo-700 shadow-sm"
-                        : "text-slate-700 hover:bg-indigo-50 hover:text-indigo-700"
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <IconComponent className="h-5 w-5 text-slate-600" />
-                      <span>{item.name}</span>
-                    </div>
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4" />
-                    )}
-                  </button>
-
-                  {/* Submenu Items */}
-                  {isExpanded && (
-                    <div className="ml-4 space-y-1 border-l-2 border-gray-200 pl-4">
-                      {item.submenu.map((subItem) => {
-                        const isSubActive = pathname === subItem.href;
-                        const SubIconComponent = subItem.icon;
-
-                        return (
-                          <Link
-                            key={subItem.name}
-                            href={subItem.href}
-                            onClick={() => {
-                              if (window.innerWidth < 768) {
-                                setSidebarOpen(false);
-                              }
-                            }}
-                            className={`flex items-start space-x-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                              isSubActive
-                                ? "bg-indigo-50 font-medium text-indigo-700"
-                                : "text-slate-700 hover:bg-indigo-50 hover:text-indigo-700"
-                            }`}
-                          >
-                            <SubIconComponent className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                            <div className="min-w-0 flex-1">
-                              <div className="font-medium">{subItem.name}</div>
-                              <div className="mt-0.5 text-xs text-gray-500">
-                                {subItem.description}
-                              </div>
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
+          {/* Sidebar Header */}
+          <div className="flex h-16 items-center justify-between border-b border-gray-200 px-6 dark:border-slate-800">
+            <Link href="/" className="flex items-center space-x-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-indigo-600 to-cyan-600">
+                <Crown className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">
+                  Zumenzu
+                </span>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  Admin Panel
                 </div>
-              );
-            }
-
-            // Regular menu item without submenu
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                onClick={() => {
-                  if (window.innerWidth < 768) {
-                    setSidebarOpen(false);
-                  }
-                }}
-                className={`flex items-center space-x-3 rounded-lg px-4 py-3 font-medium transition-colors ${
-                  isActive
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-slate-700 hover:bg-indigo-50 hover:text-indigo-700"
-                }`}
+              </div>
+            </Link>
+            {sidebarOpen && (
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="rounded-lg p-2 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200"
               >
-                <IconComponent className="h-5 w-5 text-slate-600" />
-                <span>{item.name}</span>
-              </Link>
-            );
-          })}
+                <X className="h-5 w-5" />
+              </button>
+            )}
+          </div>
 
-          {/* Separator */}
-          <div className="my-6 border-t border-gray-200"></div>
-
-          {/* User Panel */}
-          <Link
-            href="/dashboard"
-            onClick={() => setSidebarOpen(false)}
-            className="flex items-center space-x-3 rounded-lg border border-blue-200 px-4 py-3 font-medium text-blue-600 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
-          >
-            <Gamepad2 className="h-5 w-5" />
-            <span>User Panel</span>
-            <ChevronLeft className="ml-auto h-4 w-4" />
-          </Link>
-        </nav>
-
-        {/* Bottom Actions */}
-        <div className="space-y-2 border-t border-gray-200 p-4">
-          <Link
-            href="/profile"
-            onClick={() => setSidebarOpen(false)}
-            className="flex items-center space-x-3 rounded-lg px-4 py-3 text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
-          >
-            <Settings className="h-5 w-5" />
-            <span>Profile Settings</span>
-          </Link>
-          <button
-            onClick={() => {
-              setSidebarOpen(false);
-              handleLogout();
-            }}
-            className="flex w-full items-center space-x-3 rounded-lg px-4 py-3 text-red-600 transition-colors hover:bg-red-50"
-          >
-            <LogOut className="h-5 w-5" />
-            <span>Sign Out</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div
-        className={`min-h-screen bg-gray-50 transition-all duration-300 ${
-          sidebarOpen ? "flex-1 md:max-w-[calc(100vw-256px)]" : "flex-1"
-        }`}
-      >
-        {/* Top Bar with Toggle */}
-        <header className="sticky top-0 z-30 border-b border-gray-200 bg-white shadow-sm">
-          <div className="flex h-16 items-center justify-between px-6">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="rounded-lg p-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-              title={sidebarOpen ? "Menüyü Kapat" : "Menüyü Aç"}
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-            <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-semibold text-gray-900">
-                Admin Panel
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/"
-                className="flex items-center space-x-2 rounded-lg px-3 py-2 text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
-                title="Ana Sayfaya Git"
-              >
-                <Home className="h-4 w-4" />
-                <span className="hidden text-sm sm:inline">Homepage</span>
-              </Link>
+          {/* User Info */}
+          <div className="border-b border-gray-200 p-6 dark:border-slate-800">
+            <div className="flex items-center space-x-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-red-500 to-orange-500">
+                {user.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.username}
+                    className="h-12 w-12 rounded-full"
+                  />
+                ) : (
+                  <User className="h-6 w-6 text-white" />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center space-x-2 font-medium text-gray-900 dark:text-slate-100">
+                  <span className="truncate">{user.username}</span>
+                  <Shield className="h-4 w-4 text-red-600" />
+                </div>
+                <div className="truncate text-sm text-gray-500 dark:text-gray-400">
+                  {user.email}
+                </div>
+                <div className="mt-2 flex items-center space-x-3">
+                  <div className="flex items-center space-x-1 text-xs">
+                    <Diamond className="h-3 w-3 text-yellow-500" />
+                    <span className="text-gray-600 dark:text-slate-300">
+                      {user.currentDiamonds}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-1 text-xs">
+                    <Star className="h-3 w-3 text-blue-500" />
+                    <span className="text-gray-600 dark:text-slate-300">
+                      Lv.{user.level}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </header>
 
-        {/* Page Content */}
-        <main className="flex-1 bg-gray-50">{children}</main>
+          {/* Navigation */}
+          <nav
+            className="admin-nav relative flex-1 space-y-2 p-4"
+            style={{
+              zIndex: 100000,
+              pointerEvents: "auto",
+            }}
+          >
+            {adminNavigation.map((item) => {
+              const IconComponent = item.icon;
+              const isExpanded = expandedMenus.has(item.name);
+
+              // If item has submenu
+              if (item.submenu) {
+                const hasActiveSubmenu = item.submenu.some((sub) =>
+                  pathname.startsWith(sub.href)
+                );
+
+                return (
+                  <div key={item.name} className="space-y-1">
+                    {/* Parent Menu Item */}
+                    <button
+                      onClick={() => toggleMenu(item.name)}
+                      className={`flex w-full items-center justify-between rounded-lg px-4 py-3 font-medium transition-colors ${
+                        hasActiveSubmenu
+                          ? "bg-indigo-50 text-indigo-700 shadow-sm dark:bg-indigo-950/40 dark:text-indigo-300"
+                          : "text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 dark:text-slate-200 dark:hover:bg-indigo-900/40 dark:hover:text-indigo-300"
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <IconComponent className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+                        <span>{item.name}</span>
+                      </div>
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </button>
+
+                    {/* Submenu Items */}
+                    {isExpanded && (
+                      <div className="ml-4 space-y-1 border-l-2 border-gray-200 pl-4 dark:border-slate-700">
+                        {item.submenu.map((subItem) => {
+                          const isSubActive = pathname === subItem.href;
+                          const SubIconComponent = subItem.icon;
+
+                          return (
+                            <Link
+                              key={subItem.name}
+                              href={subItem.href}
+                              onClick={() => {
+                                if (window.innerWidth < 768) {
+                                  setSidebarOpen(false);
+                                }
+                              }}
+                              className={`flex items-start space-x-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                                isSubActive
+                                  ? "bg-indigo-50 font-medium text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300"
+                                  : "text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 dark:text-slate-200 dark:hover:bg-indigo-900/40 dark:hover:text-indigo-300"
+                              }`}
+                            >
+                              <SubIconComponent className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
+                                <div className="font-medium">
+                                  {subItem.name}
+                                </div>
+                                <div className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                                  {subItem.description}
+                                </div>
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              // Regular menu item without submenu
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => {
+                    if (window.innerWidth < 768) {
+                      setSidebarOpen(false);
+                    }
+                  }}
+                  className={`flex items-center space-x-3 rounded-lg px-4 py-3 font-medium transition-colors ${
+                    isActive
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 dark:text-slate-200 dark:hover:bg-indigo-900/40 dark:hover:text-indigo-300"
+                  }`}
+                >
+                  <IconComponent className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
+
+            {/* Separator */}
+            <div className="my-6 border-t border-gray-200 dark:border-slate-800"></div>
+
+            {/* User Panel */}
+            <Link
+              href="/dashboard"
+              onClick={() => setSidebarOpen(false)}
+              className="flex items-center space-x-3 rounded-lg border border-blue-200 px-4 py-3 font-medium text-blue-600 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-blue-900 dark:text-blue-300 dark:hover:border-blue-800 dark:hover:bg-blue-900/30 dark:hover:text-blue-200"
+            >
+              <Gamepad2 className="h-5 w-5" />
+              <span>User Panel</span>
+              <ChevronLeft className="ml-auto h-4 w-4" />
+            </Link>
+          </nav>
+
+          {/* Bottom Actions */}
+          <div className="space-y-2 border-t border-gray-200 p-4 dark:border-slate-800">
+            <Link
+              href="/profile"
+              onClick={() => setSidebarOpen(false)}
+              className="flex items-center space-x-3 rounded-lg px-4 py-3 text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-slate-800 dark:hover:text-white"
+            >
+              <Settings className="h-5 w-5" />
+              <span>Profile Settings</span>
+            </Link>
+            <button
+              onClick={() => {
+                setSidebarOpen(false);
+                handleLogout();
+              }}
+              className="flex w-full items-center space-x-3 rounded-lg px-4 py-3 text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30"
+            >
+              <LogOut className="h-5 w-5" />
+              <span>Sign Out</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="min-h-screen w-full flex-1 bg-gray-50 transition-all duration-300 dark:bg-slate-900">
+          {/* Top Bar with Toggle */}
+          <header className="sticky top-0 z-30 border-b border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex h-16 items-center justify-between px-4 sm:px-6">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="rounded-lg p-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                title={sidebarOpen ? "Menüyü Kapat" : "Menüyü Aç"}
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+              <div className="flex items-center space-x-4">
+                <h1 className="text-xl font-semibold text-gray-900 dark:text-slate-100">
+                  Admin Panel
+                </h1>
+              </div>
+              <div className="flex items-center space-x-4">
+                <Link
+                  href="/"
+                  className="flex items-center space-x-2 rounded-lg px-3 py-2 text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                  title="Ana Sayfaya Git"
+                >
+                  <Home className="h-4 w-4" />
+                  <span className="hidden text-sm sm:inline">Homepage</span>
+                </Link>
+              </div>
+            </div>
+          </header>
+
+          {/* Page Content */}
+          <main className="w-full flex-1">{children}</main>
+        </div>
       </div>
     </div>
   );

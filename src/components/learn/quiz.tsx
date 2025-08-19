@@ -49,7 +49,14 @@ export default function QuizComponent({
   // All hooks must be called before any conditional logic or early returns
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [timeLeft, setTimeLeft] = useState((quiz?.timeLimit || 10) * 60); // convert to seconds with default
+
+  const normalizeTimeLimit = (limit?: number) => {
+    const raw = typeof limit === "number" && !Number.isNaN(limit) ? limit : 600; // default 600s (10 min)
+    // Heuristic: values > 120 are seconds; small numbers are minutes
+    return raw > 120 ? raw : raw * 60;
+  };
+
+  const [timeLeft, setTimeLeft] = useState(normalizeTimeLimit(quiz?.timeLimit));
   const [quizStarted, setQuizStarted] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -74,10 +81,8 @@ export default function QuizComponent({
         const parsedState = JSON.parse(savedQuizState);
         const now = Date.now();
         const elapsedSeconds = Math.floor((now - parsedState.startTime) / 1000);
-        const remainingTime = Math.max(
-          0,
-          (quiz.timeLimit || 10) * 60 - elapsedSeconds
-        );
+        const totalSeconds = normalizeTimeLimit(quiz.timeLimit);
+        const remainingTime = Math.max(0, totalSeconds - elapsedSeconds);
 
         if (remainingTime > 0 && !parsedState.completed) {
           setQuizStarted(true);
@@ -144,7 +149,7 @@ export default function QuizComponent({
     });
 
     const score = Math.round((correctAnswers / quiz.questions.length) * 100);
-    const passed = score >= (quiz.passingScore || 70);
+    const passed = score >= (quiz.passingScore || 50);
 
     const quizResults = {
       score,
@@ -218,10 +223,8 @@ export default function QuizComponent({
           // Tab became visible, recalculate time
           const now = Date.now();
           const elapsedSeconds = Math.floor((now - quizStartTime) / 1000);
-          const remainingTime = Math.max(
-            0,
-            (quiz.timeLimit || 10) * 60 - elapsedSeconds
-          );
+          const totalSeconds = normalizeTimeLimit(quiz.timeLimit);
+          const remainingTime = Math.max(0, totalSeconds - elapsedSeconds);
           setTimeLeft(remainingTime);
 
           if (remainingTime === 0) {
@@ -257,10 +260,8 @@ export default function QuizComponent({
     const timer = setTimeout(() => {
       const now = Date.now();
       const elapsedSeconds = Math.floor((now - quizStartTime) / 1000);
-      const remainingTime = Math.max(
-        0,
-        (quiz.timeLimit || 10) * 60 - elapsedSeconds
-      );
+      const totalSeconds = normalizeTimeLimit(quiz.timeLimit);
+      const remainingTime = Math.max(0, totalSeconds - elapsedSeconds);
       setTimeLeft(remainingTime);
 
       if (remainingTime === 0) {
@@ -306,11 +307,11 @@ export default function QuizComponent({
     if (!quiz || !quiz.questions) return;
 
     const now = Date.now();
-    const timeLimit = (quiz.timeLimit || 10) * 60;
+    const timeLimitSeconds = normalizeTimeLimit(quiz.timeLimit);
     setQuizStarted(true);
     setAnswers({});
     setCurrentQuestion(0);
-    setTimeLeft(timeLimit);
+    setTimeLeft(timeLimitSeconds);
     setQuizCompleted(false);
     setShowResults(false);
     setResults(null);
@@ -321,7 +322,7 @@ export default function QuizComponent({
       startTime: now,
       currentQuestion: 0,
       answers: {},
-      timeLeft: timeLimit,
+      timeLeft: timeLimitSeconds,
       completed: false,
     };
     localStorage.setItem(quizStorageKey, JSON.stringify(initialState));
@@ -392,13 +393,13 @@ export default function QuizComponent({
             </div>
             <div className="rounded-lg bg-green-50 p-4">
               <div className="text-2xl font-bold text-green-600">
-                {quiz?.timeLimit || 10}
+                {Math.round(normalizeTimeLimit(quiz?.timeLimit) / 60)}
               </div>
               <div className="text-sm text-green-600">Minutes</div>
             </div>
             <div className="rounded-lg bg-purple-50 p-4">
               <div className="text-2xl font-bold text-purple-600">
-                {quiz?.passingScore || 70}%
+                {quiz?.passingScore || 50}%
               </div>
               <div className="text-sm text-purple-600">Pass Score</div>
             </div>
@@ -415,6 +416,7 @@ export default function QuizComponent({
             className="mx-auto flex items-center gap-2 rounded-lg bg-yellow-600 px-8 py-3 font-medium text-white hover:bg-yellow-700"
           >
             <Award className="h-5 w-5" />
+            <span>Start Quiz</span>
           </button>
         </div>
       </div>
@@ -437,7 +439,7 @@ export default function QuizComponent({
             )}
           </div>
 
-          <h2 className="mb-2 text-2xl font-bold">
+          <h2 className="mb-2 text-2xl font-bold text-gray-900">
             {results.passed ? "🎉 Quiz Passed!" : "Quiz Completed"}
           </h2>
 
@@ -471,7 +473,7 @@ export default function QuizComponent({
           {!results.passed && (
             <div className="mb-6 rounded-lg border border-orange-200 bg-orange-50 p-4">
               <p className="text-orange-800">
-                You need {quiz?.passingScore || 70}% to pass. Keep studying and
+                You need {quiz?.passingScore || 50}% to pass. Keep studying and
                 try again!
               </p>
             </div>
@@ -498,7 +500,9 @@ export default function QuizComponent({
       {/* Quiz Header */}
       <div className="border-b bg-gray-50 p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold">{quiz?.title || "Quiz"}</h2>
+          <h2 className="text-xl font-bold text-gray-900">
+            {quiz?.title || "Quiz"}
+          </h2>
           <div className="flex items-center gap-2 font-mono text-lg">
             <Clock className="h-5 w-5 text-red-500" />
             <span className={timeLeft < 60 ? "text-red-500" : "text-gray-700"}>
@@ -527,7 +531,7 @@ export default function QuizComponent({
       {/* Question */}
       <div className="p-6">
         <div className="mb-6">
-          <h3 className="mb-4 text-lg font-semibold">
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">
             {currentQ?.question || "Question not available"}
           </h3>
 
@@ -536,11 +540,11 @@ export default function QuizComponent({
               currentQ.options.map((option, index) => (
                 <label
                   key={index}
-                  className={`flex cursor-pointer items-center rounded-lg border p-4 transition-colors ${
+                  className={`flex cursor-pointer items-center rounded-lg border bg-white p-4 transition-colors ${
                     answers[currentQ.id] === option
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
+                      ? "border-blue-600 bg-blue-50 ring-1 ring-blue-300"
+                      : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                  } text-gray-900`}
                 >
                   <input
                     type="radio"
@@ -552,18 +556,18 @@ export default function QuizComponent({
                     }
                     className="mr-3"
                   />
-                  <span>{option}</span>
+                  <span className="text-gray-900">{option}</span>
                 </label>
               ))
             ) : (
               // True/False questions
               <div className="space-y-3">
                 <label
-                  className={`flex cursor-pointer items-center rounded-lg border p-4 transition-colors ${
+                  className={`flex cursor-pointer items-center rounded-lg border bg-white p-4 transition-colors ${
                     answers[currentQ.id] === "true"
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
+                      ? "border-blue-600 bg-blue-50 ring-1 ring-blue-300"
+                      : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                  } text-gray-900`}
                 >
                   <input
                     type="radio"
@@ -575,14 +579,14 @@ export default function QuizComponent({
                     }
                     className="mr-3"
                   />
-                  <span>True</span>
+                  <span className="text-gray-900">True</span>
                 </label>
                 <label
-                  className={`flex cursor-pointer items-center rounded-lg border p-4 transition-colors ${
+                  className={`flex cursor-pointer items-center rounded-lg border bg-white p-4 transition-colors ${
                     answers[currentQ.id] === "false"
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
+                      ? "border-blue-600 bg-blue-50 ring-1 ring-blue-300"
+                      : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                  } text-gray-900`}
                 >
                   <input
                     type="radio"
@@ -594,7 +598,7 @@ export default function QuizComponent({
                     }
                     className="mr-3"
                   />
-                  <span>False</span>
+                  <span className="text-gray-900">False</span>
                 </label>
               </div>
             )}

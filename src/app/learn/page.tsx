@@ -8015,168 +8015,156 @@ export default function LearnPage() {
     try {
       setLoading(true);
 
-      // Load challenges from code arena API
-      const response = await fetch("/api/code-arena?limit=100");
-      if (response.ok) {
-        const data = await response.json();
+      // Load DB lessons and code-arena challenges
+      const [lessonsRes, activitiesRes] = await Promise.all([
+        fetch("/api/lessons?limit=500"),
+        fetch("/api/code-arena?limit=500"),
+      ]);
 
-        // Group challenges by canonical topic (category-insensitive)
-        const normalizeCategory = (s: string) =>
-          (s ?? "").toString().trim().toLowerCase().replace(/\s+/g, " ");
+      const lessonsPayload = lessonsRes.ok
+        ? await lessonsRes.json()
+        : { lessons: [] };
+      const arenaPayload = activitiesRes.ok
+        ? await activitiesRes.json()
+        : { activities: [] };
 
-        const CATEGORY_ALIASES: Record<string, string[]> = {
-          "Python Fundamentals": [
-            "python fundamentals",
-            "python",
-            "python basics",
-            "fundamentals",
-            "python core",
-          ],
-          "Data Structures": ["data structures", "structures", "ds"],
-          Algorithms: ["algorithms", "algorithm", "algo"],
-          "Web Development": [
-            "web",
-            "web development",
-            "flask",
-            "fastapi",
-            "backend",
-            "api",
-          ],
-          "Data Science": [
-            "data science",
-            "datascience",
-            "numpy",
-            "pandas",
-            "ml basics",
-          ],
-          "Automation & Scripting": [
-            "automation",
-            "scripting",
-            "cli",
-            "scripts",
-          ],
-          "Testing & Best Practices": [
-            "testing",
-            "pytest",
-            "best practices",
-            "quality",
-            "types",
-          ],
-        };
+      const lessons = Array.isArray(lessonsPayload.lessons)
+        ? lessonsPayload.lessons
+        : [];
+      const activities = Array.isArray(arenaPayload.activities)
+        ? arenaPayload.activities
+        : [];
 
-        const resolveCanonicalTopic = (rawCategory: string): string | null => {
-          const n = normalizeCategory(rawCategory);
-          // Exact alias or canonical matches
-          for (const [canonical, aliases] of Object.entries(CATEGORY_ALIASES)) {
-            if (aliases.includes(n) || normalizeCategory(canonical) === n)
-              return canonical;
-          }
-          // Keyword fallbacks
-          if (n.includes("python")) return "Python Fundamentals";
-          if (n.includes("algorithm")) return "Algorithms";
-          if (n.includes("data") && n.includes("structure"))
-            return "Data Structures";
-          if (
-            n.includes("web") ||
-            n.includes("flask") ||
-            n.includes("fastapi") ||
-            n.includes("api")
-          )
-            return "Web Development";
-          if (
-            n.includes("numpy") ||
-            n.includes("pandas") ||
-            n.includes("data science")
-          )
-            return "Data Science";
-          if (
-            n.includes("script") ||
-            n.includes("automation") ||
-            n.includes("cli")
-          )
-            return "Automation & Scripting";
-          if (n.includes("test") || n.includes("pytest") || n.includes("type"))
-            return "Testing & Best Practices";
-          return null;
-        };
+      const normalizeCategory = (s: string) =>
+        (s ?? "").toString().trim().toLowerCase().replace(/\s+/g, " ");
 
-        const challengesByCategory: { [key: string]: Challenge[] } = {};
-        data.activities.forEach((activity: any) => {
-          const canonical = resolveCanonicalTopic(activity.category);
-          const key = canonical || activity.category || "Uncategorized";
-          if (!challengesByCategory[key]) {
-            challengesByCategory[key] = [];
-          }
-          challengesByCategory[key].push({
-            id: activity.id,
-            title: activity.title,
-            difficulty: activity.difficulty,
-            diamondReward: activity.diamondReward,
-            experienceReward: activity.experienceReward,
-            estimatedMinutes: activity.estimatedMinutes,
-            activityType: activity.activityType,
-            isCompleted: activity.userProgress?.completed || false,
-            userProgress: activity.userProgress,
-          });
+      // Group challenges by category
+      const challengesByCategory: { [key: string]: Challenge[] } = {};
+      activities.forEach((activity: any) => {
+        const key = activity.category || "General";
+        if (!challengesByCategory[key]) {
+          challengesByCategory[key] = [];
+        }
+        challengesByCategory[key].push({
+          id: activity.id,
+          title: activity.title,
+          difficulty: activity.difficulty,
+          diamondReward: activity.diamondReward,
+          experienceReward: activity.experienceReward,
+          estimatedMinutes: activity.estimatedMinutes,
+          activityType: activity.activityType,
+          isCompleted: activity.userProgress?.completed || false,
+          userProgress: activity.userProgress,
         });
+      });
 
-        // Create topics with lessons and challenges
-        const topicsData: Topic[] = Object.entries(topicConfig).map(
-          ([topicName, config]) => {
-            const challenges = challengesByCategory[topicName] || [];
-            const completedChallenges = challenges.filter(
+      // Build base topics map from static config for visuals
+      const topicsMap: Record<string, Topic> = {};
+      Object.entries(topicConfig as any).forEach(([topicName, cfg]: any) => {
+        topicsMap[topicName] = {
+          id: topicName,
+          title: topicName,
+          description: cfg.description,
+          icon: cfg.icon,
+          color: cfg.color,
+          gradient: cfg.gradient,
+          lessons: [],
+          challenges: challengesByCategory[topicName] || [],
+          totalLessons: 0,
+          completedLessons: 0,
+          totalChallenges: (challengesByCategory[topicName] || []).length,
+          completedChallenges: (challengesByCategory[topicName] || []).filter(
+            (c) => c.isCompleted
+          ).length,
+          overallProgress: 0,
+          isUnlocked: true,
+        };
+      });
+
+      const diffMap: any = { beginner: 1, intermediate: 2, advanced: 3 };
+
+      // Inject DB lessons grouped by category
+      lessons.forEach((l: any) => {
+        const category = l.category || "General";
+        if (!topicsMap[category]) {
+          // default visuals for unknown categories
+          topicsMap[category] = {
+            id: category,
+            title: category,
+            description: `${category} lessons`,
+            icon: category.toLowerCase().includes("python") ? "🐍" : "📘",
+            color: "from-indigo-500 to-blue-600",
+            gradient: "from-indigo-50 to-blue-50",
+            lessons: [],
+            challenges: challengesByCategory[category] || [],
+            totalLessons: 0,
+            completedLessons: 0,
+            totalChallenges: (challengesByCategory[category] || []).length,
+            completedChallenges: (challengesByCategory[category] || []).filter(
               (c) => c.isCompleted
-            ).length;
+            ).length,
+            overallProgress: 0,
+            isUnlocked: true,
+          };
+        }
 
-            // Create lessons with related challenges
-            const lessons: Lesson[] = config.lessons.map(
-              (lessonData, index) => ({
-                id: `${topicName}-lesson-${index}`,
-                title: lessonData.title,
-                slug: lessonData.slug,
-                description: `Learn ${lessonData.title.toLowerCase()} concepts and fundamentals`,
-                content: lessonData.content,
-                difficulty: Math.ceil((index + 1) / 3), // 1-3 based on position
-                duration: 15 + index * 5, // 15-45 minutes
-                category: topicName,
-                diamondReward: 20 + index * 10,
-                experienceReward: 50 + index * 25,
-                isCompleted: false, // TODO: Implement lesson completion tracking
-                relatedChallenges: challenges.filter((c) =>
-                  lessonData.relatedChallenges.some((title) =>
-                    c.title.includes(title)
-                  )
-                ),
-              })
-            );
+        const related = (challengesByCategory[category] || []).slice(0, 3);
 
-            return {
-              id: topicName,
-              title: topicName,
-              description: config.description,
-              icon: config.icon,
-              color: config.color,
-              gradient: config.gradient,
-              lessons,
-              challenges,
-              totalLessons: lessons.length,
-              completedLessons: lessons.filter((l) => l.isCompleted).length,
-              totalChallenges: challenges.length,
-              completedChallenges,
-              overallProgress:
-                Math.round(
-                  ((lessons.filter((l) => l.isCompleted).length +
-                    completedChallenges) /
-                    (lessons.length + challenges.length)) *
-                    100
-                ) || 0,
-              isUnlocked: true,
-            };
-          }
-        );
+        const lesson: Lesson = {
+          id: l.id,
+          title: l.title,
+          slug: l.slug,
+          description: l.description || `Learn ${l.title}`,
+          content: "",
+          difficulty:
+            typeof l.difficulty === "string"
+              ? diffMap[l.difficulty] || 1
+              : l.difficulty || 1,
+          duration: l.estimatedTime ?? l.estimatedMinutes ?? 20,
+          category,
+          diamondReward: l.diamondReward ?? 0,
+          experienceReward: l.experienceReward ?? 0,
+          isCompleted: !!l.isCompleted,
+          relatedChallenges: related,
+          prerequisites: [],
+        };
 
-        setTopics(topicsData);
-      }
+        topicsMap[category].lessons.push(lesson);
+      });
+
+      // Finalize stats and sort
+      const topicsData: Topic[] = Object.values(topicsMap)
+        .map((t) => {
+          const completedLessons = t.lessons.filter(
+            (l) => l.isCompleted
+          ).length;
+          const totalLessons = t.lessons.length;
+          const totalChallenges = t.totalChallenges;
+          const completedChallenges = t.completedChallenges;
+          const overallProgress =
+            Math.round(
+              ((completedLessons + completedChallenges) /
+                Math.max(1, totalLessons + totalChallenges)) *
+                100
+            ) || 0;
+
+          const lessonsSorted = [...t.lessons].sort(
+            (a, b) =>
+              (a.duration || 0) - (b.duration || 0) ||
+              a.title.localeCompare(b.title)
+          );
+
+          return {
+            ...t,
+            lessons: lessonsSorted,
+            totalLessons,
+            completedLessons,
+            overallProgress,
+          };
+        })
+        .sort((a, b) => a.title.localeCompare(b.title));
+
+      setTopics(topicsData);
     } catch (error) {
       console.error("Failed to load topics:", error);
     } finally {
@@ -8933,24 +8921,6 @@ export default function LearnPage() {
           </motion.div>
         </div>
 
-        {/* Standard Rewards Notice */}
-        <div className="mx-auto mb-4 max-w-3xl">
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-              <span className="font-semibold">Standard Rewards:</span>
-              <span className="inline-flex items-center gap-1 font-bold">
-                <Star className="h-4 w-4 text-purple-500" />
-                25 XP
-              </span>
-              <span>+</span>
-              <span className="inline-flex items-center gap-1 font-bold">
-                <Diamond className="h-4 w-4 text-yellow-500" />
-                25 Diamonds
-              </span>
-              <span className="text-sm text-amber-700">per topic</span>
-            </div>
-          </div>
-        </div>
         {/* Quick Stats Strip */}
         <div className="mx-auto mb-10 max-w-5xl">
           <div className="grid grid-cols-3 gap-2 sm:gap-4">
@@ -9162,13 +9132,13 @@ export default function LearnPage() {
                         {continueLesson.title}
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleStartLesson(continueLesson)}
+                    <Link
+                      href={`/learn/${continueLesson.slug}`}
                       className="inline-flex items-center rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-sm font-medium text-white transition-all hover:from-indigo-700 hover:to-purple-700"
                     >
                       <Play className="mr-2 h-4 w-4" />
                       Continue
-                    </button>
+                    </Link>
                   </div>
                 </div>
               )}
@@ -9210,13 +9180,13 @@ export default function LearnPage() {
                         {lesson.isCompleted && (
                           <CheckCircle className="h-5 w-5 text-green-500" />
                         )}
-                        <button
-                          onClick={() => handleStartLesson(lesson)}
+                        <Link
+                          href={`/learn/${lesson.slug}`}
                           className="flex items-center rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-2 text-white transition-all hover:from-purple-700 hover:to-blue-700"
                         >
                           <BookOpen className="mr-2 h-4 w-4" />
                           {lesson.isCompleted ? "Review" : "Start Lesson"}
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   ))}

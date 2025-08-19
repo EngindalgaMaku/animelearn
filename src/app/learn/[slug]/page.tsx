@@ -383,79 +383,88 @@ export default function LessonPage() {
     }
   };
 
-  // Complete lesson
-  const completeLesson = async () => {
-    if (!lesson) return;
+  // Completion helpers to avoid stale state issues
+  const canCompleteLesson = (snap: Lesson) => {
+    // Allow completion when Learn is finished (20s), OR both Practice and Quiz are done
+    const meetsLearn = timeOnContent >= 20;
+    const meetsExercise = !!snap.progress?.isCodeCorrect;
+    const meetsQuiz = (snap.progress?.score ?? 0) >= snap.quiz.passingScore;
+    return meetsLearn || (meetsExercise && meetsQuiz);
+  };
 
-    // Check if all sections are completed
-    const isContentCompleted = true; // Assuming content is completed by reaching this stage
-    const isExerciseCompleted = lesson.progress?.isCodeCorrect;
-    const isQuizCompleted =
-      lesson.progress?.score &&
-      lesson.progress.score >= lesson.quiz.passingScore;
+  const completeLessonNow = async (snap: Lesson) => {
+    try {
+      const response = await fetch(`/api/lessons/${snap.slug}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "complete" }),
+      });
 
-    if (isContentCompleted && isExerciseCompleted && isQuizCompleted) {
-      try {
-        const response = await fetch(`/api/lessons/${lesson.slug}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ action: "complete" }),
-        });
+      if (response.ok) {
+        const result = await response.json();
+        setLesson((prev) => (prev ? { ...prev, isCompleted: true } : prev));
 
-        if (response.ok) {
-          const result = await response.json();
-          setLesson((prev) => (prev ? { ...prev, isCompleted: true } : null));
+        // Close the completion modal
+        setIsCompletionModalOpen(false);
 
-          // Close the completion modal
-          setIsCompletionModalOpen(false);
+        // Check for new badges
+        if (result.newBadges && result.newBadges.length > 0) {
+          // Show badge notifications
+          result.newBadges.forEach((badgeInfo: any, index: number) => {
+            setTimeout(() => {
+              showNotification(
+                "success",
+                `🏆 New Badge Earned: ${badgeInfo.badge.name}!`
+              );
+            }, index * 1000);
+          });
 
-          // Check for new badges
+          // Enhanced celebration for badge earning
+          setShowRewardAnimation(true);
+          setTimeout(() => setShowRewardAnimation(false), 4000);
+          setCharacterMood("celebrating");
+          showCharacterDialogue("success");
+        }
+
+        // Update user stats with rewards
+        if (result.rewards) {
+          setCurrentXP((prev) => prev + result.rewards.experience);
+
+          let message = `🎉 Lesson completed! +${result.rewards.diamonds} diamonds, +${result.rewards.experience} XP`;
           if (result.newBadges && result.newBadges.length > 0) {
-            // Show badge notifications
-            result.newBadges.forEach((badgeInfo: any, index: number) => {
-              setTimeout(() => {
-                showNotification(
-                  "success",
-                  `🏆 New Badge Earned: ${badgeInfo.badge.name}!`
-                );
-              }, index * 1000);
-            });
+            message += ` & ${result.newBadges.length} new badge${result.newBadges.length > 1 ? "s" : ""}!`;
+          }
 
-            // Enhanced celebration for badge earning
+          showNotification("success", message);
+
+          // Show celebration animation
+          if (!result.newBadges || result.newBadges.length === 0) {
             setShowRewardAnimation(true);
-            setTimeout(() => setShowRewardAnimation(false), 4000);
+            setTimeout(() => setShowRewardAnimation(false), 3000);
             setCharacterMood("celebrating");
             showCharacterDialogue("success");
           }
-
-          // Update user stats with rewards
-          if (result.rewards) {
-            setCurrentXP((prev) => prev + result.rewards.experience);
-
-            let message = `🎉 Lesson completed! +${result.rewards.diamonds} diamonds, +${result.rewards.experience} XP`;
-            if (result.newBadges && result.newBadges.length > 0) {
-              message += ` & ${result.newBadges.length} new badge${result.newBadges.length > 1 ? "s" : ""}!`;
-            }
-
-            showNotification("success", message);
-
-            // Show celebration animation
-            if (!result.newBadges || result.newBadges.length === 0) {
-              setShowRewardAnimation(true);
-              setTimeout(() => setShowRewardAnimation(false), 3000);
-              setCharacterMood("celebrating");
-              showCharacterDialogue("success");
-            }
-          } else {
-            showNotification("success", "🎉 Lesson completed!");
-          }
+        } else {
+          showNotification("success", "🎉 Lesson completed!");
         }
-      } catch (error) {
-        console.error("Error completing lesson:", error);
+        // Redirect to lessons list after successful completion
+        setTimeout(() => {
+          router.push("/learn");
+        }, 1200);
+      } else {
         showNotification("error", "Failed to complete lesson");
       }
+    } catch (error) {
+      console.error("Error completing lesson:", error);
+      showNotification("error", "Failed to complete lesson");
+    }
+  };
+
+  // Wrapper using current state
+  const completeLesson = async () => {
+    if (!lesson) return;
+    if (canCompleteLesson(lesson)) {
+      await completeLessonNow(lesson);
     } else {
       setIsCompletionModalOpen(true);
     }
@@ -467,6 +476,17 @@ export default function LessonPage() {
     isCorrect: boolean,
     score: number
   ) => {
+    // Reflect code correctness locally for immediate unlock/completion
+    if (isCorrect) {
+      setLesson((prev) =>
+        prev
+          ? {
+              ...prev,
+              progress: { ...prev.progress, isCodeCorrect: true },
+            }
+          : prev
+      );
+    }
     if (isCorrect && lesson) {
       try {
         // Call API to award code completion rewards (server computes rewards)
@@ -535,6 +555,58 @@ export default function LessonPage() {
       showNotification(
         "warning",
         `Code exercise completed with ${score}% score. Try to get 90%+ for rewards!`
+      );
+    }
+  };
+
+  // Relay Quiz completion into the tab system
+  const handleQuizDone = (score: number, passed: boolean, rewards: any) => {
+    if (passed) {
+      // Update lesson state with quiz score immediately
+      setLesson((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          progress: {
+            ...prev.progress,
+            score: score,
+          },
+        };
+      });
+
+      // Only show rewards and animation if actual rewards were given
+      if (rewards && rewards.diamonds > 0) {
+        showNotification(
+          "success",
+          `🎉 Quiz passed with ${score}%! +${rewards.diamonds} diamonds, +${rewards.experience} XP`
+        );
+
+        // Update current stats for UI immediately
+        setCurrentXP((prev) => prev + rewards.experience);
+
+        // Show celebration animation
+        setShowRewardAnimation(true);
+        setTimeout(() => setShowRewardAnimation(false), 2000);
+        setCharacterMood("celebrating");
+        showCharacterDialogue("success");
+      } else {
+        showNotification(
+          "success",
+          `🎉 Quiz passed with ${score}%! (Rewards already earned)`
+        );
+      }
+
+      // Attempt completion immediately with an updated snapshot to avoid stale state
+      const snapshot = lesson
+        ? { ...lesson, progress: { ...lesson.progress, score } }
+        : null;
+      if (snapshot && canCompleteLesson(snapshot)) {
+        completeLessonNow(snapshot);
+      }
+    } else {
+      showNotification(
+        "warning",
+        `Quiz completed with ${score}%. You need 50%+ to pass.`
       );
     }
   };
@@ -717,16 +789,6 @@ export default function LessonPage() {
                 <span className="font-bold">{currentStreak} days</span>
               </div>
 
-              {/* Standard Rewards: 25 Diamonds & 25 XP (UI only) */}
-              <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
-                <Diamond className="h-5 w-5 text-blue-300" />
-                <span className="font-bold">25</span>
-              </div>
-              <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
-                <Star className="h-5 w-5 text-yellow-300" />
-                <span className="font-bold">25 XP</span>
-              </div>
-
               {/* Sound Toggle */}
               <button
                 onClick={() => setSoundEnabled(!soundEnabled)}
@@ -744,22 +806,6 @@ export default function LessonPage() {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Standard Rewards Notice */}
-        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-            <span className="font-semibold">Standard Rewards:</span>
-            <span className="inline-flex items-center gap-1 font-bold">
-              <Star className="h-4 w-4 text-purple-500" />
-              25 XP
-            </span>
-            <span>+</span>
-            <span className="inline-flex items-center gap-1 font-bold">
-              <Diamond className="h-4 w-4 text-yellow-500" />
-              25 Diamonds
-            </span>
-            <span className="text-sm text-amber-700">per topic</span>
-          </div>
-        </div>
         {/* Character & Progress Section */}
         <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-4">
           {/* Anime Character */}
@@ -883,14 +929,14 @@ export default function LessonPage() {
                   icon: Code,
                   label: "Syntax",
                   color: "from-green-400 to-green-500",
-                  unlocked: lessonStarted,
+                  unlocked: timeOnContent >= 20,
                 },
                 {
                   key: "examples",
                   icon: Target,
                   label: "Examples",
                   color: "from-purple-400 to-purple-500",
-                  unlocked: lessonStarted && timeOnContent >= 120,
+                  unlocked: timeOnContent >= 20,
                 },
                 {
                   key: "exercise",
@@ -898,10 +944,9 @@ export default function LessonPage() {
                   label: "Practice",
                   color: "from-orange-400 to-orange-500",
                   unlocked:
-                    lessonStarted &&
-                    (timeOnContent >= 300 ||
-                      lesson.progress?.isCodeCorrect ||
-                      lesson.isCompleted),
+                    timeOnContent >= 20 ||
+                    lesson.progress?.isCodeCorrect ||
+                    lesson.isCompleted,
                 },
                 {
                   key: "quiz",
@@ -909,10 +954,9 @@ export default function LessonPage() {
                   label: "Test",
                   color: "from-red-400 to-red-500",
                   unlocked:
-                    lessonStarted &&
-                    (timeOnContent >= 300 ||
-                      lesson.progress?.isCodeCorrect ||
-                      lesson.isCompleted),
+                    timeOnContent >= 20 ||
+                    lesson.progress?.isCodeCorrect ||
+                    lesson.isCompleted,
                 },
               ].map((section) => (
                 <button
@@ -921,12 +965,12 @@ export default function LessonPage() {
                     section.unlocked && setActiveSection(section.key as any)
                   }
                   disabled={!section.unlocked}
-                  className={`group relative rounded-xl border-2 p-4 transition-all duration-300 ${
+                  className={`group relative rounded-xl border-2 p-4 transition-all duration-200 ${
                     activeSection === section.key
-                      ? `bg-gradient-to-br ${section.color} scale-105 border-white text-white shadow-xl`
+                      ? "border-blue-600 bg-white text-gray-900 shadow ring-2 ring-blue-200"
                       : section.unlocked
-                        ? `bg-white hover:bg-gradient-to-br hover:${section.color} border-gray-200 shadow-lg hover:scale-105 hover:border-white hover:text-white`
-                        : "cursor-not-allowed border-gray-200 bg-gray-100"
+                        ? "border-gray-200 bg-white text-gray-800 hover:border-gray-300 hover:bg-gray-50"
+                        : "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
                   }`}
                 >
                   <div className="text-center">
@@ -957,84 +1001,14 @@ export default function LessonPage() {
             timeOnContent={timeOnContent}
             isCodeCorrect={lesson.progress?.isCodeCorrect}
             onStartLesson={startLesson}
+            onCodeSubmit={handleCodeSubmit}
+            onQuizComplete={handleQuizDone}
           />
         </div>
 
-        {/* Exercise Section */}
-        {activeSection === "exercise" && lessonStarted && (
-          <div className="mt-8">
-            {lesson.exercise ? (
-              <CodeEditor
-                lessonId={lesson.slug}
-                exercise={lesson.exercise}
-                onCodeSubmit={handleCodeSubmit}
-              />
-            ) : (
-              <div className="flex h-64 items-center justify-center rounded-lg bg-gray-100">
-                <p className="text-gray-500">Loading exercise...</p>
-              </div>
-            )}
-          </div>
-        )}
+        {/* Practice moved inside tab system */}
 
-        {/* Quiz Section */}
-        {activeSection === "quiz" && lessonStarted && (
-          <div className="mt-8">
-            <QuizComponent
-              quiz={lesson.quiz}
-              lessonId={lesson.slug}
-              onQuizComplete={(score, passed, rewards) => {
-                if (passed) {
-                  // Update lesson state with quiz score immediately
-                  setLesson((prev) => {
-                    if (!prev) return prev;
-                    return {
-                      ...prev,
-                      progress: {
-                        ...prev.progress,
-                        score: score,
-                      },
-                    };
-                  });
-
-                  // Only show rewards and animation if actual rewards were given
-                  if (rewards && rewards.diamonds > 0) {
-                    showNotification(
-                      "success",
-                      `🎉 Quiz passed with ${score}%! +${rewards.diamonds} diamonds, +${rewards.experience} XP`
-                    );
-
-                    // Update current stats for UI immediately
-                    setCurrentXP((prev) => prev + rewards.experience);
-
-                    // Show celebration animation
-                    setShowRewardAnimation(true);
-                    setTimeout(() => setShowRewardAnimation(false), 2000);
-                    setCharacterMood("celebrating");
-                    showCharacterDialogue("success");
-                  } else {
-                    showNotification(
-                      "success",
-                      `🎉 Quiz passed with ${score}%! (Rewards already earned)`
-                    );
-                  }
-
-                  // Update lesson completion status if needed - wait a bit for state update
-                  setTimeout(() => {
-                    if (!lesson.isCompleted) {
-                      completeLesson();
-                    }
-                  }, 100);
-                } else {
-                  showNotification(
-                    "warning",
-                    `Quiz completed with ${score}%. You need 70%+ to pass.`
-                  );
-                }
-              }}
-            />
-          </div>
-        )}
+        {/* Quiz moved inside tab system */}
 
         {/* Navigation */}
         <div className="mt-12 flex justify-between">
@@ -1055,7 +1029,7 @@ export default function LessonPage() {
         </div>
 
         {/* Bottom: Complete Lesson & Reward */}
-        {lessonStarted && !lesson.isCompleted && (
+        {!lesson.isCompleted && (
           <div className="mt-8 text-center">
             <button
               onClick={() => setIsCompletionModalOpen(true)}
@@ -1135,14 +1109,7 @@ export default function LessonPage() {
               </button>
               <button
                 onClick={completeLesson}
-                disabled={
-                  !(
-                    true &&
-                    lesson.progress?.isCodeCorrect &&
-                    lesson.progress?.score &&
-                    lesson.progress.score >= lesson.quiz.passingScore
-                  )
-                }
+                disabled={!canCompleteLesson(lesson)}
                 className="rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Complete

@@ -8,6 +8,21 @@ interface AuthUser {
   username: string;
 }
 
+async function getUserFromSession(): Promise<AuthUser | null> {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return null;
+    return {
+      userId: session.user.id,
+      username:
+        (session.user as any).username || session.user.email || "Unknown",
+    };
+  } catch (error) {
+    console.error("Error getting session:", error);
+    return null;
+  }
+}
+
 function slugify(title: string): string {
   return (title || "")
     .toLowerCase()
@@ -17,192 +32,189 @@ function slugify(title: string): string {
     .trim();
 }
 
+function looseNormalize(s: string): string {
+  // ignore minor connective words that often vary in slugs
+  const stop = new Set(["your", "and", "the", "a", "an"]);
+  return s
+    .toLowerCase()
+    .split(/-+/)
+    .filter((t) => t && !stop.has(t))
+    .join("-");
+}
+
 async function findLessonBySlug(slug: string) {
-  // Match settings.slug if present
-  const direct = await prisma.learningActivity.findFirst({
+  // settings.slug exact (active lessons)
+  const bySettings = await prisma.learningActivity.findFirst({
     where: {
       activityType: "lesson",
       isActive: true,
       settings: { contains: `"slug":"${slug}"` },
     },
   });
-  if (direct) return direct;
+  if (bySettings) return bySettings;
 
-  // Fallback to slugified title
+  // DB slug direct
+  const byDbSlug = await prisma.learningActivity.findFirst({
+    where: { activityType: "lesson", isActive: true, slug },
+  });
+  if (byDbSlug) return byDbSlug;
+
+  // title based strict/loose
   const candidates = await prisma.learningActivity.findMany({
     where: { activityType: "lesson", isActive: true },
     select: { id: true, title: true },
   });
-  const found = candidates.find((c) => slugify(c.title) === slug);
-  if (!found) return null;
 
-  return prisma.learningActivity.findUnique({ where: { id: found.id } });
+  let found = candidates.find((c) => slugify(c.title) === slug);
+  if (found)
+    return prisma.learningActivity.findUnique({ where: { id: found.id } });
+
+  const loose = looseNormalize(slug);
+  found = candidates.find((c) => looseNormalize(slugify(c.title)) === loose);
+  if (found)
+    return prisma.learningActivity.findUnique({ where: { id: found.id } });
+
+  return null;
 }
 
-function partitionReward(base: number, ratio = 0.6) {
-  const code = Math.floor((base || 0) * ratio);
-  const quiz = (base || 0) - code;
-  return { code, quiz };
-}
-
-// POST - Quiz completion for a lesson (LearningActivity)
+/**
+ * POST /api/lessons/[slug]/quiz-complete
+ * Body: { score: number, passingScore?: number }
+ *
+ * Notes:
+ * - Updates attempt "answers" JSON with quiz results.
+ * - Does NOT award diamonds/XP; rewards are granted by POST /api/lessons/[slug] with action:"complete".
+ * - Does NOT modify attempt.score so code exercise correctness stays intact.
+ */
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const authUser: AuthUser = {
-      userId: session.user.id,
-      username:
-        (session.user as any).username || session.user.email || "Unknown",
-    };
-
     const { slug } = await params;
     const body = await req.json();
-    const { score, passingScore } = body as {
-      score: number;
-      passingScore?: number;
-    };
+    const rawScore = body?.score;
+    const rawPassing = body?.passingScore;
 
     if (
-      typeof score !== "number" ||
-      Number.isNaN(score) ||
-      score < 0 ||
-      score > 100
+      typeof rawScore !== "number" ||
+      isNaN(rawScore) ||
+      rawScore < 0 ||
+      rawScore > 100
     ) {
       return NextResponse.json(
-        { error: "Invalid score. Must be a number between 0 and 100" },
+        { error: "Score must be a number between 0 and 100" },
         { status: 400 }
       );
     }
+    const score = Math.round(rawScore);
+    const passingScore =
+      typeof rawPassing === "number" && !isNaN(rawPassing)
+        ? Math.round(rawPassing)
+        : 50;
+    const passed = score >= passingScore;
 
-    // Resolve lesson activity
+    // Resolve lesson
     const activity = await findLessonBySlug(slug);
     if (!activity) {
       return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
     }
 
-    // Load attempt and flags
-    const existingAttempt = await prisma.activityAttempt.findUnique({
-      where: {
-        userId_activityId: {
-          userId: authUser.userId,
-          activityId: activity.id,
-        },
-      },
-    });
-
-    let answersObj: any = {};
-    try {
-      if (existingAttempt?.answers)
-        answersObj = JSON.parse(existingAttempt.answers as any);
-    } catch {
-      answersObj = {};
-    }
-    const flags = answersObj?.flags || {};
-
-    const threshold = Math.max(0, Math.min(100, Number(passingScore ?? 70)));
-    const passed = score >= threshold;
-
-    const wasQuizPassed = !!flags.quizPassed;
-    const wasQuizRewarded = !!flags.quizRewarded;
-
-    const shouldMarkPassed = passed && !wasQuizPassed;
-    const shouldAwardRewards = passed && !wasQuizRewarded;
-
-    // Update answers with quiz info
-    const newFlags = {
-      ...flags,
-      quizPassed: flags.quizPassed || passed,
-      quizRewarded: flags.quizRewarded || shouldAwardRewards,
-    };
-    const newAnswers = {
-      ...answersObj,
-      quizScore: Math.max(Number(answersObj?.quizScore || 0), score),
-      quizThreshold: threshold,
-      flags: newFlags,
-      quizUpdatedAt: new Date().toISOString(),
-    };
-
-    // Always upsert attempt (do not change numeric score that we use for code)
-    await prisma.activityAttempt.upsert({
-      where: {
-        userId_activityId: {
-          userId: authUser.userId,
-          activityId: activity.id,
-        },
-      },
-      update: {
-        answers: JSON.stringify(newAnswers),
-      },
-      create: {
-        userId: authUser.userId,
-        activityId: activity.id,
-        answers: JSON.stringify(newAnswers),
-        startedAt: new Date(),
-      },
-    });
-
-    if (!shouldAwardRewards) {
-      // No new rewards to give; return current status
+    // Session
+    const authUser = await getUserFromSession();
+    if (!authUser) {
+      // Anonymous: accept and suggest login (no persistence)
       return NextResponse.json({
         success: true,
-        message: passed
-          ? "Quiz passed! (Rewards already earned)"
-          : `Quiz completed with ${score}%. You need ${threshold}%+ to pass.`,
-        rewards: { diamonds: 0, experience: 0 },
         passed,
-        newCompletion: false,
+        rewards: { diamonds: 0, experience: 0 },
+        isLoggedIn: false,
+        message: passed
+          ? `🎉 Quiz passed with ${score}%! 🔓 Login to save your progress and claim rewards when you complete the lesson.`
+          : `Quiz completed with ${score}%. You need ${passingScore}%+ to pass. 🔓 Login to save progress.`,
+        loginPrompt: {
+          title: "🚀 Save Progress & Claim Rewards",
+          message:
+            "Login to track your quiz results and unlock diamonds/XP when you finish lessons.",
+          benefits: [
+            "💾 Save your quiz attempts",
+            "💎 Earn diamonds & ⭐ XP on completion",
+            "🏆 Unlock badges",
+          ],
+        },
       });
     }
 
-    // Compute quiz share (40%) server-side
-    const { quiz: quizDiamonds } = partitionReward(
-      activity.diamondReward ?? 0,
-      0.6
-    );
-    const { quiz: quizXP } = partitionReward(
-      activity.experienceReward ?? 0,
-      0.6
-    );
+    // Ensure attempt exists, but do not mark completed
+    const existing = await prisma.activityAttempt.findUnique({
+      where: {
+        userId_activityId: {
+          userId: authUser.userId,
+          activityId: activity.id,
+        },
+      },
+    });
 
-    // Award in a transaction
-    await prisma.$transaction(async (tx) => {
-      await tx.user.update({
-        where: { id: authUser.userId },
+    // Merge/update quiz info inside answers JSON
+    const prevAnswers = (() => {
+      try {
+        if (!existing?.answers) return {};
+        if (typeof existing.answers === "string")
+          return JSON.parse(existing.answers);
+        return existing.answers as any;
+      } catch {
+        return {};
+      }
+    })();
+
+    const answersPayload = JSON.stringify({
+      ...prevAnswers,
+      quiz: {
+        score,
+        passingScore,
+        passed,
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    if (existing) {
+      await prisma.activityAttempt.update({
+        where: {
+          userId_activityId: {
+            userId: authUser.userId,
+            activityId: activity.id,
+          },
+        },
         data: {
-          currentDiamonds: { increment: quizDiamonds },
-          totalDiamonds: { increment: quizDiamonds },
-          experience: { increment: quizXP },
-          quizzesCompleted: { increment: 1 },
+          answers: answersPayload,
+          // Do not change .score here (reserved for code exercise correctness)
+          // Do not set completed here; completion awards happen in action:"complete"
         },
       });
-
-      await tx.diamondTransaction.create({
+    } else {
+      await prisma.activityAttempt.create({
         data: {
           userId: authUser.userId,
-          amount: quizDiamonds,
-          type: "ACTIVITY_COMPLETION",
-          description: `Lesson quiz passed: ${activity.title} (${score}%)`,
-          relatedType: "lesson",
-          relatedId: activity.id,
+          activityId: activity.id,
+          startedAt: new Date(),
+          answers: answersPayload,
+          // score remains default 0
+          // completed remains false
         },
       });
-    });
+    }
 
     return NextResponse.json({
       success: true,
-      message: `🎉 Quiz passed! +${quizDiamonds} diamonds, +${quizXP} XP`,
-      rewards: { diamonds: quizDiamonds, experience: quizXP },
-      passed: true,
-      newCompletion: true,
+      passed,
+      rewards: { diamonds: 0, experience: 0 },
+      message: passed
+        ? `🎉 Quiz passed with ${score}%! Complete the lesson to claim rewards.`
+        : `Quiz completed with ${score}%. You need ${passingScore}%+ to pass.`,
+      isLoggedIn: true,
     });
   } catch (error) {
-    console.error("Error processing lesson quiz completion:", error);
+    console.error("Lessons quiz-complete error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

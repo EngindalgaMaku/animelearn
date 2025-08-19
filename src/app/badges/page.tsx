@@ -148,6 +148,45 @@ const DEFAULT_BADGE_COLORS = {
   unearned: "bg-gradient-to-r from-gray-300 to-gray-400",
   iconColor: "text-white",
 };
+// Helper: robust icon rendering (URL images, emoji, or mapped Lucide icons)
+function isUrlIcon(icon?: string): boolean {
+  if (!icon) return false;
+  return (
+    /^(https?:\/\/|\/)/i.test(icon) || /\.(svg|png|jpe?g|webp)$/i.test(icon)
+  );
+}
+
+function isEmojiIcon(icon?: string): boolean {
+  if (!icon) return false;
+  // Basic emoji range detection
+  try {
+    return /[\u{1F300}-\u{1FAFF}\u{1F1E6}-\u{1F1FF}]/u.test(icon);
+  } catch {
+    // Fallback heuristic: short non-alphanumeric string
+    return icon.length <= 4 && !/^[a-z0-9]+$/i.test(icon);
+  }
+}
+
+function renderBadgeIcon(icon: string, className: string, alt?: string) {
+  if (isUrlIcon(icon)) {
+    return <img src={icon} alt={alt || "badge icon"} className={className} />;
+  }
+  if (isEmojiIcon(icon)) {
+    // Use larger font size if not already provided by className
+    return (
+      <span
+        className={className}
+        role="img"
+        aria-label={alt || "badge emoji"}
+        aria-hidden={alt ? "false" : "true"}
+      >
+        {icon}
+      </span>
+    );
+  }
+  const IconComp = BADGE_ICONS[icon] || Award;
+  return <IconComp className={className} />;
+}
 
 export default function BadgesPage() {
   const [badges, setBadges] = useState<Badge[]>([]);
@@ -165,6 +204,18 @@ export default function BadgesPage() {
       fetchBadges();
     }
   }, [isAuthenticated]);
+
+  // Close modal on ESC key when open
+  useEffect(() => {
+    if (!selectedBadge) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedBadge(null);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [selectedBadge]);
 
   const fetchBadges = async () => {
     try {
@@ -372,7 +423,6 @@ export default function BadgesPage() {
             </h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {stats.recentBadges.map((badge) => {
-                const IconComponent = BADGE_ICONS[badge.icon] || Award;
                 return (
                   <div
                     key={badge.id}
@@ -387,13 +437,15 @@ export default function BadgesPage() {
                           ]?.earned || DEFAULT_BADGE_COLORS.earned
                         }`}
                       >
-                        <IconComponent
-                          className={`h-6 w-6 ${
+                        {renderBadgeIcon(
+                          badge.icon,
+                          `h-6 w-6 ${
                             BADGE_ICON_COLORS[
                               badge.category as keyof typeof BADGE_ICON_COLORS
                             ]?.iconColor || DEFAULT_BADGE_COLORS.iconColor
-                          }`}
-                        />
+                          }`,
+                          badge.name
+                        )}
                       </div>
                       <h4 className="text-sm font-medium text-gray-900">
                         {badge.name}
@@ -483,7 +535,6 @@ export default function BadgesPage() {
           <>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {currentBadges.map((badge) => {
-                const IconComponent = BADGE_ICONS[badge.icon] || Award;
                 const progressPercentage =
                   badge.progress && badge.targetValue
                     ? (badge.progress / badge.targetValue) * 100
@@ -513,13 +564,15 @@ export default function BadgesPage() {
                                 ]?.unearned || DEFAULT_BADGE_COLORS.unearned
                           }`}
                         >
-                          <IconComponent
-                            className={`h-8 w-8 ${
+                          {renderBadgeIcon(
+                            badge.icon,
+                            `h-8 w-8 ${
                               BADGE_ICON_COLORS[
                                 badge.category as keyof typeof BADGE_ICON_COLORS
                               ]?.iconColor || DEFAULT_BADGE_COLORS.iconColor
-                            }`}
-                          />
+                            }`,
+                            badge.name
+                          )}
                         </div>
 
                         {badge.isEarned && (
@@ -712,8 +765,17 @@ export default function BadgesPage() {
 
       {/* Badge Detail Modal */}
       {selectedBadge && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl bg-white shadow-2xl">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          onClick={() => setSelectedBadge(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Badge details"
+        >
+          <div
+            className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-gray-200 p-6">
               <h2 className="text-2xl font-bold text-gray-900">
                 {selectedBadge.name}
@@ -721,6 +783,8 @@ export default function BadgesPage() {
               <button
                 onClick={() => setSelectedBadge(null)}
                 className="rounded-full p-2 transition-colors hover:bg-gray-100"
+                aria-label="Close"
+                title="Close"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -740,19 +804,15 @@ export default function BadgesPage() {
                         ]?.unearned || DEFAULT_BADGE_COLORS.unearned
                   }`}
                 >
-                  {(() => {
-                    const IconComponent =
-                      BADGE_ICONS[selectedBadge.icon] || Award;
-                    return (
-                      <IconComponent
-                        className={`h-12 w-12 ${
-                          BADGE_ICON_COLORS[
-                            selectedBadge.category as keyof typeof BADGE_ICON_COLORS
-                          ]?.iconColor || DEFAULT_BADGE_COLORS.iconColor
-                        }`}
-                      />
-                    );
-                  })()}
+                  {renderBadgeIcon(
+                    selectedBadge.icon,
+                    `h-12 w-12 ${
+                      BADGE_ICON_COLORS[
+                        selectedBadge.category as keyof typeof BADGE_ICON_COLORS
+                      ]?.iconColor || DEFAULT_BADGE_COLORS.iconColor
+                    }`,
+                    selectedBadge.name
+                  )}
                 </div>
 
                 {selectedBadge.isEarned && (
@@ -910,7 +970,7 @@ export default function BadgesPage() {
                     <p className="mb-4 text-gray-600">
                       How can you make progress to earn this badge?
                     </p>
-                    <div className="flex justify-center space-x-2">
+                    <div className="flex flex-wrap items-center justify-center gap-2">
                       {selectedBadge.category === "Python" && (
                         <Link
                           href="/learn"
@@ -938,6 +998,12 @@ export default function BadgesPage() {
                           Daily Quests
                         </Link>
                       )}
+                      <button
+                        onClick={() => setSelectedBadge(null)}
+                        className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 transition-colors hover:bg-gray-50"
+                      >
+                        Close
+                      </button>
                     </div>
                   </div>
                 )}

@@ -58,9 +58,7 @@ export default function CodeEditor({
   const [currentHint, setCurrentHint] = useState(0);
   const [executionTime, setExecutionTime] = useState<number>(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [editorTheme, setEditorTheme] = useState<"vs-dark" | "light">(
-    "vs-dark"
-  );
+  const [editorTheme, setEditorTheme] = useState<"vs-dark" | "vs">("vs-dark");
 
   // Pyodide hook for real Python execution
   const {
@@ -249,17 +247,17 @@ export default function CodeEditor({
 
       {/* Code Editor */}
       <div className="rounded-lg border bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b bg-gray-50 p-4">
+        <div className="flex items-center justify-between border-b bg-[#1e1e1e] p-4 text-white">
           <div className="flex items-center gap-3">
-            <h3 className="font-semibold">Code Editor</h3>
+            <h3 className="font-semibold text-white">Code Editor</h3>
             {pyodideLoading && (
-              <div className="flex items-center gap-2 text-sm text-blue-600">
+              <div className="flex items-center gap-2 text-sm text-blue-300">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Loading Python...
               </div>
             )}
             {pyodideReady && (
-              <div className="flex items-center gap-1 text-sm text-green-600">
+              <div className="flex items-center gap-1 text-sm text-green-300">
                 <Zap className="h-4 w-4" />
                 Python Ready
               </div>
@@ -268,14 +266,14 @@ export default function CodeEditor({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowHints(!showHints)}
-              className="flex items-center gap-2 rounded bg-yellow-100 px-3 py-2 text-sm text-yellow-700 hover:bg-yellow-200"
+              className="flex items-center gap-2 rounded bg-yellow-600 px-3 py-2 text-sm text-white hover:bg-yellow-500"
             >
               <Lightbulb className="h-4 w-4" />
               Hints ({exercise.hints?.length || 0})
             </button>
             <button
               onClick={resetCode}
-              className="flex items-center gap-2 rounded bg-gray-100 px-3 py-2 text-sm text-gray-700 hover:bg-gray-200"
+              className="flex items-center gap-2 rounded bg-gray-700 px-3 py-2 text-sm text-gray-100 hover:bg-gray-600"
             >
               <RotateCcw className="h-4 w-4" />
               Reset
@@ -284,7 +282,7 @@ export default function CodeEditor({
               <button
                 onClick={quickRun}
                 disabled={isRunning || !pyodideReady}
-                className="flex items-center gap-2 rounded bg-blue-100 px-3 py-2 text-sm text-blue-700 hover:bg-blue-200 disabled:opacity-50"
+                className="flex items-center gap-2 rounded bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-500 disabled:opacity-50"
               >
                 <Zap className="h-4 w-4" />
                 Quick Run
@@ -351,22 +349,22 @@ export default function CodeEditor({
           }`}
         >
           {isFullscreen && (
-            <div className="flex items-center justify-between border-b bg-gray-50 p-4">
-              <h3 className="font-semibold">Code Editor - Fullscreen</h3>
+            <div className="flex items-center justify-between border-b bg-[#1e1e1e] p-4 text-white">
+              <h3 className="font-semibold text-white">
+                Code Editor - Fullscreen
+              </h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() =>
-                    setEditorTheme(
-                      editorTheme === "vs-dark" ? "light" : "vs-dark"
-                    )
+                    setEditorTheme(editorTheme === "vs-dark" ? "vs" : "vs-dark")
                   }
-                  className="rounded bg-gray-200 px-3 py-1 text-sm hover:bg-gray-300"
+                  className="rounded bg-gray-700 px-3 py-1 text-sm text-white hover:bg-gray-600"
                 >
                   {editorTheme === "vs-dark" ? "☀️ Light" : "🌙 Dark"}
                 </button>
                 <button
                   onClick={() => setIsFullscreen(false)}
-                  className="flex items-center gap-1 rounded bg-gray-200 px-3 py-1 text-sm hover:bg-gray-300"
+                  className="flex items-center gap-1 rounded bg-gray-700 px-3 py-1 text-sm text-white hover:bg-gray-600"
                 >
                   <Minimize2 className="h-4 w-4" />
                   Exit Fullscreen
@@ -380,9 +378,7 @@ export default function CodeEditor({
               <div className="absolute right-2 top-2 z-10 flex gap-1">
                 <button
                   onClick={() =>
-                    setEditorTheme(
-                      editorTheme === "vs-dark" ? "light" : "vs-dark"
-                    )
+                    setEditorTheme(editorTheme === "vs-dark" ? "vs" : "vs-dark")
                   }
                   className="rounded bg-black/20 p-1 text-xs text-white hover:bg-black/40"
                   title="Toggle theme"
@@ -400,37 +396,42 @@ export default function CodeEditor({
             )}
 
             <div className={isFullscreen ? "h-[calc(100vh-80px)]" : "h-96"}>
-              <textarea
+              <Editor
                 value={code}
-                onChange={(e) => setCode(e.target.value)}
-                className={`h-full w-full resize-none border-0 p-4 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  editorTheme === "vs-dark"
-                    ? "bg-gray-900 text-green-400"
-                    : "bg-white text-gray-800"
-                }`}
-                style={{
-                  fontFamily: "'Courier New', monospace",
-                  fontSize: "14px",
-                  lineHeight: "1.5",
-                  tabSize: 4,
+                onChange={(value) => setCode(value ?? "")}
+                language="python"
+                theme={editorTheme}
+                height={isFullscreen ? "calc(100vh - 80px)" : "384px"}
+                path={`${lessonId}.py`}
+                onMount={(editor, monaco) => {
+                  // VSCode-like keybindings
+                  editor.addCommand(
+                    monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
+                    () => {
+                      runCode();
+                    }
+                  );
+                  editor.addCommand(
+                    monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
+                    () => {
+                      saveProgress();
+                    }
+                  );
                 }}
-                placeholder="# Write your Python code here..."
-                spellCheck={false}
-                onKeyDown={(e) => {
-                  // Handle Tab key for indentation
-                  if (e.key === "Tab") {
-                    e.preventDefault();
-                    const start = e.currentTarget.selectionStart;
-                    const end = e.currentTarget.selectionEnd;
-                    const newValue =
-                      code.substring(0, start) + "    " + code.substring(end);
-                    setCode(newValue);
-                    // Set cursor position after the inserted tab
-                    setTimeout(() => {
-                      e.currentTarget.selectionStart =
-                        e.currentTarget.selectionEnd = start + 4;
-                    }, 0);
-                  }
+                options={{
+                  fontSize: 14,
+                  fontLigatures: true,
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  wordWrap: "on",
+                  automaticLayout: true,
+                  tabSize: 4,
+                  detectIndentation: false,
+                  renderWhitespace: "none",
+                  folding: true,
+                  lineNumbers: "on",
+                  roundedSelection: true,
+                  cursorBlinking: "smooth",
                 }}
               />
             </div>

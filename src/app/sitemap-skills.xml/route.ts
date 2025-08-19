@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Temporary any-cast to avoid Prisma type staleness during dev (consistent with other routes)
+// Use any-cast to avoid Prisma type staleness during dev; mirrors pattern used elsewhere
 const p: any = prisma;
 
 type UrlItem = {
@@ -15,49 +15,35 @@ export async function GET() {
   const baseUrl = "https://zumenzu.com";
 
   try {
-    const posts = (await p.blogPost.findMany({
-      where: { isPublished: true },
+    const skills = (await p.skill.findMany({
       select: {
-        slug: true,
+        key: true,
         updatedAt: true,
-        publishedAt: true,
+        isActive: true,
       },
       orderBy: { updatedAt: "desc" },
     })) as Array<{
-      slug: string;
+      key: string;
       updatedAt: Date | string;
-      publishedAt?: Date | string | null;
+      isActive?: boolean | null;
     }>;
 
-    // Determine last modified for listing page (/blog)
-    const latestDate =
-      posts.length > 0
-        ? posts.reduce<Date>((acc, p) => {
-            const d =
-              p.updatedAt instanceof Date ? p.updatedAt : new Date(p.updatedAt);
-            return d > acc ? d : acc;
-          }, new Date(0))
-        : new Date();
+    const activeSkills = skills.filter(
+      (s) => s && s.key && s.isActive !== false
+    );
 
-    const listUrl: UrlItem = {
-      url: `/blog`,
-      lastModified: latestDate.toISOString(),
-      changeFrequency: "daily",
-      priority: "0.9",
-    };
-
-    const postUrls: UrlItem[] = posts.map((p) => {
-      const updated =
-        p.updatedAt instanceof Date ? p.updatedAt : new Date(p.updatedAt);
+    const urls: UrlItem[] = activeSkills.map((s) => {
+      const lastMod =
+        s.updatedAt instanceof Date
+          ? s.updatedAt.toISOString()
+          : new Date(s.updatedAt).toISOString();
       return {
-        url: `/blog/${encodeURIComponent(p.slug)}`,
-        lastModified: updated.toISOString(),
+        url: `/skills/${encodeURIComponent(s.key)}`,
+        lastModified: lastMod,
         changeFrequency: "weekly",
         priority: "0.8",
       };
     });
-
-    const urls = [listUrl, ...postUrls];
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -80,16 +66,10 @@ ${urls
       },
     });
   } catch (error) {
-    console.error("Error generating blog sitemap:", error);
+    console.error("Error generating skills sitemap:", error);
 
     const fallback = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${baseUrl}/blog</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
 </urlset>`;
 
     return new NextResponse(fallback, {

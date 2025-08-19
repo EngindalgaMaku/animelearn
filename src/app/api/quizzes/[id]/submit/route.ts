@@ -78,7 +78,7 @@ export async function POST(
     }
 
     // Determine if quiz passed
-    const passingScore = quizData?.passingScore || 70;
+    const passingScore = quizData?.passingScore || 50;
     const passed = score >= passingScore;
 
     // Calculate rewards - use lower amounts as backup

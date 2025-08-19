@@ -6,6 +6,10 @@ import { db } from "@/lib/db";
 export default async function LeaderboardPage() {
   // Fetch top users by totalDiamonds
   const topByDiamonds = await db.user.findMany({
+    where: {
+      role: { not: "admin" },
+      username: { not: "admin" },
+    },
     select: {
       id: true,
       username: true,
@@ -28,6 +32,10 @@ export default async function LeaderboardPage() {
 
   // Fetch top users by level (experience as tiebreaker)
   const topByLevel = await db.user.findMany({
+    where: {
+      role: { not: "admin" },
+      username: { not: "admin" },
+    },
     select: {
       id: true,
       username: true,
