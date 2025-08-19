@@ -2417,6 +2417,1543 @@ const pfLessons: PFSeed[] = [
       ],
     },
   },
+  // PF-12
+  {
+    slug: "tuples-sets-ranges",
+    title: "Tuples, Sets & Ranges",
+    description:
+      "Immutable sequences, unique collections, and numeric ranges. Learn membership tests and powerful set operations.",
+    category: PF,
+    difficulty: 1,
+    estimatedMinutes: 30,
+    diamondReward: 35,
+    experienceReward: 95,
+    sortOrder: 12,
+    content: {
+      introduction: [
+        "# 📦 Tuples, Sets & Ranges",
+        "Tuples are immutable sequences; sets are unordered collections of unique items; range efficiently represents sequences of integers.",
+      ].join("\n"),
+      objectives: [
+        "Create and use tuples for fixed-size records",
+        "Use sets for fast membership tests and set algebra",
+        "Iterate with range(start, stop, step)",
+        "Understand immutability and ordering characteristics",
+      ],
+      prerequisites: ["PF-06 Lists", "PF-05 Functions"],
+      theory: [
+        "Tuples:",
+        "- Immutable; good for fixed-length records (x, y) or returning multiple values",
+        "- Support unpacking: a, b = (1, 2)",
+        "Sets:",
+        "- Unordered unique elements; membership tests are O(1) average",
+        "- Set algebra: union(|), intersection(&), difference(-), symmetric difference(^)",
+        "Range:",
+        "- Lazy sequence of ints; commonly used in for-loops",
+      ].join("\n"),
+      syntax: fenced(
+        "python",
+        [
+          "pt = (3, 4)         # tuple",
+          "x, y = pt           # unpack",
+          "nums = {1, 2, 2, 3} # set => {1,2,3}",
+          "a = {1,2,3}; b = {3,4}",
+          "print(a | b)  # {1,2,3,4}",
+          "print(a & b)  # {3}",
+          "print(a - b)  # {1,2}",
+          "for i in range(1, 6, 2):",
+          "    print(i)  # 1,3,5",
+        ].join("\n")
+      ),
+      examples: [
+        "Membership and unique counting:",
+        fenced(
+          "python",
+          [
+            "def unique_count(xs):",
+            "    return len(set(xs))",
+            "",
+            "print(unique_count([1,1,2,3,3]))  # 3",
+          ].join("\n")
+        ),
+      ].join("\n"),
+      bestPractices: [
+        "Use tuples for fixed-size data and return multiple values cleanly",
+        "Prefer sets when you need fast membership checks or uniqueness",
+        "Use range for looping over integer sequences; avoid building large lists",
+      ],
+      pitfalls: [
+        "Sets are unordered; do not rely on element order",
+        "Tuples are immutable; you cannot append or remove items",
+      ],
+      cheatsheet: [
+        "t = (a, b), a, b = t",
+        "s = {1,2,3}, 1 in s",
+        "s1|s2, s1&s2, s1-s2, s1^s2",
+        "range(start, stop[, step])",
+      ].join("\n"),
+      references: [
+        {
+          label: "Data Structures (Tuples/Sets)",
+          url: "https://docs.python.org/3/tutorial/datastructures.html",
+        },
+      ],
+      quiz: {
+        title: "PF-12 Tuples, Sets & Ranges Quiz",
+        timeLimit: 360,
+        passingScore: 70,
+        diamondReward: 10,
+        experienceReward: 25,
+        questions: [
+          {
+            id: "PF12Q1",
+            type: "true_false",
+            question: "Tuples are immutable in Python.",
+            correctAnswer: true,
+            explanation: "Tuples cannot be changed after creation.",
+            points: 10,
+          },
+          {
+            id: "PF12Q2",
+            type: "multiple_choice",
+            question: "Which literal creates a set with one element 1?",
+            options: ["{1}", "(1)", "[1]", "{1,1}"],
+            correctAnswer: "{1}",
+            explanation: "{1} is a set; duplicates collapse.",
+            points: 10,
+          },
+          {
+            id: "PF12Q3",
+            type: "multiple_choice",
+            question: "What does {1,2,3} & {3,4} evaluate to?",
+            options: ["{1,2,3,4}", "{1,2}", "{3}", "Error"],
+            correctAnswer: "{3}",
+            explanation: "Intersection keeps common elements.",
+            points: 10,
+          },
+          {
+            id: "PF12Q4",
+            type: "true_false",
+            question: "range(5) produces [0,1,2,3,4] in memory immediately.",
+            correctAnswer: false,
+            explanation: "range is a lazy sequence object.",
+            points: 10,
+          },
+          {
+            id: "PF12Q5",
+            type: "multiple_choice",
+            question: "Which operation removes elements of B from A?",
+            options: ["A|B", "A&B", "A-B", "A^B"],
+            correctAnswer: "A-B",
+            explanation: "Difference keeps elements only in A.",
+            points: 10,
+          },
+          {
+            id: "PF12Q6",
+            type: "true_false",
+            question: "Set membership checks are typically O(1) average case.",
+            correctAnswer: true,
+            explanation: "Sets are hash-based.",
+            points: 10,
+          },
+          {
+            id: "PF12Q7",
+            type: "multiple_choice",
+            question: "How to unpack point=(2,3) to x, y?",
+            options: [
+              "x,y = point",
+              "x=point[0], y=point",
+              "x,y <- point",
+              "unpack(point)",
+            ],
+            correctAnswer: "x,y = point",
+            explanation: "Tuple unpacking syntax.",
+            points: 10,
+          },
+          {
+            id: "PF12Q8",
+            type: "multiple_choice",
+            question: "Which is NOT valid set operation?",
+            options: [
+              "s.union(t)",
+              "s.intersection(t)",
+              "s.difference(t)",
+              "s.concat(t)",
+            ],
+            correctAnswer: "s.concat(t)",
+            explanation: "concat does not exist for sets.",
+            points: 10,
+          },
+        ],
+      },
+    },
+    exercise: {
+      hasCodeExercise: true,
+      starterCode: [
+        "# Summarize a list of words using tuple/set/range concepts.",
+        "# Return: 'unique=<n>, first=<f>, last=<l>, has_python=<bool>'",
+        "",
+        "def summarize_words(words) -> str:",
+        "    # words: list of strings; may be empty",
+        "    # - unique: number of distinct words (case-sensitive)",
+        "    # - first: first element or '' if empty",
+        "    # - last: last element or '' if empty",
+        "    # - has_python: True if any element equals 'python' (case-insensitive)",
+        "    # TODO: implement",
+        "    pass",
+      ].join("\n"),
+      solutionCode: [
+        "def summarize_words(words) -> str:",
+        "    xs = list(words or [])",
+        "    unique = len(set(xs))",
+        "    first = xs[0] if xs else ''",
+        "    last = xs[-1] if xs else ''",
+        "    has_python = any((str(w).lower() == 'python') for w in xs)",
+        '    return f"unique={unique}, first={first}, last={last}, has_python={has_python}"',
+      ].join("\n"),
+      hints: [
+        "Use set(...) for uniqueness count",
+        "Handle empty list for first/last safely",
+        "Check 'python' case-insensitively",
+      ],
+      testCases: [
+        {
+          input: [["python", "rocks", "python"]],
+          expectedOutput:
+            "unique=2, first=python, last=python, has_python=True",
+          description: "duplicates and membership",
+        },
+        {
+          input: [["A", "B", "C"]],
+          expectedOutput: "unique=3, first=A, last=C, has_python=False",
+          description: "simple sequence",
+        },
+        {
+          input: [[]],
+          expectedOutput: "unique=0, first=, last=, has_python=False",
+          description: "empty",
+        },
+        {
+          input: [["PyThOn"]],
+          expectedOutput:
+            "unique=1, first=PyThOn, last=PyThOn, has_python=True",
+          description: "case-insensitive membership",
+        },
+      ],
+    },
+  },
+
+  // PF-13
+  {
+    slug: "strings-deep-dive",
+    title: "Strings Deep Dive: Methods, Slicing, Formatting",
+    description:
+      "Master common string operations: cleaning, searching, slicing, and modern formatting with f-strings.",
+    category: PF,
+    difficulty: 1,
+    estimatedMinutes: 35,
+    diamondReward: 35,
+    experienceReward: 100,
+    sortOrder: 13,
+    content: {
+      introduction: [
+        "# 🔤 Strings Deep Dive",
+        "Strings are immutable sequences of characters with rich built-in methods.",
+      ].join("\n"),
+      objectives: [
+        "Trim and normalize with strip/lower/title",
+        "Find and replace substrings",
+        "Slice substrings safely",
+        "Use f-strings for readable formatting",
+      ],
+      prerequisites: ["PF-02 Variables & Data Types"],
+      theory: [
+        "Immutability:",
+        "- Methods return new strings; the original is unchanged.",
+        "Common operations:",
+        "- strip/lstrip/rstrip, lower/upper/title, find/index, replace, split/join",
+        "Slicing:",
+        "- s[a:b] (end-exclusive), negative indices allowed",
+        "Formatting:",
+        '- f"...{expr}..." is preferred for clarity and safety',
+      ].join("\n"),
+      syntax: fenced(
+        "python",
+        [
+          "name = '  alice  '",
+          "clean = name.strip().title()  # 'Alice'",
+          "s = 'hello world'",
+          "print(s.replace('world', 'python'))  # 'hello python'",
+          "print(s[:5])   # 'hello'",
+          "age = 30",
+          "print(f'{clean} is {age} years old')",
+        ].join("\n")
+      ),
+      examples: fenced(
+        "python",
+        [
+          "def initials(full_name: str) -> str:",
+          "    parts = [p for p in full_name.strip().split() if p]",
+          "    if not parts:",
+          "        return ''",
+          "    first = parts[0][0].upper()",
+          "    last = parts[-1][0].upper() if len(parts) > 1 else ''",
+          "    return f'{first}.{last}'.strip('.')",
+          "",
+          "print(initials('alan mathison turing'))  # A.T",
+        ].join("\n")
+      ),
+      bestPractices: [
+        "Use .strip() and .lower() before comparisons/user input handling",
+        "Prefer f-strings for readability",
+        "Avoid complex nested formatting; extract variables first",
+      ],
+      pitfalls: [
+        "Assuming strings are mutable",
+        "Using find() without checking -1 for not-found",
+      ],
+      cheatsheet: [
+        "s.strip(), s.lower(), s.title()",
+        "s.find(sub), s.replace(old, new)",
+        "s.split(), ' '.join(xs)",
+        "s[a:b], s[-n:], s[:n]",
+        "f'{expr}'",
+      ].join("\n"),
+      references: [
+        {
+          label: "Text Sequence Type — str",
+          url: "https://docs.python.org/3/library/stdtypes.html#text-sequence-type-str",
+        },
+      ],
+      quiz: {
+        title: "PF-13 Strings Quiz",
+        timeLimit: 420,
+        passingScore: 70,
+        diamondReward: 10,
+        experienceReward: 25,
+        questions: [
+          {
+            id: "PF13Q1",
+            type: "true_false",
+            question: "Strings in Python are immutable.",
+            correctAnswer: true,
+            explanation: "All operations return new strings.",
+            points: 10,
+          },
+          {
+            id: "PF13Q2",
+            type: "multiple_choice",
+            question: "Which returns the first 3 chars of s?",
+            options: ["s[0:3]", "s[0..3]", "left(s,3)", "s[1:3]"],
+            correctAnswer: "s[0:3]",
+            explanation: "End index is exclusive.",
+            points: 10,
+          },
+          {
+            id: "PF13Q3",
+            type: "multiple_choice",
+            question: "What does s.find('x') return when not found?",
+            options: ["-1", "None", "False", "Error"],
+            correctAnswer: "-1",
+            explanation: "find returns -1 when substring not found.",
+            points: 10,
+          },
+          {
+            id: "PF13Q4",
+            type: "true_false",
+            question: "f-strings allow arbitrary Python expressions inside {}.",
+            correctAnswer: true,
+            explanation: "They evaluate expressions at runtime.",
+            points: 10,
+          },
+          {
+            id: "PF13Q5",
+            type: "multiple_choice",
+            question: "Which normalizes '  aLiCe  ' to 'Alice'?",
+            options: [
+              "s.strip().capitalize()",
+              "s.title().strip()",
+              "s.strip().title()",
+              "title(s.strip())",
+            ],
+            correctAnswer: "s.strip().title()",
+            explanation: "Strip whitespace then Title Case.",
+            points: 10,
+          },
+          {
+            id: "PF13Q6",
+            type: "true_false",
+            question: "s.replace('a','') removes all 'a' characters.",
+            correctAnswer: true,
+            explanation: "replace replaces all occurrences by default.",
+            points: 10,
+          },
+          {
+            id: "PF13Q7",
+            type: "multiple_choice",
+            question: "Join ['a','b','c'] with dashes:",
+            options: [
+              "join('-', xs)",
+              "xs.join('-')",
+              "'-'.join(xs)",
+              "concat(xs,'-')",
+            ],
+            correctAnswer: "'-'.join(xs)",
+            explanation: "Separator.join(iterable).",
+            points: 10,
+          },
+          {
+            id: "PF13Q8",
+            type: "multiple_choice",
+            question: "s[-2:] returns:",
+            options: [
+              "All but last two",
+              "The last two chars",
+              "The first two chars",
+              "Error",
+            ],
+            correctAnswer: "The last two chars",
+            explanation: "Negative start counts from the end.",
+            points: 10,
+          },
+        ],
+      },
+    },
+    exercise: {
+      hasCodeExercise: true,
+      starterCode: [
+        "# Normalize a person's name and return parts.",
+        "# Return: 'first=<F>, last=<L>, initials=<I>'",
+        "# Rules:",
+        "# - Trim whitespace and split by any whitespace",
+        "# - First = first token Title-case; Last = last token Title-case (or '' if only one token)",
+        "# - Initials = 'F.L' (uppercase letters) or just 'F' if no last",
+        "",
+        "def normalize_name(full_name: str) -> str:",
+        "    # TODO: implement",
+        "    pass",
+      ].join("\n"),
+      solutionCode: [
+        "def normalize_name(full_name: str) -> str:",
+        "    parts = [p for p in (full_name or '').strip().split() if p]",
+        "    if not parts:",
+        "        return 'first=, last=, initials='",
+        "    first_t = parts[0].title()",
+        "    last_t = parts[-1].title() if len(parts) > 1 else ''",
+        "    fi = parts[0][0].upper()",
+        "    li = parts[-1][0].upper() if len(parts) > 1 else ''",
+        "    initials = f'{fi}.{li}' if li else fi",
+        "    return f'first={first_t}, last={last_t}, initials={initials}'",
+      ].join("\n"),
+      hints: [
+        "Use .strip() and .split()",
+        "Title-case with .title()",
+        "Build initials from the first characters",
+      ],
+      testCases: [
+        {
+          input: ["  alan   turing "],
+          expectedOutput: "first=Alan, last=Turing, initials=A.T",
+          description: "two tokens",
+        },
+        {
+          input: ["ada"],
+          expectedOutput: "first=Ada, last=, initials=A",
+          description: "single token",
+        },
+        {
+          input: ["  "],
+          expectedOutput: "first=, last=, initials=",
+          description: "empty input",
+        },
+        {
+          input: ["grace brewster murray hopper"],
+          expectedOutput: "first=Grace, last=Hopper, initials=G.H",
+          description: "multi token",
+        },
+      ],
+    },
+  },
+
+  // PF-14
+  {
+    slug: "iteration-utilities",
+    title: "Iteration Utilities: enumerate, zip, unpacking",
+    description:
+      "Write clearer loops using enumerate, zip, and tuple unpacking. Process parallel sequences safely.",
+    category: PF,
+    difficulty: 1,
+    estimatedMinutes: 30,
+    diamondReward: 35,
+    experienceReward: 95,
+    sortOrder: 14,
+    content: {
+      introduction: [
+        "# 🧰 Iteration Utilities",
+        "enumerate provides index+value; zip walks multiple sequences in parallel; unpacking keeps code tidy.",
+      ].join("\n"),
+      objectives: [
+        "Use enumerate(iterable, start=0)",
+        "Zip multiple iterables and iterate pairs/tuples",
+        "Unpack tuples in loops for clarity",
+      ],
+      prerequisites: ["PF-04 Loops"],
+      theory:
+        "enumerate yields (index, value). zip stops at shortest iterable. Unpacking assigns tuple elements to variables.",
+      syntax: fenced(
+        "python",
+        [
+          "names = ['ada','grace']",
+          "for i, name in enumerate(names, start=1):",
+          "    print(i, name)",
+          "",
+          "xs = [1,2]; ys = [10,20,30]",
+          "for x, y in zip(xs, ys):",
+          "    print(x, y)  # stops at 2 pairs",
+        ].join("\n")
+      ),
+      examples: fenced(
+        "python",
+        [
+          "def pair_sums(a, b):",
+          "    return [x+y for x, y in zip(a, b)]",
+          "",
+          "print(pair_sums([1,2,3], [10,20]))  # [11,22]",
+        ].join("\n")
+      ),
+      bestPractices: [
+        "Prefer enumerate over manual index counters",
+        "Keep zipped sequences similar in length or handle mismatches",
+      ],
+      pitfalls: [
+        "zip truncates to shortest; consider itertools.zip_longest when needed",
+      ],
+      cheatsheet: ["enumerate(xs, start=0)", "for a,b in zip(xs,ys): ..."].join(
+        "\n"
+      ),
+      references: [
+        {
+          label: "Built-in Functions",
+          url: "https://docs.python.org/3/library/functions.html#enumerate",
+        },
+      ],
+      quiz: {
+        title: "PF-14 Iteration Utilities Quiz",
+        timeLimit: 360,
+        passingScore: 70,
+        diamondReward: 10,
+        experienceReward: 25,
+        questions: [
+          {
+            id: "PF14Q1",
+            type: "true_false",
+            question: "enumerate returns pairs of (index, value).",
+            correctAnswer: true,
+            explanation: "Yes, optionally with a custom start.",
+            points: 10,
+          },
+          {
+            id: "PF14Q2",
+            type: "multiple_choice",
+            question: "zip([1,2],[3]) yields how many pairs?",
+            options: ["0", "1", "2", "3"],
+            correctAnswer: "1",
+            explanation: "Stops at the shortest iterable.",
+            points: 10,
+          },
+          {
+            id: "PF14Q3",
+            type: "multiple_choice",
+            question: "Which loop header unpacks pairs?",
+            options: [
+              "for t in zip(a,b):",
+              "for (x,y) in zip(a,b):",
+              "for x&y in zip(a,b):",
+              "for x+y in zip(a,b):",
+            ],
+            correctAnswer: "for (x,y) in zip(a,b):",
+            explanation: "Tuple unpacking syntax.",
+            points: 10,
+          },
+          {
+            id: "PF14Q4",
+            type: "true_false",
+            question: "zip pads with None to match longest by default.",
+            correctAnswer: false,
+            explanation: "It truncates; use itertools.zip_longest to pad.",
+            points: 10,
+          },
+          {
+            id: "PF14Q5",
+            type: "multiple_choice",
+            question: "enumerate(['a','b'], start=1) first value is:",
+            options: ["(0,'a')", "(1,'a')", "('a',1)", "(1,1)"],
+            correctAnswer: "(1,'a')",
+            explanation: "Custom start=1.",
+            points: 10,
+          },
+        ],
+      },
+    },
+    exercise: {
+      hasCodeExercise: true,
+      starterCode: [
+        "# Sum pairs from two number lists using zip.",
+        "# Return: 'sums=<comma-separated>'",
+        "",
+        "def zip_sum(a, b) -> str:",
+        "    # Only sum up to the shortest length of the two lists",
+        "    # Example: a=[1,2,3], b=[10,20] -> 'sums=11,22'",
+        "    # TODO: implement",
+        "    pass",
+      ].join("\n"),
+      solutionCode: [
+        "def zip_sum(a, b) -> str:",
+        "    xs = [float(x)+float(y) for x, y in zip(a or [], b or [])]",
+        "    joined = ','.join(str(int(x)) if x.is_integer() else str(x) for x in xs)",
+        "    return f'sums={joined}'",
+      ].join("\n"),
+      hints: ["Use zip(a, b) to iterate pairs", "Join results with ','."],
+      testCases: [
+        {
+          input: [
+            [1, 2, 3],
+            [10, 20],
+          ],
+          expectedOutput: "sums=11,22",
+          description: "truncate to shortest",
+        },
+        {
+          input: [
+            [1.5, 2],
+            [0.5, 0.0],
+          ],
+          expectedOutput: "sums=2.0,2.0",
+          description: "floats",
+        },
+        {
+          input: [[], [1, 2]],
+          expectedOutput: "sums=",
+          description: "empty left",
+        },
+      ],
+    },
+  },
+
+  // PF-15
+  {
+    slug: "comprehensions-generators",
+    title: "Comprehensions & Generator Expressions",
+    description:
+      "Transform and filter data concisely with list/dict/set comprehensions and generator expressions.",
+    category: PF,
+    difficulty: 1,
+    estimatedMinutes: 35,
+    diamondReward: 40,
+    experienceReward: 110,
+    sortOrder: 15,
+    content: {
+      introduction: [
+        "# ⚡ Comprehensions & Generators",
+        "Express transformations concisely and readably, often faster than manual loops.",
+      ].join("\n"),
+      objectives: [
+        "Write list/dict/set comprehensions",
+        "Filter with if-clauses",
+        "Use generator expressions to save memory",
+      ],
+      prerequisites: ["PF-06 Lists", "PF-14 Iteration Utilities"],
+      theory: [
+        "List comprehension: [expr for x in xs if cond]",
+        "Dict comp: {k:v for k,v in pairs}",
+        "Set comp: {expr for x in xs}",
+        "Generator expression: (expr for x in xs) evaluated lazily",
+      ].join("\n"),
+      syntax: fenced(
+        "python",
+        [
+          "xs = [1,2,3,4,5,6]",
+          "evens = [x for x in xs if x%2==0]",
+          "squares = [x*x for x in xs]",
+          "mapping = {x: x*x for x in xs}",
+          "gen = (x*x for x in xs)  # generator",
+          "print(next(gen))  # 1",
+        ].join("\n")
+      ),
+      examples: fenced(
+        "python",
+        [
+          "def even_squares(xs):",
+          "    return [x*x for x in xs if x%2==0]",
+          "print(even_squares([1,2,3,4]))  # [4,16]",
+        ].join("\n")
+      ),
+      bestPractices: [
+        "Use comprehensions for simple transforms/filters",
+        "Prefer generator expressions for large data pipelines",
+      ],
+      pitfalls: ["Avoid deeply nested comprehensions; refactor into functions"],
+      cheatsheet: [
+        "[expr for x in xs if cond]",
+        "{k:v for k,v in pairs}",
+        "{expr for x in xs}",
+        "(expr for x in xs)",
+      ].join("\n"),
+      references: [
+        {
+          label: "Data Structures — More on Lists",
+          url: "https://docs.python.org/3/tutorial/datastructures.html#list-comprehensions",
+        },
+      ],
+      quiz: {
+        title: "PF-15 Comprehensions Quiz",
+        timeLimit: 420,
+        passingScore: 70,
+        diamondReward: 10,
+        experienceReward: 25,
+        questions: [
+          {
+            id: "PF15Q1",
+            type: "multiple_choice",
+            question: "Select squares of evens:",
+            options: [
+              "[x*x if x%2==0 in xs]",
+              "[x*x for x in xs if x%2==0]",
+              "for x in xs: if x%2==0: x*x",
+              "[x^2 : x in xs where x%2==0]",
+            ],
+            correctAnswer: "[x*x for x in xs if x%2==0]",
+            explanation: "Correct comprehension syntax.",
+            points: 10,
+          },
+          {
+            id: "PF15Q2",
+            type: "true_false",
+            question: "A generator expression is evaluated lazily.",
+            correctAnswer: true,
+            explanation: "Values are produced on demand.",
+            points: 10,
+          },
+          {
+            id: "PF15Q3",
+            type: "multiple_choice",
+            question: "Build dict mapping x->x*x:",
+            options: [
+              "{x: x*x for x in xs}",
+              "[x: x*x for x in xs]",
+              "{x => x*x for x in xs}",
+              "dict(x*x for x in xs)",
+            ],
+            correctAnswer: "{x: x*x for x in xs}",
+            explanation: "Dict comprehension syntax.",
+            points: 10,
+          },
+          {
+            id: "PF15Q4",
+            type: "true_false",
+            question: "Comprehensions always use less memory than generators.",
+            correctAnswer: false,
+            explanation: "Generators are more memory efficient.",
+            points: 10,
+          },
+        ],
+      },
+    },
+    exercise: {
+      hasCodeExercise: true,
+      starterCode: [
+        "# Compute statistics over even squares using comprehensions/generators.",
+        "# Return: 'count=<n>, sum=<S>, first3=<a,b,c>' (first3 may have fewer than 3 items)",
+        "",
+        "def stats_even_squares(nums) -> str:",
+        "    # TODO: implement",
+        "    pass",
+      ].join("\n"),
+      solutionCode: [
+        "def stats_even_squares(nums) -> str:",
+        "    ev_sq = [int(x)*int(x) for x in (nums or []) if int(x)%2==0]",
+        "    total = sum(ev_sq)",
+        "    first3 = ','.join(str(x) for x in ev_sq[:3])",
+        "    return f'count={len(ev_sq)}, sum={total}, first3={first3}'",
+      ].join("\n"),
+      hints: [
+        "Use a list comprehension with if for evens",
+        "Slice the first three results: xs[:3]",
+      ],
+      testCases: [
+        {
+          input: [[1, 2, 3, 4, 5, 6]],
+          expectedOutput: "count=3, sum=56, first3=4,16,36",
+          description: "basic",
+        },
+        {
+          input: [[1, 3, 5]],
+          expectedOutput: "count=0, sum=0, first3=",
+          description: "no evens",
+        },
+        {
+          input: [[2]],
+          expectedOutput: "count=1, sum=4, first3=4",
+          description: "single",
+        },
+      ],
+    },
+  },
+
+  // PF-16
+  {
+    slug: "functions-advanced-arguments",
+    title: "Functions Advanced: *args, **kwargs, defaults, keyword-only",
+    description:
+      "Design flexible functions with default parameters, variadic args, and keyword-only arguments.",
+    category: PF,
+    difficulty: 2,
+    estimatedMinutes: 35,
+    diamondReward: 35,
+    experienceReward: 100,
+    sortOrder: 16,
+    content: {
+      introduction: [
+        "# 🧩 Advanced Function Parameters",
+        "Build ergonomic APIs: defaults, *args, **kwargs, keyword-only parameters.",
+      ].join("\n"),
+      objectives: [
+        "Define functions with *args and **kwargs",
+        "Use keyword-only parameters with * in signature",
+        "Choose good defaults carefully",
+      ],
+      prerequisites: ["PF-05 Functions"],
+      theory: [
+        "*args captures extra positional arguments as a tuple.",
+        "**kwargs captures extra keyword arguments as a dict.",
+        "Keyword-only parameters are declared after *.",
+        "Avoid mutable defaults; use None sentinel and initialize inside.",
+      ].join("\n"),
+      syntax: fenced(
+        "python",
+        [
+          "def greet(title, *names, suffix='!'):",
+          "    line = ', '.join(n.title() for n in names)",
+          '    return f"Hello, {line} ({title}){suffix}"',
+          "",
+          "def f(a, *, b=1):  # b is keyword-only",
+          "    return a+b",
+        ].join("\n")
+      ),
+      examples: fenced(
+        "python",
+        [
+          "print(greet('Dr', 'ada', 'grace'))  # Hello, Ada, Grace (Dr)!",
+          "print(f(2, b=3))  # 5",
+        ].join("\n")
+      ),
+      bestPractices: [
+        "Place * to force keyword-only parameters when clarity matters",
+        "Validate **kwargs keys to avoid silent bugs",
+      ],
+      pitfalls: [
+        "Using mutable objects as defaults",
+        "Forgetting to pass required keyword-only parameters",
+      ],
+      cheatsheet: [
+        "def fn(a, b=1, *args, c=0, **kwargs): ...",
+        "Use None sentinel for default lists/dicts",
+      ].join("\n"),
+      references: [
+        {
+          label: "Defining Functions",
+          url: "https://docs.python.org/3/tutorial/controlflow.html#more-on-defining-functions",
+        },
+      ],
+      quiz: {
+        title: "PF-16 Advanced Functions Quiz",
+        timeLimit: 420,
+        passingScore: 70,
+        diamondReward: 10,
+        experienceReward: 25,
+        questions: [
+          {
+            id: "PF16Q1",
+            type: "multiple_choice",
+            question: "Which captures extra positional args?",
+            options: ["*args", "**kwargs", "$args", "&args"],
+            correctAnswer: "*args",
+            explanation: "Tuple of positional extras.",
+            points: 10,
+          },
+          {
+            id: "PF16Q2",
+            type: "true_false",
+            question: "Parameters after * are keyword-only.",
+            correctAnswer: true,
+            explanation: "They must be specified by name.",
+            points: 10,
+          },
+          {
+            id: "PF16Q3",
+            type: "multiple_choice",
+            question: "Safe mutable default pattern:",
+            options: [
+              "def f(xs=[]): ...",
+              "def f(xs=list()): ...",
+              "def f(xs=None): xs = [] if xs is None else xs",
+              "def f(*, xs=[]): ...",
+            ],
+            correctAnswer: "def f(xs=None): xs = [] if xs is None else xs",
+            explanation: "Use None sentinel.",
+            points: 15,
+          },
+          {
+            id: "PF16Q4",
+            type: "true_false",
+            question: "**kwargs is a dict of leftover keyword args.",
+            correctAnswer: true,
+            explanation: "Key-value mapping.",
+            points: 10,
+          },
+        ],
+      },
+    },
+    exercise: {
+      hasCodeExercise: true,
+      starterCode: [
+        "# Build a flexible greeter.",
+        "# Return: 'Hello, <Name1, Name2> (<Title>)<suffix>'",
+        "# - title: required str",
+        "# - *names: any number of names; title-case them and join by ', '",
+        "# - suffix: keyword-only, default '!'",
+        "",
+        "def greet_many(title: str, *names, suffix: str = '!') -> str:",
+        "    # TODO: implement",
+        "    pass",
+      ].join("\n"),
+      solutionCode: [
+        "def greet_many(title: str, *names, suffix: str = '!') -> str:",
+        "    line = ', '.join(str(n).title() for n in (names or ()))",
+        "    return f'Hello, {line} ({title}){suffix}'",
+      ].join("\n"),
+      hints: ["Iterate *names and title-case", "Build result with f-strings"],
+      testCases: [
+        {
+          input: ["Dr", ["ada", "grace"]],
+          expectedOutput: "Hello, Ada, Grace (Dr)!",
+          description: "default suffix",
+        },
+        {
+          input: ["Prof", ["alan"], { suffix: "!!" }],
+          expectedOutput: "Hello, Alan (Prof)!!",
+          description: "custom suffix",
+        },
+        {
+          input: ["Mx", []],
+          expectedOutput: "Hello,  (Mx)!",
+          description: "no names",
+        },
+      ],
+    },
+  },
+
+  // PF-17
+  {
+    slug: "type-annotations-basics",
+    title: "Type Annotations & Static Typing Basics",
+    description:
+      "Add type hints to functions and variables. Learn common types and improve readability and tooling.",
+    category: PF,
+    difficulty: 2,
+    estimatedMinutes: 30,
+    diamondReward: 30,
+    experienceReward: 90,
+    sortOrder: 17,
+    content: {
+      introduction: [
+        "# 🏷️ Type Annotations",
+        "Type hints help readers and tools; runtime behavior is unchanged by default.",
+      ].join("\n"),
+      objectives: [
+        "Annotate function parameters and return types",
+        "Use typing helpers like Optional, Union, List, Dict",
+        "Understand benefits and limitations",
+      ],
+      prerequisites: ["PF-05 Functions"],
+      theory: [
+        "PEP 484 introduced optional type hints.",
+        "They are enforced by external tools (e.g., mypy).",
+        "Common forms: def f(x: int) -> str: ...",
+      ].join("\n"),
+      syntax: fenced(
+        "python",
+        [
+          "from typing import List, Optional",
+          "",
+          "def mean(xs: Optional[List[float]]) -> float:",
+          "    if not xs:",
+          "        return 0.0",
+          "    return sum(xs)/len(xs)",
+        ].join("\n")
+      ),
+      examples: fenced(
+        "python",
+        ["def title_case(s: str) -> str:", "    return s.title()"].join("\n")
+      ),
+      bestPractices: [
+        "Annotate public APIs and complex functions",
+        "Keep hints simple and accurate",
+      ],
+      pitfalls: [
+        "Assuming annotations are enforced at runtime (they are not by default)",
+      ],
+      cheatsheet: [
+        "x: int = 3",
+        "def f(a: int, b: str) -> bool: ...",
+        "Optional[T], Union[A,B], List[T], Dict[K,V]",
+      ].join("\n"),
+      references: [
+        {
+          label: "Typing — Support for type hints",
+          url: "https://docs.python.org/3/library/typing.html",
+        },
+      ],
+      quiz: {
+        title: "PF-17 Type Annotations Quiz",
+        timeLimit: 360,
+        passingScore: 70,
+        diamondReward: 10,
+        experienceReward: 25,
+        questions: [
+          {
+            id: "PF17Q1",
+            type: "true_false",
+            question: "Type hints do not change runtime behavior by default.",
+            correctAnswer: true,
+            explanation: "They are for tooling and documentation.",
+            points: 10,
+          },
+          {
+            id: "PF17Q2",
+            type: "multiple_choice",
+            question: "Annotate a list of ints:",
+            options: ["List[int]", "list()", "ints[]", "Array<int>"],
+            correctAnswer: "List[int]",
+            explanation: "typing.List[int] (or list[int] in 3.9+).",
+            points: 10,
+          },
+          {
+            id: "PF17Q3",
+            type: "multiple_choice",
+            question: "Optional[str] means:",
+            options: ["str or None", "str or int", "only str", "None only"],
+            correctAnswer: "str or None",
+            explanation: "Optional[T] == Union[T, None].",
+            points: 10,
+          },
+        ],
+      },
+    },
+    exercise: {
+      hasCodeExercise: true,
+      starterCode: [
+        "# Compute the mean of a list with annotations.",
+        "# Return: 'mean=<A>, count=<N>' with A formatted to 2 decimals.",
+        "",
+        "from typing import Optional, List",
+        "",
+        "def safe_mean(xs: Optional[List[float]]) -> str:",
+        "    # TODO",
+        "    pass",
+      ].join("\n"),
+      solutionCode: [
+        "from typing import Optional, List",
+        "",
+        "def safe_mean(xs: Optional[List[float]]) -> str:",
+        "    data = [float(x) for x in (xs or [])]",
+        "    n = len(data)",
+        "    avg = (sum(data)/n) if n else 0.0",
+        "    return f'mean={avg:.2f}, count={n}'",
+      ].join("\n"),
+      hints: ["Use Optional[List[float]]", "Format with :.2f"],
+      testCases: [
+        {
+          input: [[1, 2, 3]],
+          expectedOutput: "mean=2.00, count=3",
+          description: "basic",
+        },
+        {
+          input: [[]],
+          expectedOutput: "mean=0.00, count=0",
+          description: "empty",
+        },
+        {
+          input: [null],
+          expectedOutput: "mean=0.00, count=0",
+          description: "None",
+        },
+      ],
+    },
+  },
+
+  // PF-18
+  {
+    slug: "dates-times-basics",
+    title: "Dates & Times with datetime",
+    description:
+      "Work with dates and timedeltas: parsing, formatting, and basic arithmetic.",
+    category: PF,
+    difficulty: 2,
+    estimatedMinutes: 30,
+    diamondReward: 30,
+    experienceReward: 90,
+    sortOrder: 18,
+    content: {
+      introduction: [
+        "# ⏰ Dates & Times",
+        "Use datetime for date arithmetic, parsing, and formatting.",
+      ].join("\n"),
+      objectives: [
+        "Parse 'YYYY-MM-DD' dates",
+        "Compute differences with timedelta",
+        "Format dates for display",
+      ],
+      prerequisites: ["PF-08 File Handling (optional)"],
+      theory: [
+        "datetime.date for calendar dates; datetime.datetime for timestamps.",
+        "timedelta represents differences.",
+      ].join("\n"),
+      syntax: fenced(
+        "python",
+        [
+          "from datetime import date, datetime, timedelta",
+          "d = date.fromisoformat('2024-01-15')",
+          "e = date(2024, 1, 20)",
+          "delta = e - d   # timedelta(days=5)",
+        ].join("\n")
+      ),
+      examples: fenced(
+        "python",
+        [
+          "def days_between(a: str, b: str) -> int:",
+          "    from datetime import date",
+          "    da = date.fromisoformat(a)",
+          "    db = date.fromisoformat(b)",
+          "    return abs((db - da).days)",
+        ].join("\n")
+      ),
+      bestPractices: [
+        "Prefer ISO format for interchange",
+        "Be explicit about timezones for real apps",
+      ],
+      pitfalls: [
+        "Mixing naive and aware datetimes",
+        "Ambiguous formats like '01/02/03'",
+      ],
+      cheatsheet: ["date.fromisoformat('YYYY-MM-DD')", "abs((b-a).days)"].join(
+        "\n"
+      ),
+      references: [
+        {
+          label: "datetime — Basic date and time types",
+          url: "https://docs.python.org/3/library/datetime.html",
+        },
+      ],
+      quiz: {
+        title: "PF-18 Dates & Times Quiz",
+        timeLimit: 360,
+        passingScore: 70,
+        diamondReward: 10,
+        experienceReward: 25,
+        questions: [
+          {
+            id: "PF18Q1",
+            type: "true_false",
+            question: "timedelta can represent days and seconds.",
+            correctAnswer: true,
+            explanation: "It stores durations.",
+            points: 10,
+          },
+          {
+            id: "PF18Q2",
+            type: "multiple_choice",
+            question: "Parse ISO date:",
+            options: [
+              "date.parse('2024-01-01')",
+              "date.fromisoformat('2024-01-01')",
+              "date('2024-01-01')",
+              "Date('2024-01-01')",
+            ],
+            correctAnswer: "date.fromisoformat('2024-01-01')",
+            explanation: "Built-in method for ISO 8601.",
+            points: 10,
+          },
+          {
+            id: "PF18Q3",
+            type: "multiple_choice",
+            question: "(date(2024,1,10) - date(2024,1,1)).days == ?",
+            options: ["8", "9", "10", "11"],
+            correctAnswer: "9",
+            explanation: "Exclusive difference.",
+            points: 10,
+          },
+        ],
+      },
+    },
+    exercise: {
+      hasCodeExercise: true,
+      starterCode: [
+        "# Compute absolute day difference between two ISO dates 'YYYY-MM-DD'.",
+        "# Return: 'days=<N>'",
+        "",
+        "from datetime import date",
+        "",
+        "def iso_days_between(a: str, b: str) -> str:",
+        "    # TODO",
+        "    pass",
+      ].join("\n"),
+      solutionCode: [
+        "from datetime import date",
+        "",
+        "def iso_days_between(a: str, b: str) -> str:",
+        "    da = date.fromisoformat(a)",
+        "    db = date.fromisoformat(b)",
+        "    d = abs((db - da).days)",
+        "    return f'days={d}'",
+      ].join("\n"),
+      hints: ["Use date.fromisoformat", "Use abs((b - a).days)"],
+      testCases: [
+        {
+          input: ["2024-01-01", "2024-01-10"],
+          expectedOutput: "days=9",
+          description: "simple",
+        },
+        {
+          input: ["2024-02-28", "2024-03-01"],
+          expectedOutput: "days=2",
+          description: "leap year boundary",
+        },
+        {
+          input: ["2025-01-01", "2025-01-01"],
+          expectedOutput: "days=0",
+          description: "same day",
+        },
+      ],
+    },
+  },
+
+  // PF-19
+  {
+    slug: "json-and-serialization",
+    title: "JSON & Serialization Basics",
+    description:
+      "Parse and generate JSON; map between Python dict/list and JSON text safely.",
+    category: PF,
+    difficulty: 2,
+    estimatedMinutes: 30,
+    diamondReward: 30,
+    experienceReward: 90,
+    sortOrder: 19,
+    content: {
+      introduction: [
+        "# 🧾 JSON Basics",
+        "JSON is the lingua franca of web APIs. Python maps JSON objects to dicts and arrays to lists.",
+      ].join("\n"),
+      objectives: [
+        "Parse JSON strings into Python structures",
+        "Access nested data safely",
+        "Serialize Python data back to JSON",
+      ],
+      prerequisites: ["PF-07 Dictionaries", "PF-06 Lists"],
+      theory: [
+        "json.loads(text) -> Python dict/list/etc.",
+        "json.dumps(obj) -> JSON string",
+      ].join("\n"),
+      syntax: fenced(
+        "python",
+        [
+          "import json",
+          'data = json.loads(\'{"x":1,"y":[2,3]}\')',
+          "print(data['y'][0])  # 2",
+          "text = json.dumps(data)",
+        ].join("\n")
+      ),
+      examples: fenced(
+        "python",
+        [
+          "def get_path(obj, path):",
+          "    cur = obj",
+          "    for part in path.split('.'):",
+          "        if isinstance(cur, dict) and part in cur:",
+          "            cur = cur[part]",
+          "        else:",
+          "            return None",
+          "    return cur",
+        ].join("\n")
+      ),
+      bestPractices: [
+        "Validate structures before accessing keys",
+        "Use defaults or guard clauses for missing keys",
+      ],
+      pitfalls: [
+        "Assuming keys always exist",
+        "Confusing JSON strings with Python literals",
+      ],
+      cheatsheet: ["json.loads(s)", "json.dumps(obj)", "d.get('k')"].join("\n"),
+      references: [
+        {
+          label: "json — JSON encoder and decoder",
+          url: "https://docs.python.org/3/library/json.html",
+        },
+      ],
+      quiz: {
+        title: "PF-19 JSON Quiz",
+        timeLimit: 360,
+        passingScore: 70,
+        diamondReward: 10,
+        experienceReward: 25,
+        questions: [
+          {
+            id: "PF19Q1",
+            type: "multiple_choice",
+            question: "Parse JSON string into Python:",
+            options: [
+              "json.parse()",
+              "json.read()",
+              "json.loads()",
+              "json.to_py()",
+            ],
+            correctAnswer: "json.loads()",
+            explanation: "loads => load string.",
+            points: 10,
+          },
+          {
+            id: "PF19Q2",
+            type: "true_false",
+            question: "JSON object maps to Python dict.",
+            correctAnswer: true,
+            explanation: "Yes, standard mapping.",
+            points: 10,
+          },
+          {
+            id: "PF19Q3",
+            type: "multiple_choice",
+            question: "Serialize Python dict to text:",
+            options: [
+              "json.dumps()",
+              "json.write()",
+              "json.dumpstr()",
+              "dict.to_json()",
+            ],
+            correctAnswer: "json.dumps()",
+            explanation: "dumps => dump string.",
+            points: 10,
+          },
+        ],
+      },
+    },
+    exercise: {
+      hasCodeExercise: true,
+      starterCode: [
+        "# Extract a value from JSON text by dot path.",
+        "# Return the value as a string, or 'null' if missing.",
+        "# Examples:",
+        "#  text='{\"user\":{\"name\":\"Ada\"}}', path='user.name' -> 'Ada'",
+        "",
+        "import json",
+        "",
+        "def json_get(text: str, path: str) -> str:",
+        "    # TODO",
+        "    pass",
+      ].join("\n"),
+      solutionCode: [
+        "import json",
+        "",
+        "def json_get(text: str, path: str) -> str:",
+        "    try:",
+        "        obj = json.loads(text or 'null')",
+        "    except Exception:",
+        "        return 'null'",
+        "    cur = obj",
+        "    for part in (path or '').split('.') if path else []:",
+        "        if isinstance(cur, dict) and part in cur:",
+        "            cur = cur[part]",
+        "        else:",
+        "            return 'null'",
+        "    if isinstance(cur, (str, int, float, bool)) or cur is None:",
+        "        return 'null' if cur is None else str(cur)",
+        "    try:",
+        "        return json.dumps(cur)",
+        "    except Exception:",
+        "        return str(cur)",
+      ].join("\n"),
+      hints: [
+        "json.loads(text) to parse",
+        "Traverse keys by path.split('.')",
+        "Return 'null' if missing",
+      ],
+      testCases: [
+        {
+          input: ['{"user":{"name":"Ada","age":36}}', "user.name"],
+          expectedOutput: "Ada",
+          description: "string leaf",
+        },
+        {
+          input: ['{"user":{"name":"Ada","age":36}}', "user.age"],
+          expectedOutput: "36",
+          description: "number leaf",
+        },
+        {
+          input: ['{"x":[1,2]}', "x"],
+          expectedOutput: "[1, 2]",
+          description: "non-primitive leaf",
+        },
+        {
+          input: ['{"a":1}', "missing.key"],
+          expectedOutput: "null",
+          description: "missing",
+        },
+      ],
+    },
+  },
+
+  // PF-20
+  {
+    slug: "pathlib-os-basics",
+    title: "Paths & OS Basics with pathlib",
+    description:
+      "Manipulate file-system-like paths safely and portably using pathlib’s PurePath.",
+    category: PF,
+    difficulty: 2,
+    estimatedMinutes: 30,
+    diamondReward: 30,
+    experienceReward: 90,
+    sortOrder: 20,
+    content: {
+      introduction: [
+        "# 🗂️ Paths & OS Basics",
+        "Construct and normalize paths in a platform-agnostic way with pathlib.",
+      ].join("\n"),
+      objectives: [
+        "Join path parts safely",
+        "Normalize path representations with PurePath",
+        "Understand OS-independent behavior",
+      ],
+      prerequisites: ["PF-08 File Handling"],
+      theory: [
+        "pathlib.Path interacts with the actual filesystem.",
+        "PurePath variants (PurePosixPath/PureWindowsPath) manipulate paths without I/O.",
+      ].join("\n"),
+      syntax: fenced(
+        "python",
+        [
+          "from pathlib import PurePosixPath",
+          "p = PurePosixPath('home') / 'user' / 'docs'",
+          "print(p.as_posix())  # 'home/user/docs'",
+        ].join("\n")
+      ),
+      examples: fenced(
+        "python",
+        [
+          "from pathlib import PurePosixPath",
+          "def join_parts(parts):",
+          "    return str(PurePosixPath(*parts))",
+          "print(join_parts(['a','b','c']))  # a/b/c",
+        ].join("\n")
+      ),
+      bestPractices: [
+        "Prefer pathlib over string concatenation for paths",
+        "Use PurePath to avoid I/O in logic/tests",
+      ],
+      pitfalls: [
+        "PurePath does not touch the filesystem; .resolve() needs Path",
+      ],
+      cheatsheet: [
+        "PurePosixPath(*parts).as_posix()",
+        "p / 'child' to join",
+      ].join("\n"),
+      references: [
+        {
+          label: "pathlib — Object-oriented filesystem paths",
+          url: "https://docs.python.org/3/library/pathlib.html",
+        },
+      ],
+      quiz: {
+        title: "PF-20 Pathlib Quiz",
+        timeLimit: 360,
+        passingScore: 70,
+        diamondReward: 10,
+        experienceReward: 25,
+        questions: [
+          {
+            id: "PF20Q1",
+            type: "multiple_choice",
+            question: "Which is path-join with pathlib?",
+            options: [
+              "'/'.join([a,b])",
+              "a + '/' + b",
+              "PurePosixPath(a) / b",
+              "concat(a,b)",
+            ],
+            correctAnswer: "PurePosixPath(a) / b",
+            explanation: "Operator / joins paths in pathlib.",
+            points: 10,
+          },
+          {
+            id: "PF20Q2",
+            type: "true_false",
+            question: "PurePath manipulates paths without filesystem access.",
+            correctAnswer: true,
+            explanation: "No I/O is performed.",
+            points: 10,
+          },
+          {
+            id: "PF20Q3",
+            type: "multiple_choice",
+            question: "Convert path to forward-slash string:",
+            options: ["p.toString()", "p.as_posix()", "str.p", "p.stringify()"],
+            correctAnswer: "p.as_posix()",
+            explanation: "as_posix yields forward-slash form.",
+            points: 10,
+          },
+        ],
+      },
+    },
+    exercise: {
+      hasCodeExercise: true,
+      starterCode: [
+        "# Join path parts into a normalized POSIX-like path.",
+        "# Return: 'path=<joined>'",
+        "",
+        "from pathlib import PurePosixPath",
+        "",
+        "def join_and_normalize(parts) -> str:",
+        "    # TODO",
+        "    pass",
+      ].join("\n"),
+      solutionCode: [
+        "from pathlib import PurePosixPath",
+        "",
+        "def join_and_normalize(parts) -> str:",
+        "    p = PurePosixPath(*[str(x).strip() for x in (parts or [])])",
+        "    return f'path={p.as_posix()}'",
+      ].join("\n"),
+      hints: ["Use PurePosixPath(*parts)", "as_posix() to stringify with '/'"],
+      testCases: [
+        {
+          input: [["home", "user", "docs"]],
+          expectedOutput: "path=home/user/docs",
+          description: "basic join",
+        },
+        {
+          input: [["a", "b", "c.txt"]],
+          expectedOutput: "path=a/b/c.txt",
+          description: "file join",
+        },
+        {
+          input: [[]],
+          expectedOutput: "path=.",
+          description: "empty -> current directory notation",
+        },
+      ],
+    },
+  },
 ];
 
 // Convert PFSeed to LearningActivity upsert payload
@@ -2454,7 +3991,7 @@ function toUpsertPayload(seed: PFSeed) {
 }
 
 export default async function seedPFLessons() {
-  console.log("🌱 Seeding Python Fundamentals lessons (PF-01..PF-05) ...");
+  console.log("🌱 Seeding Python Fundamentals lessons (PF-01..PF-20) ...");
 
   for (const seed of pfLessons) {
     try {

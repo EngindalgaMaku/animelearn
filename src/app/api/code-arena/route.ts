@@ -40,11 +40,13 @@ export async function GET(request: NextRequest) {
 
     const where: any = {
       isActive: true, // LearningActivity uses isActive instead of isPublished
+      NOT: { activityType: "lesson" }, // Exclude 'lesson' activities from Code Arena lists
     };
 
     if (category) where.category = category;
     if (difficulty) where.difficulty = parseInt(difficulty);
-    if (activityType) where.activityType = activityType; // Add activity type filter
+    if (activityType && activityType !== "lesson")
+      where.activityType = activityType; // Ignore "lesson" type in Code Arena
     if (search) {
       where.OR = [
         { title: { contains: search, mode: "insensitive" } },

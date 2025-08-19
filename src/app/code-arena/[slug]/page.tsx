@@ -927,13 +927,7 @@ export default function CodeArenaDetailPage() {
               <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
                 <Star className="h-5 w-5 text-yellow-300" />
                 <span className="font-bold">LV.{user?.level || 1}</span>
-                <div className="h-2 w-20 rounded-full bg-white/20">
-                  <div
-                    className="h-2 rounded-full bg-yellow-300 transition-all duration-300"
-                    style={{ width: `${progressToNextLevel || 0}%` }}
-                  ></div>
-                </div>
-                <span className="text-xs text-white/80">
+                <span className="hidden text-xs text-white/80 sm:inline">
                   {user ? (user.level + 1) * 1000 - user.experience : 1000} XP
                 </span>
               </div>

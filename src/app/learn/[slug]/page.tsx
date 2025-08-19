@@ -261,6 +261,9 @@ export default function LessonPage() {
   const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
   const [timeOnContent, setTimeOnContent] = useState(0);
 
+  // Feature flag: turn on to display gamified player stats (LV/Rank/HP/Streak) in the header
+  const SHOW_GAMIFICATION = false;
+
   // Character dialogues for different situations
   const characterDialogues = {
     welcome: [
@@ -754,53 +757,55 @@ export default function LessonPage() {
               </h1>
             </div>
 
-            {/* Right side - Stats */}
-            <div className="flex items-center gap-6">
-              {/* Level & XP */}
-              <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
-                <Star className="h-5 w-5 text-yellow-300" />
-                <span className="font-bold">LV.{levelData.level}</span>
-                <div className="h-2 w-20 rounded-full bg-white/20">
-                  <div
-                    className="h-2 rounded-full bg-yellow-300 transition-all duration-300"
-                    style={{ width: `${progressToNextLevel}%` }}
-                  ></div>
+            {/* Right side - Stats (disabled by default; set SHOW_GAMIFICATION=true to enable) */}
+            {SHOW_GAMIFICATION && (
+              <div className="flex items-center gap-6">
+                {/* Level & XP */}
+                <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
+                  <Star className="h-5 w-5 text-yellow-300" />
+                  <span className="font-bold">LV.{levelData.level}</span>
+                  <div className="h-2 w-20 rounded-full bg-white/20">
+                    <div
+                      className="h-2 rounded-full bg-yellow-300 transition-all duration-300"
+                      style={{ width: `${progressToNextLevel}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-xs text-white/80">
+                    {levelData.xpNeededForNext} XP
+                  </span>
                 </div>
-                <span className="text-xs text-white/80">
-                  {levelData.xpNeededForNext} XP
-                </span>
-              </div>
 
-              {/* Rank */}
-              <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
-                <span className="text-lg">{rankData.icon}</span>
-                <span className="font-bold text-white">{rankData.name}</span>
-              </div>
+                {/* Rank */}
+                <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
+                  <span className="text-lg">{rankData.icon}</span>
+                  <span className="font-bold text-white">{rankData.name}</span>
+                </div>
 
-              {/* HP */}
-              <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
-                <Heart className="h-5 w-5 text-red-300" />
-                <span className="font-bold">{hp}/100</span>
-              </div>
+                {/* HP */}
+                <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
+                  <Heart className="h-5 w-5 text-red-300" />
+                  <span className="font-bold">{hp}/100</span>
+                </div>
 
-              {/* Streak */}
-              <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
-                <Flame className="h-5 w-5 text-orange-300" />
-                <span className="font-bold">{currentStreak} days</span>
-              </div>
+                {/* Streak */}
+                <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
+                  <Flame className="h-5 w-5 text-orange-300" />
+                  <span className="font-bold">{currentStreak} days</span>
+                </div>
 
-              {/* Sound Toggle */}
-              <button
-                onClick={() => setSoundEnabled(!soundEnabled)}
-                className="rounded-lg bg-white/10 p-2 transition-colors hover:bg-white/20"
-              >
-                {soundEnabled ? (
-                  <Volume2 className="h-5 w-5" />
-                ) : (
-                  <VolumeX className="h-5 w-5" />
-                )}
-              </button>
-            </div>
+                {/* Sound Toggle */}
+                <button
+                  onClick={() => setSoundEnabled(!soundEnabled)}
+                  className="rounded-lg bg-white/10 p-2 transition-colors hover:bg-white/20"
+                >
+                  {soundEnabled ? (
+                    <Volume2 className="h-5 w-5" />
+                  ) : (
+                    <VolumeX className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

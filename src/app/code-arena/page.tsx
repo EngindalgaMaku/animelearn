@@ -526,7 +526,7 @@ function CodeArenaContent() {
           <div className="mx-auto max-w-7xl px-3 py-3 sm:px-4 sm:px-6 sm:py-4 lg:px-8">
             <AnimatedProfileStats
               stats={currentUserStats}
-              variant="header"
+              variant="compact"
               animated={true}
               className="mx-auto max-w-2xl"
             />
