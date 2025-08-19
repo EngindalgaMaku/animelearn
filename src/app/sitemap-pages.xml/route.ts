@@ -23,8 +23,9 @@ export async function GET() {
       changeFrequency: "monthly",
       priority: "0.7",
     },
+    // Header links
     {
-      url: "/shop",
+      url: "/learn",
       lastModified: new Date().toISOString(),
       changeFrequency: "weekly",
       priority: "0.9",
@@ -48,6 +49,20 @@ export async function GET() {
       priority: "0.8",
     },
     {
+      url: "/shop",
+      lastModified: new Date().toISOString(),
+      changeFrequency: "weekly",
+      priority: "0.9",
+    },
+    {
+      url: "/store",
+      lastModified: new Date().toISOString(),
+      changeFrequency: "weekly",
+      priority: "0.7",
+    },
+
+    // Collections and gamification
+    {
       url: "/achievements",
       lastModified: new Date().toISOString(),
       changeFrequency: "weekly",
@@ -70,6 +85,56 @@ export async function GET() {
       lastModified: new Date().toISOString(),
       changeFrequency: "weekly",
       priority: "0.7",
+    },
+
+    // Footer links - ensure core navigation pages are indexed
+    {
+      url: "/wiki",
+      lastModified: new Date().toISOString(),
+      changeFrequency: "daily",
+      priority: "0.8",
+    },
+    {
+      url: "/my-cards",
+      lastModified: new Date().toISOString(),
+      changeFrequency: "weekly",
+      priority: "0.7",
+    },
+    {
+      url: "/dashboard",
+      lastModified: new Date().toISOString(),
+      changeFrequency: "weekly",
+      priority: "0.6",
+    },
+    {
+      url: "/code-editor",
+      lastModified: new Date().toISOString(),
+      changeFrequency: "weekly",
+      priority: "0.6",
+    },
+    {
+      url: "/quests",
+      lastModified: new Date().toISOString(),
+      changeFrequency: "weekly",
+      priority: "0.6",
+    },
+    {
+      url: "/privacy",
+      lastModified: new Date().toISOString(),
+      changeFrequency: "yearly",
+      priority: "0.3",
+    },
+    {
+      url: "/terms",
+      lastModified: new Date().toISOString(),
+      changeFrequency: "yearly",
+      priority: "0.3",
+    },
+    {
+      url: "/contact",
+      lastModified: new Date().toISOString(),
+      changeFrequency: "monthly",
+      priority: "0.5",
     },
   ];
 

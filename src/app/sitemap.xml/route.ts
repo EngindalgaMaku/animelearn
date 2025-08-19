@@ -4,11 +4,13 @@ export async function GET() {
   const baseUrl = "https://zumenzu.com";
   const now = new Date().toISOString();
   const sitemaps = [
+    "/sitemap-pages.xml",
+    "/sitemap-blog.xml",
+    "/sitemap-cards.xml",
+    "/sitemap-categories.xml",
     "/sitemap-skills.xml",
     "/sitemap-topics.xml",
     "/sitemap-activities.xml",
-    "/sitemap-blog.xml",
-    "/sitemap-cards.xml",
   ];
 
   const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>

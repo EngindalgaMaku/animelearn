@@ -3,6 +3,56 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+// Helper: convert various value types to visible text and strip unsafe HTML
+function htmlToText(value: any): string {
+  try {
+    if (value === null || value === undefined) return "";
+    let str: string;
+    if (typeof value === "string") {
+      str = value;
+    } else if (typeof value === "number" || typeof value === "boolean") {
+      str = String(value);
+    } else if (typeof value === "object") {
+      const v: any = value;
+      if (typeof v.text === "string") str = v.text;
+      else if (typeof v.label === "string") str = v.label;
+      else str = JSON.stringify(v);
+    } else {
+      str = String(value);
+    }
+
+    // Remove HTML tags but keep inner text
+    let cleaned = str.replace(/<\/?[^>]+(>|$)/g, " ");
+
+    // Decode common HTML entities
+    cleaned = cleaned
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'");
+
+    // Collapse whitespace
+    cleaned = cleaned.replace(/\s+/g, " ").trim();
+    return cleaned;
+  } catch {
+    return String(value ?? "");
+  }
+}
+
+function normalizeAnswerText(s: any): string {
+  return htmlToText(s).toLowerCase();
+}
+
+function shuffleArray<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -91,47 +141,83 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convert database questions and shuffle options for each question
-    let allQuestions = dbQuestions.map((q: any, index: number) => {
-      // Shuffle options while tracking correct answer
-      const originalOptions = [...q.options];
-      const shuffledOptions = [...originalOptions];
-      const originalCorrectAnswer = q.correctAnswer;
+    // Convert database questions: sanitize options, validate, and robustly re-map correctAnswer
+    let allQuestions = dbQuestions
+      .map((q: any, index: number) => {
+        try {
+          const rawOptions: any[] = Array.isArray(q.options) ? q.options : [];
 
-      // Fisher-Yates shuffle for options
-      for (let i = shuffledOptions.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffledOptions[i], shuffledOptions[j]] = [
-          shuffledOptions[j],
-          shuffledOptions[i],
-        ];
-      }
+          // Sanitize option texts and remove empties
+          const sanitizedOptions = rawOptions
+            .map((opt) => htmlToText(opt))
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0);
 
-      // Find new correct answer index
-      const correctAnswerText = originalOptions[originalCorrectAnswer];
-      const newCorrectAnswer = shuffledOptions.findIndex(
-        (option) => option === correctAnswerText
+          // Deduplicate options (case-insensitive)
+          const seen = new Set<string>();
+          const uniqueOptions = sanitizedOptions.filter((opt) => {
+            const key = opt.toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+
+          // Require at least 2 options to form a valid question
+          if (uniqueOptions.length < 2) return null;
+
+          // Determine correct answer by normalized text (from original options)
+          const correctText = normalizeAnswerText(rawOptions[q.correctAnswer]);
+          if (!correctText) return null;
+
+          // Ensure correct option still exists after sanitization
+          if (
+            !uniqueOptions.some(
+              (opt) => normalizeAnswerText(opt) === correctText
+            )
+          ) {
+            return null;
+          }
+
+          // Shuffle and find the new correct index by normalized comparison
+          const shuffledOptions = shuffleArray(uniqueOptions);
+          const newCorrectAnswer = shuffledOptions.findIndex(
+            (opt) => normalizeAnswerText(opt) === correctText
+          );
+          if (newCorrectAnswer < 0) return null;
+
+          return {
+            id: `q_${index}`,
+            question: htmlToText(q.question),
+            options: shuffledOptions,
+            correctAnswer: newCorrectAnswer,
+            explanation: htmlToText(
+              q.explanation || "No explanation provided."
+            ),
+            difficulty:
+              q.difficulty === "beginner"
+                ? 1
+                : q.difficulty === "intermediate"
+                  ? 2
+                  : q.difficulty === "advanced"
+                    ? 3
+                    : 4,
+            category: htmlToText(q.category || ""),
+            tags: [],
+            originalDifficulty: q.difficulty,
+          };
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean) as any[];
+
+    // Abort if no valid questions remain after sanitization
+    if (allQuestions.length === 0) {
+      return NextResponse.json(
+        { error: "No valid questions available after sanitization" },
+        { status: 404 }
       );
-
-      return {
-        id: `q_${index}`,
-        question: q.question,
-        options: shuffledOptions,
-        correctAnswer: newCorrectAnswer,
-        explanation: q.explanation || "No explanation provided.",
-        difficulty:
-          q.difficulty === "beginner"
-            ? 1
-            : q.difficulty === "intermediate"
-              ? 2
-              : q.difficulty === "advanced"
-                ? 3
-                : 4,
-        category: q.category,
-        tags: [],
-        originalDifficulty: q.difficulty,
-      };
-    });
+    }
 
     // Smart question ordering algorithm
     let selectedQuestions: any[];

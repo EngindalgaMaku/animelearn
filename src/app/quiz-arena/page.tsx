@@ -454,30 +454,25 @@ export default function QuizArenaPage() {
     return streak + 5;
   };
 
-  // Complete HTML cleaning - no code highlighting at all
+  // HTML-to-text cleaner: strip tags but keep visible text and decode common entities
   const cleanHtml = (text: string): string => {
     if (!text) return "";
 
-    let cleaned = text;
+    let cleaned = String(text);
 
-    // Remove ALL HTML patterns aggressively
-    cleaned = cleaned.replace(/<span[^>]*>/gi, "");
-    cleaned = cleaned.replace(/<\/span>/gi, "");
-    cleaned = cleaned.replace(/span>/gi, "");
-    cleaned = cleaned.replace(/<span/gi, "");
-    cleaned = cleaned.replace(/\bspan\b/gi, "");
-    cleaned = cleaned.replace(/<[^>]*>/g, "");
-    cleaned = cleaned.replace(/[<>]/g, "");
+    // Remove HTML tags but keep inner text
+    cleaned = cleaned.replace(/<\/?[^>]+(>|$)/g, " ");
 
-    // Remove CSS and class patterns
-    cleaned = cleaned.replace(/class\s*=\s*[^\s]*/gi, "");
-    cleaned = cleaned.replace(/text-[a-z]+-\d+/gi, "");
-    cleaned = cleaned.replace(/font-[a-z-]+/gi, "");
+    // Decode common HTML entities
+    cleaned = cleaned
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&/gi, "&")
+      .replace(/</gi, "<")
+      .replace(/>/gi, ">")
+      .replace(/"/gi, '"')
+      .replace(/'/gi, "'");
 
-    // Remove quotes and equals
-    cleaned = cleaned.replace(/['"=]/g, "");
-
-    // Clean multiple spaces
+    // Collapse whitespace
     cleaned = cleaned.replace(/\s+/g, " ").trim();
 
     return cleaned;
@@ -490,7 +485,8 @@ export default function QuizArenaPage() {
 
   // Simple option rendering - NO CODE HIGHLIGHTING
   const renderOption = (option: string) => {
-    return cleanHtml(option);
+    const cleaned = cleanHtml(option);
+    return cleaned.length > 0 ? cleaned : "(Boş şık)";
   };
 
   if (loading) {

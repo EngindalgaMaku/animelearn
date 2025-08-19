@@ -115,27 +115,27 @@ const ActivityTable = memo(
     const tableContent = (
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
         {/* Table Header */}
-        <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-white sm:text-2xl">
+        <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 py-3 sm:px-6 sm:py-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-center sm:text-left">
+              <h2 className="text-lg font-bold text-white sm:text-2xl">
                 🎯 Interactive Challenges
               </h2>
-              <p className="text-indigo-100">
+              <p className="hidden text-indigo-100 sm:block">
                 Master programming concepts through gamified learning
               </p>
             </div>
 
             {/* Type Selector (always visible if configs provided) */}
-            <div className="flex items-center space-x-3">
-              <label className="text-sm font-medium text-white">
+            <div className="flex w-full flex-col items-stretch gap-1 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
+              <label className="text-xs font-medium text-white sm:text-sm">
                 Filter by Type:
               </label>
               <select
                 value={selectedActivityType}
                 onChange={(e) => onActivityTypeChange?.(e.target.value)}
                 disabled={!onActivityTypeChange}
-                className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white backdrop-blur-xl transition-all hover:bg-white/20 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/30 disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white backdrop-blur-xl transition-all hover:bg-white/20 focus:border-white/40 focus:outline-none focus:ring-2 focus:ring-white/30 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
               >
                 <option value="" className="bg-slate-800 text-white">
                   All Types
@@ -517,9 +517,10 @@ const ActivityTable = memo(
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <span
-                        className={`rounded-lg px-2 py-1 text-xs font-bold ${activityTypeConfig.color} bg-slate-100`}
+                        className={`inline-flex items-center rounded-lg px-2 py-1 text-xs font-bold ${activityTypeConfig.color} bg-slate-100`}
                       >
-                        {activityTypeConfig.icon}
+                        <span>{activityTypeConfig.icon}</span>
+                        <span className="ml-1">{activityTypeConfig.name}</span>
                       </span>
                       <span
                         className={`rounded-lg px-2 py-1 text-xs font-bold ${difficultyConfig.textColor} ${difficultyConfig.bgColor}`}

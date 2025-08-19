@@ -11,6 +11,7 @@ import {
   Gift,
   Sparkles,
   Play,
+  HelpCircle,
 } from "lucide-react";
 
 interface Question {
@@ -83,6 +84,11 @@ function shuffleArray<T>(array: T[]): T[] {
   }
   return a;
 }
+// Humanize activity type keys like "memory_game" -> "Memory Game"
+function humanizeType(s?: string) {
+  const name = (s || "quiz").replace(/[_-]+/g, " ").trim();
+  return name ? name.replace(/\b\w/g, (c) => c.toUpperCase()) : "Quiz";
+}
 
 // No-op analytics
 function track(event: string, payload?: Record<string, any>) {
@@ -134,6 +140,10 @@ export default function QuizActivity({
   const [rewardAwarded, setRewardAwarded] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const typeLabel = useMemo(
+    () => humanizeType(activity.activityType),
+    [activity.activityType]
+  );
 
   const storageKey = useMemo(
     () => `quiz_attempt_${activity.id}`,
@@ -670,6 +680,12 @@ export default function QuizActivity({
           <h2 className="mb-4 text-3xl font-bold text-gray-900">
             {activity.title}
           </h2>
+          <div className="mb-2 md:hidden">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+              <HelpCircle className="h-3.5 w-3.5" />
+              {typeLabel}
+            </span>
+          </div>
           <p className="mb-8 text-lg text-gray-600">{activity.description}</p>
 
           {resumeAvailable && (
@@ -760,6 +776,14 @@ export default function QuizActivity({
             ) : (
               <XCircle className="h-10 w-10" />
             )}
+          </div>
+
+          {/* Activity type (mobile) */}
+          <div className="mb-2 md:hidden">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+              <HelpCircle className="h-3.5 w-3.5" />
+              {typeLabel}
+            </span>
           </div>
 
           <h2
@@ -1013,6 +1037,14 @@ export default function QuizActivity({
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Activity type (mobile) */}
+      <div className="mb-2 md:hidden">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+          <HelpCircle className="h-3.5 w-3.5" />
+          {typeLabel}
+        </span>
       </div>
 
       {/* Progress Bar */}

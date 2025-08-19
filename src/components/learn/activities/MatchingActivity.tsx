@@ -58,6 +58,9 @@ export default function MatchingActivity({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
+  // Responsive and accessibility helpers
+  const [isMobile, setIsMobile] = useState(false);
+  const [liveMessage, setLiveMessage] = useState("");
 
   // Check authentication status
   useEffect(() => {
@@ -105,13 +108,40 @@ export default function MatchingActivity({
     }
   }, [timeLeft, gameStarted, showResults, timeLimit]);
 
+  // Track mobile viewport for bottom-sheet UX
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mql = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(mql.matches);
+    update();
+    // Safari/older support
+    if ((mql as any).addEventListener) {
+      (mql as any).addEventListener("change", update);
+    } else if ((mql as any).addListener) {
+      (mql as any).addListener(update);
+    }
+    return () => {
+      if ((mql as any).removeEventListener) {
+        (mql as any).removeEventListener("change", update);
+      } else if ((mql as any).removeListener) {
+        (mql as any).removeListener(update);
+      }
+    };
+  }, []);
+
   const shuffleItems = () => {
-    const leftShuffled = [...pairs.map((p) => p.left)].sort(
-      () => Math.random() - 0.5
-    );
-    const rightShuffled = [...pairs.map((p) => p.right)].sort(
-      () => Math.random() - 0.5
-    );
+    // Fisher–Yates unbiased shuffle
+    const fy = (arr: string[]): string[] => {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    };
+
+    const leftShuffled = fy(pairs.map((p) => p.left));
+    const rightShuffled = fy(pairs.map((p) => p.right));
     setLeftItems(leftShuffled);
     setRightItems(rightShuffled);
   };
@@ -151,12 +181,16 @@ export default function MatchingActivity({
     setMatches(newMatches);
     setSelectedLeft(null);
     setSelectedRight(null);
+    // Announce for screen readers
+    setLiveMessage(`Matched ${left} with ${right}`);
   };
 
   const removeMatch = (left: string) => {
     const newMatches = { ...matches };
     delete newMatches[left];
     setMatches(newMatches);
+    // Announce removal
+    setLiveMessage(`Removed match for ${left}`);
   };
 
   const handleSubmit = () => {
@@ -416,11 +450,19 @@ export default function MatchingActivity({
   }
 
   const progress = Object.keys(matches).length / pairs.length;
+  const progressEnabled = showProgress ?? true; // default ON if unspecified
+  const USE_MOBILE_BOTTOM_SHEET = false;
+  const bottomSheetOpen =
+    USE_MOBILE_BOTTOM_SHEET &&
+    isMobile &&
+    selectedLeft !== null &&
+    !showResults &&
+    gameStarted;
 
   return (
     <div className="mx-auto max-w-6xl p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="sticky top-0 z-10 mb-6 flex items-center justify-between rounded-lg bg-white/80 px-3 py-2 backdrop-blur-sm">
         <h2 className="text-2xl font-bold text-gray-900">{activity.title}</h2>
         <div className="flex items-center space-x-4">
           {timeLimit && timeLeft > 0 && (
@@ -432,6 +474,7 @@ export default function MatchingActivity({
           {allowShuffle && (
             <button
               onClick={shuffleItems}
+              aria-label="Shuffle options"
               className="flex items-center space-x-2 rounded-lg bg-gray-100 px-3 py-2 text-sm text-gray-700 hover:bg-gray-200"
             >
               <Shuffle className="h-4 w-4" />
@@ -440,9 +483,12 @@ export default function MatchingActivity({
           )}
         </div>
       </div>
+      <div className="sr-only" aria-live="polite">
+        {liveMessage}
+      </div>
 
       {/* Progress */}
-      {showProgress && (
+      {progressEnabled && (
         <div className="mb-8">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-medium text-gray-700">Progress</span>
@@ -466,12 +512,27 @@ export default function MatchingActivity({
           <h3 className="mb-4 text-lg font-semibold text-gray-900">
             Match These:
           </h3>
-          <div className="space-y-2">
+          <div
+            className="space-y-2"
+            role="listbox"
+            aria-label="Left items to match"
+          >
             {leftItems.map((item) => (
               <button
                 key={item}
                 onClick={() => handleLeftClick(item)}
-                className={`w-full rounded-lg border-2 p-4 text-left transition-all ${
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleLeftClick(item);
+                  } else if (e.key === "Escape") {
+                    setSelectedLeft(null);
+                  }
+                }}
+                role="option"
+                aria-selected={selectedLeft === item || !!matches[item]}
+                aria-label={`Left item ${item}${matches[item] ? ` matched to ${matches[item]}` : ""}`}
+                className={`min-h-[44px] w-full rounded-lg border-2 p-4 text-left transition-all ${
                   selectedLeft === item
                     ? "border-blue-500 bg-blue-50 text-blue-900"
                     : matches[item]
@@ -491,6 +552,7 @@ export default function MatchingActivity({
                           e.stopPropagation();
                           removeMatch(item);
                         }}
+                        aria-label={`Remove match for ${item}`}
                         className="text-red-500 hover:text-red-700"
                       >
                         ✗
@@ -508,14 +570,29 @@ export default function MatchingActivity({
           <h3 className="mb-4 text-lg font-semibold text-gray-900">
             With These:
           </h3>
-          <div className="space-y-2">
+          <div
+            className="space-y-2"
+            role="listbox"
+            aria-label="Right items to match"
+          >
             {rightItems.map((item) => {
               const isMatched = Object.values(matches).includes(item);
               return (
                 <button
                   key={item}
                   onClick={() => handleRightClick(item)}
-                  className={`w-full rounded-lg border-2 p-4 text-left transition-all ${
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleRightClick(item);
+                    } else if (e.key === "Escape") {
+                      setSelectedRight(null);
+                    }
+                  }}
+                  role="option"
+                  aria-selected={selectedRight === item || isMatched}
+                  aria-label={`Right item ${item}${isMatched ? " (already matched)" : ""}`}
+                  className={`min-h-[44px] w-full rounded-lg border-2 p-4 text-left transition-all ${
                     selectedRight === item
                       ? "border-blue-500 bg-blue-50 text-blue-900"
                       : isMatched
@@ -530,6 +607,80 @@ export default function MatchingActivity({
           </div>
         </div>
       </div>
+
+      {bottomSheetOpen && (
+        <div
+          className="pointer-events-none fixed inset-0 z-50 sm:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Choose a matching item"
+        >
+          <div
+            className="pointer-events-auto absolute inset-0 z-0 bg-black/40"
+            onClick={() => setSelectedLeft(null)}
+          />
+          <div
+            className="pointer-events-auto absolute bottom-0 left-0 right-0 z-10 h-[65vh] overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-4 pb-[env(safe-area-inset-bottom)] shadow-2xl"
+            style={{
+              WebkitOverflowScrolling: "touch",
+              overscrollBehavior: "contain",
+              touchAction: "pan-y",
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+            }}
+            onTouchMove={(e) => {
+              e.stopPropagation();
+            }}
+            onWheel={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Choose match for:{" "}
+                <span className="font-bold">{selectedLeft}</span>
+              </h3>
+              <button
+                onClick={() => setSelectedLeft(null)}
+                className="rounded-md px-3 py-1 text-sm text-gray-600 hover:bg-gray-100"
+                aria-label="Close chooser"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2">
+              {rightItems.map((item) => {
+                const isMatched = Object.values(matches).includes(item);
+                return (
+                  <button
+                    key={`sheet-${item}`}
+                    onClick={() => {
+                      if (selectedLeft) {
+                        createMatch(selectedLeft, item);
+                      }
+                    }}
+                    disabled={
+                      isMatched && matches[selectedLeft as string] !== item
+                    }
+                    className={`min-h-[48px] w-full rounded-lg border-2 p-3 text-left text-base transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
+                      selectedRight === item
+                        ? "border-blue-500 bg-blue-50 text-blue-900"
+                        : isMatched
+                          ? "border-green-300 bg-green-50 text-green-900"
+                          : "border-gray-200 text-gray-900 hover:border-gray-300 hover:bg-gray-50"
+                    }`}
+                    aria-label={`Choose ${item} as match`}
+                  >
+                    {item}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Submit Button */}
       <div className="text-center">

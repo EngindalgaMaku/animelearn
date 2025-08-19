@@ -536,11 +536,11 @@ function CodeArenaContent() {
 
       {/* Enhanced Hero Section with Integrated Topic Selection */}
       <section
-        className={`relative overflow-hidden bg-gradient-to-br ${uiConfig.headerGradient} py-6 sm:py-8 md:py-12`}
+        className={`relative overflow-hidden bg-gradient-to-br ${uiConfig.headerGradient} py-3 sm:py-6 md:py-10`}
       >
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-30"></div>
         {enableAnimations && uiConfig.enableAnimations && (
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 hidden md:block">
             <div className="absolute left-1/4 top-1/4 h-64 w-64 animate-pulse rounded-full bg-cyan-400/20 blur-3xl sm:h-96 sm:w-96"></div>
             <div className="absolute bottom-1/4 right-1/4 h-64 w-64 animate-pulse rounded-full bg-pink-400/20 blur-3xl sm:h-96 sm:w-96"></div>
           </div>
@@ -582,7 +582,7 @@ function CodeArenaContent() {
               <div className="mb-6 flex flex-col items-center space-y-4 sm:mb-8 sm:space-y-6 md:flex-row md:justify-center md:space-x-8 md:space-y-0">
                 {/* Topic Selector */}
                 <div className="flex w-full flex-col items-center space-y-2 sm:w-auto sm:flex-row sm:space-x-4 sm:space-y-0">
-                  <span className="text-center text-lg font-bold text-white sm:text-left sm:text-xl">
+                  <span className="hidden text-center text-lg font-bold text-white sm:inline sm:text-left sm:text-xl">
                     Choose Your Path:
                   </span>
                   <div className="relative w-full sm:w-auto">
@@ -686,7 +686,7 @@ function CodeArenaContent() {
               </div>
 
               {/* Dynamic description based on selected topic */}
-              <p className="mx-auto mb-4 max-w-3xl px-4 text-base font-medium text-indigo-100 sm:mb-6 sm:px-0 sm:text-lg lg:mb-8 lg:text-xl">
+              <p className="mx-auto mb-4 hidden max-w-3xl px-4 text-base font-medium text-indigo-100 sm:mb-6 sm:block sm:px-0 sm:text-lg lg:mb-8 lg:text-xl">
                 {categoryConfigs[selectedTopic]
                   ? `${categoryConfigs[selectedTopic].description} - ${uiConfig.heroDescription}`
                   : uiConfig.heroDescription.replace(
@@ -696,7 +696,7 @@ function CodeArenaContent() {
               </p>
 
               {/* Learn First Notice */}
-              <div className="mx-auto mb-6 max-w-2xl rounded-2xl border border-cyan-300/30 bg-cyan-400/10 p-4 backdrop-blur-xl sm:mb-8 sm:p-6">
+              <div className="mx-auto mb-6 hidden max-w-2xl rounded-2xl border border-cyan-300/30 bg-cyan-400/10 p-4 backdrop-blur-xl sm:mb-8 sm:block sm:p-6">
                 <div className="flex items-center justify-center space-x-3 text-cyan-100">
                   <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6" />
                   <span className="text-sm font-medium sm:text-base">
@@ -731,7 +731,7 @@ function CodeArenaContent() {
               {/* Integrated Topic Selection - Non-animated */}
               <div className="mb-6 flex flex-col items-center space-y-4 sm:mb-8 sm:space-y-6 md:flex-row md:justify-center md:space-x-8 md:space-y-0">
                 <div className="flex w-full flex-col items-center space-y-2 sm:w-auto sm:flex-row sm:space-x-4 sm:space-y-0">
-                  <span className="text-center text-lg font-bold text-white sm:text-left sm:text-xl">
+                  <span className="hidden text-center text-lg font-bold text-white sm:inline sm:text-left sm:text-xl">
                     Choose Your Path:
                   </span>
                   <div className="relative w-full sm:w-auto">
@@ -833,7 +833,7 @@ function CodeArenaContent() {
                 </div>
               </div>
 
-              <p className="mx-auto mb-6 max-w-3xl px-4 text-base font-medium text-indigo-100 sm:mb-8 sm:px-0 sm:text-lg lg:mb-10 lg:text-xl">
+              <p className="mx-auto mb-6 hidden max-w-3xl px-4 text-base font-medium text-indigo-100 sm:mb-8 sm:block sm:px-0 sm:text-lg lg:mb-10 lg:text-xl">
                 {categoryConfigs[selectedTopic]
                   ? `${categoryConfigs[selectedTopic].description} - ${uiConfig.heroDescription}`
                   : uiConfig.heroDescription.replace(
@@ -846,7 +846,7 @@ function CodeArenaContent() {
 
           {/* Topic-Specific Stats */}
           {uiConfig.showStats && (
-            <div className="mx-auto grid max-w-5xl grid-cols-2 gap-3 px-4 sm:gap-4 sm:px-0 md:grid-cols-4 md:gap-6">
+            <div className="mx-auto hidden max-w-5xl grid-cols-2 gap-3 px-4 sm:gap-4 sm:px-0 md:grid md:grid-cols-4 md:gap-6">
               <div className="rounded-2xl border border-white/30 bg-gradient-to-br from-white/20 to-white/5 p-4 shadow-2xl backdrop-blur-xl sm:rounded-3xl sm:p-6">
                 <div className="text-2xl font-black text-yellow-300 sm:text-3xl lg:text-4xl">
                   {totalCount || stats.total}
